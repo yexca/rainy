@@ -1,0 +1,75 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "rainy",
+    "serverVersion": "dev",
+    "openSubsonic": true,
+    "directory": {
+      "id": "8171e3e4a01d1e3130f5c1",
+      "parent": "ed907e0cacfadb483ac4c3",
+      "name": "Skies",
+      "userRating": 4,
+      "child": [
+        {
+          "id": "track3",
+          "parent": "8171e3e4a01d1e3130f5c1",
+          "isDir": false,
+          "title": "Clouds",
+          "album": "Skies",
+          "artist": "Northern Echo",
+          "track": 1,
+          "year": 2018,
+          "genre": "Ambient",
+          "coverArt": "al-8171e3e4a01d1e3130f5c1_loyw6080",
+          "size": 30000,
+          "contentType": "audio/flac",
+          "suffix": "flac",
+          "duration": 301,
+          "bitRate": 1411,
+          "bitDepth": 24,
+          "samplingRate": 96000,
+          "channelCount": 2,
+          "path": "Northern Echo/Skies/01 Clouds.flac",
+          "isVideo": false,
+          "playCount": 0,
+          "discNumber": 1,
+          "created": "2023-11-14T22:13:21Z",
+          "albumId": "8171e3e4a01d1e3130f5c1",
+          "artistId": "ed907e0cacfadb483ac4c3",
+          "type": "music",
+          "mediaType": "song",
+          "bpm": 0,
+          "comment": "",
+          "sortName": "",
+          "musicBrainzId": "",
+          "genres": [
+            {
+              "name": "Ambient"
+            },
+            {
+              "name": "Indie"
+            }
+          ],
+          "artists": [
+            {
+              "id": "ed907e0cacfadb483ac4c3",
+              "name": "Northern Echo"
+            }
+          ],
+          "displayArtist": "Northern Echo",
+          "albumArtists": [
+            {
+              "id": "ed907e0cacfadb483ac4c3",
+              "name": "Northern Echo"
+            }
+          ],
+          "displayAlbumArtist": "Northern Echo",
+          "displayComposer": "",
+          "moods": [],
+          "replayGain": {}
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "actions": {
+    "seeAll": "查看全部",
+    "showAll": "显示全部 {{count}} 首",
+    "showLess": "收起",
+    "scrollBack": "向前滚动",
+    "scrollForward": "向后滚动",
+    "downloadAlbum": "下载专辑"
+  },
+  "home": {
+    "greeting": {
+      "morning": "早上好",
+      "afternoon": "下午好",
+      "evening": "晚上好",
+      "night": "夜深了"
+    },
+    "stats": "{{songs}} 首歌曲 · {{albums}} 张专辑 · {{artists}} 位艺人",
+    "shuffleAll": "随机播放全部",
+    "recentlyAdded": "最近添加",
+    "recentlyPlayed": "最近播放",
+    "mostPlayed": "最常播放",
+    "discover": "发现",
+    "refreshDiscover": "换一批",
+    "favorites": "收藏的专辑",
+    "emptyTitle": "资料库还是空的",
+    "emptyManager": "上传一些音乐，或者把音乐库指向你的音乐文件夹并开始扫描。",
+    "emptyListener": "管理员向资料库添加音乐后，就会显示在这里。",
+    "upload": "上传音乐",
+    "scanLibrary": "音乐库与扫描"
+  },
+  "search": {
+    "placeholder": "艺人、歌曲、专辑",
+    "recent": "最近搜索",
+    "removeRecent": "从最近搜索中移除“{{term}}”",
+    "browse": "浏览流派",
+    "artists": "艺人",
+    "albums": "专辑",
+    "songs": "歌曲",
+    "noResultsTitle": "没有找到“{{query}}”的结果",
+    "noResultsDescription": "检查一下拼写，或者换个关键词试试。",
+    "noMatches": "没有匹配项"
+  },
+  "library": {
+    "recentlyAdded": "最近添加"
+  },
+  "sort": {
+    "labelWithColon": "排序：",
+    "by": "排序方式",
+    "asc": "升序",
+    "desc": "降序",
+    "album": {
+      "recent": "最近添加",
+      "name": "标题",
+      "artist": "艺人",
+      "year": "年份",
+      "played": "最近播放",
+      "frequent": "最常播放",
+      "starred": "最近收藏",
+      "random": "随机"
+    },
+    "artist": {
+      "name": "名称",
+      "albumCount": "专辑数量",
+      "songCount": "歌曲数量",
+      "recent": "最近添加",
+      "frequent": "最常播放",
+      "played": "最近播放"
+    },
+    "track": {
+      "title": "标题",
+      "artist": "艺人",
+      "album": "专辑",
+      "recent": "最近添加",
+      "year": "年份",
+      "duration": "时长",
+      "frequent": "最常播放",
+      "played": "最近播放",
+      "starred": "最近收藏"
+    },
+    "genre": {
+      "name": "名称",
+      "songs": "歌曲最多",
+      "albums": "专辑最多"
+    }
+  },
+  "filter": {
+    "favorites": "收藏",
+    "genre": "流派",
+    "allGenres": "全部流派",
+    "clear": "清除{{name}}筛选",
+    "reset": "清除筛选"
+  },
+  "albums": {
+    "count_other": "{{formatted}} 张专辑",
+    "emptyTitle": "还没有专辑",
+    "emptyDescription": "扫描音乐库后，专辑会显示在这里。",
+    "emptyFilteredTitle": "没有符合条件的专辑",
+    "emptyFilteredDescription": "试试去掉一些筛选条件。"
+  },
+  "album": {
+    "kind": "专辑",
+    "compilation": "合辑",
+    "disc": "第 {{number}} 张碟",
+    "moreBy": "{{artist}} 的更多作品",
+    "playAlbum": "播放《{{name}}》",
+    "notFound": "找不到这张专辑",
+    "backToAlbums": "前往专辑"
+  },
+  "artists": {
+    "count_other": "{{formatted}} 位艺人",
+    "includeTrackArtists": "包含参与艺人",
+    "index": "字母索引",
+    "jumpTo": "跳转到 {{letter}}",
+    "emptyTitle": "还没有艺人",
+    "emptyDescription": "扫描音乐库后，艺人会显示在这里。"
+  },
+  "artist": {
+    "kind": "艺人",
+    "topSongs": "热门歌曲",
+    "albums": "专辑",
+    "appearsOn": "参与作品",
+    "notFound": "找不到这位艺人",
+    "backToArtists": "前往艺人"
+  },
+  "songs": {
+    "count_other": "{{formatted}} 首歌曲",
+    "emptyTitle": "还没有歌曲",
+    "emptyDescription": "扫描音乐库后，歌曲会显示在这里。",
+    "emptyFavoritesTitle": "还没有收藏的歌曲",
+    "emptyFavoritesDescription": "点一下歌曲旁的星标，就能把它加入收藏。"
+  },
+  "genres": {
+    "count_other": "{{formatted}} 个流派",
+    "emptyTitle": "还没有流派",
+    "emptyDescription": "流派信息来自音乐文件的标签。"
+  },
+  "genre": {
+    "albums": "专辑",
+    "songs": "歌曲",
+    "noAlbums": "这个流派下没有专辑",
+    "noSongs": "这个流派下没有歌曲",
+    "notFound": "找不到这个流派",
+    "backToGenres": "前往流派"
+  },
+  "favorites": {
+    "songs": "歌曲",
+    "albums": "专辑",
+    "artists": "艺人",
+    "emptySongs": "还没有收藏的歌曲",
+    "emptyAlbums": "还没有收藏的专辑",
+    "emptyArtists": "还没有收藏的艺人",
+    "emptyHint": "点一下星标，把喜欢的音乐都收在这里。"
+  },
+  "playlists": {
+    "mine": "我的歌单",
+    "shared": "公开歌单",
+    "emptyTitle": "还没有歌单",
+    "emptyDescription": "创建一个歌单，为不同的心情和时刻收集歌曲。"
+  },
+  "playlist": {
+    "kind": "歌单",
+    "by": "{{name}} 创建",
+    "publicBadge": "公开",
+    "privateBadge": "私密",
+    "updated": "{{when}}更新",
+    "playPlaylist": "播放「{{name}}」",
+    "createTitle": "新建歌单",
+    "createDescription": "给歌单起个名字，之后可以从任意列表添加歌曲。",
+    "createWithSongs_other": "新歌单将包含 {{count}} 首歌曲。",
+    "editTitle": "编辑歌单",
+    "editDescription": "修改歌单的名称、描述或可见范围。",
+    "editDetails": "编辑信息…",
+    "name": "名称",
+    "namePlaceholder": "我的歌单",
+    "nameRequired": "请输入名称。",
+    "description": "描述",
+    "descriptionPlaceholder": "选填",
+    "public": "公开",
+    "publicHint": "服务器上的所有人都可以查看和播放（只有你可以修改）。",
+    "reorder": "调整顺序",
+    "editHint": "拖动调整顺序，点 − 移除歌曲。",
+    "editEmpty": "已移除所有歌曲，点“完成”保存。",
+    "removeSong": "移除《{{title}}》",
+    "dragSong": "调整《{{title}}》的位置",
+    "delete": "删除歌单",
+    "deleteTitle": "删除「{{name}}」？",
+    "deleteDescription": "歌单会对所有人删除，歌曲仍保留在资料库中。",
+    "filter": "查找歌单",
+    "emptyTitle": "歌单是空的",
+    "emptyDescription": "在任意歌曲或专辑上使用“添加到歌单”来填充它。",
+    "notFound": "找不到这个歌单",
+    "backToPlaylists": "前往歌单"
+  },
+  "radio": {
+    "count_other": "{{count}} 个电台",
+    "live": "网络电台",
+    "play": "播放 {{name}}",
+    "add": "添加电台",
+    "addTitle": "添加网络电台",
+    "editTitle": "编辑网络电台",
+    "formDescription": "支持任意网络电台流地址（MP3、AAC、Ogg 或 HLS）。",
+    "name": "名称",
+    "streamUrl": "流地址",
+    "homepageUrl": "主页",
+    "optional": "选填",
+    "nameRequired": "请输入名称。",
+    "urlInvalid": "请输入有效的 http:// 或 https:// 地址。",
+    "openHomepage": "打开主页",
+    "deleteTitle": "删除「{{name}}」？",
+    "deleteDescription": "该电台会对所有人移除。",
+    "emptyTitle": "还没有电台",
+    "emptyAdmin": "添加一个网络电台流，即可收听直播。",
+    "emptyListener": "管理员可以在这里添加网络电台。"
+  },
+  "track": {
+    "title": "标题",
+    "album": "专辑",
+    "listLabel": "歌曲",
+    "nowPlaying": "正在播放",
+    "paused": "已暂停",
+    "playTitle": "播放《{{title}}》",
+    "favorited": "已收藏"
+  },
+  "toast": {
+    "nothingToPlay": "这里暂时没有可播放的内容",
+    "playlistCreated": "已创建「{{name}}」",
+    "playlistSaved": "歌单已保存",
+    "playlistDeleted": "已删除「{{name}}」",
+    "stationAdded": "已添加「{{name}}」",
+    "stationSaved": "电台已保存",
+    "stationDeleted": "已删除「{{name}}」"
+  },
+  "songsAndDuration": "{{songs}}，{{duration}}"
+}

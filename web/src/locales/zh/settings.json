@@ -1,0 +1,102 @@
+{
+  "title": "设置",
+  "subtitle": "账户、客户端与播放偏好",
+  "copyValue": "复制{{label}}",
+  "profile": {
+    "title": "个人资料",
+    "displayName": "显示名称",
+    "email": "电子邮箱",
+    "invalidEmail": "请输入有效的电子邮箱地址。",
+    "saved": "个人资料已更新"
+  },
+  "password": {
+    "title": "密码",
+    "current": "当前密码",
+    "new": "新密码",
+    "confirm": "确认新密码",
+    "hint_one": "至少 {{count}} 个字符。",
+    "hint_other": "至少 {{count}} 个字符。",
+    "required": "请输入当前密码。",
+    "tooShort_one": "密码至少需要 {{count}} 个字符。",
+    "tooShort_other": "密码至少需要 {{count}} 个字符。",
+    "same": "新密码不能与当前密码相同。",
+    "mismatch": "两次输入的密码不一致。",
+    "wrongCurrent": "当前密码不正确。",
+    "submit": "修改密码",
+    "changed": "密码已修改",
+    "footer": "此设备会保持登录。使用密码登录的 Subsonic 客户端需要改用新密码。"
+  },
+  "subsonic": {
+    "title": "Subsonic 客户端",
+    "description": "可使用任何兼容 Subsonic / OpenSubsonic 的应用收听。",
+    "server": "服务器地址",
+    "username": "用户名",
+    "apiKey": "API 密钥",
+    "keyActive": "已启用 API 密钥。",
+    "keyNone": "尚未创建 API 密钥。支持 API 密钥的客户端不会接触到你的密码。",
+    "generate": "创建 API 密钥",
+    "regenerate": "重新生成",
+    "revoke": "撤销",
+    "revoked": "API 密钥已撤销",
+    "copyNow": "请立即复制 API 密钥，关闭后将无法再次查看。",
+    "regenerateTitle": "重新生成 API 密钥？",
+    "revokeTitle": "撤销 API 密钥？",
+    "invalidateWarning": "正在使用当前密钥的客户端将无法连接，需要重新填写新密钥。",
+    "passwordNote": "不支持 API 密钥的客户端可以直接使用用户名和密码登录。",
+    "clients": "推荐客户端",
+    "clientsHint": "填写服务器地址，再输入用户名和密码（或 API 密钥）即可。",
+    "platform": {
+      "ios": "iPhone 与 iPad",
+      "android": "Android",
+      "desktop": "桌面端"
+    }
+  },
+  "appearance": {
+    "title": "外观",
+    "theme": "主题",
+    "accentHint": "用于按钮、高亮和进度条。"
+  },
+  "playback": {
+    "title": "播放",
+    "quality": "串流音质",
+    "original": "原始",
+    "qualityOriginalHint": "直接播放原始文件；当前浏览器无法播放的格式会自动转码。",
+    "qualityHint": "码率上限（kbps），每小时约 {{mb}} MB。更高码率的文件会实时转码。",
+    "format": "转码格式",
+    "formatHint": "歌曲需要转码时使用。低码率下 Opus 音质最好，AAC 和 MP3 兼容性最佳。",
+    "opusUnsupported": "当前浏览器不支持 Opus，将改用 AAC 或 MP3。",
+    "replayGain": "音量均衡",
+    "replayGainHint": "根据 ReplayGain 标签平衡不同歌曲或专辑之间的响度。",
+    "replayGainUnsupported": "此设备不支持，音量由系统控制。",
+    "rgOff": "关闭",
+    "rgTrack": "单曲",
+    "rgAlbum": "专辑",
+    "preload": "预加载下一首",
+    "preloadHint": "在当前歌曲结束前缓冲下一首，实现近乎无缝的播放。",
+    "preloadUnsupported": "iPhone 和 iPad 不支持此功能。",
+    "footer": "播放设置仅保存在此设备上。"
+  },
+  "install": {
+    "title": "应用",
+    "label": "安装 Rainy",
+    "hint": "将 Rainy 添加到主屏幕或程序坞，获得全屏应用体验。",
+    "button": "安装",
+    "iosStep1": "在 Safari 中轻点“分享”",
+    "iosStep2": "选择“添加到主屏幕”"
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "playPause": "播放 / 暂停",
+    "seek": "后退 / 快进 5 秒",
+    "previous": "上一首",
+    "next": "下一首",
+    "mute": "静音 / 取消静音",
+    "space": "空格"
+  },
+  "about": {
+    "title": "关于",
+    "tagline": "自托管的私人音乐库",
+    "version": "版本",
+    "api": "兼容性"
+  }
+}

@@ -1,0 +1,77 @@
+<p align="center">
+  <a href="../../README.md">English</a> ·
+  <a href="README.zh-Hans.md">简体中文</a> ·
+  <a href="README.zh-Hant.md">繁體中文</a> ·
+  <a href="README.ja.md">日本語</a>
+</p>
+
+<p align="center">
+  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy 圖示">
+</p>
+
+# Rainy
+
+為 NAS 打造的自架音樂伺服器：相容 Subsonic，內建美觀的網頁播放器，還能直接在網頁上整理音樂庫。
+
+Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的音樂資料夾變成隨時隨地可聽的私人串流服務。不同之處在於 Rainy 把**音樂庫管理**視為核心功能：編輯標籤、更換封面、加入歌詞、依規則重新命名、上傳、刪除、找出有問題的檔案，都能在瀏覽器中完成。
+
+> [!IMPORTANT]
+> Rainy 仍在積極開發中。升級前請備份資料目錄（`/data`）；在網頁上編輯標籤或重新命名之前，請先備份音樂檔案。將實例公開到家用網路之外前，請閱讀[部署安全](../operations/security.md)。
+
+## 功能
+
+- 支援 MP3、FLAC、AAC/M4A/ALAC、Ogg Vorbis、Opus、WAV、AIFF、APE、WavPack、WMA、DSD 等格式；原始檔直接串流，也可透過 ffmpeg 即時轉碼。
+- 實作 Subsonic API 1.16.1 與 OpenSubsonic 擴充，可直接使用 Symfonium、Amperfy、play:Sub、Feishin 等用戶端。
+- 可安裝為 PWA 的網頁播放器：iOS 風格的「正在播放」畫面、同步歌詞、可拖曳排序的佇列、鎖定畫面控制與 AirPlay。
+- 在瀏覽器中管理音樂庫：批次編輯標籤、封面、歌詞、重新命名與整理、上傳、可還原的資源回收筒、音樂庫健檢與修改紀錄。
+- 自動修復 GBK、Big5、Shift-JIS 編碼造成的亂碼，並可用 UTF-8 永久寫回檔案。
+- 多使用者：管理員、音樂庫管理者與一般使用者，下載權限可個別設定。
+
+網頁介面目前提供英文與簡體中文。
+
+## 快速開始
+
+1. 在空目錄中放入 [`docker-compose.yml`](../../docker-compose.yml)。
+2. 在同一目錄建立 `.env`：
+
+   ```dotenv
+   RAINY_MUSIC_PATH=/path/to/music
+   PUID=1000
+   PGID=1000
+   TZ=Asia/Taipei
+   ```
+
+3. 啟動：
+
+   ```sh
+   docker compose up -d --pull always
+   ```
+
+4. 開啟 `http://<NAS 的 IP>:7650`，首次造訪時建立管理員帳號。Rainy 會自動將 `/music` 加入為第一個音樂庫並開始掃描。
+
+`PUID`/`PGID` 須能讀取音樂資料夾；若要在網頁上編輯檔案，還需要寫入權限。各家 NAS 的設定方式請參考 [Docker 與 NAS 指南](../operations/docker.md)，所有選項請參考 [`.env.example`](../../.env.example) 與[設定](../operations/configuration.md)。
+
+## 執行期資料
+
+| 主機路徑 | 容器路徑 | 內容 |
+| --- | --- | --- |
+| `RAINY_DATA_PATH`（預設 `./data`） | `/data` | 資料庫、`secret.key`、封面快取、資源回收筒 |
+| `RAINY_MUSIC_PATH` | `/music` | 你的音樂 |
+
+`secret.key` 用於加密儲存的密碼，請與 `rainy.db` 一併備份並妥善保管。請勿將這些目錄提交到版本庫。
+
+## 文件
+
+完整文件（英文）請見[文件索引](../README.md)，包括[使用者指南](../user/index.md)、[反向代理](../operations/reverse-proxy.md)與[疑難排解](../operations/troubleshooting.md)。
+
+## 安全與隱私
+
+音樂庫資料與音訊都需要登入才能存取，Rainy 不收集任何遙測資料。請透過 [SECURITY.md](../../SECURITY.md) 私下回報漏洞，分享記錄檔前請閱讀 [PRIVACY.md](../../PRIVACY.md)。
+
+## 開發與貢獻
+
+請閱讀 [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md) 與[本地開發](../development/local-dev.md)。
+
+## 授權
+
+Rainy 採用 [GNU Affero General Public License v3.0](../../LICENSE)。

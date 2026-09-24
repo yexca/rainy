@@ -1,0 +1,8 @@
+# pnpm settings for the Rainy web app (single package, not a multi-package workspace).
+#
+# pnpm 11 refuses to run dependency lifecycle scripts unless they are explicitly allowed
+# (strictDepBuilds). Keep this list minimal and explicit so `pnpm install --frozen-lockfile`
+# is reproducible in CI and in the Docker build.
+allowBuilds:
+  esbuild: true
+  sharp: true

@@ -1,0 +1,165 @@
+{
+  "appName": "Rainy",
+  "nav": {
+    "main": "主导航",
+    "library": "资料库",
+    "home": "首页",
+    "search": "搜索",
+    "albums": "专辑",
+    "artists": "艺人",
+    "songs": "歌曲",
+    "genres": "流派",
+    "favorites": "收藏",
+    "playlists": "歌单",
+    "radio": "电台",
+    "settings": "设置",
+    "manage": "管理",
+    "manageLibrary": "曲库",
+    "folders": "文件夹",
+    "upload": "上传",
+    "doctor": "体检",
+    "trash": "回收站",
+    "history": "历史记录",
+    "admin": "系统",
+    "users": "用户",
+    "libraries": "音乐库",
+    "serverSettings": "服务器设置",
+    "newPlaylist": "新建歌单",
+    "allPlaylists": "全部歌单",
+    "noPlaylists": "还没有歌单",
+    "toggleSidebar": "展开/收起侧边栏"
+  },
+  "actions": {
+    "play": "播放",
+    "pause": "暂停",
+    "previous": "上一首",
+    "next": "下一首",
+    "shuffle": "随机播放",
+    "playNext": "下一首播放",
+    "addToQueue": "添加到播放队列",
+    "addToPlaylist": "添加到歌单…",
+    "goToAlbum": "前往专辑",
+    "goToArtist": "前往艺人",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "download": "下载",
+    "editTags": "编辑标签…",
+    "removeFromPlaylist": "从歌单中移除",
+    "more": "更多",
+    "back": "返回",
+    "retry": "重试",
+    "reload": "重新加载",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "add": "添加",
+    "close": "关闭",
+    "confirm": "确认",
+    "done": "完成",
+    "select": "选择",
+    "selectAll": "全选",
+    "clear": "清空",
+    "search": "搜索",
+    "refresh": "刷新",
+    "copy": "复制",
+    "copied": "已复制",
+    "goHome": "返回首页",
+    "logout": "退出登录"
+  },
+  "user": {
+    "menu": "账户菜单",
+    "admin": "管理员",
+    "manager": "曲库管理员",
+    "listener": "听众"
+  },
+  "theme": {
+    "label": "外观",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
+  "accent": {
+    "label": "强调色",
+    "rain": "雨蓝",
+    "rose": "玫红",
+    "violet": "紫罗兰",
+    "emerald": "翡翠绿",
+    "amber": "琥珀",
+    "graphite": "石墨"
+  },
+  "language": {
+    "label": "语言"
+  },
+  "state": {
+    "loading": "加载中…",
+    "empty": "这里还什么都没有",
+    "comingSoonTitle": "即将推出",
+    "comingSoonDescription": "这个页面还在建设中，敬请期待。",
+    "notPlaying": "未在播放"
+  },
+  "errors": {
+    "title": "出了点问题",
+    "network": "无法连接到 Rainy 服务器，请检查网络后重试。",
+    "unauthorized": "登录已过期，请重新登录。",
+    "forbidden": "你没有执行此操作的权限。",
+    "not_found": "找不到你要的内容。",
+    "rate_limited": "尝试次数过多，请几分钟后再试。",
+    "readonly": "音乐文件夹为只读，无法修改文件。",
+    "internal": "服务器出现问题，请重试。",
+    "unavailable": "服务器暂时不可用，请稍后重试。",
+    "not_implemented": "暂不支持此功能。",
+    "unknown": "发生了意外错误。",
+    "serverUnreachableTitle": "无法连接服务器",
+    "renderTitle": "页面出错了",
+    "renderDescription": "显示此页面时发生了意外错误。"
+  },
+  "notFound": {
+    "title": "页面不存在",
+    "description": "你要访问的页面不存在或已被移动。"
+  },
+  "forbidden": {
+    "title": "无权访问",
+    "description": "你的账户没有查看此页面的权限。"
+  },
+  "count": {
+    "songs_other": "{{count}} 首歌曲",
+    "albums_other": "{{count}} 张专辑",
+    "artists_other": "{{count}} 位艺人",
+    "playlists_other": "{{count}} 个歌单",
+    "tracks_other": "{{count}} 首曲目"
+  },
+  "duration": {
+    "hoursMinutes": "{{hours}} 小时 {{minutes}} 分钟",
+    "hours": "{{hours}} 小时",
+    "minutes": "{{minutes}} 分钟",
+    "seconds": "{{seconds}} 秒"
+  },
+  "time": {
+    "never": "从未",
+    "unknown": "—"
+  },
+  "toast": {
+    "playingNext_other": "将在下一首播放 {{count}} 首歌曲",
+    "addedToQueue_other": "已将 {{count}} 首歌曲添加到播放队列",
+    "addedToPlaylist": "已添加到「{{name}}」",
+    "removedFromPlaylist": "已从歌单中移除",
+    "favorited": "已收藏",
+    "unfavorited": "已取消收藏"
+  },
+  "addToPlaylist": {
+    "title": "添加到歌单",
+    "description_other": "为 {{count}} 首歌曲选择一个歌单。",
+    "empty": "你还没有任何歌单。"
+  },
+  "tagEditor": {
+    "title": "编辑标签",
+    "selected_other": "已选择 {{count}} 首曲目"
+  },
+  "a11y": {
+    "coverArt": "封面",
+    "loading": "加载中",
+    "skipToContent": "跳到主要内容"
+  }
+}

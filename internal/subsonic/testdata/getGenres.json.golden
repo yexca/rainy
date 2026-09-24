@@ -1,0 +1,33 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "rainy",
+    "serverVersion": "dev",
+    "openSubsonic": true,
+    "genres": {
+      "genre": [
+        {
+          "value": "Ambient",
+          "songCount": 1,
+          "albumCount": 1
+        },
+        {
+          "value": "Electronic",
+          "songCount": 1,
+          "albumCount": 1
+        },
+        {
+          "value": "Indie",
+          "songCount": 2,
+          "albumCount": 2
+        },
+        {
+          "value": "Rock",
+          "songCount": 2,
+          "albumCount": 1
+        }
+      ]
+    }
+  }
+}

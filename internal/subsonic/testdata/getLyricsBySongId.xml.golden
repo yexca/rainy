@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="rainy" serverVersion="dev" openSubsonic="true">
+<lyricsList>
+<structuredLyrics displayArtist="The Rainy Days" displayTitle="Rain Song" lang="xxx" synced="true">
+<line start="1000">Hello rain</line>
+<line start="3500">Goodbye sun</line>
+</structuredLyrics></lyricsList>
+</subsonic-response>

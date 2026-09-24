@@ -1,0 +1,200 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "rainy",
+    "serverVersion": "dev",
+    "openSubsonic": true,
+    "playlist": {
+      "id": "playlist1",
+      "name": "Rainy Mix",
+      "comment": "for grey days",
+      "owner": "alice",
+      "public": false,
+      "songCount": 3,
+      "duration": 687,
+      "created": "2023-11-14T22:13:20Z",
+      "changed": "2023-11-14T22:15:00Z",
+      "coverArt": "pl-playlist1_loyw6080",
+      "readonly": false,
+      "entry": [
+        {
+          "id": "track2",
+          "parent": "c0db094cc80c57d102eb1a",
+          "isDir": false,
+          "title": "Puddles",
+          "album": "Wet Streets",
+          "artist": "The Rainy Days",
+          "track": 2,
+          "year": 2020,
+          "genre": "Rock",
+          "coverArt": "al-c0db094cc80c57d102eb1a_loyw6080",
+          "size": 5000,
+          "contentType": "audio/mpeg",
+          "suffix": "mp3",
+          "duration": 201,
+          "bitRate": 256,
+          "bitDepth": 0,
+          "samplingRate": 44100,
+          "channelCount": 2,
+          "path": "The Rainy Days/Wet Streets/02 Puddles.mp3",
+          "isVideo": false,
+          "userRating": 5,
+          "playCount": 0,
+          "discNumber": 1,
+          "created": "2023-11-14T22:13:20Z",
+          "albumId": "c0db094cc80c57d102eb1a",
+          "artistId": "86422198b5f6f2f7959989",
+          "type": "music",
+          "mediaType": "song",
+          "bpm": 0,
+          "comment": "",
+          "sortName": "",
+          "musicBrainzId": "",
+          "genres": [
+            {
+              "name": "Rock"
+            }
+          ],
+          "artists": [
+            {
+              "id": "86422198b5f6f2f7959989",
+              "name": "The Rainy Days"
+            }
+          ],
+          "displayArtist": "The Rainy Days",
+          "albumArtists": [
+            {
+              "id": "86422198b5f6f2f7959989",
+              "name": "The Rainy Days"
+            }
+          ],
+          "displayAlbumArtist": "The Rainy Days",
+          "displayComposer": "",
+          "moods": [],
+          "replayGain": {}
+        },
+        {
+          "id": "track1",
+          "parent": "c0db094cc80c57d102eb1a",
+          "isDir": false,
+          "title": "Rain Song",
+          "album": "Wet Streets",
+          "artist": "The Rainy Days",
+          "track": 1,
+          "year": 2020,
+          "genre": "Rock",
+          "coverArt": "al-c0db094cc80c57d102eb1a_loyw6080",
+          "size": 4096,
+          "contentType": "audio/mpeg",
+          "suffix": "mp3",
+          "duration": 185,
+          "bitRate": 320,
+          "bitDepth": 0,
+          "samplingRate": 44100,
+          "channelCount": 2,
+          "path": "The Rainy Days/Wet Streets/01 Rain Song.mp3",
+          "isVideo": false,
+          "playCount": 0,
+          "discNumber": 1,
+          "created": "2023-11-14T22:13:20Z",
+          "starred": "2023-11-14T22:16:40Z",
+          "albumId": "c0db094cc80c57d102eb1a",
+          "artistId": "86422198b5f6f2f7959989",
+          "type": "music",
+          "mediaType": "song",
+          "bpm": 120,
+          "comment": "first",
+          "sortName": "rain song",
+          "musicBrainzId": "mbz-track-1",
+          "genres": [
+            {
+              "name": "Rock"
+            },
+            {
+              "name": "Indie"
+            }
+          ],
+          "artists": [
+            {
+              "id": "86422198b5f6f2f7959989",
+              "name": "The Rainy Days"
+            }
+          ],
+          "displayArtist": "The Rainy Days",
+          "albumArtists": [
+            {
+              "id": "86422198b5f6f2f7959989",
+              "name": "The Rainy Days"
+            }
+          ],
+          "displayAlbumArtist": "The Rainy Days",
+          "displayComposer": "J. Doe",
+          "moods": [],
+          "replayGain": {
+            "trackGain": -6.5,
+            "trackPeak": 0.98
+          }
+        },
+        {
+          "id": "track3",
+          "parent": "8171e3e4a01d1e3130f5c1",
+          "isDir": false,
+          "title": "Clouds",
+          "album": "Skies",
+          "artist": "Northern Echo",
+          "track": 1,
+          "year": 2018,
+          "genre": "Ambient",
+          "coverArt": "al-8171e3e4a01d1e3130f5c1_loyw6080",
+          "size": 30000,
+          "contentType": "audio/flac",
+          "suffix": "flac",
+          "duration": 301,
+          "bitRate": 1411,
+          "bitDepth": 24,
+          "samplingRate": 96000,
+          "channelCount": 2,
+          "path": "Northern Echo/Skies/01 Clouds.flac",
+          "isVideo": false,
+          "playCount": 0,
+          "discNumber": 1,
+          "created": "2023-11-14T22:13:21Z",
+          "albumId": "8171e3e4a01d1e3130f5c1",
+          "artistId": "ed907e0cacfadb483ac4c3",
+          "type": "music",
+          "mediaType": "song",
+          "bpm": 0,
+          "comment": "",
+          "sortName": "",
+          "musicBrainzId": "",
+          "genres": [
+            {
+              "name": "Ambient"
+            },
+            {
+              "name": "Indie"
+            }
+          ],
+          "artists": [
+            {
+              "id": "ed907e0cacfadb483ac4c3",
+              "name": "Northern Echo"
+            }
+          ],
+          "displayArtist": "Northern Echo",
+          "albumArtists": [
+            {
+              "id": "ed907e0cacfadb483ac4c3",
+              "name": "Northern Echo"
+            }
+          ],
+          "displayAlbumArtist": "Northern Echo",
+          "displayComposer": "",
+          "moods": [],
+          "replayGain": {}
+        }
+      ]
+    }
+  }
+}

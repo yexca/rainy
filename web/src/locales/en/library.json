@@ -1,0 +1,240 @@
+{
+  "actions": {
+    "seeAll": "See all",
+    "showAll": "Show all {{count}}",
+    "showLess": "Show less",
+    "scrollBack": "Scroll back",
+    "scrollForward": "Scroll forward",
+    "downloadAlbum": "Download album"
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Up late?"
+    },
+    "stats": "{{songs}} songs · {{albums}} albums · {{artists}} artists",
+    "shuffleAll": "Shuffle all",
+    "recentlyAdded": "Recently added",
+    "recentlyPlayed": "Recently played",
+    "mostPlayed": "Most played",
+    "discover": "Discover",
+    "refreshDiscover": "Show other albums",
+    "favorites": "Favorite albums",
+    "emptyTitle": "Your library is empty",
+    "emptyManager": "Upload some music or point a library at your music folder and run a scan.",
+    "emptyListener": "Music will show up here once an administrator adds some to the library.",
+    "upload": "Upload music",
+    "scanLibrary": "Libraries & scan"
+  },
+  "search": {
+    "placeholder": "Artists, songs, albums",
+    "recent": "Recent searches",
+    "removeRecent": "Remove “{{term}}” from recent searches",
+    "browse": "Browse genres",
+    "artists": "Artists",
+    "albums": "Albums",
+    "songs": "Songs",
+    "noResultsTitle": "No results for “{{query}}”",
+    "noResultsDescription": "Check the spelling or try a different search.",
+    "noMatches": "No matches"
+  },
+  "library": {
+    "recentlyAdded": "Recently added"
+  },
+  "sort": {
+    "labelWithColon": "Sort: ",
+    "by": "Sort by",
+    "asc": "Ascending",
+    "desc": "Descending",
+    "album": {
+      "recent": "Recently added",
+      "name": "Title",
+      "artist": "Artist",
+      "year": "Year",
+      "played": "Recently played",
+      "frequent": "Most played",
+      "starred": "Recently favorited",
+      "random": "Random"
+    },
+    "artist": {
+      "name": "Name",
+      "albumCount": "Number of albums",
+      "songCount": "Number of songs",
+      "recent": "Recently added",
+      "frequent": "Most played",
+      "played": "Recently played"
+    },
+    "track": {
+      "title": "Title",
+      "artist": "Artist",
+      "album": "Album",
+      "recent": "Recently added",
+      "year": "Year",
+      "duration": "Duration",
+      "frequent": "Most played",
+      "played": "Recently played",
+      "starred": "Recently favorited"
+    },
+    "genre": {
+      "name": "Name",
+      "songs": "Most songs",
+      "albums": "Most albums"
+    }
+  },
+  "filter": {
+    "favorites": "Favorites",
+    "genre": "Genre",
+    "allGenres": "All genres",
+    "clear": "Clear {{name}} filter",
+    "reset": "Clear filters"
+  },
+  "albums": {
+    "count_one": "{{formatted}} album",
+    "count_other": "{{formatted}} albums",
+    "emptyTitle": "No albums yet",
+    "emptyDescription": "Albums appear here once your library has been scanned.",
+    "emptyFilteredTitle": "No matching albums",
+    "emptyFilteredDescription": "Try removing a filter."
+  },
+  "album": {
+    "kind": "Album",
+    "compilation": "Compilation",
+    "disc": "Disc {{number}}",
+    "moreBy": "More by {{artist}}",
+    "playAlbum": "Play {{name}}",
+    "notFound": "Album not found",
+    "backToAlbums": "Go to albums"
+  },
+  "artists": {
+    "count_one": "{{formatted}} artist",
+    "count_other": "{{formatted}} artists",
+    "includeTrackArtists": "Include featured artists",
+    "index": "Alphabetical index",
+    "jumpTo": "Jump to {{letter}}",
+    "emptyTitle": "No artists yet",
+    "emptyDescription": "Artists appear here once your library has been scanned."
+  },
+  "artist": {
+    "kind": "Artist",
+    "topSongs": "Top songs",
+    "albums": "Albums",
+    "appearsOn": "Appears on",
+    "notFound": "Artist not found",
+    "backToArtists": "Go to artists"
+  },
+  "songs": {
+    "count_one": "{{formatted}} song",
+    "count_other": "{{formatted}} songs",
+    "emptyTitle": "No songs yet",
+    "emptyDescription": "Songs appear here once your library has been scanned.",
+    "emptyFavoritesTitle": "No favorite songs",
+    "emptyFavoritesDescription": "Tap the star on a song to add it to your favorites."
+  },
+  "genres": {
+    "count_one": "{{formatted}} genre",
+    "count_other": "{{formatted}} genres",
+    "emptyTitle": "No genres yet",
+    "emptyDescription": "Genres come from the tags of your music files."
+  },
+  "genre": {
+    "albums": "Albums",
+    "songs": "Songs",
+    "noAlbums": "No albums in this genre",
+    "noSongs": "No songs in this genre",
+    "notFound": "Genre not found",
+    "backToGenres": "Go to genres"
+  },
+  "favorites": {
+    "songs": "Songs",
+    "albums": "Albums",
+    "artists": "Artists",
+    "emptySongs": "No favorite songs yet",
+    "emptyAlbums": "No favorite albums yet",
+    "emptyArtists": "No favorite artists yet",
+    "emptyHint": "Tap the star to keep the music you love in one place."
+  },
+  "playlists": {
+    "mine": "My playlists",
+    "shared": "Shared with everyone",
+    "emptyTitle": "No playlists yet",
+    "emptyDescription": "Create a playlist to collect songs for any mood or moment."
+  },
+  "playlist": {
+    "kind": "Playlist",
+    "by": "by {{name}}",
+    "publicBadge": "Public",
+    "privateBadge": "Private",
+    "updated": "updated {{when}}",
+    "playPlaylist": "Play {{name}}",
+    "createTitle": "New playlist",
+    "createDescription": "Give your playlist a name. You can add songs from any list later.",
+    "createWithSongs_one": "The new playlist will start with {{count}} song.",
+    "createWithSongs_other": "The new playlist will start with {{count}} songs.",
+    "editTitle": "Edit playlist",
+    "editDescription": "Change the name, description or who can see this playlist.",
+    "editDetails": "Edit details…",
+    "name": "Name",
+    "namePlaceholder": "My playlist",
+    "nameRequired": "Please enter a name.",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional",
+    "public": "Public",
+    "publicHint": "Everyone on this server can see and play it (only you can change it).",
+    "reorder": "Edit order",
+    "editHint": "Drag to reorder, or remove songs with −.",
+    "editEmpty": "All songs removed. Tap Done to save.",
+    "removeSong": "Remove {{title}}",
+    "dragSong": "Reorder {{title}}",
+    "delete": "Delete playlist",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteDescription": "The playlist will be deleted for everyone. The songs stay in your library.",
+    "filter": "Find a playlist",
+    "emptyTitle": "This playlist is empty",
+    "emptyDescription": "Use “Add to playlist” on any song or album to fill it.",
+    "notFound": "Playlist not found",
+    "backToPlaylists": "Go to playlists"
+  },
+  "radio": {
+    "count_one": "{{count}} station",
+    "count_other": "{{count}} stations",
+    "live": "Live radio",
+    "play": "Play {{name}}",
+    "add": "Add station",
+    "addTitle": "Add radio station",
+    "editTitle": "Edit radio station",
+    "formDescription": "Any Internet radio stream URL (MP3, AAC, Ogg or HLS) works.",
+    "name": "Name",
+    "streamUrl": "Stream URL",
+    "homepageUrl": "Homepage",
+    "optional": "Optional",
+    "nameRequired": "Please enter a name.",
+    "urlInvalid": "Enter a valid http:// or https:// address.",
+    "openHomepage": "Open homepage",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteDescription": "The station will be removed for everyone.",
+    "emptyTitle": "No radio stations",
+    "emptyAdmin": "Add an Internet radio stream to listen live.",
+    "emptyListener": "An administrator can add Internet radio stations here."
+  },
+  "track": {
+    "title": "Title",
+    "album": "Album",
+    "listLabel": "Songs",
+    "nowPlaying": "Now playing",
+    "paused": "Paused",
+    "playTitle": "Play {{title}}",
+    "favorited": "In favorites"
+  },
+  "toast": {
+    "nothingToPlay": "Nothing to play here yet",
+    "playlistCreated": "Created “{{name}}”",
+    "playlistSaved": "Playlist saved",
+    "playlistDeleted": "Deleted “{{name}}”",
+    "stationAdded": "Added “{{name}}”",
+    "stationSaved": "Station saved",
+    "stationDeleted": "Deleted “{{name}}”"
+  },
+  "songsAndDuration": "{{songs}}, {{duration}}"
+}

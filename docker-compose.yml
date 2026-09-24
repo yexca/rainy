@@ -1,0 +1,30 @@
+services:
+  rainy:
+    image: ${RAINY_IMAGE:-yexca/rainy:latest}
+    container_name: rainy
+    restart: unless-stopped
+    environment:
+      # The container starts as root only to fix /data ownership, then runs as PUID:PGID.
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: ${UMASK:-022}
+      TZ: ${TZ:-Asia/Shanghai}
+      RAINY_SCAN_INTERVAL: ${RAINY_SCAN_INTERVAL:-1h}
+      RAINY_SCAN_ON_START: ${RAINY_SCAN_ON_START:-true}
+      RAINY_LOG_LEVEL: ${RAINY_LOG_LEVEL:-info}
+      RAINY_TRUST_PROXY: ${RAINY_TRUST_PROXY:-false}
+      RAINY_SESSION_TTL: ${RAINY_SESSION_TTL:-720h}
+    ports:
+      - "${RAINY_HOST_PORT:-7650}:7650"
+    volumes:
+      - ${RAINY_DATA_PATH:-./data}:/data
+      # Writable enables tag editing, covers, lyrics, rename, upload, and delete.
+      # Append :ro in an override file for a read-only library (playback and scanning only).
+      - ${RAINY_MUSIC_PATH:?RAINY_MUSIC_PATH must be set to your music folder}:/music
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 4 -O /dev/null http://127.0.0.1:7650/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    stop_grace_period: 20s

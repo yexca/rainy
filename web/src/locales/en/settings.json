@@ -1,0 +1,102 @@
+{
+  "title": "Settings",
+  "subtitle": "Your account, apps and playback preferences",
+  "copyValue": "Copy {{label}}",
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display name",
+    "email": "Email",
+    "invalidEmail": "Enter a valid email address.",
+    "saved": "Profile updated"
+  },
+  "password": {
+    "title": "Password",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "hint_one": "At least {{count}} character.",
+    "hint_other": "At least {{count}} characters.",
+    "required": "Enter your current password.",
+    "tooShort_one": "Use at least {{count}} character.",
+    "tooShort_other": "Use at least {{count}} characters.",
+    "same": "The new password must be different.",
+    "mismatch": "The passwords don't match.",
+    "wrongCurrent": "The current password is incorrect.",
+    "submit": "Change password",
+    "changed": "Password changed",
+    "footer": "You stay signed in on this device. Subsonic apps that sign in with your password need the new one."
+  },
+  "subsonic": {
+    "title": "Subsonic apps",
+    "description": "Listen with any Subsonic / OpenSubsonic compatible app.",
+    "server": "Server address",
+    "username": "Username",
+    "apiKey": "API key",
+    "keyActive": "An API key is active.",
+    "keyNone": "No API key yet. Apps that support API keys never see your password.",
+    "generate": "Create API key",
+    "regenerate": "Regenerate",
+    "revoke": "Revoke",
+    "revoked": "API key revoked",
+    "copyNow": "Copy your API key now — it won't be shown again.",
+    "regenerateTitle": "Regenerate the API key?",
+    "revokeTitle": "Revoke the API key?",
+    "invalidateWarning": "Apps using the current key will stop working until you enter a new one.",
+    "passwordNote": "Apps without API key support can sign in with your username and password instead.",
+    "clients": "Recommended apps",
+    "clientsHint": "Enter the server address, then your username and password or API key.",
+    "platform": {
+      "ios": "iPhone & iPad",
+      "android": "Android",
+      "desktop": "Desktop"
+    }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "accentHint": "Used for buttons, highlights and progress."
+  },
+  "playback": {
+    "title": "Playback",
+    "quality": "Streaming quality",
+    "original": "Original",
+    "qualityOriginalHint": "Plays your files as they are. Formats this browser can't play are converted automatically.",
+    "qualityHint": "Up to this bit rate (kbps), about {{mb}} MB per hour. Higher-quality files are converted on the fly.",
+    "format": "Conversion format",
+    "formatHint": "Used whenever a song is converted. Opus sounds best at low bit rates; AAC and MP3 play everywhere.",
+    "opusUnsupported": "This browser can't play Opus, so AAC or MP3 is used instead.",
+    "replayGain": "Volume normalization",
+    "replayGainHint": "Uses ReplayGain tags to even out loudness between songs or albums.",
+    "replayGainUnsupported": "Not available on this device — the system controls the volume.",
+    "rgOff": "Off",
+    "rgTrack": "Song",
+    "rgAlbum": "Album",
+    "preload": "Preload next song",
+    "preloadHint": "Buffers the next song before the current one ends for near-gapless playback.",
+    "preloadUnsupported": "Not available on iPhone and iPad.",
+    "footer": "Playback settings are saved on this device only."
+  },
+  "install": {
+    "title": "App",
+    "label": "Install Rainy",
+    "hint": "Add Rainy to your home screen or dock for a full-screen app experience.",
+    "button": "Install",
+    "iosStep1": "Tap Share in Safari",
+    "iosStep2": "Choose “Add to Home Screen”"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "playPause": "Play / pause",
+    "seek": "Back / forward 5 seconds",
+    "previous": "Previous song",
+    "next": "Next song",
+    "mute": "Mute / unmute",
+    "space": "Space"
+  },
+  "about": {
+    "title": "About",
+    "tagline": "Your self-hosted music library",
+    "version": "Version",
+    "api": "Compatibility"
+  }
+}

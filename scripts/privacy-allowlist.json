@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "endpoints": [
+    {
+      "url": "http://subsonic.org/restapi",
+      "files": [
+        "internal/subsonic/types.go",
+        "internal/subsonic/testdata/*.golden",
+        "internal/server/server_test.go",
+        "docs/architecture/contract.md"
+      ],
+      "reason": "The Subsonic XML namespace required in every XML response; it is an identifier, not a request target."
+    },
+    {
+      "url": "https://github.com/yexca/rainy/**",
+      "files": [
+        "Dockerfile",
+        "README.md",
+        "SECURITY.md",
+        "docs/**"
+      ],
+      "reason": "Rainy's public source repository, release pages, and security advisory form."
+    },
+    {
+      "url": "http://www.w3.org/2000/svg",
+      "files": [
+        "web/public/*.svg"
+      ],
+      "reason": "The SVG XML namespace."
+    },
+    {
+      "url": "https://ui.shadcn.com/schema.json",
+      "files": [
+        "web/components.json"
+      ],
+      "reason": "Public JSON schema for the shadcn/ui component configuration."
+    },
+    {
+      "url": "https://vite.dev/config/",
+      "files": [
+        "web/vite.config.ts"
+      ],
+      "reason": "Public Vite configuration documentation link."
+    },
+    {
+      "url": "https://ffmpeg.org/download.html",
+      "files": [
+        "scripts/gen-testdata.sh"
+      ],
+      "reason": "Official ffmpeg download page shown when the test-library generator cannot find ffmpeg."
+    },
+    {
+      "url": "https://hub.docker.com/r/yexca/rainy",
+      "files": [
+        "README.md"
+      ],
+      "reason": "Rainy's public Docker Hub image page."
+    },
+    {
+      "url": "https://img.shields.io/github/**",
+      "files": [
+        "README.md"
+      ],
+      "reason": "Public GitHub release and license badges for the README."
+    },
+    {
+      "url": "https://img.shields.io/badge/**",
+      "files": [
+        "README.md"
+      ],
+      "reason": "Static README badges rendered by shields.io."
+    },
+    {
+      "url": "https://www.navidrome.org/",
+      "files": [
+        "README.md",
+        "docs/readme/*.md"
+      ],
+      "reason": "Public homepage of Navidrome, the project Rainy is compared with."
+    },
+    {
+      "url": "https://wiki.omv-extras.org/",
+      "files": [
+        "docs/operations/docker.md"
+      ],
+      "reason": "Public OpenMediaVault extras documentation for Docker on OMV."
+    },
+    {
+      "url": "https://symfonium.app/",
+      "files": [
+        "docs/user/clients.md"
+      ],
+      "reason": "Public homepage of a recommended Subsonic client."
+    },
+    {
+      "url": "https://github.com/BLeeEZ/amperfy",
+      "files": [
+        "docs/user/clients.md"
+      ],
+      "reason": "Public repository of a recommended Subsonic client."
+    },
+    {
+      "url": "https://github.com/CappielloAntonio/tempo",
+      "files": [
+        "docs/user/clients.md"
+      ],
+      "reason": "Public repository of a recommended Subsonic client."
+    },
+    {
+      "url": "https://github.com/jeffvli/feishin",
+      "files": [
+        "docs/user/clients.md"
+      ],
+      "reason": "Public repository of a recommended Subsonic client."
+    },
+    {
+      "url": "https://github.com/dweymouth/supersonic",
+      "files": [
+        "docs/user/clients.md"
+      ],
+      "reason": "Public repository of a recommended Subsonic client."
+    },
+    {
+      "url": "https://fsf.org/",
+      "files": [
+        "LICENSE"
+      ],
+      "reason": "Free Software Foundation address in the verbatim AGPL-3.0 license text."
+    },
+    {
+      "url": "https://www.gnu.org/licenses/",
+      "files": [
+        "LICENSE"
+      ],
+      "reason": "GNU licenses page referenced by the verbatim AGPL-3.0 license text."
+    }
+  ]
+}

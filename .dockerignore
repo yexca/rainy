@@ -1,0 +1,19 @@
+# Allow-list: only what the image build needs is sent to the build context.
+*
+!go.mod
+!go.sum
+!VERSION
+!cmd/
+!internal/
+!web/
+!docker/
+
+# …minus local artefacts inside the allowed directories.
+web/node_modules
+web/dist
+web/dev-dist
+web/*.local
+**/*_test.go
+**/testdata
+**/.DS_Store
+**/Thumbs.db

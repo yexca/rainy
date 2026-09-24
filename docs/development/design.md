@@ -1,0 +1,107 @@
+# Design
+
+Rainy's interface aims for calm, modern, Apple Music-inspired minimalism: lots
+of whitespace, large artwork, and restrained color. The exact tokens and sizes
+are part of the contract in
+[§9.3](../architecture/contract.md#93-design-system) and
+[§9.4](../architecture/contract.md#94-ios-style-player-player-agent); this page
+explains the rules every UI change must keep.
+
+## Principles
+
+- **Mobile first.** Design at 375 px width first, then scale up. Respect iOS
+  safe areas and keep every touch target at least 44 px.
+- **Artwork leads.** Covers are square, rounded, lazy-loaded, and fade in. A
+  gradient placeholder with a music-note icon replaces missing art. Artists are
+  circles.
+- **Accent sparingly.** The accent color marks play buttons, active
+  navigation, and progress, not decoration.
+- **Every string is translated.** Use i18next keys with both `en` and `zh`
+  text; never hard-code visible copy.
+- **Accessible by default.** Every icon button has an `aria-label`, focus rings
+  stay visible, and color contrast meets WCAG AA.
+
+## Theme
+
+- shadcn/ui `new-york` style, `neutral` base color, CSS variables, and a
+  `0.75rem` radius.
+- Light and dark themes follow the system unless the user overrides them.
+- Accent presets set `--primary`: `rain` (default periwinkle blue), `rose`,
+  `violet`, `emerald`, `amber`, and `graphite`.
+- The font stack starts with Inter Variable and falls back to system and CJK
+  fonts. Times and durations use tabular numbers.
+
+## Layout
+
+| Width | Navigation | Player |
+| --- | --- | --- |
+| 1024 px and wider | Left sidebar (240 px), collapsible to icons | 80 px bottom player bar |
+| 768 to 1023 px | Collapsed icon sidebar | Bottom player bar |
+| Below 768 px | 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
+
+The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
+`--safe-top`/`--safe-bottom` describe the player chrome. Pages use the
+`.page-pad` utility so content never hides behind it.
+
+## Typography and Density
+
+- Page titles are large and bold. On mobile, the large title collapses into a
+  centered navigation title while scrolling (`PageHeader` handles this).
+- Section titles are `text-xl font-semibold`; body text is `text-sm`; secondary
+  text uses `text-muted-foreground`.
+- Desktop list rows are 48 px. Mobile rows are 60 px with 44 px artwork and
+  iOS-style hairline separators inset from the artwork.
+
+## Surfaces, Motion, and Icons
+
+- Glass surfaces (tab bar, mini player, top bar on scroll) use a translucent
+  background with a strong backdrop blur and a subtle border.
+- Motion uses `motion/react` springs and honours the user's reduced-motion
+  preference. Mobile presses scale down slightly for feedback.
+- Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke;
+  transport controls use filled glyphs.
+- On touch devices, disable the tap highlight and body overscroll.
+
+## iOS-Style Player
+
+The player is Rainy's signature surface. Changes must keep this behavior:
+
+- **Mini player (mobile).** A floating glass pill above the tab bar with 40 px
+  artwork, one-line title and artist, play/pause and next, and a thin progress
+  line. Tapping or swiping up opens Now Playing.
+- **Now Playing.** A full-screen sheet on phones (a large overlay on desktop)
+  that slides up with a spring and closes by dragging down from the grabber.
+  The background is built from blurred, saturated artwork colors with light
+  text. The artwork shrinks with a spring when paused and grows back when
+  playing.
+- **Controls.** The title, a tappable artist link, a star button, and a "…"
+  menu sit above a scrubber that thickens while dragging, with elapsed and
+  remaining time beneath. Transport controls are large filled glyphs with
+  press feedback. The volume slider is hidden on iOS, where the page cannot set
+  volume. An AirPlay button appears when Safari supports it.
+- **Lyrics.** Synced lyrics highlight the active line, dim the others,
+  auto-scroll to keep the active line centered, and seek when a line is tapped.
+  Plain lyrics scroll normally.
+- **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
+  clear.
+- **Desktop player bar.** Artwork, title and artist links, and a star on the
+  left; transport and scrubber in the center; lyrics, queue, volume, and expand
+  on the right. Queue and lyrics open in a 360 px side panel.
+- **Keyboard.** Space plays or pauses, ←/→ seek 5 seconds, Shift+←/→ change
+  track, and M mutes.
+- **Continuity.** The next track preloads shortly before the end; Media Session
+  exposes artwork and transport controls; plays are scrobbled after half the
+  track or 4 minutes; playback errors show a toast and skip ahead.
+
+## PWA
+
+The manifest names the app "Rainy", uses `standalone` display, and provides
+192 px, 512 px, maskable, and 180 px Apple touch icons. iOS meta tags enable
+full-screen, black-translucent status bar, and `viewport-fit=cover` layouts.
+An "update available" toast offers new versions instead of reloading silently.
+
+## Related Docs
+
+- [Frontend architecture](../architecture/frontend.md)
+- [Testing: browser checks](testing.md#browser-checks)
+- [Playback guide](../user/playback.md)
