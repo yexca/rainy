@@ -1,0 +1,174 @@
+{
+  "appName": "Rainy",
+  "nav": {
+    "main": "Main navigation",
+    "library": "Library",
+    "home": "Home",
+    "search": "Search",
+    "albums": "Albums",
+    "artists": "Artists",
+    "songs": "Songs",
+    "genres": "Genres",
+    "favorites": "Favorites",
+    "playlists": "Playlists",
+    "radio": "Radio",
+    "settings": "Settings",
+    "manage": "Manage",
+    "manageLibrary": "Library",
+    "folders": "Folders",
+    "upload": "Upload",
+    "doctor": "Doctor",
+    "trash": "Trash",
+    "history": "History",
+    "admin": "Admin",
+    "users": "Users",
+    "libraries": "Libraries",
+    "serverSettings": "Settings",
+    "newPlaylist": "New playlist",
+    "allPlaylists": "All playlists",
+    "noPlaylists": "No playlists yet",
+    "toggleSidebar": "Toggle sidebar"
+  },
+  "actions": {
+    "play": "Play",
+    "pause": "Pause",
+    "previous": "Previous",
+    "next": "Next",
+    "shuffle": "Shuffle",
+    "playNext": "Play next",
+    "addToQueue": "Add to queue",
+    "addToPlaylist": "Add to playlist…",
+    "goToAlbum": "Go to album",
+    "goToArtist": "Go to artist",
+    "favorite": "Favorite",
+    "unfavorite": "Remove from favorites",
+    "download": "Download",
+    "editTags": "Edit tags…",
+    "removeFromPlaylist": "Remove from playlist",
+    "more": "More",
+    "back": "Back",
+    "retry": "Try again",
+    "reload": "Reload",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "done": "Done",
+    "select": "Select",
+    "selectAll": "Select all",
+    "clear": "Clear",
+    "search": "Search",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "copied": "Copied",
+    "goHome": "Go to Home",
+    "logout": "Log out"
+  },
+  "user": {
+    "menu": "Account menu",
+    "admin": "Administrator",
+    "manager": "Library manager",
+    "listener": "Listener"
+  },
+  "theme": {
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "accent": {
+    "label": "Accent colour",
+    "rain": "Rain",
+    "rose": "Rose",
+    "violet": "Violet",
+    "emerald": "Emerald",
+    "amber": "Amber",
+    "graphite": "Graphite"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "state": {
+    "loading": "Loading…",
+    "empty": "Nothing here yet",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonDescription": "This page is still being built. Check back after the next update.",
+    "notPlaying": "Not playing"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "network": "Can't reach the Rainy server. Check your connection and try again.",
+    "unauthorized": "Your session has expired. Please sign in again.",
+    "forbidden": "You don't have permission to do that.",
+    "not_found": "We couldn't find what you were looking for.",
+    "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
+    "readonly": "The music folder is read-only, so files can't be changed.",
+    "internal": "The server ran into a problem. Please try again.",
+    "unavailable": "The server is temporarily unavailable. Please try again shortly.",
+    "not_implemented": "This isn't supported yet.",
+    "unknown": "An unexpected error occurred.",
+    "serverUnreachableTitle": "Server unreachable",
+    "renderTitle": "This page crashed",
+    "renderDescription": "An unexpected error occurred while showing this page."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has moved."
+  },
+  "forbidden": {
+    "title": "No access",
+    "description": "Your account doesn't have permission to view this page."
+  },
+  "count": {
+    "songs_one": "{{count}} song",
+    "songs_other": "{{count}} songs",
+    "albums_one": "{{count}} album",
+    "albums_other": "{{count}} albums",
+    "artists_one": "{{count}} artist",
+    "artists_other": "{{count}} artists",
+    "playlists_one": "{{count}} playlist",
+    "playlists_other": "{{count}} playlists",
+    "tracks_one": "{{count}} track",
+    "tracks_other": "{{count}} tracks"
+  },
+  "duration": {
+    "hoursMinutes": "{{hours}} hr {{minutes}} min",
+    "hours": "{{hours}} hr",
+    "minutes": "{{minutes}} min",
+    "seconds": "{{seconds}} sec"
+  },
+  "time": {
+    "never": "Never",
+    "unknown": "—"
+  },
+  "toast": {
+    "playingNext_one": "Playing {{count}} song next",
+    "playingNext_other": "Playing {{count}} songs next",
+    "addedToQueue_one": "Added {{count}} song to the queue",
+    "addedToQueue_other": "Added {{count}} songs to the queue",
+    "addedToPlaylist": "Added to “{{name}}”",
+    "removedFromPlaylist": "Removed from playlist",
+    "favorited": "Added to favorites",
+    "unfavorited": "Removed from favorites"
+  },
+  "addToPlaylist": {
+    "title": "Add to playlist",
+    "description_one": "Choose a playlist for {{count}} song.",
+    "description_other": "Choose a playlist for {{count}} songs.",
+    "empty": "You don't have any playlists yet."
+  },
+  "tagEditor": {
+    "title": "Edit tags",
+    "selected_one": "{{count}} track selected",
+    "selected_other": "{{count}} tracks selected"
+  },
+  "a11y": {
+    "coverArt": "Cover art",
+    "loading": "Loading",
+    "skipToContent": "Skip to content"
+  }
+}

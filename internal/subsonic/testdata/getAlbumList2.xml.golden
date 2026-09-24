@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="rainy" serverVersion="dev" openSubsonic="true">
+<albumList2>
+<album id="8a4598b16b581b9fb5e6ee" name="Far" artist="Static Noise" artistId="e28e553d820de296502d0f" coverArt="al-8a4598b16b581b9fb5e6ee_loyw6080" songCount="1" duration="100" playCount="0" created="2023-11-14T22:13:22Z" year="2022" genre="Electronic" displayArtist="Static Noise" sortName="far" isCompilation="false">
+<genres name="Electronic"></genres>
+<artists id="e28e553d820de296502d0f" name="Static Noise"></artists>
+</album>
+<album id="8171e3e4a01d1e3130f5c1" name="Skies" artist="Northern Echo" artistId="ed907e0cacfadb483ac4c3" coverArt="al-8171e3e4a01d1e3130f5c1_loyw6080" songCount="1" duration="301" playCount="0" created="2023-11-14T22:13:21Z" year="2018" genre="Ambient" userRating="4" displayArtist="Northern Echo" sortName="skies" isCompilation="false">
+<genres name="Ambient"></genres>
+<genres name="Indie"></genres>
+<artists id="ed907e0cacfadb483ac4c3" name="Northern Echo"></artists>
+</album>
+<album id="c0db094cc80c57d102eb1a" name="Wet Streets" artist="The Rainy Days" artistId="86422198b5f6f2f7959989" coverArt="al-c0db094cc80c57d102eb1a_loyw6080" songCount="2" duration="386" playCount="0" created="2023-11-14T22:13:20Z" starred="2023-11-14T22:16:40Z" year="2020" genre="Rock" displayArtist="The Rainy Days" sortName="wet streets" isCompilation="false">
+<genres name="Rock"></genres>
+<genres name="Indie"></genres>
+<artists id="86422198b5f6f2f7959989" name="The Rainy Days"></artists>
+</album></albumList2>
+</subsonic-response>

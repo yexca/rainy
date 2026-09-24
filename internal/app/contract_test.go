@@ -1,0 +1,57 @@
+package app
+
+import (
+	"encoding/json"
+	"sort"
+	"strings"
+	"testing"
+
+	"rainy/internal/events"
+	"rainy/internal/lyrics"
+	"rainy/internal/nowplaying"
+	"rainy/internal/scanner"
+	"rainy/internal/store"
+)
+
+// TestServiceJSONMatchesTSContract locks the JSON names of the non-model types that the
+// native API serialises directly to the TypeScript contract (docs/architecture/contract.md §8). The
+// model types are checked in internal/model.
+func TestServiceJSONMatchesTSContract(t *testing.T) {
+	cases := []struct {
+		name string
+		v    any
+		want string
+	}{
+		{"LibraryStats", store.LibraryStats{}, `tracks albums artists genres playlists users missingTracks
+			totalDuration totalSize formats playsLast30Days`},
+		{"FormatStat", store.FormatStat{}, `suffix count size`},
+		{"SearchResult", store.SearchResult{}, `artists albums tracks`},
+		{"ScanStatus", scanner.Status{}, `scanning full libraryId phase filesSeen added updated removed moved
+			errors startedAt finishedAt lastError`},
+		{"Lyrics", lyrics.Lyrics{}, `synced lines source raw offset lang`},
+		{"LyricsLine", lyrics.Line{}, `start text`},
+		{"NowPlayingEntry", nowplaying.Entry{}, `userId username trackId player since`},
+		{"ServerEvent", events.Event{}, `type data`},
+		{"LibraryEventData", events.LibraryData{}, `reason`},
+	}
+	for _, c := range cases {
+		b, err := json.Marshal(c.v)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var m map[string]json.RawMessage
+		if err := json.Unmarshal(b, &m); err != nil {
+			t.Fatalf("%s: not an object: %s", c.name, b)
+		}
+		got := make([]string, 0, len(m))
+		for k := range m {
+			got = append(got, k)
+		}
+		sort.Strings(got)
+		want := strings.Fields(c.want)
+		sort.Strings(want)
+		if strings.Join(got, ",") != strings.Join(want, ",") {
+			t.Errorf("%s JSON keys\n got: %v\nwant: %v", c.name, got, want)
+		}
+	}
+}

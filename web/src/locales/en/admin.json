@@ -1,0 +1,200 @@
+{
+  "roles": {
+    "admin": "Administrator",
+    "adminDescription": "Full access, including users, libraries and server settings.",
+    "manager": "Library manager",
+    "managerDescription": "Can edit tags, upload, rename and delete files.",
+    "download": "Downloads",
+    "downloadDescription": "Can download original files and albums.",
+    "listener": "Listener"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Who can sign in to Rainy and what they may do.",
+    "count_one": "{{count}} user",
+    "count_other": "{{count}} users",
+    "add": "Add user",
+    "empty": "No users",
+    "you": "You",
+    "createTitle": "New user",
+    "createDescription": "They can sign in with this username and password — also from Subsonic apps.",
+    "editTitle": "Edit user",
+    "created": "Created {{name}}",
+    "saved": "Saved {{name}}",
+    "deleted": "Deleted {{name}}",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteDescription": "Their playlists, favorites and play history are deleted too. Music files are not touched.",
+    "selfAdmin": "You can't remove your own administrator role.",
+    "selfDelete": "You can't delete your own account.",
+    "resetTitle": "Reset password",
+    "resetDescription": "Set a new password for {{name}}.",
+    "resetHint": "Share it with them securely; they can change it in their settings.",
+    "resetAction": "Set password",
+    "passwordReset": "Password for {{name}} updated",
+    "generate": "Generate",
+    "fields": {
+      "user": "User",
+      "username": "Username",
+      "displayName": "Display name",
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "roles": "Roles",
+      "lastSeen": "Last active"
+    },
+    "validation": {
+      "usernameRequired": "Enter a username.",
+      "usernameTooLong": "Use at most {{max}} characters.",
+      "usernameInvalid": "Use letters, digits and . _ - @ + only (no spaces).",
+      "usernameTaken": "This username is already taken.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordMin": "Use at least {{min}} characters."
+    }
+  },
+  "libraries": {
+    "title": "Libraries & scanning",
+    "subtitle": "Music folders Rainy indexes, and their scan status.",
+    "listTitle": "Libraries",
+    "add": "Add library",
+    "addTitle": "Add library",
+    "editTitle": "Edit library",
+    "dialogDescription": "A folder on the server that contains music.",
+    "added": "Added {{name}} — scanning starts shortly",
+    "saved": "Saved {{name}}",
+    "deleted": "Removed {{name}}",
+    "deleteTitle": "Remove {{name}}?",
+    "deleteDescription": "Its tracks are removed from Rainy's database (with plays and favorites). The files on disk stay untouched.",
+    "empty": "No libraries",
+    "emptyDescription": "Add the folder that contains your music.",
+    "browse": "Browse folders",
+    "missing": "Folder not found",
+    "readonly": "Read-only",
+    "writable": "Writable",
+    "tracks": "Tracks",
+    "lastScan": "Last scan",
+    "pathHint": "The path as the server sees it — in Docker that's the path inside the container, e.g. /music.",
+    "fields": {
+      "name": "Name",
+      "path": "Folder path"
+    },
+    "validation": {
+      "nameRequired": "Enter a name.",
+      "pathRequired": "Enter the folder path."
+    }
+  },
+  "scan": {
+    "quickScan": "Quick scan",
+    "fullScan": "Full scan",
+    "quick": "Quick scan",
+    "full": "Full scan",
+    "started": "Scan started",
+    "alreadyRunning": "A scan is already running.",
+    "idleTitle": "Library is up to date",
+    "allLibraries": "All libraries",
+    "lastFinished": "Last scan {{when}}, took {{duration}}",
+    "never": "Not scanned yet",
+    "scanningNow": "Scanning…",
+    "statusUnavailable": "Scan status is unavailable.",
+    "filesSeen": "Files",
+    "added": "Added",
+    "updated": "Updated",
+    "removed": "Removed",
+    "moved": "Moved",
+    "errors": "Errors",
+    "phase": {
+      "idle": "Idle",
+      "walking": "Looking for files…",
+      "reading": "Reading tags…",
+      "refreshing": "Updating albums and artists…",
+      "done": "Finishing…",
+      "error": "Scan failed"
+    }
+  },
+  "settings": {
+    "title": "Server settings",
+    "subtitle": "Settings for everyone using this server.",
+    "tabs": {
+      "general": "General",
+      "system": "System"
+    },
+    "saved": "Settings saved",
+    "unsaved": "Unsaved changes",
+    "discard": "Discard",
+    "resetPattern": "Reset to default",
+    "sections": {
+      "scanning": "Scanning",
+      "metadata": "Metadata",
+      "streaming": "Streaming & downloads",
+      "organize": "Organizing files"
+    },
+    "fields": {
+      "scanInterval": "Automatic scan",
+      "fixEncodingOnScan": "Repair garbled tags when reading",
+      "genreSeparators": "Genre separators",
+      "ignoredArticles": "Ignored articles",
+      "coverArtFiles": "Cover image files",
+      "transcodeFormat": "Transcoding format",
+      "transcodeBitrate": "Transcoding bitrate",
+      "enableDownloads": "Allow downloads",
+      "renamePattern": "Default rename pattern"
+    },
+    "help": {
+      "scanInterval": "How often to look for new or changed files.",
+      "fixEncodingOnScan": "Show GBK / Big5 / Shift-JIS tags correctly. Files are not modified.",
+      "genreSeparators": "Characters that split one genre tag into several.",
+      "ignoredArticles": "Words skipped when sorting artists (“The Example Band” under E).",
+      "coverArtFiles": "Folder images used as album covers, in priority order.",
+      "transcodeFormat": "Used when a client asks for a lower bitrate.",
+      "transcodeBitrate": "Default bitrate for transcoded streams.",
+      "enableDownloads": "Users with the download permission can save original files.",
+      "renamePattern": "Used by Rename / organize and uploads with “Organize by tags”."
+    },
+    "intervals": {
+      "0": "Off",
+      "15m": "Every 15 minutes",
+      "30m": "Every 30 minutes",
+      "1h": "Every hour",
+      "6h": "Every 6 hours",
+      "12h": "Every 12 hours",
+      "24h": "Daily"
+    },
+    "validation": {
+      "duration": "Use a duration like 30m or 6h (0 turns it off).",
+      "required": "This can't be empty.",
+      "pattern": "The pattern needs at least one token like {title}."
+    }
+  },
+  "system": {
+    "server": "Server",
+    "version": "Version",
+    "commit": "Commit",
+    "buildDate": "Built",
+    "runtime": "Runtime",
+    "uptime": "Uptime",
+    "transcoding": "Transcoding",
+    "available": "Available",
+    "unavailable": "Not found — transcoding is disabled",
+    "ffmpegPath": "ffmpeg path",
+    "storage": "Storage",
+    "dataDir": "Data folder",
+    "database": "Database",
+    "cache": "Artwork cache",
+    "trash": "Trash",
+    "clearCache": "Clear cache",
+    "cacheCleared": "Freed {{size}}",
+    "library": "Library",
+    "totalDuration": "Total playing time",
+    "totalSize": "Total size",
+    "formats": "Formats",
+    "stats": {
+      "tracks": "Tracks",
+      "albums": "Albums",
+      "artists": "Artists",
+      "genres": "Genres",
+      "playlists": "Playlists",
+      "users": "Users",
+      "missing": "Missing files",
+      "plays30": "Plays (30 days)"
+    }
+  }
+}

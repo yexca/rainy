@@ -1,0 +1,29 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "rainy",
+    "serverVersion": "dev",
+    "openSubsonic": true,
+    "lyricsList": {
+      "structuredLyrics": [
+        {
+          "displayArtist": "The Rainy Days",
+          "displayTitle": "Rain Song",
+          "lang": "xxx",
+          "synced": true,
+          "line": [
+            {
+              "start": 1000,
+              "value": "Hello rain"
+            },
+            {
+              "start": 3500,
+              "value": "Goodbye sun"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

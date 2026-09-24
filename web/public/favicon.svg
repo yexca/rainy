@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Rainy</title>
+  <defs>
+    <linearGradient id="rainy-bg" x1="10" y1="2" x2="54" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5cb4ff"/>
+      <stop offset="1" stop-color="#2358d6"/>
+    </linearGradient>
+    <mask id="rainy-glyph" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <path fill="#fff" d="M32 9.5 45.01 30.07A15.5 15.5 0 1 1 18.99 30.07Z"/>
+      <g fill="#000">
+        <ellipse cx="28.4" cy="43.4" rx="4.9" ry="3.7" transform="rotate(-22 28.4 43.4)"/>
+        <rect x="30.9" y="26" width="2.7" height="17.6" rx="1"/>
+        <path d="M31.6 26c0 4 3.4 5 5.9 6.8 1.9 1.4 2.6 3.3 2.1 5.6-.4-2.4-2.5-4-5.3-4.6-1.1-.2-2 .1-2.7.6Z"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="64" height="64" rx="14.4" fill="url(#rainy-bg)"/>
+  <rect width="64" height="64" fill="#fff" mask="url(#rainy-glyph)"/>
+</svg>

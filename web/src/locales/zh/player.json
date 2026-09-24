@@ -1,0 +1,62 @@
+{
+  "region": "播放器",
+  "nowPlaying": "正在播放",
+  "openNowPlaying": "打开正在播放",
+  "expand": "全屏播放器",
+  "close": "关闭",
+  "panel": "侧边面板",
+  "closePanel": "关闭面板",
+  "seek": "播放进度",
+  "position": "{{elapsed}} / {{total}}",
+  "volume": "音量",
+  "mute": "静音",
+  "unmute": "取消静音",
+  "shuffle": "随机播放",
+  "repeat": {
+    "off": "循环：关闭",
+    "all": "循环：全部",
+    "one": "循环：单曲"
+  },
+  "airplay": "隔空播放",
+  "idle": {
+    "title": "未在播放",
+    "hint": "挑一首歌开始听吧"
+  },
+  "live": {
+    "badge": "直播",
+    "radio": "网络电台"
+  },
+  "lyrics": {
+    "title": "歌词",
+    "none": "暂无歌词",
+    "noneHint": "这首歌还没有歌词。",
+    "error": "歌词加载失败",
+    "radio": "网络电台不支持歌词",
+    "instrumental": "间奏"
+  },
+  "queue": {
+    "title": "播放队列",
+    "nowPlaying": "正在播放",
+    "playingNext": "待播清单",
+    "upcoming_one": "{{count}} 首歌曲",
+    "upcoming_other": "{{count}} 首歌曲",
+    "clear": "清除",
+    "empty": "接下来没有要播放的歌曲",
+    "remove": "移除",
+    "removeTrack": "从队列中移除“{{title}}”",
+    "reorder": "调整“{{title}}”的顺序"
+  },
+  "errors": {
+    "playback": "无法播放“{{title}}”",
+    "skipping": "将跳到下一首。",
+    "stopped": "连续多首歌曲播放失败，已停止播放。请检查网络连接或服务器。"
+  },
+  "pwa": {
+    "updateTitle": "Rainy 有新版本可用",
+    "updateDescription": "刷新即可更新，播放将重新开始。",
+    "reload": "刷新",
+    "later": "稍后",
+    "offlineReady": "Rainy 已可离线使用",
+    "offlineReadyDescription": "现在即使没有网络也能打开应用。"
+  }
+}

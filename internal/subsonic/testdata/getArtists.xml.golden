@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="rainy" serverVersion="dev" openSubsonic="true">
+<artists ignoredArticles="The El La Los Las Le Les">
+<index name="N">
+<artist id="ed907e0cacfadb483ac4c3" name="Northern Echo" coverArt="ar-ed907e0cacfadb483ac4c3_loyw6080" albumCount="1" starred="2023-11-14T22:16:40Z" sortName="northern echo"></artist>
+</index>
+<index name="R">
+<artist id="86422198b5f6f2f7959989" name="The Rainy Days" coverArt="ar-86422198b5f6f2f7959989_loyw6080" albumCount="1" sortName="rainy days"></artist>
+</index>
+<index name="S">
+<artist id="e28e553d820de296502d0f" name="Static Noise" coverArt="ar-e28e553d820de296502d0f_loyw6080" albumCount="1" sortName="static noise"></artist>
+</index></artists>
+</subsonic-response>

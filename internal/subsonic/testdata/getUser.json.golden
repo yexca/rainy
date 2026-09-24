@@ -1,0 +1,29 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "rainy",
+    "serverVersion": "dev",
+    "openSubsonic": true,
+    "user": {
+      "username": "alice",
+      "scrobblingEnabled": true,
+      "adminRole": false,
+      "settingsRole": true,
+      "downloadRole": true,
+      "uploadRole": false,
+      "playlistRole": true,
+      "coverArtRole": false,
+      "commentRole": false,
+      "podcastRole": false,
+      "streamRole": true,
+      "jukeboxRole": false,
+      "shareRole": false,
+      "videoConversionRole": false,
+      "folder": [
+        1,
+        2
+      ]
+    }
+  }
+}

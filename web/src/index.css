@@ -1,0 +1,432 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* `.dark` on <html> switches the theme (set by ThemeProvider + the pre-paint script in index.html). */
+@custom-variant dark (&:is(.dark *));
+/* Installed PWA (home-screen app). */
+@custom-variant standalone (@media (display-mode: standalone));
+
+/* ------------------------------------------------------------------------------------------ */
+/* Design tokens (shadcn new-york / neutral), light                                           */
+/* ------------------------------------------------------------------------------------------ */
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+
+  /* Accent ("rain" preset — overridden by [data-accent] below). */
+  --primary: oklch(0.62 0.17 255);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.62 0.17 255);
+
+  --chart-1: var(--primary);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.93 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: var(--ring);
+
+  /* Player chrome + safe areas (docs/architecture/contract.md §9.3). */
+  --tabbar-h: 49px;
+  --miniplayer-h: 56px;
+  --playerbar-h: 80px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  /* Horizontal page gutter (see .page-x / .bleed-x). */
+  --page-px: 1rem;
+
+  color-scheme: light;
+}
+
+@media (width >= 48rem) {
+  :root {
+    --page-px: 1.5rem;
+  }
+}
+
+@media (width >= 64rem) {
+  :root {
+    --page-px: 2rem;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Dark                                                                                       */
+/* ------------------------------------------------------------------------------------------ */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.195 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+
+  --primary: oklch(0.67 0.16 255);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.67 0.16 255);
+
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --sidebar: oklch(0.175 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.26 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Accent presets: <html data-accent="rain|rose|violet|emerald|amber|graphite">              */
+/* "rain" is the default defined above.                                                       */
+/* ------------------------------------------------------------------------------------------ */
+:root[data-accent="rose"] {
+  --primary: oklch(0.62 0.22 12);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.62 0.22 12);
+}
+:root.dark[data-accent="rose"] {
+  --primary: oklch(0.68 0.2 12);
+  --ring: oklch(0.68 0.2 12);
+}
+
+:root[data-accent="violet"] {
+  --primary: oklch(0.57 0.23 293);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.57 0.23 293);
+}
+:root.dark[data-accent="violet"] {
+  --primary: oklch(0.66 0.2 293);
+  --ring: oklch(0.66 0.2 293);
+}
+
+:root[data-accent="emerald"] {
+  --primary: oklch(0.58 0.14 163);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.58 0.14 163);
+}
+:root.dark[data-accent="emerald"] {
+  --primary: oklch(0.72 0.15 163);
+  --primary-foreground: oklch(0.2 0.04 163);
+  --ring: oklch(0.72 0.15 163);
+}
+
+:root[data-accent="amber"] {
+  --primary: oklch(0.7 0.16 62);
+  --primary-foreground: oklch(0.22 0.04 60);
+  --ring: oklch(0.7 0.16 62);
+}
+:root.dark[data-accent="amber"] {
+  --primary: oklch(0.79 0.16 72);
+  --primary-foreground: oklch(0.22 0.04 60);
+  --ring: oklch(0.79 0.16 72);
+}
+
+:root[data-accent="graphite"] {
+  --primary: oklch(0.3 0.008 270);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.01 270);
+}
+:root.dark[data-accent="graphite"] {
+  --primary: oklch(0.9 0.004 270);
+  --primary-foreground: oklch(0.2 0 0);
+  --ring: oklch(0.6 0.01 270);
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Tailwind theme mapping                                                                     */
+/* ------------------------------------------------------------------------------------------ */
+@theme inline {
+  --font-sans:
+    "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@theme {
+  /* Soft drifting colour blobs (auth pages, empty backgrounds). */
+  --animate-blob: blob-drift 22s ease-in-out infinite alternate;
+  /* Indeterminate top progress bar (route loading). */
+  --animate-nav-progress: nav-progress 1.1s ease-in-out infinite;
+
+  @keyframes nav-progress {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+
+  @keyframes blob-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(6%, -8%, 0) scale(1.12);
+    }
+    66% {
+      transform: translate3d(-7%, 5%, 0) scale(0.92);
+    }
+    100% {
+      transform: translate3d(3%, 7%, 0) scale(1.05);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Base                                                                                       */
+/* ------------------------------------------------------------------------------------------ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--background);
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    font-feature-settings: "cv11", "calt";
+    text-rendering: optimizeLegibility;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"] {
+    touch-action: manipulation;
+  }
+
+  /* Pointer cursor for interactive controls (shadcn v4 buttons default to the arrow). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  summary {
+    cursor: pointer;
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Utilities                                                                                  */
+/* ------------------------------------------------------------------------------------------ */
+
+/* Bottom padding so page content never hides behind the player chrome. */
+@utility page-pad {
+  /* mobile: tab bar + floating mini player (+ 8px gap) + home indicator */
+  padding-bottom: calc(var(--tabbar-h) + var(--miniplayer-h) + var(--safe-bottom) + 2rem);
+
+  @media (width >= 48rem) {
+    /* tablet + desktop: bottom player bar */
+    padding-bottom: calc(var(--playerbar-h) + var(--safe-bottom) + 2rem);
+  }
+}
+
+/* Horizontal page gutter (+ landscape safe areas). `<Page>` applies it. */
+@utility page-x {
+  padding-left: calc(var(--page-px) + var(--safe-left));
+  padding-right: calc(var(--page-px) + var(--safe-right));
+}
+
+/* Full-bleed child of a .page-x container (sticky bars, horizontal scrollers, hero art). */
+@utility bleed-x {
+  margin-left: calc(-1 * (var(--page-px) + var(--safe-left)));
+  margin-right: calc(-1 * (var(--page-px) + var(--safe-right)));
+}
+
+/* Translucent "glass" surface (tab bar, mini player, collapsed nav bars); softens hairlines. */
+@utility glass {
+  --hairline-color: color-mix(in oklab, var(--border) 60%, transparent);
+  background-color: color-mix(in oklab, var(--background) 75%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent) transparent;
+}
+
+/* iOS-style hairlines (0.5px on retina). Colour: --hairline-color (default --border). */
+@utility hairline-t {
+  border-top: 1px solid var(--hairline-color, var(--border));
+
+  @media (min-resolution: 2dppx) {
+    border-top-width: 0.5px;
+  }
+}
+
+@utility hairline-b {
+  border-bottom: 1px solid var(--hairline-color, var(--border));
+
+  @media (min-resolution: 2dppx) {
+    border-bottom-width: 0.5px;
+  }
+}
+
+/* Row separator inset from the leading artwork: set --hairline-inset (default 0) on the row. */
+@utility hairline-inset {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: var(--hairline-inset, 0px);
+    height: 1px;
+    background-color: var(--hairline-color, var(--border));
+    pointer-events: none;
+    transform-origin: bottom;
+  }
+
+  &:last-child::after {
+    display: none;
+  }
+
+  @media (min-resolution: 2dppx) {
+    &::after {
+      transform: scaleY(0.5);
+    }
+  }
+}
+
+/* Tabular figures for times, counts and durations. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "cv11";
+}
+
+/* App chrome (nav, tab bar, player): no text selection, no iOS long-press callout. */
+@utility ui-chrome {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Safe-area padding helpers. */
+@utility pt-safe {
+  padding-top: var(--safe-top);
+}
+@utility pb-safe {
+  padding-bottom: var(--safe-bottom);
+}
+@utility pl-safe {
+  padding-left: var(--safe-left);
+}
+@utility pr-safe {
+  padding-right: var(--safe-right);
+}

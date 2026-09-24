@@ -1,0 +1,62 @@
+{
+  "region": "Player",
+  "nowPlaying": "Now Playing",
+  "openNowPlaying": "Open Now Playing",
+  "expand": "Full-screen player",
+  "close": "Close",
+  "panel": "Side panel",
+  "closePanel": "Close panel",
+  "seek": "Playback position",
+  "position": "{{elapsed}} of {{total}}",
+  "volume": "Volume",
+  "mute": "Mute",
+  "unmute": "Unmute",
+  "shuffle": "Shuffle",
+  "repeat": {
+    "off": "Repeat: off",
+    "all": "Repeat: all",
+    "one": "Repeat: one"
+  },
+  "airplay": "AirPlay",
+  "idle": {
+    "title": "Not playing",
+    "hint": "Pick something to listen to"
+  },
+  "live": {
+    "badge": "Live",
+    "radio": "Live radio"
+  },
+  "lyrics": {
+    "title": "Lyrics",
+    "none": "No lyrics",
+    "noneHint": "This track has no lyrics yet.",
+    "error": "Couldn't load lyrics",
+    "radio": "Lyrics aren't available for live radio",
+    "instrumental": "Instrumental"
+  },
+  "queue": {
+    "title": "Queue",
+    "nowPlaying": "Now playing",
+    "playingNext": "Playing Next",
+    "upcoming_one": "{{count}} song",
+    "upcoming_other": "{{count}} songs",
+    "clear": "Clear",
+    "empty": "Nothing up next",
+    "remove": "Remove",
+    "removeTrack": "Remove “{{title}}” from the queue",
+    "reorder": "Reorder “{{title}}”"
+  },
+  "errors": {
+    "playback": "Can't play “{{title}}”",
+    "skipping": "Skipping to the next song.",
+    "stopped": "Playback stopped after several songs failed to play. Check your connection or the server."
+  },
+  "pwa": {
+    "updateTitle": "A new version of Rainy is available",
+    "updateDescription": "Reload to update. Playback will restart.",
+    "reload": "Reload",
+    "later": "Later",
+    "offlineReady": "Rainy is ready to work offline",
+    "offlineReadyDescription": "The app now opens even without a connection."
+  }
+}

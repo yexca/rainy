@@ -1,0 +1,20 @@
+# Development stack: builds the image from this checkout and serves the synthetic test
+# library (`make testdata`). Run through the Makefile so paths resolve from the repository
+# root: `make docker-up`, `make docker-logs`, `make docker-down`.
+services:
+  rainy:
+    build:
+      context: .
+    image: rainy:dev
+    container_name: rainy-dev
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Asia/Shanghai}
+      RAINY_LOG_LEVEL: ${RAINY_LOG_LEVEL:-debug}
+      RAINY_SCAN_INTERVAL: ${RAINY_SCAN_INTERVAL:-0}
+    ports:
+      - "127.0.0.1:${RAINY_DEV_PORT:-7650}:7650"
+    volumes:
+      - ./testdata/dev-data:/data
+      - ${RAINY_DEV_MUSIC_PATH:-./testdata/music}:/music

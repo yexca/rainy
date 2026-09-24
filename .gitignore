@@ -1,0 +1,44 @@
+# Build outputs
+/bin/
+web/dist/*
+!web/dist/.gitkeep
+
+# Local data and generated test library
+/data/
+/testdata/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Dependencies
+web/node_modules/
+node_modules/
+
+# Coverage / test artefacts
+coverage.out
+coverage.html
+*.coverprofile
+*.test
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# local build output
+/rainy
+/rainy.exe
+
+# Local agent/runtime state
+.claude/*
+!.claude/settings.json
+.agents/

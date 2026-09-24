@@ -1,0 +1,12 @@
+# Dependencies
+node_modules
+
+# Build output (web/dist is embedded by web/embed.go; keep the placeholder tracked)
+dist/*
+!dist/.gitkeep
+dev-dist
+
+# Local env / editor
+*.local
+.vite
+*.log

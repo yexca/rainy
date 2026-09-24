@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Rainy</title>
+    <meta name="description" content="Rainy — your self-hosted music library. 自托管的私人音乐库。" />
+    <meta name="application-name" content="Rainy" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <!-- Installed-app behaviour (iOS home screen + Android/desktop PWA). -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Rainy" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+    <style>
+      /* Page colour before the stylesheet loads (no white flash in dark mode / PWA launch). */
+      html { background-color: #ffffff; }
+      html.dark { background-color: #0a0a0a; }
+    </style>
+    <script>
+      // Apply the saved theme + accent before first paint (no flash). Mirrors components/theme-provider.tsx.
+      ;(function () {
+        try {
+          var root = document.documentElement
+          var theme = localStorage.getItem('rainy.theme') || 'system'
+          var accent = localStorage.getItem('rainy.accent') || 'rain'
+          var dark =
+            theme === 'dark' ||
+            (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          root.classList.toggle('dark', dark)
+          root.style.colorScheme = dark ? 'dark' : 'light'
+          root.setAttribute('data-accent', accent)
+          var metas = document.querySelectorAll('meta[name="theme-color"]')
+          for (var i = 0; i < metas.length; i++) metas[i].content = dark ? '#0a0a0a' : '#ffffff'
+        } catch (e) {
+          /* storage unavailable: defaults apply */
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Rainy needs JavaScript to run. 请启用 JavaScript 以使用 Rainy。</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
