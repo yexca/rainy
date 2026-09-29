@@ -52,6 +52,14 @@
   --tabbar-h: 49px;
   --miniplayer-h: 56px;
   --playerbar-h: 80px;
+  --player-window-w: 400px;
+  --compact-player-h: 68px;
+  /* Tablet/desktop player chrome (defaults = bottom bar; per layout below): full-width bottom
+     space (sidebar, side panel), page clearance (.page-pad) and the toast offsets. */
+  --player-reserve: calc(var(--playerbar-h) + var(--safe-bottom));
+  --player-clearance: var(--player-reserve);
+  --player-toast-bottom: calc(var(--player-reserve) + 16px);
+  --player-toast-right: 16px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -111,6 +119,28 @@
   --sidebar-border: oklch(1 0 0 / 10%);
 
   color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Player layouts: <html data-player-dock="bar|collapsed|window|compact|idle">               */
+/* (features/player/lib/dock.ts). "bar" is the default defined above.                        */
+/* ------------------------------------------------------------------------------------------ */
+:root[data-player-dock="collapsed"],
+:root[data-player-dock="idle"],
+:root[data-player-dock="window"] {
+  --player-reserve: var(--safe-bottom);
+  --player-clearance: var(--safe-bottom);
+  --player-toast-bottom: calc(var(--safe-bottom) + 16px);
+}
+:root[data-player-dock="compact"] {
+  --player-reserve: var(--safe-bottom);
+  --player-clearance: calc(var(--compact-player-h) + 1.5rem + var(--safe-bottom));
+  --player-toast-bottom: calc(var(--player-clearance) + 12px);
+  --player-toast-right: calc(1.5rem + var(--safe-right));
+}
+:root[data-player-dock="window"] {
+  /* Beside the window; overlapping it only when the viewport is too narrow for a toast. */
+  --player-toast-right: min(calc(var(--player-window-w) + 3rem + var(--safe-right)), calc(100vw - 372px));
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -334,8 +364,8 @@
   padding-bottom: calc(var(--tabbar-h) + var(--miniplayer-h) + var(--safe-bottom) + 2rem);
 
   @media (width >= 48rem) {
-    /* tablet + desktop: bottom player bar */
-    padding-bottom: calc(var(--playerbar-h) + var(--safe-bottom) + 2rem);
+    /* tablet + desktop: bottom player bar, or the floating player (see data-player-dock) */
+    padding-bottom: calc(var(--player-clearance) + 2rem);
   }
 }
 

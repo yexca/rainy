@@ -7,6 +7,7 @@ import { useLocation } from 'react-router'
 import { useIsMobile, useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
+import { usePlayerDock } from '../dock'
 import { useCoverColor } from '../hooks/use-cover-color'
 import { useCurrentTrack, usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
@@ -371,15 +372,17 @@ function StageToggle({ active, onClick, label, children }: { active: boolean; on
 }
 
 // ---------------------------------------------------------------------------------------------
-// Desktop side panel (queue / lyrics while browsing)
+// Desktop side panel (queue / lyrics while browsing with the bottom bar; the floating window
+// shows them inside itself)
 // ---------------------------------------------------------------------------------------------
 
 function SidePanel({ hidden }: { hidden: boolean }) {
   const { t } = useTranslation('player')
   const panel = usePlayer((s) => s.panel)
   const setPanel = usePlayer((s) => s.setPanel)
+  const barMode = usePlayerDock((s) => s.mode === 'bar')
   const track = useCurrentTrack()
-  const show = panel !== 'none' && !hidden
+  const show = panel !== 'none' && !hidden && barMode
 
   // Publish the panel width so the shell can make room for it instead of covering the page.
   useEffect(() => {
@@ -397,7 +400,7 @@ function SidePanel({ hidden }: { hidden: boolean }) {
         <motion.aside
           key="side-panel"
           aria-label={panel === 'lyrics' ? t('lyrics.title') : t('queue.title')}
-          className="ui-chrome glass fixed top-0 right-0 bottom-[calc(var(--playerbar-h)+var(--safe-bottom))] z-35 flex w-[360px] max-w-[calc(100vw-4rem)] flex-col border-l border-border/60 pt-safe shadow-[-12px_0_32px_-24px_rgba(0,0,0,0.35)]"
+          className="ui-chrome glass fixed top-0 right-0 bottom-(--player-reserve) z-35 flex w-[360px] max-w-[calc(100vw-4rem)] flex-col border-l border-border/60 pt-safe shadow-[-12px_0_32px_-24px_rgba(0,0,0,0.35)]"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}

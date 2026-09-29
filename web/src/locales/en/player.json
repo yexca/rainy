@@ -18,6 +18,19 @@
     "one": "Repeat: one"
   },
   "airplay": "AirPlay",
+  "layout": {
+    "title": "Player layout",
+    "bar": "Bottom bar",
+    "window": "Floating window",
+    "compact": "Floating mini bar",
+    "autoHide": "Auto-hide bottom bar"
+  },
+  "dock": {
+    "hideBar": "Hide player bar",
+    "pinBar": "Keep player bar open",
+    "shrink": "Shrink to mini bar",
+    "openWindow": "Open player window"
+  },
   "idle": {
     "title": "Not playing",
     "hint": "Pick something to listen to"

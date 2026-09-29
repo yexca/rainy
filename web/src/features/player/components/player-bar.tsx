@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 
 import { useCurrentTrack, usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
+import { DockModeMenu } from './dock-mode-menu'
 import { LiveProgress } from './live-badge'
 import { Scrubber } from './scrubber'
 import { StarButton } from './star-button'
@@ -16,10 +17,12 @@ import { ModeToggle, NextButton, PlayPauseButton, PrevButton, RepeatButton, Shuf
 import { BarVolume } from './volume-control'
 
 /**
- * Desktop / tablet bottom bar. Rendered by the shell inside a `fixed inset-x-0 bottom-0` slot;
- * owns its height (`--playerbar-h` + safe area) and always renders (idle state when empty).
+ * Desktop / tablet bottom bar (the `bar` dock mode). Rendered by `<PlayerDock/>` inside a
+ * `fixed inset-x-0 bottom-0` slot; owns its height (`--playerbar-h` + safe area) and always
+ * renders (idle state when empty). `onMenuOpenChange` lets the auto-hiding slot stay up while
+ * the layout menu is open.
  */
-export function PlayerBar() {
+export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: boolean) => void }) {
   const { t } = useTranslation('player')
   const track = useCurrentTrack()
   const panel = usePlayer((s) => s.panel)
@@ -59,6 +62,7 @@ export function PlayerBar() {
           <ListMusic className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>
         <BarVolume className="ml-1" />
+        <DockModeMenu tone="bar" onOpenChange={onMenuOpenChange} />
         <BarToggle label={t('expand')} active={false} disabled={!track} onClick={() => setNowPlayingOpen(true)}>
           <Maximize2 className="size-4" strokeWidth={1.9} />
         </BarToggle>

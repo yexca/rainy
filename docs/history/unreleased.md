@@ -11,6 +11,11 @@ action.
   translation button beside the lyrics button (and a setting under Playback)
   hides or shows translations.
 - Japanese and Korean lyric lines use matching Japanese or Korean fonts.
+- On tablets and desktops a player layout menu switches between the bottom
+  bar, a floating Now Playing window, and a floating mini bar in the
+  bottom-right corner; full screen stays available from all of them. The
+  bottom bar can auto-hide, leaving a small handle that shows it on hover and
+  pins it on click. Dragging sideways on the mini bar seeks.
 
 ## Library Management
 
