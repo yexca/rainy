@@ -1,4 +1,4 @@
-.PHONY: backend-format backend-lint backend-verify backend-vuln backend-test backend-coverage backend-vet backend-race backend-build backend-run frontend-install frontend-dev frontend-typecheck frontend-lint frontend-audit frontend-build frontend-docs testdata docker-build docker-up docker-down docker-status docker-logs smoke sensitive-check sensitive-check-test privacy-check ci-style ci-backend ci-frontend ci-production ci-local ci
+.PHONY: backend-format backend-lint backend-verify backend-vuln backend-test backend-coverage backend-vet backend-race backend-build backend-run frontend-install frontend-dev frontend-typecheck frontend-lint frontend-test frontend-audit frontend-build frontend-docs testdata docker-build docker-up docker-down docker-status docker-logs smoke sensitive-check sensitive-check-test privacy-check ci-style ci-backend ci-frontend ci-production ci-local ci
 .PHONY: ci-plan ci-plan-test ci-results ci-backend-static ci-backend-coverage ci-backend-race
 
 GO ?= go
@@ -74,6 +74,9 @@ frontend-typecheck: frontend-install
 frontend-lint: frontend-install
 	cd web && $(PNPM) lint
 
+frontend-test: frontend-install
+	cd web && $(PNPM) test
+
 frontend-audit: frontend-install
 	cd web && $(PNPM) audit --audit-level=moderate --prod
 
@@ -141,7 +144,7 @@ ci-backend-race: backend-race
 
 ci-backend: ci-backend-static ci-backend-coverage ci-backend-race
 
-ci-frontend: frontend-audit frontend-typecheck frontend-build
+ci-frontend: frontend-audit frontend-typecheck frontend-test frontend-build
 
 ci-production: docker-build smoke
 

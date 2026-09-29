@@ -263,6 +263,19 @@
     background-color: var(--background);
   }
 
+  /* Lyric lines carry a language hint (lib/lyrics/bilingual guessLang) so Japanese and Korean
+     text uses matching CJK glyphs instead of the Simplified Chinese fallback. */
+  [lang|="ja"] {
+    font-family:
+      "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans",
+      "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", sans-serif;
+  }
+  [lang|="ko"] {
+    font-family:
+      "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo",
+      "Malgun Gothic", "Noto Sans CJK KR", sans-serif;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     min-height: 100dvh;

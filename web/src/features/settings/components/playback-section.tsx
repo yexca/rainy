@@ -20,6 +20,7 @@ export function PlaybackSection() {
   const format = usePlaybackPrefs((s) => s.format)
   const replayGain = usePlaybackPrefs((s) => s.replayGain)
   const preloadNext = usePlaybackPrefs((s) => s.preloadNext)
+  const lyricsTranslation = usePlaybackPrefs((s) => s.lyricsTranslation)
   const setPrefs = usePlaybackPrefs((s) => s.setPrefs)
   const volumeControl = canControlVolume()
   const opusSupported = canPlayFormat('opus')
@@ -81,6 +82,17 @@ export function PlaybackSection() {
           checked={preloadNext && !isIOS}
           disabled={isIOS}
           onCheckedChange={(checked) => setPrefs({ preloadNext: checked })}
+        />
+      </SettingsRow>
+      <SettingsRow
+        label={t('playback.lyricsTranslation')}
+        description={t('playback.lyricsTranslationHint')}
+        htmlFor="settings-lyrics-translation"
+      >
+        <Switch
+          id="settings-lyrics-translation"
+          checked={lyricsTranslation}
+          onCheckedChange={(checked) => setPrefs({ lyricsTranslation: checked })}
         />
       </SettingsRow>
     </SettingsSection>

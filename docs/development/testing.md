@@ -68,10 +68,17 @@ Conventions:
 make frontend-install    # pnpm install with the pinned pnpm version
 make frontend-typecheck  # tsc
 make frontend-lint       # eslint
+make frontend-test       # unit tests for pure helpers (node --test web/tests)
 make frontend-audit      # dependency audit
 make frontend-build      # production build into web/dist
 make frontend-docs       # documentation link check
 ```
+
+Pure, framework-free helpers such as the bilingual lyrics analyzer
+(`src/lib/lyrics/bilingual.ts`) have unit tests in `web/tests/*.test.ts`, run
+by Node's built-in test runner with type stripping. Keep such modules free of
+path aliases and non-erasable TypeScript so the tests can import them directly.
+Heuristics get adversarial cases: lines that must *not* be split.
 
 ## Browser Checks
 

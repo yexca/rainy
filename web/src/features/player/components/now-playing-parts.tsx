@@ -12,6 +12,7 @@ import { showAirPlayPicker, useAirPlay } from '../engine/engine'
 import { usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
 import { StarButton } from './star-button'
+import { TranslationToggle } from './translation-toggle'
 import { ModeToggle } from './transport'
 
 /** Scrolls text back and forth when it doesn't fit (Apple Music style); static otherwise. */
@@ -151,8 +152,16 @@ export function AirPlayButton({ className }: { className?: string }) {
   )
 }
 
-/** Lyrics · AirPlay · Queue toggles under the transport. */
-export function NowPlayingActions({ className, showAirPlay = true }: { className?: string; showAirPlay?: boolean }) {
+/** Lyrics (+ translation while lyrics show) · AirPlay · Queue toggles under the transport. */
+export function NowPlayingActions({
+  track,
+  className,
+  showAirPlay = true,
+}: {
+  track: PlayableTrack
+  className?: string
+  showAirPlay?: boolean
+}) {
   const { t } = useTranslation('player')
   const panel = usePlayer((s) => s.panel)
   const setPanel = usePlayer((s) => s.setPanel)
@@ -161,9 +170,12 @@ export function NowPlayingActions({ className, showAirPlay = true }: { className
 
   return (
     <div className={cn('flex items-center justify-between', className)}>
-      <ModeToggle tone="sheet" active={panel === 'lyrics'} onClick={() => toggle('lyrics')} aria-label={t('lyrics.title')} className="size-11">
-        <MessageSquareQuote className="size-[22px]" strokeWidth={1.9} />
-      </ModeToggle>
+      <div className="flex items-center gap-2">
+        <ModeToggle tone="sheet" active={panel === 'lyrics'} onClick={() => toggle('lyrics')} aria-label={t('lyrics.title')} className="size-11">
+          <MessageSquareQuote className="size-[22px]" strokeWidth={1.9} />
+        </ModeToggle>
+        {panel === 'lyrics' ? <TranslationToggle track={track} tone="sheet" /> : null}
+      </div>
       {showAirPlay && airPlay ? <AirPlayButton /> : null}
       <ModeToggle tone="sheet" active={panel === 'queue'} onClick={() => toggle('queue')} aria-label={t('queue.title')} className="size-11">
         <ListMusic className="size-[22px]" strokeWidth={1.9} />

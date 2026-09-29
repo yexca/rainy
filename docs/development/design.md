@@ -39,6 +39,14 @@ explains the rules every UI change must keep.
 | 768 to 1023 px | Collapsed icon sidebar | Bottom player bar |
 | Below 768 px | 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
 
+Navigation is tiered so everyday listening stays uncluttered. Managers see
+**Metadata** (the track table and tag editor) as a first-class entry: a sidebar
+item and the fourth phone tab. The rarer library tools (folders, upload,
+doctor, trash, history) and the admin pages are folded: collapsible sidebar
+sections that start closed and open while one of their pages is showing (a
+flyout on the icon rail), and a single "Library tools" menu on the phone
+Metadata page.
+
 The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
 `--safe-top`/`--safe-bottom` describe the player chrome. Pages use the
 `.page-pad` utility so content never hides behind it.
@@ -81,7 +89,10 @@ The player is Rainy's signature surface. Changes must keep this behavior:
   volume. An AirPlay button appears when Safari supports it.
 - **Lyrics.** Synced lyrics highlight the active line, dim the others,
   auto-scroll to keep the active line centered, and seek when a line is tapped.
-  Plain lyrics scroll normally.
+  Plain lyrics scroll normally. Bilingual lyrics show the translation beneath
+  each line at about two thirds of its size and slightly dimmer, and every line
+  carries a `lang` hint so Japanese and Korean use their own CJK glyphs. A
+  translation toggle sits beside the lyrics toggle while lyrics are open.
 - **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
   clear.
 - **Desktop player bar.** Artwork, title and artist links, and a star on the

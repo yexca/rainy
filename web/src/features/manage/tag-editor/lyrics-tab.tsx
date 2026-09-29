@@ -1,15 +1,18 @@
 import { Clock, Eraser, Pause, Play } from 'lucide-react'
-import { useRef } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { usePlayback, usePlayer } from '@/features/player/store'
 import type { TrackTags } from '@/lib/api/types'
+import { analyzeBilingual, toPairedLrc } from '@/lib/lyrics/bilingual'
 import { cn } from '@/lib/utils'
 
 import { formatLrcTimestamp, highlightLine, isSyncedLrc, stampLine } from '../lib/lrc'
+import { BilingualBanner } from './bilingual-banner'
 import type { LyricsDraft, LyricsTarget } from './types'
 
 export interface LyricsTabProps {
@@ -27,6 +30,17 @@ export function LyricsTab({ item, draft, onDraftChange, disabled }: LyricsTabPro
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const layerRef = useRef<HTMLDivElement>(null)
   const synced = isSyncedLrc(draft.text)
+  // Analyse the text as the user types or pastes it; suggest a split, never apply one silently.
+  const deferredText = useDeferredValue(draft.text)
+  const bilingual = useMemo(() => analyzeBilingual(deferredText), [deferredText])
+  const [bilingualDismissed, setBilingualDismissed] = useState(false)
+
+  const splitBilingual = () => {
+    const analysis = analyzeBilingual(draft.text)
+    if (analysis.timed === 0) return
+    onDraftChange({ ...draft, text: toPairedLrc(draft.text, analysis) })
+    toast.success(t('lyrics.bilingualDone', { count: analysis.timed }))
+  }
 
   const stamp = (seconds: number) => {
     const el = textareaRef.current
@@ -62,6 +76,11 @@ export function LyricsTab({ item, draft, onDraftChange, disabled }: LyricsTabPro
         {draft.text.trim() ? (
           <Badge variant={synced ? 'default' : 'secondary'}>{synced ? t('lyrics.synced') : t('lyrics.plain')}</Badge>
         ) : null}
+        {bilingual.paired > 0 ? (
+          <Badge variant="secondary" title={t('lyrics.bilingualPairedHint')}>
+            {t('lyrics.bilingual')}
+          </Badge>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
@@ -77,6 +96,15 @@ export function LyricsTab({ item, draft, onDraftChange, disabled }: LyricsTabPro
       <p className="-mt-2 text-xs text-muted-foreground">
         {draft.target === 'lrc' ? t('lyrics.lrcHint') : t('lyrics.embeddedHint')}
       </p>
+
+      {bilingual.detected && !bilingualDismissed ? (
+        <BilingualBanner
+          analysis={bilingual}
+          onSplit={splitBilingual}
+          onDismiss={() => setBilingualDismissed(true)}
+          disabled={disabled}
+        />
+      ) : null}
 
       <PlaybackStrip item={item} onStamp={stamp} disabled={disabled} />
 

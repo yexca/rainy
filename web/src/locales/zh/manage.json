@@ -1,5 +1,5 @@
 {
-  "title": "曲库管理",
+  "title": "元数据",
   "library": {
     "default": "音乐库"
   },
@@ -111,7 +111,24 @@
     "stamp": "打时间标记",
     "stampHint": "在当前行开头写入当前播放时间，并跳到下一行。",
     "playToStamp": "播放这首歌曲后即可插入时间标记。",
-    "singleOnly": "歌词一次只能编辑一首歌曲。"
+    "singleOnly": "歌词一次只能编辑一首歌曲。",
+    "bilingual": "双语",
+    "bilingualPairedHint": "时间标记相同的行会显示为原文和译文。",
+    "bilingualDetected_one": "检测到 {{count}} 行双语歌词（原文后空一格接中文译文）。",
+    "bilingualDetected_other": "检测到 {{count}} 行双语歌词（原文后空一格接中文译文）。",
+    "bilingualTimedHint": "可拆分为时间标记相同的两行，即标准双语 LRC 格式，Rainy 和多数 Subsonic 客户端会显示为原文加译文。",
+    "bilingualPlainHint": "播放器已会分行显示原文和译文。先添加时间标记，才能拆分为标准双语 LRC。",
+    "bilingualPreview": "预览",
+    "bilingualHidePreview": "收起预览",
+    "bilingualSplit": "拆分为双语",
+    "bilingualDismiss": "忽略",
+    "bilingualOriginal": "原文",
+    "bilingualTranslation": "译文",
+    "bilingualUntimed": "没有时间标记，保持不变",
+    "bilingualMore_one": "……还有 {{count}} 行",
+    "bilingualMore_other": "……还有 {{count}} 行",
+    "bilingualDone_one": "已将 {{count}} 行拆分为原文和译文。",
+    "bilingualDone_other": "已将 {{count}} 行拆分为原文和译文。"
   },
   "raw": {
     "hint": "文件中保存的所有标签。键名使用 TagLib 名称（TITLE、ARTIST…），保存时会删除空标签。",
