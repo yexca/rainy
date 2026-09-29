@@ -328,6 +328,7 @@ export const api = {
       get: (trackId: string, opts?: CallOptions) =>
         request<TrackTags>(`/manage/tracks/${seg(trackId)}/tags`, opts),
       save: (edits: TagEdit[]) => request<BatchResult>('/manage/tags', { method: 'POST', body: { edits } }),
+      rebuild: (trackIds: string[]) => request<BatchResult>('/manage/tags/rebuild', { method: 'POST', body: { trackIds } }),
     },
     /** Embedded picture bytes of a track (404 when none) — for `<img src>`. */
     pictureUrl: (trackId: string, version?: string | number) =>

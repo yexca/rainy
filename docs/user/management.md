@@ -19,7 +19,7 @@ to toggle, or select everything that matches. On phones, the list switches to a
 selection mode.
 
 The toolbar applies actions to the selection: **Edit tags**, **Cover**,
-**Rename / organize**, **Fix encoding**, **Delete**, and **Rescan**.
+**Rename / organize**, **Fix encoding**, **Rebuild tags**, **Delete**, and **Rescan**.
 
 ## Tag Editor
 
@@ -43,6 +43,14 @@ field.
 
 Saving writes only the fields that changed for each track and reports any
 per-track errors.
+
+**Rebuild tags** reads the file's existing tags first and writes them again
+through TagLib. Use it when ordinary tag editing fails on a WAV with legacy
+INFO metadata; those old metadata bytes stay in the file as an inert chunk.
+If Rainy cannot read an old field, it uses the track's indexed title, artist,
+or album where available. The action also works on files whose tags are
+already readable. Select the tracks in **Manage → Library manager** and choose
+**Rebuild tags**; each file is checked before replacing the original.
 
 ## Covers
 
@@ -116,7 +124,7 @@ and can rescan a single folder.
 
 ## History
 
-**Manage → History** records every change Rainy made to your files: tag edits,
+**Manage → History** records every change Rainy made to your files: tag edits and rebuilds,
 covers, lyrics, renames, uploads, deletions, restores, purges, and encoding
 fixes, with who made them, when, and a readable before-and-after view.
 

@@ -37,6 +37,13 @@ field the user did not change.
 When TagLib cannot parse a file, reading falls back to ffprobe/ffmpeg. Writing
 such a file still requires TagLib and reports a per-track error.
 
+Managers can explicitly rebuild tags for selected tracks. Rainy first reads the
+existing tags, copies the file in its library folder, writes tags to the copy
+through TagLib, verifies it, and then replaces the original. If the old tags
+cannot be read, indexed fields provide a fallback. For WAV, legacy LIST/INFO
+chunks that TagLib cannot parse become inert JUNK chunks; their bytes, the
+audio, and any ID3 chunk stay in the file. The operation is logged and rescanned.
+
 ## Encoding Repair
 
 Many older Chinese and Japanese files store GBK, Big5, or Shift-JIS text in tags

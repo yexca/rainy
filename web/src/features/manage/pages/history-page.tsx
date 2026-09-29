@@ -9,6 +9,7 @@ import {
   ListFilter,
   MicVocal,
   PencilLine,
+  RefreshCw,
   Tags,
   Trash2,
   Upload,
@@ -38,6 +39,7 @@ import { manageKeys } from '../queries'
 const PAGE = 50
 const ACTION_ICONS: Record<string, LucideIcon> = {
   tags: Tags,
+  tag_rebuild: RefreshCw,
   cover: ImageIcon,
   lyrics: MicVocal,
   rename: PencilLine,

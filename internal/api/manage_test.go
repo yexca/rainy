@@ -154,7 +154,7 @@ func mgCode(t *testing.T, rec *httptest.ResponseRecorder, status int) string {
 func TestManageAndAdminAuthz(t *testing.T) {
 	e := newMgEnv(t)
 	manageRoutes := [][2]string{
-		{"GET", "/manage/tracks/x/tags"}, {"POST", "/manage/tags"}, {"GET", "/manage/tracks/x/picture"},
+		{"GET", "/manage/tracks/x/tags"}, {"POST", "/manage/tags"}, {"POST", "/manage/tags/rebuild"}, {"GET", "/manage/tracks/x/picture"},
 		{"POST", "/manage/cover"}, {"DELETE", "/manage/cover"}, {"PUT", "/manage/tracks/x/lyrics"},
 		{"POST", "/manage/rename/preview"}, {"POST", "/manage/rename"}, {"POST", "/manage/upload"},
 		{"POST", "/manage/delete"}, {"GET", "/manage/trash"}, {"POST", "/manage/trash/restore"},
@@ -213,6 +213,9 @@ func TestManageEndpoints(t *testing.T) {
 	e := newMgEnv(t)
 	tok := e.mgrTok
 	if code := mgCode(t, e.do("POST", "/manage/tags", tok, map[string]any{"edits": []any{}}), 400); code != CodeBadRequest {
+		t.Fatal(code)
+	}
+	if code := mgCode(t, e.do("POST", "/manage/tags/rebuild", tok, map[string]any{"trackIds": []string{}}), 400); code != CodeBadRequest {
 		t.Fatal(code)
 	}
 	if code := mgCode(t, e.do("POST", "/manage/tags", tok, []byte("{")), 400); code != CodeBadRequest {

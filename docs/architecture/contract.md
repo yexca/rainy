@@ -428,7 +428,8 @@ type Metadata struct {
     Raw map[string][]string // all tags as returned by taglib (keys upper-case)
 }
 type ReadOptions struct { FixEncoding bool } // repair mojibake in text fields (not Raw)
-func Read(path string, opt ReadOptions) (*Metadata, error) // tags + properties; no fallbacks applied
+func Read(path string, opt ReadOptions) (*Metadata, error) // tags + properties; ffprobe fallback when enabled
+func Rebuild(path string, fallback map[string][]string) (source string, err error) // read old tags, TagLib-write verified copy, replace original
 func ReadRaw(path string) (map[string][]string, error)
 func Write(path string, changes map[string][]string) error // merge: listed keys replaced, empty slice deletes the key; other keys untouched
 func ReadPicture(path string) ([]byte, error)               // first embedded picture, nil if none
@@ -666,6 +667,7 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 |---|---|---|---|
 | GET | `/api/manage/tracks/{id}/tags` | | `TrackTags` |
 | POST | `/api/manage/tags` | `{edits: TagEdit[]}` | `BatchResult` |
+| POST | `/api/manage/tags/rebuild` | `{trackIds: string[]}` | `BatchResult` |
 | GET | `/api/manage/tracks/{id}/picture` | | embedded picture bytes (404 if none) |
 | POST | `/api/manage/cover` | multipart: `file`, `trackIds` (comma list) **or** `albumId`, `embed` (default true), `saveToFolder` (default false) | `BatchResult` |
 | DELETE | `/api/manage/cover` | `{trackIds?, albumId?, removeFolderImage?:boolean}` | `BatchResult` |
@@ -930,7 +932,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - **PWA**: `vite-plugin-pwa` (generateSW, `registerType: 'prompt'` with an "update available" toast), manifest (name "Rainy", short_name "Rainy", `display: standalone`, theme/background colours for light+dark, icons 192/512/maskable + apple-touch-icon 180), iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`, `viewport-fit=cover`), navigateFallback `index.html` with denylist `/api`, `/rest`. Runtime caching: `/api/cover/*` CacheFirst (500 entries, 30 days); never cache `/api/stream`, `/api/download`, `/api/events`.
 
 ### 9.5 Management UI (manage agent)
-- **Library manager** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Delete, Rescan. Mobile: list with selection mode.
+- **Library manager** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Rebuild tags, Delete, Rescan. Mobile: list with selection mode.
 - **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button, target embedded / .lrc), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
 - **Upload**: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
@@ -1095,7 +1097,10 @@ contracts above (nothing above was removed or renamed); read the package doc com
   fetch its mosaic (ids are random 22-char strings and the mosaic only shows album covers). The service worker's
   `rainy-covers` cache survives logout on a shared device.
 - `/api/me/password` answers 403 (not 401) for a wrong current password so the client stays logged in.
-- **tags ffprobe fallback**: TagLib's WASM build aborts on some real files (e.g. WAV with both an `id3 ` chunk and a
+- **tags ffprobe fallback and rebuild**: TagLib's WASM build aborts on some real files (e.g. WAV with both an `id3 ` chunk and a
   legacy-encoded LIST/INFO chunk). `tags.SetFFmpeg(cfg.FFmpegPath)` (called in `app.New`) enables a fallback:
   `ReadRaw`/`ReadProperties`/`ReadPicture` use ffprobe/ffmpeg when TagLib fails; duplicate keys prefer values that
-  decoded cleanly (no U+FFFD). Writing such files still needs TagLib and fails with a per-track error.
+  decoded cleanly (no U+FFFD). `POST /api/manage/tags/rebuild` first reads the current tags, then writes a verified
+  same-directory copy through TagLib. For WAV, it makes LIST/INFO chunks inert as JUNK while retaining their bytes,
+  audio and ID3 chunks; unreadable or absent fields fall back to the indexed title/artist/album fields. The original is replaced
+  only after the copy is readable. Other formats still require TagLib support and return per-track errors if it fails.

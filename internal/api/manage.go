@@ -22,6 +22,7 @@ import (
 func (a *API) routesManage(r chi.Router) {
 	r.Get("/tracks/{id}/tags", a.manageTrackTags)
 	r.Post("/tags", a.manageSaveTags)
+	r.Post("/tags/rebuild", a.manageRebuildTags)
 	r.Get("/tracks/{id}/picture", a.managePicture)
 	r.Post("/cover", a.manageSetCover)
 	r.Delete("/cover", a.manageRemoveCover)
@@ -93,6 +94,18 @@ func (a *API) manageSaveTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := a.app.Manage.SaveTags(r.Context(), userFrom(r), body.Edits)
+	writeBatch(w, r, res, err)
+}
+
+func (a *API) manageRebuildTags(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		TrackIDs []string `json:"trackIds"`
+	}
+	if err := decodeJSON(w, r, &body); err != nil {
+		writeErr(w, r, err)
+		return
+	}
+	res, err := a.app.Manage.RebuildTags(r.Context(), userFrom(r), body.TrackIDs)
 	writeBatch(w, r, res, err)
 }
 

@@ -26,6 +26,7 @@
     "rename": "重命名 / 整理",
     "renameShort": "重命名",
     "fixEncoding": "修复乱码",
+    "rebuildTags": "重构标签",
     "rescan": "重新扫描",
     "delete": "删除"
   },
@@ -63,6 +64,14 @@
     "discardTitle": "放弃未保存的改动？",
     "discardDescription": "你的修改还没有写入文件。",
     "discard": "放弃"
+  },
+  "rebuild": {
+    "title_one": "重构 {{count}} 首歌曲的标签？",
+    "title_other": "重构 {{count}} 首歌曲的标签？",
+    "description": "Rainy 会先读取现有标签，再通过 TagLib 重构文件并重新扫描。对于旧 INFO 标签导致无法解析的 WAV，原始字节会作为不生效的数据块保留。修改文件前请确认曲库备份可用。",
+    "confirm": "重构标签",
+    "done_one": "已重构 {{count}} 首歌曲的标签",
+    "done_other": "已重构 {{count}} 首歌曲的标签"
   },
   "cover": {
     "choose": "选择图片…",
@@ -515,6 +524,7 @@
     "removed": "（已移除）",
     "actions": {
       "tags": "编辑了标签",
+      "tag_rebuild": "重构了标签",
       "cover": "更换了封面",
       "lyrics": "修改了歌词",
       "rename": "重命名",

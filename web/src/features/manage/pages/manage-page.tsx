@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   PencilLine,
   SearchX,
+  RefreshCw,
   Tags,
   Trash2,
   Upload,
@@ -312,6 +313,7 @@ export default function ManagePage() {
     { id: 'cover', icon: ImagePlus, label: t('actions.cover') },
     { id: 'rename', icon: PencilLine, label: t('actions.rename'), short: t('actions.renameShort') },
     { id: 'encoding', icon: Languages, label: t('actions.fixEncoding') },
+    { id: 'rebuild', icon: RefreshCw, label: t('actions.rebuildTags') },
     { id: 'rescan', icon: FolderSync, label: t('actions.rescan') },
     { id: 'delete', icon: Trash2, label: t('actions.delete'), destructive: true },
   ]

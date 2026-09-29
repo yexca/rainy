@@ -109,6 +109,34 @@ func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	}
 }
 
+func TestRebuildTagsLogsAndKeepsTrackID(t *testing.T) {
+	e := newEnv(t)
+	rel := "Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac"
+	tr := e.track(rel)
+	before, err := tags.ReadRaw(e.abs(rel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := e.svc.RebuildTags(e.ctx, e.user, []string{tr.ID, tr.ID, "missing"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Updated) != 1 || res.Updated[0].ID != tr.ID || len(res.Errors) != 1 || res.Errors[0].TrackID != "missing" {
+		t.Fatalf("rebuild result %+v", res)
+	}
+	after, err := tags.ReadRaw(e.abs(rel))
+	if err != nil || !slices.Equal(before["TITLE"], after["TITLE"]) || !slices.Equal(before["ARTIST"], after["ARTIST"]) {
+		t.Fatalf("tags changed: %v, %v", after, err)
+	}
+	if len(e.sc.calls) != 1 || !slices.Equal(e.sc.calls[0], []string{rel}) {
+		t.Fatalf("rescan calls %v", e.sc.calls)
+	}
+	entries, total, err := e.st.ListEditLog(e.ctx, tr.ID, 0, 10)
+	if err != nil || total != 1 || entries[0].Action != "tag_rebuild" {
+		t.Fatalf("edit log %+v, %v", entries, err)
+	}
+}
+
 func TestSetLyricsSidecarAndEmbedded(t *testing.T) {
 	e := newEnv(t)
 	rel := "林雨晴/城市夜雨 (2019)/03 末班车.flac"
@@ -177,6 +205,10 @@ func TestReadonlyErrors(t *testing.T) {
 	_, err = e.svc.SaveTags(e.ctx, e.user, []TagEdit{{TrackID: tr.ID, Tags: TagMap{"TITLE": {"changed"}}}})
 	if !errors.As(err, &re) || re.Path != rel {
 		t.Fatalf("tag write on read-only file: %v", err)
+	}
+	_, err = e.svc.RebuildTags(e.ctx, e.user, []string{tr.ID})
+	if !errors.As(err, &re) || re.Path != rel {
+		t.Fatalf("tag rebuild on read-only file: %v", err)
 	}
 	if _, err := e.svc.RemoveCover(e.ctx, e.user, RemoveCoverRequest{TrackIDs: []string{tr.ID}}); err != nil && !errors.As(err, &re) {
 		t.Fatalf("cover removal: %v", err)
