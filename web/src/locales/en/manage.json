@@ -26,6 +26,7 @@
     "rename": "Rename / organize",
     "renameShort": "Rename",
     "fixEncoding": "Fix encoding",
+    "rebuildTags": "Rebuild tags",
     "rescan": "Rescan",
     "delete": "Delete"
   },
@@ -63,6 +64,14 @@
     "discardTitle": "Discard unsaved changes?",
     "discardDescription": "Your edits haven't been written to the files yet.",
     "discard": "Discard"
+  },
+  "rebuild": {
+    "title_one": "Rebuild tags for {{count}} track?",
+    "title_other": "Rebuild tags for {{count}} tracks?",
+    "description": "Rainy will read the existing tags first, rebuild each file through TagLib, and rescan it. For WAV files with unreadable legacy INFO tags, those bytes are kept as an inert chunk. Review your library backup before changing files.",
+    "confirm": "Rebuild tags",
+    "done_one": "Rebuilt tags for {{count}} track",
+    "done_other": "Rebuilt tags for {{count}} tracks"
   },
   "cover": {
     "choose": "Choose image…",
@@ -515,6 +524,7 @@
     "removed": "(removed)",
     "actions": {
       "tags": "Edited tags",
+      "tag_rebuild": "Rebuilt tags",
       "cover": "Changed cover",
       "lyrics": "Changed lyrics",
       "rename": "Renamed",

@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -348,6 +350,99 @@ func (s *Service) SaveTags(ctx context.Context, u *model.User, edits []TagEdit) 
 		return nil, err
 	}
 	return res, nil
+}
+
+// RebuildTags reconstructs selected files' tags on verified copies. It can also repair
+// WAV files whose legacy LIST/INFO chunk prevents TagLib from opening them.
+func (s *Service) RebuildTags(ctx context.Context, u *model.User, ids []string) (*BatchResult, error) {
+	if err := checkBatch(len(ids), "tracks"); err != nil {
+		return nil, err
+	}
+	ids = dedupe(ids)
+	unlock, err := s.lock(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+	ctx = context.WithoutCancel(ctx)
+	res := newBatch()
+	libs := s.libs()
+	byLib := map[int64][]string{}
+	type rebuilt struct {
+		track  *model.Track
+		source string
+	}
+	var done []rebuilt
+	for _, id := range ids {
+		t, err := s.st.GetTrack(ctx, id, "")
+		if err != nil {
+			res.fail(id, "", notFoundTrack(err))
+			continue
+		}
+		_, abs, err := s.trackFile(ctx, libs, t)
+		if err == nil {
+			err = checkWritable(t.Path, abs)
+		}
+		if err != nil {
+			res.fail(id, t.Path, rebuildItemError(id, t.Path, err))
+			continue
+		}
+		source, err := tags.Rebuild(abs, indexedTags(t))
+		if err != nil {
+			res.fail(id, t.Path, rebuildItemError(id, t.Path, err))
+			continue
+		}
+		s.forgetEncoding(abs)
+		byLib[t.LibraryID] = append(byLib[t.LibraryID], t.Path)
+		done = append(done, rebuilt{t, source})
+	}
+	for lib, paths := range byLib {
+		s.rescan(ctx, lib, paths)
+	}
+	updatedIDs := make([]string, 0, len(done))
+	for _, d := range done {
+		updatedIDs = append(updatedIDs, d.track.ID)
+		s.logEdit(ctx, u, "tag_rebuild", d.track.ID, d.track.Path, map[string]string{"source": d.source})
+	}
+	res.Updated = s.tracksByID(ctx, updatedIDs, u.ID)
+	if len(done) > 0 {
+		s.publish("tag_rebuild")
+	}
+	if err := res.failure(); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func rebuildItemError(id, rel string, err error) error {
+	if IsReadonly(err) {
+		return fsErr(rel, err)
+	}
+	slog.Warn("manage: rebuilding tags failed", "track", id, "err", err)
+	return errors.New("could not rebuild tags; the original file was left unchanged")
+}
+
+func indexedTags(t *model.Track) TagMap {
+	m := TagMap{}
+	add := func(k, v string) {
+		if v != "" && !strings.HasPrefix(v, "[Unknown ") {
+			m[k] = []string{v}
+		}
+	}
+	add("TITLE", t.Title)
+	add("ARTIST", t.Artist)
+	add("ALBUM", t.Album)
+	add("ALBUMARTIST", t.AlbumArtist)
+	if t.TrackNumber > 0 {
+		add("TRACKNUMBER", strconv.Itoa(t.TrackNumber))
+	}
+	if t.DiscNumber > 0 {
+		add("DISCNUMBER", strconv.Itoa(t.DiscNumber))
+	}
+	if t.Year > 0 {
+		add("DATE", strconv.Itoa(t.Year))
+	}
+	return m
 }
 
 // writeTags applies changes to one track's file and returns the effective diff.

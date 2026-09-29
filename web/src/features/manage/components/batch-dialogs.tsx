@@ -11,7 +11,7 @@ import { CoverDialog } from './cover-dialog'
 import { EncodingDialog } from './encoding-dialog'
 import { RenameDialog } from './rename-dialog'
 
-export type BatchDialogKind = 'rename' | 'cover' | 'encoding' | 'delete'
+export type BatchDialogKind = 'rename' | 'cover' | 'encoding' | 'rebuild' | 'delete'
 
 export interface BatchDialogState {
   kind: BatchDialogKind
@@ -47,11 +47,31 @@ export function BatchDialogs({ dialog, onClose, onDone }: BatchDialogsProps) {
     }
   }
 
+  const rebuild = async () => {
+    try {
+      const result = await api.manage.tags.rebuild([...ids])
+      reportBatch(result, 'manage:rebuild.done')
+      void invalidateLibrary(queryClient)
+      onDone?.('rebuild')
+    } catch (error) {
+      toastError(error)
+      throw error
+    }
+  }
+
   return (
     <>
       <RenameDialog open={dialog?.kind === 'rename'} onOpenChange={openChange} trackIds={ids} onDone={() => onDone?.('rename')} />
       <CoverDialog open={dialog?.kind === 'cover'} onOpenChange={openChange} trackIds={ids} onDone={() => onDone?.('cover')} />
       <EncodingDialog open={dialog?.kind === 'encoding'} onOpenChange={openChange} trackIds={ids} onDone={() => onDone?.('encoding')} />
+      <ConfirmDialog
+        open={dialog?.kind === 'rebuild'}
+        onOpenChange={openChange}
+        title={t('rebuild.title', { count: ids.length })}
+        description={t('rebuild.description')}
+        confirmLabel={t('rebuild.confirm')}
+        onConfirm={rebuild}
+      />
       <ConfirmDialog
         open={dialog?.kind === 'delete'}
         onOpenChange={openChange}

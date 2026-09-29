@@ -133,8 +133,8 @@ func wrapTaglib(op, path string, err error) error {
 	return fmt.Errorf("%s %s: %w", op, filepath.Base(path), err)
 }
 
-// Read returns tags and audio properties of path (no fallbacks applied). Files TagLib
-// cannot handle are read with ffprobe when SetFFmpeg enabled that fallback.
+// Read returns tags and audio properties of path. Files TagLib cannot handle are
+// read with ffprobe when SetFFmpeg enabled that fallback.
 func Read(path string, opt ReadOptions) (*Metadata, error) {
 	raw, err := ReadRaw(path)
 	if err != nil {
