@@ -188,7 +188,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
 
       <div
         className={cn(
-          'sticky bottom-[calc(var(--tabbar-h)+var(--miniplayer-h)+var(--safe-bottom)+1rem)] z-20 flex items-center justify-end gap-2 transition-opacity md:bottom-[calc(var(--playerbar-h)+var(--safe-bottom)+1rem)]',
+          'sticky bottom-[calc(var(--tabbar-h)+var(--miniplayer-h)+var(--safe-bottom)+1rem)] z-20 flex items-center justify-end gap-2 transition-opacity md:bottom-[calc(var(--player-clearance)+1rem)]',
           isDirty ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         aria-hidden={!isDirty}

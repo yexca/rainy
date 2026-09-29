@@ -96,8 +96,17 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 - **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
   clear.
 - **Desktop player bar.** Artwork, title and artist links, and a star on the
-  left; transport and scrubber in the center; lyrics, queue, volume, and expand
-  on the right. Queue and lyrics open in a 360 px side panel.
+  left; transport and scrubber in the center; lyrics, queue, volume, the layout
+  menu, and expand on the right. Queue and lyrics open in a 360 px side panel.
+- **Player layouts (tablet and desktop).** The layout menu switches between the
+  bottom bar, a floating window, and a floating mini bar, both in the
+  bottom-right corner; full screen covers any of them. The bottom bar can
+  auto-hide like NetEase Cloud Music: it slides away, leaving a small handle
+  that brings it back on hover and pins it on click. The floating window is a
+  compact Now Playing (artwork backdrop, transport, volume, lyrics and queue
+  inside it). The mini bar shows artwork, title, play/pause, and next, opens
+  the window on tap, and scrubs when dragged sideways. Layout-dependent spacing
+  uses `--player-reserve` and `--player-clearance`, never `--playerbar-h`.
 - **Keyboard.** Space plays or pauses, ←/→ seek 5 seconds, Shift+←/→ change
   track, and M mutes.
 - **Continuity.** The next track preloads shortly before the end; Media Session

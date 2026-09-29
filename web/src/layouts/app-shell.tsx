@@ -9,7 +9,7 @@ import { TagEditorHost } from '@/features/manage/tag-editor-host'
 import { AudioEngine } from '@/features/player/components/audio-engine'
 import { MiniPlayer } from '@/features/player/components/mini-player'
 import { NowPlayingSheet } from '@/features/player/components/now-playing-sheet'
-import { PlayerBar } from '@/features/player/components/player-bar'
+import { PlayerDock } from '@/features/player/components/player-dock'
 import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query'
 import { useServerEvents } from '@/hooks/use-server-events'
 import { useUI } from '@/stores/ui'
@@ -28,10 +28,11 @@ const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.2
  * - < 768px: no sidebar; bottom glass tab bar with a floating mini player above it.
  *
  * The document is the scroll container (native iOS behaviour; use `useWindowVirtualizer`).
- * Player chrome is positioned by the shell:
- * - `<PlayerBar/>` renders inside a `fixed inset-x-0 bottom-0` slot and owns its height
- *   (`h-(--playerbar-h)` + `pb-safe`); it should always render (idle state) because the
- *   sidebar and `.page-pad` reserve that space.
+ * Player chrome:
+ * - `<PlayerDock/>` (≥ 768px) positions itself: the bottom bar (`--playerbar-h` + safe area,
+ *   optionally auto-hiding), a floating window or a floating mini bar in the bottom-right corner.
+ *   It publishes `<html data-player-dock>`; the sidebar, `.page-pad` and toasts read the space it
+ *   reserves from `--player-reserve` / `--player-clearance` (index.css).
  * - `<MiniPlayer/>` renders inside a `fixed` slot 8px above the tab bar with 8px side margins
  *   and owns its height (`h-(--miniplayer-h)`); it may render nothing when idle.
  * Slots have no transform/filter, so `position: fixed` descendants stay viewport-relative.
@@ -60,7 +61,7 @@ export function AppShell() {
         onOpenChange={isDesktop ? setSidebarOpen : setTabletOpen}
         style={SIDEBAR_STYLE}
       >
-        {isMobile ? null : <AppSidebar className="bottom-[calc(var(--playerbar-h)+var(--safe-bottom))] h-auto" />}
+        {isMobile ? null : <AppSidebar className="bottom-(--player-reserve) h-auto transition-[bottom] duration-300 ease-out" />}
         <SidebarInset id="main" tabIndex={-1} className="min-w-0 outline-none transition-[padding] duration-200 xl:pr-(--player-panel-w,0px)">
           <Outlet />
         </SidebarInset>
@@ -74,9 +75,7 @@ export function AppShell() {
           <MobileTabBar />
         </>
       ) : (
-        <div data-slot="player-bar" className="fixed inset-x-0 bottom-0 z-40">
-          <PlayerBar />
-        </div>
+        <PlayerDock />
       )}
 
       <AudioEngine />

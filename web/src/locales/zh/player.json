@@ -18,6 +18,19 @@
     "one": "循环：单曲"
   },
   "airplay": "隔空播放",
+  "layout": {
+    "title": "播放器布局",
+    "bar": "底部播放栏",
+    "window": "悬浮窗口",
+    "compact": "悬浮迷你条",
+    "autoHide": "自动隐藏底部播放栏"
+  },
+  "dock": {
+    "hideBar": "收起播放栏",
+    "pinBar": "固定播放栏",
+    "shrink": "缩小为迷你条",
+    "openWindow": "打开播放器窗口"
+  },
   "idle": {
     "title": "未在播放",
     "hint": "挑一首歌开始听吧"
