@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 
 import { isApiError } from '@/lib/api/client'
 import { api } from '@/lib/api/endpoints'
 import type { Lyrics } from '@/lib/api/types'
+import { groupBilingual } from '@/lib/lyrics/bilingual'
 import { queryKeys } from '@/lib/query-keys'
 
 import type { PlayableTrack } from '../types'
@@ -26,6 +28,15 @@ export function useLyrics(track: PlayableTrack | undefined) {
     enabled: id !== '',
     staleTime: 10 * 60_000,
   })
+}
+
+/** Whether the track's lyrics have translations to show (bilingual lyrics, lib/lyrics/bilingual). */
+export function useHasLyricTranslations(track: PlayableTrack | undefined): boolean {
+  const { data } = useLyrics(track)
+  return useMemo(
+    () => !!data && groupBilingual(data.lines, data.synced).some((line) => line.translations.length > 0),
+    [data],
+  )
 }
 
 /** Index of the line active at `ms` (last line whose start ≤ ms), -1 before the first. */

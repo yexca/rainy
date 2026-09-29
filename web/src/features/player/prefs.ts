@@ -1,7 +1,7 @@
 /**
  * Client-side playback preferences (persisted in localStorage, per browser): streaming quality,
- * transcode format, ReplayGain and next-track preloading. Edited on the settings page, read by
- * the audio engine.
+ * transcode format, ReplayGain, next-track preloading and lyric translations. Edited on the
+ * settings page (translations also from the lyrics view), read by the audio engine and lyrics.
  */
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -22,6 +22,8 @@ export interface PlaybackPrefs {
   replayGain: ReplayGainMode
   /** Buffer the next track ~20 s before the current one ends (near-gapless playback). */
   preloadNext: boolean
+  /** Show the translation under bilingual lyric lines. */
+  lyricsTranslation: boolean
 }
 
 export interface PlaybackPrefsState extends PlaybackPrefs {
@@ -34,6 +36,7 @@ export const DEFAULT_PLAYBACK_PREFS: PlaybackPrefs = {
   format: 'mp3',
   replayGain: 'off',
   preloadNext: true,
+  lyricsTranslation: true,
 }
 
 function sanitize(input: Partial<PlaybackPrefs> | undefined): PlaybackPrefs {
@@ -49,6 +52,8 @@ function sanitize(input: Partial<PlaybackPrefs> | undefined): PlaybackPrefs {
       ? (p.replayGain as ReplayGainMode)
       : DEFAULT_PLAYBACK_PREFS.replayGain,
     preloadNext: typeof p.preloadNext === 'boolean' ? p.preloadNext : DEFAULT_PLAYBACK_PREFS.preloadNext,
+    lyricsTranslation:
+      typeof p.lyricsTranslation === 'boolean' ? p.lyricsTranslation : DEFAULT_PLAYBACK_PREFS.lyricsTranslation,
   }
 }
 
@@ -68,6 +73,7 @@ export const usePlaybackPrefs = create<PlaybackPrefsState>()(
         format: s.format,
         replayGain: s.replayGain,
         preloadNext: s.preloadNext,
+        lyricsTranslation: s.lyricsTranslation,
       }),
       merge: (persisted, current) => ({ ...current, ...sanitize(persisted as Partial<PlaybackPrefs>) }),
     },

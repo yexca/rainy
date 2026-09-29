@@ -35,8 +35,8 @@ export default defineConfig([
     },
   },
   {
-    // Build tooling runs in Node.
-    files: ['*.config.ts', 'vite.config.ts', 'pwa.config.ts', 'pwa-assets.config.ts'],
+    // Build tooling and unit tests run in Node.
+    files: ['*.config.ts', 'vite.config.ts', 'pwa.config.ts', 'pwa-assets.config.ts', 'tests/**/*.ts'],
     languageOptions: {
       globals: globals.node,
     },

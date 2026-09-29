@@ -13,6 +13,7 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
+    "test": "node --test \"tests/**/*.test.ts\"",
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator"
   },

@@ -41,7 +41,14 @@ the Media Session API.
 
 Open lyrics from Now Playing or the player bar. Synced lyrics (from `.lrc`
 files or timed embedded lyrics) highlight the current line and scroll with the
-music; tap a line to jump to it. Plain lyrics scroll normally. Managers can edit
+music; tap a line to jump to it. Plain lyrics scroll normally.
+
+Bilingual lyrics show the translation in smaller text under each original
+line. Rainy recognizes two layouts: lines that share a timestamp (original
+first), and lines that hold the original, a space, and the Chinese translation.
+Japanese and Korean lines use matching Japanese or Korean fonts. The translation
+button next to the lyrics button hides or shows translations; the choice is
+remembered in this browser and is also under **Settings → Playback**. Managers can edit
 lyrics; see [Management](management.md#lyrics).
 
 ## Playback Settings

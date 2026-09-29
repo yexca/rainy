@@ -13,10 +13,10 @@ import {
   SlidersHorizontal,
   Star,
   Stethoscope,
+  Tags,
   Trash2,
   Upload,
   Users,
-  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -40,8 +40,13 @@ export const LIBRARY_NAV: readonly NavItem[] = [
   { to: '/radio', labelKey: 'nav.radio', icon: Radio },
 ]
 
+/**
+ * Metadata editing (the track table + tag editor) is used often, so it is a top-level entry of its
+ * own; the rarer library tools and administration pages are folded away (MANAGE_NAV, ADMIN_NAV).
+ */
+export const METADATA_NAV: NavItem = { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true }
+
 export const MANAGE_NAV: readonly NavItem[] = [
-  { to: '/manage', labelKey: 'nav.manageLibrary', icon: LibraryBig, end: true },
   { to: '/manage/folders', labelKey: 'nav.folders', icon: FolderTree },
   { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
   { to: '/manage/doctor', labelKey: 'nav.doctor', icon: Stethoscope },
@@ -71,7 +76,7 @@ export const TABS: readonly TabItem[] = [
     match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/playlists', '/radio', '/settings'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
-  { to: '/manage', labelKey: 'nav.manage', icon: Wrench, match: ['/manage', '/admin'], managersOnly: true },
+  { ...METADATA_NAV, match: ['/manage', '/admin'], managersOnly: true },
 ]
 
 /** Whether `pathname` is `prefix` or below it (`/albums` matches `/albums/1`, not `/albumsx`). */

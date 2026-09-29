@@ -74,6 +74,8 @@
     "preload": "Preload next song",
     "preloadHint": "Buffers the next song before the current one ends for near-gapless playback.",
     "preloadUnsupported": "Not available on iPhone and iPad.",
+    "lyricsTranslation": "Show lyric translations",
+    "lyricsTranslationHint": "Shows the translation under each line of bilingual lyrics.",
     "footer": "Playback settings are saved on this device only."
   },
   "install": {

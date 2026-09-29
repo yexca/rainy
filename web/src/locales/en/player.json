@@ -32,7 +32,9 @@
     "noneHint": "This track has no lyrics yet.",
     "error": "Couldn't load lyrics",
     "radio": "Lyrics aren't available for live radio",
-    "instrumental": "Instrumental"
+    "instrumental": "Instrumental",
+    "showTranslation": "Show translation",
+    "hideTranslation": "Hide translation"
   },
   "queue": {
     "title": "Queue",

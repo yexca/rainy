@@ -1,14 +1,16 @@
 import { MicVocal, Radio } from 'lucide-react'
 import { useReducedMotion } from 'motion/react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Spinner } from '@/components/spinner'
 import type { LyricsLine } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
+import { groupBilingual, guessLang, type DisplayLine } from '@/lib/lyrics/bilingual'
 import { cn } from '@/lib/utils'
 
 import { activeLineIndex, useLyrics } from '../hooks/use-lyrics'
+import { usePlaybackPrefs } from '../prefs'
 import { usePlayback, usePlayer } from '../store'
 import type { PlayableTrack } from '../types'
 
@@ -44,10 +46,8 @@ export function LyricsView({ track, tone, className }: LyricsViewProps) {
     content = <LyricsMessage icon={MicVocal} title={t('lyrics.error')} description={errorMessage(query.error, t)} onArt={onArt} />
   } else if (query.data.lines.length === 0) {
     content = <LyricsMessage icon={MicVocal} title={t('lyrics.none')} description={t('lyrics.noneHint')} onArt={onArt} />
-  } else if (query.data.synced) {
-    content = <SyncedLyrics key={track.id} lines={query.data.lines} tone={tone} />
   } else {
-    content = <PlainLyrics lines={query.data.lines} tone={tone} />
+    content = <Lyrics key={track.id} lines={query.data.lines} synced={query.data.synced} tone={tone} />
   }
 
   return <div className={cn('relative h-full min-h-0', className)}>{content}</div>
@@ -81,10 +81,48 @@ const LINE_CLASS: Record<LyricsTone, string> = {
   panel: 'text-xl leading-snug font-semibold',
 }
 
+/** Translation lines under a synced bilingual line: about two thirds of the line size. */
+const TRANSLATION_CLASS: Record<LyricsTone, string> = {
+  sheet: 'mt-1 text-[0.68em] leading-snug font-semibold tracking-normal',
+  stage: 'mt-1.5 text-[0.68em] leading-snug font-semibold tracking-normal',
+  panel: 'mt-0.5 text-[0.75em] leading-snug font-medium',
+}
+/** Plain lyrics are smaller already. */
+const PLAIN_TRANSLATION_CLASS = 'mt-0.5 text-[0.82em] leading-snug font-medium'
+
 const SCROLLER_CLASS =
   'scrollbar-none relative h-full touch-pan-y overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,transparent,#000_6%,#000_88%,transparent)]'
 
-function SyncedLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }) {
+/** Groups bilingual lines (original + translation, lib/lyrics/bilingual); `TranslationToggle` hides them. */
+function Lyrics({ lines, synced, tone }: { lines: LyricsLine[]; synced: boolean; tone: LyricsTone }) {
+  const display = useMemo(() => groupBilingual(lines, synced), [lines, synced])
+  const translate = usePlaybackPrefs((s) => s.lyricsTranslation)
+  return synced ? (
+    <SyncedLyrics lines={display} tone={tone} translate={translate} />
+  ) : (
+    <PlainLyrics lines={display} tone={tone} translate={translate} />
+  )
+}
+
+/** One lyric line: the original with its translations beneath, each with a language hint. */
+function LineText({ line, translationClass }: { line: DisplayLine; translationClass: string | null }) {
+  return (
+    <>
+      <span lang={guessLang(line.text)} className="block">
+        {line.text}
+      </span>
+      {translationClass !== null
+        ? line.translations.map((text, i) => (
+            <span key={i} lang={guessLang(text)} className={cn('block opacity-75', translationClass)}>
+              {text}
+            </span>
+          ))
+        : null}
+    </>
+  )
+}
+
+function SyncedLyrics({ lines, tone, translate }: { lines: DisplayLine[]; tone: LyricsTone; translate: boolean }) {
   const { t } = useTranslation('player')
   const reduceMotion = useReducedMotion()
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -138,7 +176,13 @@ function SyncedLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }
     }, USER_SCROLL_PAUSE)
   }
 
-  const seekTo = (line: LyricsLine) => {
+  // Showing or hiding translations moves every line: re-centre without animation.
+  useEffect(() => {
+    if (Date.now() >= pausedUntil.current) centre(activeLineIndex(lines, usePlayback.getState().currentTime * 1000), false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [translate])
+
+  const seekTo = (line: DisplayLine) => {
     pausedUntil.current = 0
     usePlayback.getState().seek(line.start / 1000)
     usePlayer.getState().play()
@@ -156,7 +200,6 @@ function SyncedLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }
       <div className={cn('pt-[18vh] pb-[45vh]', tone === 'panel' ? 'px-5' : tone === 'stage' ? 'px-2' : 'px-7')}>
         {lines.map((line, i) => {
           const isActive = i === active
-          const text = line.text.trim()
           return (
             <div role="listitem" key={i}>
               <button
@@ -173,7 +216,7 @@ function SyncedLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }
                   isActive ? 'scale-100 opacity-100' : cn('scale-[0.96]', onArt ? 'opacity-35 hover:opacity-60' : 'opacity-30 hover:opacity-55'),
                 )}
               >
-                {text || <span aria-label={t('lyrics.instrumental')}>♪</span>}
+                {line.text ? <LineText line={line} translationClass={translate ? TRANSLATION_CLASS[tone] : null} /> : <span aria-label={t('lyrics.instrumental')}>♪</span>}
               </button>
             </div>
           )
@@ -183,7 +226,7 @@ function SyncedLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }
   )
 }
 
-function PlainLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone }) {
+function PlainLyrics({ lines, tone, translate }: { lines: DisplayLine[]; tone: LyricsTone; translate: boolean }) {
   const onArt = tone !== 'panel'
   return (
     <div className={SCROLLER_CLASS}>
@@ -197,7 +240,7 @@ function PlainLyrics({ lines, tone }: { lines: LyricsLine[]; tone: LyricsTone })
               onArt ? 'text-white/85' : 'text-foreground/85',
             )}
           >
-            {line.text}
+            <LineText line={line} translationClass={translate ? PLAIN_TRANSLATION_CLASS : null} />
           </p>
         ))}
       </div>

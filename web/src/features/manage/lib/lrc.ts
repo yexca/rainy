@@ -25,21 +25,41 @@ export interface InsertResult {
   caret: number
 }
 
+/** The leading timestamps of a line, whitespace removed (`''` when untimed). */
+function leadingStamps(line: string): string {
+  return (LEADING_STAMPS_RE.exec(line)?.[0] ?? '').replace(/\s+/g, '')
+}
+
 /**
  * Stamp the line containing `caret` with `seconds`: replaces existing leading timestamps, then
- * moves the caret to the start of the next line so repeated presses sync line by line.
+ * moves the caret to the start of the next line so repeated presses sync line by line. Following
+ * lines that shared the old timestamps (a bilingual translation paired with the line) get the new
+ * time too, and the caret skips past them.
  */
 export function stampLine(text: string, caret: number, seconds: number): InsertResult {
   const lineStart = text.lastIndexOf('\n', Math.max(0, caret - 1)) + 1
   let lineEnd = text.indexOf('\n', lineStart)
   if (lineEnd < 0) lineEnd = text.length
   const line = text.slice(lineStart, lineEnd)
-  const body = line.replace(LEADING_STAMPS_RE, '').replace(/^\s+/, '')
-  const stamped = `${formatLrcTimestamp(seconds)}${body}`
-  const next = text.slice(0, lineStart) + stamped + text.slice(lineEnd)
+  const stamp = formatLrcTimestamp(seconds)
+  const restamp = (l: string) => `${stamp}${l.replace(LEADING_STAMPS_RE, '').replace(/^\s+/, '')}`
+  let stamped = restamp(line)
+  const old = leadingStamps(line)
+  if (old) {
+    while (lineEnd < text.length) {
+      const nextStart = lineEnd + 1
+      let nextEnd = text.indexOf('\n', nextStart)
+      if (nextEnd < 0) nextEnd = text.length
+      const next = text.slice(nextStart, nextEnd)
+      if (leadingStamps(next) !== old) break
+      stamped += `\n${restamp(next)}`
+      lineEnd = nextEnd
+    }
+  }
+  const result = text.slice(0, lineStart) + stamped + text.slice(lineEnd)
   const newLineEnd = lineStart + stamped.length
-  const caretAfter = newLineEnd < next.length ? newLineEnd + 1 : newLineEnd
-  return { text: next, caret: caretAfter }
+  const caretAfter = newLineEnd < result.length ? newLineEnd + 1 : newLineEnd
+  return { text: result, caret: caretAfter }
 }
 
 export type LrcSegment = { kind: 'time' | 'meta' | 'text'; text: string }

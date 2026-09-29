@@ -1,7 +1,11 @@
 # Management
 
 Managers and administrators can change the music library from the **Manage**
-section. Every change writes to your files, so:
+section. Tag editing is used most, so **Metadata** is always visible: in the
+sidebar on desktop and as its own tab on phones. The other tools (Folders,
+Upload, Doctor, Trash, History) and the admin pages stay folded under
+**Library tools** and **Admin** until you open them. Every change writes to your
+files, so:
 
 - The music folder must be writable by the container user; see
   [Docker](../operations/docker.md#permissions-puid-and-pgid). On a read-only
@@ -9,9 +13,9 @@ section. Every change writes to your files, so:
 - Keep a backup of your music. Rainy's trash and edit history help undo
   mistakes, but they do not replace a backup.
 
-## Library Manager
+## Metadata
 
-**Manage → Library** is a table of every track with sortable, configurable
+**Metadata** is a table of every track with sortable, configurable
 columns (title, artist, album, album artist, track, disc, year, genre, format,
 bitrate, and path), search, and filters by album, artist, genre, folder, or
 missing files. Select tracks with click, Shift-click for a range, Ctrl/Cmd-click
@@ -49,7 +53,7 @@ through TagLib. Use it when ordinary tag editing fails on a WAV with legacy
 INFO metadata; those old metadata bytes stay in the file as an inert chunk.
 If Rainy cannot read an old field, it uses the track's indexed title, artist,
 or album where available. The action also works on files whose tags are
-already readable. Select the tracks in **Manage → Library manager** and choose
+already readable. Select the tracks in **Metadata** and choose
 **Rebuild tags**; each file is checked before replacing the original.
 
 ## Covers
@@ -67,6 +71,25 @@ the start of the current line and moves to the next one, which makes syncing
 lyrics by ear easy. Choose whether to save into the embedded `LYRICS` tag or a
 `.lrc` file beside the audio file (best for synced lyrics). Saving empty text
 removes the lyrics.
+
+### Bilingual Lyrics
+
+Many downloaded lyrics put the original line and its Chinese translation on one
+line, separated by a space (`君の名前を呼んだ 我呼唤了你的名字`). When you paste
+or type lyrics like this, the Lyrics tab recognizes them and offers to split
+them. **Preview** shows how each line would split, and **Split lines** rewrites
+every timed line as two lines with the same timestamp, original first:
+
+```text
+[00:12.00]君の名前を呼んだ
+[00:12.00]我呼唤了你的名字
+```
+
+This is the standard bilingual LRC layout, so Rainy and most Subsonic apps show
+it as an original line with its translation. Nothing changes until you choose
+**Split lines** and save; untimed lines are left as they are. Detection only
+splits a line when a Japanese, Korean, or other non-Chinese part is followed by
+a purely Chinese part, and only when most lines of the text look that way.
 
 ## Rename and Organize
 

@@ -1,5 +1,5 @@
 {
-  "title": "Library manager",
+  "title": "Metadata",
   "library": {
     "default": "Music library"
   },
@@ -111,7 +111,24 @@
     "stamp": "Stamp line",
     "stampHint": "Put the current playback time at the start of the current line and move to the next line.",
     "playToStamp": "Play this track to insert timestamps.",
-    "singleOnly": "Lyrics can be edited for one track at a time."
+    "singleOnly": "Lyrics can be edited for one track at a time.",
+    "bilingual": "Bilingual",
+    "bilingualPairedHint": "Lines with the same timestamp are shown as original and translation.",
+    "bilingualDetected_one": "{{count}} line looks like bilingual lyrics (original, a space, then the Chinese translation).",
+    "bilingualDetected_other": "{{count}} lines look like bilingual lyrics (original, a space, then the Chinese translation).",
+    "bilingualTimedHint": "Split them into two lines with the same timestamp: the standard bilingual LRC layout that Rainy and most Subsonic apps show as original plus translation.",
+    "bilingualPlainHint": "The player already shows them as original and translation. Add timestamps first to split them into standard bilingual LRC.",
+    "bilingualPreview": "Preview",
+    "bilingualHidePreview": "Hide preview",
+    "bilingualSplit": "Split lines",
+    "bilingualDismiss": "Ignore",
+    "bilingualOriginal": "Original",
+    "bilingualTranslation": "Translation",
+    "bilingualUntimed": "No timestamp, left as is",
+    "bilingualMore_one": "…and {{count}} more line",
+    "bilingualMore_other": "…and {{count}} more lines",
+    "bilingualDone_one": "Split {{count}} line into original and translation.",
+    "bilingualDone_other": "Split {{count}} lines into original and translation."
   },
   "raw": {
     "hint": "Every tag stored in the files. Keys use TagLib names (TITLE, ARTIST, …); empty keys are removed on save.",

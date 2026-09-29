@@ -74,6 +74,8 @@
     "preload": "预加载下一首",
     "preloadHint": "在当前歌曲结束前缓冲下一首，实现近乎无缝的播放。",
     "preloadUnsupported": "iPhone 和 iPad 不支持此功能。",
+    "lyricsTranslation": "显示歌词翻译",
+    "lyricsTranslationHint": "在双语歌词的每一行下方显示译文。",
     "footer": "播放设置仅保存在此设备上。"
   },
   "install": {
