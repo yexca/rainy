@@ -58,8 +58,9 @@ Docker image for `linux/amd64` and `linux/arm64`.
   English and Simplified Chinese.
 - **Library management in the browser.** Single and batch tag editing with
   preview-before-apply tools, cover art, embedded or `.lrc` lyrics,
-  rename/organize by pattern, uploads, a restorable trash, a library doctor,
-  and a complete edit history.
+  rename/organize by pattern, uploads, optional downloads from YouTube and
+  bilibili links through yt-dlp, a restorable trash, a library doctor, and a
+  complete edit history.
 - **Friendly to CJK libraries.** Mojibake from legacy GBK, Big5, and Shift-JIS
   tags is repaired when reading and can be written back as UTF-8. Chinese artist
   names are indexed by pinyin initial.
@@ -117,7 +118,7 @@ install the web app as a PWA.
 
 | Host path | Container path | Purpose | Back up? |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH` (default `./data`) | `/data` | SQLite database, `secret.key`, cover cache, trash, and upload staging | Yes |
+| `RAINY_DATA_PATH` (default `./data`) | `/data` | SQLite database, `secret.key`, cover cache, trash, upload staging, and yt-dlp with its encrypted cookies | Yes |
 | `RAINY_MUSIC_PATH` | `/music` | Your music library; writable when you use management features | Yes, with your NAS backup tools |
 
 `secret.key` encrypts stored passwords. Losing it means every user must have
@@ -155,7 +156,8 @@ only the app shell, the health check, sign-in, and the first-run setup, which
 closes once the first account exists. All file operations are confined to the
 configured library roots. Rainy does not
 send telemetry and makes no outbound requests of its own unless an
-administrator enables the optional online metadata lookup. Report a suspected
+administrator enables the optional online metadata lookup or downloads from
+YouTube and bilibili. Report a suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
 

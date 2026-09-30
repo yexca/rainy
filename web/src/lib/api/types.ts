@@ -96,6 +96,24 @@ export interface MetadataResult {
   date: string; genre: string; duration: number; coverUrl: string; thumbUrl: string   // 0 / '' = unknown
 }
 export interface MetadataLyrics { text: string; translation: string }
+export type DownloadSite = 'youtube' | 'bilibili'
+export type DownloadFormat = 'best' | 'm4a' | 'mp3' | 'opus'
+export type DownloadJobStatus = 'queued' | 'running' | 'importing' | 'done' | 'error' | 'canceled'
+export interface DownloadJob {
+  id: string; url: string; site: DownloadSite; title: string; status: DownloadJobStatus
+  phase: '' | 'downloading' | 'processing'
+  progress: number                  // 0…1 overall, -1 = unknown
+  item: number; items: number       // current playlist entry (1-based) / entries, 0 = unknown
+  speed: number; eta: number        // bytes per second; seconds, -1 = unknown
+  error: string                     // failure, or what failed for some entries of a finished job
+  libraryId: number; dir: string; organize: boolean; format: DownloadFormat; playlist: boolean
+  trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+}
+export interface DownloadsStatus {
+  enabled: boolean; ready: boolean               // yt-dlp installed and runnable, ffmpeg present
+  sites: { id: DownloadSite; cookies: boolean }[]
+  jobs: DownloadJob[]                            // newest first
+}
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -111,6 +129,7 @@ export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
+  ytdlpEnabled: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -122,6 +141,18 @@ export interface SystemInfo {
   uptimeSec: number; dataDir: string; dbSize: number; cacheSize: number; trashSize: number
   ffmpeg: { available: boolean; version: string; path: string }
   libraries: LibraryInfo[]
+}
+export interface CookieInfo {
+  site: DownloadSite; configured: boolean; count: number
+  signedIn: boolean; expiresAt: number; updatedAt: number   // ms; expiresAt 0 = unknown / session
+}
+export interface CookieSaveResult extends CookieInfo { dropped: number }
+export interface YtdlpInstallState { running: boolean; error: string; finishedAt: number }
+export interface YtdlpInfo {
+  enabled: boolean; managed: boolean; installed: boolean; version: string; error: string
+  latest: string; checkedAt: number; asset: string
+  jsRuntime: '' | 'deno' | 'node' | 'quickjs'; ffmpeg: boolean
+  install: YtdlpInstallState; cookies: CookieInfo[]
 }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }

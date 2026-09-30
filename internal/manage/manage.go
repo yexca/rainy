@@ -60,6 +60,9 @@ type Service struct {
 
 	encMu    sync.Mutex
 	encCache map[string]encCacheEntry // abs path → raw-tag mojibake analysis
+
+	downloader Downloader // yt-dlp; nil until SetDownloader
+	dls        *downloads
 }
 
 // New creates the manage service.
@@ -68,7 +71,7 @@ func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events
 }
 
 func newService(st *store.Store, sc fileScanner, art *artwork.Service, bus *events.Bus, cfg *config.Config) *Service {
-	return &Service{st: st, sc: sc, art: art, bus: bus, cfg: cfg, encCache: map[string]encCacheEntry{}}
+	return &Service{st: st, sc: sc, art: art, bus: bus, cfg: cfg, encCache: map[string]encCacheEntry{}, dls: newDownloads()}
 }
 
 // ---- shared JSON shapes (docs/architecture/contract.md §8, "manage")

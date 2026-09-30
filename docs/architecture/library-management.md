@@ -56,6 +56,26 @@ Covers are proxied only from the providers' image hosts, so the browser does
 not contact them and the proxy cannot reach other addresses. See
 [contract §5.13](contract.md#513-metasearch-owner-manage-agent).
 
+## Downloads from Links
+
+With the administrator setting `ytdlpEnabled` on (off by default), managers can
+paste a YouTube or bilibili link on the Upload page. The server runs
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) through `internal/ytdlp` with a fixed
+argument list in a work directory under `<data>/tmp`: configuration files,
+plugins, and the generic extractor are disabled, and only links to the
+supported hosts are accepted, so yt-dlp cannot be pointed at other servers.
+Rainy then writes the title, artist, album, date, source link, and a square
+cover cropped from the thumbnail through TagLib, and imports the files exactly
+like an upload: library lock, rescan, a `download` edit-log row per file, and
+a library event. Existing files are never overwritten.
+
+Administrators install and update yt-dlp from **Admin → Settings → yt-dlp**:
+Rainy downloads the official release from GitHub into `<data>/ytdlp`, verifies
+it against the release checksums, and checks that it runs before replacing the
+old binary. Optional sign-in cookies are filtered to the site's own domain and
+stored encrypted with `secret.key`; no endpoint returns them. See
+[contract §5.14](contract.md#514-ytdlp-owner-manage-agent).
+
 ## Encoding Repair
 
 Many older Chinese and Japanese files store GBK, Big5, or Shift-JIS text in tags

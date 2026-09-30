@@ -11,15 +11,18 @@ import { useIsMobile } from '@/hooks/use-media-query'
 
 import { SettingsForm } from '../components/settings-form'
 import { SystemInfo } from '../components/system-info'
+import { YtdlpSettings } from '../components/ytdlp-settings'
 import { settingsQuery } from '../queries'
 
-type Tab = 'general' | 'system'
+type Tab = 'general' | 'ytdlp' | 'system'
+const TABS: readonly Tab[] = ['general', 'ytdlp', 'system']
 
 export default function ServerSettingsPage() {
   const { t } = useTranslation('admin')
   const isMobile = useIsMobile()
   const [searchParams, setSearchParams] = useSearchParams()
-  const tab: Tab = searchParams.get('tab') === 'system' ? 'system' : 'general'
+  const requested = searchParams.get('tab') as Tab | null
+  const tab: Tab = requested && TABS.includes(requested) ? requested : 'general'
   // Background refetches (library events invalidate `admin` queries) must not reset edits:
   // the form copies the first loaded value and only resets itself after saving.
   const settings = useQuery(settingsQuery)
@@ -27,14 +30,13 @@ export default function ServerSettingsPage() {
   return (
     <Page>
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} back={isMobile ? '/manage' : undefined}>
-        <Tabs value={tab} onValueChange={(v) => setSearchParams(v === 'system' ? { tab: 'system' } : {}, { replace: true })} className="pb-6 sm:items-start">
+        <Tabs value={tab} onValueChange={(v) => setSearchParams(v === 'general' ? {} : { tab: v }, { replace: true })} className="pb-6 sm:items-start">
           <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="general" className="sm:px-6">
-              {t('settings.tabs.general')}
-            </TabsTrigger>
-            <TabsTrigger value="system" className="sm:px-6">
-              {t('settings.tabs.system')}
-            </TabsTrigger>
+            {TABS.map((id) => (
+              <TabsTrigger key={id} value={id} className="sm:px-6">
+                {t(`settings.tabs.${id}`)}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
       </PageHeader>
@@ -48,6 +50,8 @@ export default function ServerSettingsPage() {
           ) : (
             <PageLoader />
           )
+        ) : tab === 'ytdlp' ? (
+          <YtdlpSettings />
         ) : (
           <SystemInfo />
         )}

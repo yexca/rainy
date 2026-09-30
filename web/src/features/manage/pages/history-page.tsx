@@ -6,6 +6,7 @@ import {
   History,
   ImageIcon,
   Languages,
+  Link2,
   ListFilter,
   MicVocal,
   PencilLine,
@@ -46,6 +47,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   delete: Trash2,
   restore: ArchiveRestore,
   upload: Upload,
+  download: Link2,
   purge: Eraser,
   encoding: Languages,
 }
@@ -251,7 +253,7 @@ function LogEntry({ entry, onFilter }: { entry: EditLogEntry; onFilter?: (trackI
 type TFunction = (key: string, options?: Record<string, unknown>) => string
 
 /** Known `details` keys of the edit log (see the manage service) with readable labels / values. */
-const FIELD_ORDER = ['op', 'embedded', 'folderImage', 'target', 'encoding', 'name', 'size', 'missing']
+const FIELD_ORDER = ['op', 'embedded', 'folderImage', 'target', 'encoding', 'name', 'title', 'source', 'size', 'missing']
 const FIELD_KEYS = new Set(FIELD_ORDER)
 
 function fieldRank(key: string): number {
@@ -279,6 +281,7 @@ function describeField(key: string, value: string, t: TFunction): { label: strin
       return { label, value: value.toUpperCase() }
     case 'folderImage':
     case 'name':
+    case 'source':
       return { label, value, mono: true }
     default:
       return { label, value }

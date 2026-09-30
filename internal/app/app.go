@@ -13,6 +13,7 @@ import (
 
 	"rainy/internal/artwork"
 	"rainy/internal/auth"
+	"rainy/internal/buildinfo"
 	"rainy/internal/config"
 	"rainy/internal/db"
 	"rainy/internal/events"
@@ -24,6 +25,7 @@ import (
 	"rainy/internal/store"
 	"rainy/internal/tags"
 	"rainy/internal/transcode"
+	"rainy/internal/ytdlp"
 )
 
 // App holds the configuration and every service.
@@ -39,6 +41,7 @@ type App struct {
 	Transcoder *transcode.Service
 	Manage     *manage.Service
 	Metadata   *metasearch.Service // online metadata lookup; only used when settings.onlineMetadata is on
+	Ytdlp      *ytdlp.Service      // downloads from YouTube / bilibili; only used when settings.ytdlpEnabled is on
 	StartedAt  time.Time
 }
 
@@ -75,11 +78,12 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 	bus := events.NewBus()
 	sc := scanner.New(st, bus, cfg)
 	art := artwork.New(st, cfg.ArtworkCacheDir())
+	crypto := auth.NewCrypto(key)
 	a := &App{
 		Cfg:        cfg,
 		DB:         d,
 		Store:      st,
-		Auth:       auth.NewService(st, auth.NewCrypto(key), cfg.SessionTTL),
+		Auth:       auth.NewService(st, crypto, cfg.SessionTTL),
 		Bus:        bus,
 		NowPlaying: nowplaying.New(),
 		Scanner:    sc,
@@ -87,8 +91,13 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 		Transcoder: transcode.New(cfg.FFmpegPath),
 		Manage:     manage.New(st, sc, art, bus, cfg),
 		Metadata:   metasearch.New(nil),
-		StartedAt:  time.Now(),
+		Ytdlp: ytdlp.New(ytdlp.Options{
+			Dir: cfg.YtdlpDir(), TmpDir: cfg.TmpDir(), BinaryPath: cfg.YtdlpPath, FFmpegPath: cfg.FFmpegPath,
+			Cipher: crypto, UserAgent: "Rainy/" + buildinfo.Version,
+		}),
+		StartedAt: time.Now(),
 	}
+	a.Manage.SetDownloader(a.Ytdlp)
 	if err := a.ensureDefaultLibrary(ctx); err != nil {
 		return nil, err
 	}
@@ -146,5 +155,9 @@ func (a *App) Settings(ctx context.Context) model.Settings {
 	return s
 }
 
-// Close releases resources (the database).
-func (a *App) Close() error { return a.DB.Close() }
+// Close stops downloads and a running yt-dlp install, then closes the database.
+func (a *App) Close() error {
+	a.Manage.CloseDownloads()
+	a.Ytdlp.Close()
+	return a.DB.Close()
+}

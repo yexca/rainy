@@ -115,6 +115,7 @@
     "subtitle": "对这台服务器上的所有用户生效。",
     "tabs": {
       "general": "常规",
+      "ytdlp": "yt-dlp",
       "system": "系统"
     },
     "saved": "设置已保存",
@@ -166,6 +167,84 @@
       "duration": "请使用 30m、6h 这样的时长（0 表示关闭）。",
       "required": "不能为空。",
       "pattern": "格式中至少需要一个字段，例如 {title}。"
+    }
+  },
+  "ytdlp": {
+    "sections": {
+      "downloads": "链接下载",
+      "binary": "yt-dlp",
+      "cookies": "登录 Cookie"
+    },
+    "enable": "允许从 YouTube 和哔哩哔哩下载",
+    "enableHelp": "管理者可以在上传页粘贴链接，服务器使用 yt-dlp 下载音频并加入音乐库。只有在有人开始下载时，服务器才会访问 YouTube 或哔哩哔哩；只有在检查或安装更新时才会访问 GitHub。",
+    "version": "已安装版本",
+    "managedHelp": "Rainy 会把 yt-dlp 官方发行版安装到数据目录中。",
+    "unmanagedHelp": "由服务器运维者管理（RAINY_YTDLP_PATH），请在那里更新。",
+    "notInstalled": "未安装",
+    "updateAvailable": "可更新到 {{version}}",
+    "latest": "最新版本：{{version}} · {{when}}检查",
+    "updates": "更新",
+    "updatesHelp": "YouTube 经常变化，请保持 yt-dlp 为最新版本。程序从 GitHub 下载，并按发行版校验和进行验证。",
+    "enableFirst": "请先开启链接下载。",
+    "check": "检查更新",
+    "install": "安装 yt-dlp",
+    "update": "更新到 {{version}}",
+    "installing": "正在安装…",
+    "installed": "已安装 yt-dlp {{version}}",
+    "installFailed": "安装 yt-dlp 失败",
+    "upToDate": "yt-dlp {{version}} 已是最新版本",
+    "requirements": "运行条件",
+    "requirementsHelp": "ffmpeg 用于提取音频；JavaScript 运行时用于通过 YouTube 的验证。",
+    "ffmpegOk": "已找到 ffmpeg",
+    "ffmpegMissing": "未找到 ffmpeg，无法下载",
+    "jsRuntime": "JavaScript 运行时：{{name}}",
+    "jsRuntimeMissing": "没有 JavaScript 运行时，YouTube 下载可能失败",
+    "runtimes": {
+      "deno": "Deno",
+      "node": "Node.js",
+      "quickjs": "QuickJS"
+    },
+    "sites": {
+      "youtube": "YouTube",
+      "bilibili": "哔哩哔哩"
+    },
+    "warning": {
+      "title": "Cookie 就是您账户的钥匙",
+      "body": "提供 Cookie 相当于交出自己的账户权限，恶意程序拿到后可以冒充您本人。",
+      "never": "请务必不要把 Cookie 泄露给任何人，也不要粘贴到任何不信任的地方。建议使用单独的账号登录用于下载。",
+      "local": "Rainy 只把它加密保存在这台服务器本地，不会上传到任何外部网络。下载时 yt-dlp 只会把它发送给它所属的网站，与您在浏览器中访问该网站相同。",
+      "short": "请像对待密码一样对待 Cookie",
+      "accept": "我已了解"
+    },
+    "cookies": {
+      "help": "可选。提供登录 Cookie 后，yt-dlp 可以下载会员专属、有年龄限制的视频以及更高音质的音频。不提供时仍可下载公开视频。",
+      "none": "未设置",
+      "count_other": "{{formatted}} 个 Cookie",
+      "updated": "{{when}}更新",
+      "expires": "登录有效期至 {{date}}",
+      "signedIn": "已登录",
+      "notSignedIn": "未登录",
+      "set": "添加 Cookie",
+      "replace": "替换",
+      "remove": "移除",
+      "removeTitle": "移除{{site}}的 Cookie？",
+      "removeLabel": "移除{{site}}的 Cookie",
+      "removeDescription": "之后下载将不再登录。该会话在浏览器中依然有效，如需作废请在浏览器中退出登录。",
+      "removed": "已移除 Cookie",
+      "dialogTitle": "{{site}} Cookie",
+      "dialogDescription": "从已登录的浏览器中导出 Cookie，然后粘贴到这里。",
+      "step1": "在 Chrome 或 Edge 中安装扩展程序 <ext>Get cookies.txt LOCALLY<icon/></ext>。它在本地导出 Cookie，不会发送到任何地方。",
+      "step2": "打开 {{domain}} 并登录{{site}}。",
+      "step2youtube": "打开一个无痕（隐私）窗口，在其中允许该扩展程序，然后登录 YouTube。从这个窗口导出后立即关闭它：会话保持打开时，YouTube 很快会让这些 Cookie 失效。",
+      "step3": "在 {{domain}} 页面点击扩展程序图标，选择导出当前网站（Export）。不要导出所有网站的 Cookie。",
+      "step4": "选择下载的 cookies.txt 文件，或把文件内容粘贴到下方。",
+      "paste": "cookies.txt 内容",
+      "chooseFile": "选择文件",
+      "tooLarge": "文件过大，不像是 cookies.txt 导出文件。",
+      "keepsOnly": "只保留 {{domain}} 的 Cookie，其余全部丢弃。保存后不会再显示这些内容。",
+      "saved_other": "已保存 {{count}} 个 Cookie",
+      "dropped_other": "已丢弃其他网站的 {{count}} 个 Cookie。",
+      "notSignedInHint": "其中不包含登录信息，请确认导出时已登录。"
     }
   },
   "system": {

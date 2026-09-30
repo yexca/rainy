@@ -61,6 +61,7 @@ JSON logging; everything else uses the program defaults.
 | `RAINY_SCAN_INTERVAL` | `1h` | same | Default for the `scanInterval` setting; `0` disables periodic scans |
 | `RAINY_SCAN_ON_START` | `true` | same | Run a quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | same (bundled) | ffmpeg binary used for transcoding and tag fallbacks |
+| `RAINY_YTDLP_PATH` | empty | empty | A yt-dlp binary you manage yourself. Empty: Rainy installs and updates yt-dlp in `<data>/ytdlp` when an administrator asks (useful when the data folder is mounted `noexec`) |
 | `RAINY_LOG_LEVEL` | `info` | same | `debug`, `info`, `warn`, or `error` |
 | `RAINY_LOG_FORMAT` | `text` | `json` | `text` or `json` |
 | `RAINY_SESSION_TTL` | `720h` | same | Sliding web session lifetime (minimum `1m`) |
@@ -101,6 +102,7 @@ and are stored in the `settings` table.
 | Repair garbled tags when reading | on | Show GBK, Big5, and Shift-JIS tags correctly without modifying files |
 | Allow downloads | on | Let users with the download permission save original files |
 | Online metadata lookup | off | Let managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and iTunes from the tag editor. The server contacts these services only when someone searches; see [Privacy](../../PRIVACY.md#online-metadata-lookup). Outbound requests honor `HTTPS_PROXY` / `HTTP_PROXY`. |
+| Downloads from YouTube and bilibili | off | On the **yt-dlp** tab. Let managers download audio from YouTube and bilibili links on the Upload page. The server contacts those sites only when a download starts, and GitHub only when an administrator checks for or installs a yt-dlp update; see [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili). |
 | Pretend to search from mainland China | off | With online lookup on, add an `X-Real-IP` header with a random mainland-China address to NetEase, QQ Music, Kugou, and Kuwo requests. Some songs are hidden from searches outside China; the spoofed header may or may not lift that. |
 
 Once saved in the web app, the scan interval setting takes precedence over
@@ -113,7 +115,8 @@ Once saved in the web app, the scan interval setting takes precedence over
 /data/secret.key                encryption key for stored passwords (created on first start)
 /data/cache/artwork/            resized cover cache (safe to delete)
 /data/trash/<libraryId>/...     deleted files, restorable from Manage → Trash
-/data/tmp/                      upload staging
+/data/tmp/                      upload staging and running downloads
+/data/ytdlp/                    yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies
 ```
 
 See [Database](database.md) for backups.

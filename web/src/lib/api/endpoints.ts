@@ -17,6 +17,11 @@ import type {
   ArtistDetail,
   AuthStatus,
   BatchResult,
+  CookieSaveResult,
+  DownloadFormat,
+  DownloadJob,
+  DownloadSite,
+  DownloadsStatus,
   EditLogEntry,
   EncodingFix,
   FolderListing,
@@ -47,6 +52,7 @@ import type {
   TrackTags,
   TrashEntry,
   User,
+  YtdlpInfo,
 } from './types'
 
 export type { CallOptions, UploadProgress } from './client'
@@ -201,6 +207,16 @@ export interface EncodingInput { trackIds: string[]; apply: boolean }
 export interface EncodingResult { items: EncodingFix[]; result?: BatchResult }
 export interface EditLogParams extends PageParams { trackId?: string }
 export interface Purged { purged: number }
+export interface StartDownloadInput {
+  /** A YouTube or bilibili link (share text containing one is accepted). */
+  url: string
+  libraryId: number
+  dir?: string
+  organize?: boolean
+  format?: DownloadFormat
+  /** Download the whole playlist the link belongs to (at most 100 entries). */
+  playlist?: boolean
+}
 export interface MetadataSearchParams { provider: MetadataProviderId; q: string; limit?: number; region?: string }
 
 // ---- admin
@@ -408,6 +424,13 @@ export const api = {
       /** A result's cover (or thumbnail) proxied through the server — for `<img src>` and `fetch`. */
       coverUrl: (url: string) => apiUrl('/manage/metadata/cover', { url }),
     },
+    /** Downloads from YouTube / bilibili (starting one is 403 unless `settings.ytdlpEnabled`). */
+    downloads: {
+      status: (opts?: CallOptions) => request<DownloadsStatus>('/manage/downloads', opts),
+      start: (body: StartDownloadInput) => request<DownloadJob>('/manage/downloads', { method: 'POST', body }),
+      /** Cancels a queued or running job; removes a finished one from the list. */
+      remove: (id: string) => request<void>(`/manage/downloads/${seg(id)}`, { method: 'DELETE' }),
+    },
   },
 
   // ---- §7.7 admin
@@ -439,6 +462,17 @@ export const api = {
     stats: (opts?: CallOptions) => request<LibraryStats>('/admin/stats', opts),
     system: (opts?: CallOptions) => request<SystemInfo>('/admin/system', opts),
     clearCache: () => request<{ freed: number }>('/admin/cache/clear', { method: 'POST' }),
+    ytdlp: {
+      get: (opts?: CallOptions) => request<YtdlpInfo>('/admin/ytdlp', opts),
+      /** Asks GitHub for the latest release. */
+      check: () => request<YtdlpInfo>('/admin/ytdlp/check', { method: 'POST' }),
+      /** Installs / updates in the background; poll `get` while `install.running`. */
+      install: () => request<YtdlpInfo>('/admin/ytdlp/install', { method: 'POST' }),
+      /** Stores cookies encrypted on the server; they are never returned. */
+      setCookies: (site: DownloadSite, text: string) =>
+        request<CookieSaveResult>(`/admin/ytdlp/cookies/${seg(site)}`, { method: 'PUT', body: { text } }),
+      deleteCookies: (site: DownloadSite) => request<void>(`/admin/ytdlp/cookies/${seg(site)}`, { method: 'DELETE' }),
+    },
   },
 } as const
 

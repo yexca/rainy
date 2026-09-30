@@ -30,6 +30,13 @@ action.
   iTunes for tags, covers, and lyrics (with optional paired translations). A
   chosen result only fills the editor; nothing is written until you save. With
   several tracks selected, only album-level fields are offered.
+- The Upload page can download the audio of YouTube and bilibili videos with
+  yt-dlp: paste a link (bilibili share text works too), pick the original audio
+  or M4A, MP3, or Opus, and optionally the whole playlist (up to 100 entries).
+  Files land in the chosen folder or follow "Organize by tags", get title,
+  artist, date, the source link, and a square cover written through TagLib,
+  and appear in the edit history. Downloads keep running when you leave the
+  page.
 
 ## Operations and Deployment
 
@@ -38,6 +45,16 @@ action.
   [Privacy](../../PRIVACY.md#online-metadata-lookup). A second setting,
   **Pretend to search from mainland China** (also off), adds a spoofed
   mainland-China `X-Real-IP` header to the Chinese catalogues' requests.
+- New **yt-dlp** tab in Admin → Settings with **Allow downloads from YouTube
+  and bilibili** (off by default), yt-dlp install / update checks (the
+  official GitHub release, verified against its checksums, installed into
+  `/data/ytdlp`), and optional sign-in cookies. Cookies are account
+  credentials: Rainy shows a warning first, keeps only the site's own cookies,
+  stores them encrypted with `secret.key`, and never returns them; see
+  [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili).
+  `RAINY_YTDLP_PATH` points Rainy at a yt-dlp you manage yourself instead.
+- The image now includes QuickJS (about 2 MiB), the JavaScript runtime yt-dlp
+  needs for YouTube; yt-dlp itself is not bundled.
 
 ## Development and Docs
 

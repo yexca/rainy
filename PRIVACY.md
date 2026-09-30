@@ -11,8 +11,9 @@ Rainy does not include analytics, crash reporting, advertising, update checks,
 or any other project-operated service. By default the server makes no outbound
 network requests of its own: covers, lyrics, similar songs, and artist
 information all come from your own files and database. All data stays on your
-instance unless you, a user, or a client app sends it elsewhere. The one
-exception is the opt-in online metadata lookup described below.
+instance unless you, a user, or a client app sends it elsewhere. The
+exceptions are the opt-in online metadata lookup and downloads from YouTube
+and bilibili, both described below.
 
 The only external connections happen in the browser:
 
@@ -52,6 +53,38 @@ failed lookup. Each service's own privacy policy applies to the requests it
 receives. Outbound requests honor the `HTTPS_PROXY` and `HTTP_PROXY`
 environment variables.
 
+## Downloads from YouTube and Bilibili
+
+An administrator can turn on **Allow downloads from YouTube and bilibili** in
+**Admin → Settings → yt-dlp**. It is off by default. While it is off, none of
+the requests below are made.
+
+- **Installing and updating yt-dlp.** Only when an administrator selects
+  **Check for updates** or **Install**, the server asks `api.github.com` for
+  the latest yt-dlp release and downloads it and its checksum file from
+  `github.com` (served from `*.githubusercontent.com`). These requests carry
+  the server's IP address and a `Rainy/<version>` user agent.
+- **Downloading.** Only when a manager starts a download, the server runs
+  yt-dlp, which contacts YouTube (`youtube.com`, `googlevideo.com`, and other
+  Google hosts) or bilibili (`bilibili.com`, its CDNs, and `b23.tv` for share
+  links, which Rainy resolves itself) to fetch the video page, the audio, and
+  the thumbnail. The site sees the server's IP address and the requested
+  video. Nothing about your library, users, or listening is sent.
+- **Sign-in cookies (optional).** An administrator can paste cookies exported
+  from their browser so downloads run as their account. Cookies are account
+  credentials. Rainy keeps only the cookies of the site's own domain, stores
+  them encrypted with `secret.key` in `ytdlp/cookies/` with owner-only
+  permissions, never returns them through the API, never writes them to logs,
+  and never uploads them to any external service. During a download, yt-dlp
+  sends them only to the site they belong to, as a browser would. Removing
+  them in the settings deletes the file; sign out in the browser to revoke the
+  session itself.
+
+The edit history records who downloaded which file and its source link. Rainy
+keeps the list of download jobs only in memory. yt-dlp's requests honor the
+`HTTPS_PROXY` and `HTTP_PROXY` environment variables. Each site's own privacy
+policy applies to the requests it receives.
+
 ## Server-Side Data
 
 The data folder (`/data` in Docker) contains:
@@ -62,7 +95,8 @@ The data folder (`/data` in Docker) contains:
 | `secret.key` | The key that encrypts stored passwords |
 | `trash/` | Music files deleted through Rainy, until the trash is emptied |
 | `cache/` | Resized cover images |
-| `tmp/` | Uploads in progress |
+| `tmp/` | Uploads and downloads in progress |
+| `ytdlp/` | The yt-dlp program installed by an administrator, its cache, and the encrypted sign-in cookies (`cookies/`) |
 
 Passwords are encrypted rather than hashed because the Subsonic token protocol
 needs the original password. Anyone who obtains both `rainy.db` and

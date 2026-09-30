@@ -364,6 +364,7 @@ type Settings struct {
 	EnableDownloads       bool   `json:"enableDownloads"`
 	OnlineMetadata        bool   `json:"onlineMetadata"`        // allow managers to search online catalogues (outbound requests)
 	OnlineMetadataChinaIP bool   `json:"onlineMetadataChinaIp"` // send a mainland-China X-Real-IP to the Chinese catalogues
+	YtdlpEnabled          bool   `json:"ytdlpEnabled"`          // allow managers to download audio from YouTube / bilibili with yt-dlp (outbound requests)
 }
 
 // DefaultSettings returns the settings used when nothing is stored. scanInterval is the
@@ -381,6 +382,7 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		EnableDownloads:       true,
 		OnlineMetadata:        false,
 		OnlineMetadataChinaIP: false,
+		YtdlpEnabled:          false,
 	}
 }
 

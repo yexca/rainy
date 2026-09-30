@@ -429,7 +429,7 @@
   },
   "upload": {
     "title": "上传",
-    "subtitle": "把这台设备上的音乐添加到音乐库。",
+    "subtitle": "把这台设备上的音乐，或 YouTube、哔哩哔哩链接中的音频添加到音乐库。",
     "target": "保存位置",
     "folder": "文件夹",
     "folderPlaceholder": "音乐库根目录",
@@ -466,6 +466,50 @@
     "finished_other": "已上传 {{count}} 个文件",
     "finishedWithErrors_one": "已上传 {{count}} 个文件，{{failed}} 个失败",
     "finishedWithErrors_other": "已上传 {{count}} 个文件，{{failed}} 个失败"
+  },
+  "download": {
+    "title": "从 YouTube 或哔哩哔哩链接下载",
+    "subtitle": "服务器使用 yt-dlp 下载音频，并保存到上方的保存位置。",
+    "statusError": "无法读取下载状态。",
+    "disabled": "链接下载已关闭。",
+    "notInstalled": "服务器尚未安装 yt-dlp。",
+    "askAdmin": "管理员可以在 设置 → yt-dlp 中进行设置。",
+    "openSettings": "打开设置",
+    "link": "链接",
+    "linkPlaceholder": "粘贴 YouTube 或哔哩哔哩链接（可直接粘贴分享文本）",
+    "sites": {
+      "youtube": "YouTube",
+      "bilibili": "哔哩哔哩"
+    },
+    "format": "音频格式",
+    "formats": {
+      "best": "原始音质（不转换）",
+      "m4a": "M4A (AAC)",
+      "mp3": "MP3",
+      "opus": "Opus"
+    },
+    "playlist": "整个播放列表",
+    "playlistHint": "最多下载播放列表或多 P 视频的前 100 项。",
+    "signedIn": "服务器已登录：{{sites}}。",
+    "rights": "请只下载您有权保存的内容。",
+    "start": "下载",
+    "started": "已开始下载",
+    "jobs": "下载任务",
+    "entry": "第 {{item}}/{{items}} 项",
+    "eta": "剩余 {{time}}",
+    "imported_other": "已添加 {{count}} 首",
+    "finished_other": "已下载「{{name}}」（{{count}} 首）",
+    "finishedPartly_other": "已下载「{{name}}」中的 {{count}} 首，部分失败",
+    "failed": "无法下载「{{name}}」",
+    "status": {
+      "queued": "等待中",
+      "running": "下载中",
+      "processing": "转换中",
+      "importing": "正在加入音乐库",
+      "done": "完成",
+      "error": "失败",
+      "canceled": "已取消"
+    }
   },
   "folders": {
     "subtitle": "浏览磁盘上的文件。",
@@ -586,6 +630,7 @@
       "delete": "移到回收站",
       "restore": "已恢复",
       "upload": "上传",
+      "download": "从链接下载",
       "purge": "永久删除",
       "encoding": "修复了乱码"
     },
@@ -596,6 +641,8 @@
       "target": "保存位置",
       "encoding": "原始编码",
       "name": "上传的文件",
+      "title": "标题",
+      "source": "来源",
       "size": "大小",
       "missing": "文件已丢失"
     },

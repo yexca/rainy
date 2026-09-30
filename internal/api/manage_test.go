@@ -162,7 +162,8 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"POST", "/manage/folders/rescan"}, {"GET", "/manage/issues/summary"}, {"GET", "/manage/issues"},
 		{"POST", "/manage/encoding"}, {"GET", "/manage/log"}, {"GET", "/manage/unknown"},
 		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
-		{"GET", "/manage/metadata/cover"},
+		{"GET", "/manage/metadata/cover"}, {"GET", "/manage/downloads"}, {"POST", "/manage/downloads"},
+		{"DELETE", "/manage/downloads/x"},
 	}
 	for _, rt := range manageRoutes {
 		if rec := e.do(rt[0], rt[1], "", nil); rec.Code != http.StatusUnauthorized {
@@ -177,7 +178,9 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"GET", "/admin/libraries"}, {"POST", "/admin/libraries"}, {"PUT", "/admin/libraries/1"},
 		{"DELETE", "/admin/libraries/1"}, {"GET", "/admin/scan"}, {"POST", "/admin/scan"},
 		{"GET", "/admin/settings"}, {"PUT", "/admin/settings"}, {"GET", "/admin/stats"},
-		{"GET", "/admin/system"}, {"POST", "/admin/cache/clear"},
+		{"GET", "/admin/system"}, {"POST", "/admin/cache/clear"}, {"GET", "/admin/ytdlp"},
+		{"POST", "/admin/ytdlp/check"}, {"POST", "/admin/ytdlp/install"}, {"PUT", "/admin/ytdlp/cookies/youtube"},
+		{"DELETE", "/admin/ytdlp/cookies/youtube"},
 	}
 	for _, rt := range adminRoutes {
 		for _, tok := range []string{e.userTok, e.mgrTok} {
