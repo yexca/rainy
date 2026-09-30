@@ -100,6 +100,8 @@ and are stored in the `settings` table.
 | Rename pattern | `{albumartist}/{album}/[{disc}-]{track:2} {title}` | Default pattern for rename and organized uploads |
 | Repair garbled tags when reading | on | Show GBK, Big5, and Shift-JIS tags correctly without modifying files |
 | Allow downloads | on | Let users with the download permission save original files |
+| Online metadata lookup | off | Let managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and iTunes from the tag editor. The server contacts these services only when someone searches; see [Privacy](../../PRIVACY.md#online-metadata-lookup). Outbound requests honor `HTTPS_PROXY` / `HTTP_PROXY`. |
+| Pretend to search from mainland China | off | With online lookup on, add an `X-Real-IP` header with a random mainland-China address to NetEase, QQ Music, Kugou, and Kuwo requests. Some songs are hidden from searches outside China; the spoofed header may or may not lift that. |
 
 Once saved in the web app, the scan interval setting takes precedence over
 `RAINY_SCAN_INTERVAL`.

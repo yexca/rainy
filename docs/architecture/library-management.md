@@ -44,6 +44,18 @@ cannot be read, indexed fields provide a fallback. For WAV, legacy LIST/INFO
 chunks that TagLib cannot parse become inert JUNK chunks; their bytes, the
 audio, and any ID3 chunk stay in the file. The operation is logged and rescanned.
 
+## Online Lookup
+
+With the administrator setting `onlineMetadata` on (it is off by default),
+the tag editor can search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and the
+iTunes Search API through `internal/metasearch`. This is the only code that
+contacts third-party services, and it never writes files: a chosen result
+fills the editor's draft (fields, cover, lyrics), and saving goes through the
+normal tag, cover, and lyrics endpoints with their lock, edit log, and rescan.
+Covers are proxied only from the providers' image hosts, so the browser does
+not contact them and the proxy cannot reach other addresses. See
+[contract §5.13](contract.md#513-metasearch-owner-manage-agent).
+
 ## Encoding Repair
 
 Many older Chinese and Japanese files store GBK, Big5, or Shift-JIS text in tags

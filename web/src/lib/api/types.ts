@@ -87,6 +87,15 @@ export type IssueType = 'missing_tags' | 'no_cover' | 'duplicates' | 'missing_fi
 export interface Issue { key: string; type: IssueType; message: string; tracks: Track[]; album?: Album }
 export interface EncodingFix { trackId: string; path: string; encoding: string; changes: Record<string, { old: string[]; new: string[] }> }
 export interface EditLogEntry { id: number; userId: string; username: string; action: string; trackId: string; path: string; details: unknown; createdAt: number }
+export type MetadataProviderId = 'netease' | 'qq' | 'kugou' | 'kuwo' | 'itunes'
+export interface MetadataProvider { id: MetadataProviderId; lyrics: boolean; regions: string[] }
+export interface MetadataStatus { enabled: boolean; providers: MetadataProvider[] }
+export interface MetadataResult {
+  provider: MetadataProviderId; id: string; title: string; artists: string[]; album: string; albumArtist: string
+  trackNumber: number; trackTotal: number; discNumber: number; discTotal: number
+  date: string; genre: string; duration: number; coverUrl: string; thumbUrl: string   // 0 / '' = unknown
+}
+export interface MetadataLyrics { text: string; translation: string }
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -101,7 +110,7 @@ export interface ScanStatus {
 export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
-  fixEncodingOnScan: boolean; enableDownloads: boolean
+  fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number

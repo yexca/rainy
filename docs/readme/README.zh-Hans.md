@@ -147,7 +147,7 @@ docker compose exec -u 1000:1000 rainy rainy user list
 
 ## 安全与隐私
 
-曲库数据和音频都需要登录才能访问。Rainy 不收集任何遥测数据，服务器本身不会向外发起网络请求。漏洞请通过 [SECURITY.md](../../SECURITY.md) 私下报告；分享日志前请阅读 [PRIVACY.md](../../PRIVACY.md)。
+曲库数据和音频都需要登录才能访问。Rainy 不收集任何遥测数据，除非管理员开启可选的在线元数据搜索，服务器本身不会向外发起网络请求。漏洞请通过 [SECURITY.md](../../SECURITY.md) 私下报告；分享日志前请阅读 [PRIVACY.md](../../PRIVACY.md)。
 
 ## 开发与贡献
 

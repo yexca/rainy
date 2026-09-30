@@ -26,6 +26,18 @@ action.
   previews the split, and on request rewrites timed lines as standard
   same-timestamp bilingual LRC. Stamping a line keeps its paired translation on
   the same time.
+- The tag editor can search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and
+  iTunes for tags, covers, and lyrics (with optional paired translations). A
+  chosen result only fills the editor; nothing is written until you save. With
+  several tracks selected, only album-level fields are offered.
+
+## Operations and Deployment
+
+- New server setting **Online metadata lookup** (off by default). While it is
+  on, the server contacts the catalogues above when a manager searches; see
+  [Privacy](../../PRIVACY.md#online-metadata-lookup). A second setting,
+  **Pretend to search from mainland China** (also off), adds a spoofed
+  mainland-China `X-Real-IP` header to the Chinese catalogues' requests.
 
 ## Development and Docs
 

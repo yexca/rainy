@@ -8,10 +8,11 @@ vendor, reverse proxy, VPN, hosting provider, or third-party Subsonic apps.
 ## No Telemetry
 
 Rainy does not include analytics, crash reporting, advertising, update checks,
-or any other project-operated service. The server makes no outbound network
-requests of its own: covers, lyrics, similar songs, and artist information all
-come from your own files and database. All data stays on your instance unless
-you, a user, or a client app sends it elsewhere.
+or any other project-operated service. By default the server makes no outbound
+network requests of its own: covers, lyrics, similar songs, and artist
+information all come from your own files and database. All data stays on your
+instance unless you, a user, or a client app sends it elsewhere. The one
+exception is the opt-in online metadata lookup described below.
 
 The only external connections happen in the browser:
 
@@ -19,6 +20,37 @@ The only external connections happen in the browser:
   URL, so the station sees the listener's IP address.
 - **Links you open.** Links in the web app or documentation, such as to
   suggested client apps, open the linked site.
+
+## Online Metadata Lookup
+
+An administrator can turn on **Online metadata lookup** in **Admin →
+Settings**. It is off by default. While it is on, managers can search online
+music catalogues from the tag editor, and the Rainy server (not the browser)
+contacts the chosen service:
+
+| Service | Hosts contacted |
+| --- | --- |
+| NetEase Cloud Music | `music.163.com`, `*.music.126.net` (covers) |
+| QQ Music | `u.y.qq.com`, `shc.y.qq.com`, `c.y.qq.com`, `y.gtimg.cn` (covers) |
+| Kugou | `mobilecdn.kugou.com` (plain HTTP), `lyrics.kugou.com`, `imge.kugou.com` (covers) |
+| Kuwo | `search.kuwo.cn`, `kuwo.cn`, `img*.kuwo.cn` (covers) |
+| iTunes | `itunes.apple.com`, `*.mzstatic.com` (covers) |
+
+A request is sent only when a manager searches or opens a result. It carries
+the search terms typed into the dialog (prefilled from the track's title and
+artist, or album and album artist), the selected result's id when lyrics are
+fetched, and the server's IP address. Kugou's search endpoint only supports
+plain HTTP, so those search terms travel unencrypted. If the administrator
+also turns on **Pretend to search from mainland China** (off by default), the
+requests to NetEase Cloud Music, QQ Music, Kugou, and Kuwo additionally carry
+an `X-Real-IP` header with a random mainland-China address; it does not hide
+the server's real address from these services. No account, cookie,
+file, path, or listening data is sent. Results only fill the tag editor; files
+change only when the manager saves. Rainy does not store search terms or
+results on the server, and the logs record only the provider and error of a
+failed lookup. Each service's own privacy policy applies to the requests it
+receives. Outbound requests honor the `HTTPS_PROXY` and `HTTP_PROXY`
+environment variables.
 
 ## Server-Side Data
 

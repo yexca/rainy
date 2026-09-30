@@ -21,6 +21,14 @@ should use the [Security Policy](../../SECURITY.md).
   users, libraries, scans, and server settings.
 - Library roots and the data directory are trusted operator mounts. Paths from
   requests, tags, uploads, archive names, and the database remain untrusted.
+- Outbound requests exist only in `internal/metasearch`, behind the
+  admin-only `onlineMetadata` setting (off by default) and the manager role.
+  Use fixed endpoint URLs, pass user input only as an encoded parameter,
+  validate provider ids before requesting, cap response sizes, and fetch covers
+  only from the allow-listed provider image hosts. Responses from these
+  services are untrusted text. Any new outbound host needs a
+  [PRIVACY.md](../../PRIVACY.md) update and an entry in
+  `scripts/privacy-allowlist.json`.
 
 ## Filesystem Operations
 

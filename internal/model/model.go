@@ -353,30 +353,34 @@ type Session struct {
 // Settings are the runtime-editable server settings (stored in the settings table as JSON
 // values merged over DefaultSettings).
 type Settings struct {
-	ScanInterval      string `json:"scanInterval"`      // Go duration, "0" = disabled
-	GenreSeparators   string `json:"genreSeparators"`   // runes that split multi-genre tags
-	IgnoredArticles   string `json:"ignoredArticles"`   // space separated
-	CoverArtFiles     string `json:"coverArtFiles"`     // comma separated glob patterns, by priority
-	TranscodeFormat   string `json:"transcodeFormat"`   // mp3|opus|aac
-	TranscodeBitrate  int    `json:"transcodeBitrate"`  // kbps
-	RenamePattern     string `json:"renamePattern"`     // see docs/architecture/contract.md §7.6
-	FixEncodingOnScan bool   `json:"fixEncodingOnScan"` // repair GBK/Big5/SJIS mojibake when reading
-	EnableDownloads   bool   `json:"enableDownloads"`
+	ScanInterval          string `json:"scanInterval"`      // Go duration, "0" = disabled
+	GenreSeparators       string `json:"genreSeparators"`   // runes that split multi-genre tags
+	IgnoredArticles       string `json:"ignoredArticles"`   // space separated
+	CoverArtFiles         string `json:"coverArtFiles"`     // comma separated glob patterns, by priority
+	TranscodeFormat       string `json:"transcodeFormat"`   // mp3|opus|aac
+	TranscodeBitrate      int    `json:"transcodeBitrate"`  // kbps
+	RenamePattern         string `json:"renamePattern"`     // see docs/architecture/contract.md §7.6
+	FixEncodingOnScan     bool   `json:"fixEncodingOnScan"` // repair GBK/Big5/SJIS mojibake when reading
+	EnableDownloads       bool   `json:"enableDownloads"`
+	OnlineMetadata        bool   `json:"onlineMetadata"`        // allow managers to search online catalogues (outbound requests)
+	OnlineMetadataChinaIP bool   `json:"onlineMetadataChinaIp"` // send a mainland-China X-Real-IP to the Chinese catalogues
 }
 
 // DefaultSettings returns the settings used when nothing is stored. scanInterval is the
 // RAINY_SCAN_INTERVAL value.
 func DefaultSettings(scanInterval time.Duration) Settings {
 	return Settings{
-		ScanInterval:      FormatDuration(scanInterval),
-		GenreSeparators:   ";/,",
-		IgnoredArticles:   "The El La Los Las Le Les",
-		CoverArtFiles:     "cover.*,folder.*,front.*,album.*,albumart*.*",
-		TranscodeFormat:   "mp3",
-		TranscodeBitrate:  192,
-		RenamePattern:     "{albumartist}/{album}/[{disc}-]{track:2} {title}",
-		FixEncodingOnScan: true,
-		EnableDownloads:   true,
+		ScanInterval:          FormatDuration(scanInterval),
+		GenreSeparators:       ";/,",
+		IgnoredArticles:       "The El La Los Las Le Les",
+		CoverArtFiles:         "cover.*,folder.*,front.*,album.*,albumart*.*",
+		TranscodeFormat:       "mp3",
+		TranscodeBitrate:      192,
+		RenamePattern:         "{albumartist}/{album}/[{disc}-]{track:2} {title}",
+		FixEncodingOnScan:     true,
+		EnableDownloads:       true,
+		OnlineMetadata:        false,
+		OnlineMetadataChinaIP: false,
 	}
 }
 

@@ -27,6 +27,10 @@ import type {
   LibraryInfo,
   LibraryStats,
   Lyrics,
+  MetadataLyrics,
+  MetadataProviderId,
+  MetadataResult,
+  MetadataStatus,
   Page,
   PlayQueue,
   Playlist,
@@ -197,6 +201,7 @@ export interface EncodingInput { trackIds: string[]; apply: boolean }
 export interface EncodingResult { items: EncodingFix[]; result?: BatchResult }
 export interface EditLogParams extends PageParams { trackId?: string }
 export interface Purged { purged: number }
+export interface MetadataSearchParams { provider: MetadataProviderId; q: string; limit?: number; region?: string }
 
 // ---- admin
 export interface CreateUserInput {
@@ -393,6 +398,16 @@ export const api = {
     encoding: (body: EncodingInput) => request<EncodingResult>('/manage/encoding', { method: 'POST', body }),
     log: (params: EditLogParams = {}, opts?: CallOptions) =>
       request<Page<EditLogEntry>>('/manage/log', { ...opts, query: { ...params } }),
+    /** Online metadata lookup (403 unless an admin enabled `settings.onlineMetadata`). */
+    metadata: {
+      status: (opts?: CallOptions) => request<MetadataStatus>('/manage/metadata', opts),
+      search: (params: MetadataSearchParams, opts?: CallOptions) =>
+        request<{ items: MetadataResult[] }>('/manage/metadata/search', { ...opts, query: { ...params } }),
+      lyrics: (provider: MetadataProviderId, id: string, opts?: CallOptions) =>
+        request<MetadataLyrics>('/manage/metadata/lyrics', { ...opts, query: { provider, id } }),
+      /** A result's cover (or thumbnail) proxied through the server — for `<img src>` and `fetch`. */
+      coverUrl: (url: string) => apiUrl('/manage/metadata/cover', { url }),
+    },
   },
 
   // ---- §7.7 admin

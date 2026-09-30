@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { RotateCcw } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -35,6 +35,8 @@ const schema = z.object({
   renamePattern: z.string().trim().min(1, 'settings.validation.required').regex(/\{[a-z]+(:\d+)?\}/, 'settings.validation.pattern'),
   fixEncodingOnScan: z.boolean(),
   enableDownloads: z.boolean(),
+  onlineMetadata: z.boolean(),
+  onlineMetadataChinaIp: z.boolean(),
 })
 
 /** Server settings. Initialised once from `initial`; background refetches never overwrite edits. */
@@ -49,6 +51,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
     setValue,
     formState: { errors, isDirty, dirtyFields },
   } = useForm<Settings>({ resolver: zodResolver(schema), defaultValues: initial })
+  const onlineMetadata = useWatch({ control, name: 'onlineMetadata' })
 
   const save = useMutation({
     mutationFn: (values: Settings) => {
@@ -109,6 +112,16 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         </Row>
         <Row label={t('settings.fields.coverArtFiles')} description={t('settings.help.coverArtFiles')} error={err(errors.coverArtFiles?.message)}>
           <Input className="font-mono" autoComplete="off" spellCheck={false} {...register('coverArtFiles')} />
+        </Row>
+        <Row label={t('settings.fields.onlineMetadata')} description={t('settings.help.onlineMetadata')} inline>
+          <Controller control={control} name="onlineMetadata" render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
+        </Row>
+        <Row label={t('settings.fields.onlineMetadataChinaIp')} description={t('settings.help.onlineMetadataChinaIp')} inline>
+          <Controller
+            control={control}
+            name="onlineMetadataChinaIp"
+            render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} disabled={!onlineMetadata} />}
+          />
         </Row>
       </Section>
 

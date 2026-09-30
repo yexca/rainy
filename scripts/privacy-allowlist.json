@@ -133,6 +133,128 @@
         "LICENSE"
       ],
       "reason": "GNU licenses page referenced by the verbatim AGPL-3.0 license text."
+    },
+    {
+      "url": "https://music.163.com/**",
+      "files": [
+        "internal/metasearch/netease.go"
+      ],
+      "reason": "NetEase Cloud Music search and lyrics endpoints (and Referer) used by the opt-in online metadata lookup; requests run only when an admin enabled it and a manager searches."
+    },
+    {
+      "url": "https://p1.music.126.net/**",
+      "files": [
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "Synthetic NetEase cover URLs in the online metadata lookup tests (served by a fake transport, never fetched)."
+    },
+    {
+      "url": "http://p1.music.126.net/**",
+      "files": [
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "Synthetic plain-HTTP NetEase cover URL that the online metadata lookup tests expect to be upgraded to HTTPS."
+    },
+    {
+      "url": "https://u.y.qq.com/cgi-bin/musicu.fcg",
+      "files": [
+        "internal/metasearch/qq.go"
+      ],
+      "reason": "QQ Music search endpoint used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://shc.y.qq.com/soso/fcgi-bin/search_for_qq_cp",
+      "files": [
+        "internal/metasearch/qq.go"
+      ],
+      "reason": "QQ Music mobile search, the fallback when the desktop search refuses; used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://c.y.qq.com/lyric/**",
+      "files": [
+        "internal/metasearch/qq.go"
+      ],
+      "reason": "QQ Music lyrics endpoint used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://y.qq.com/",
+      "files": [
+        "internal/metasearch/qq.go"
+      ],
+      "reason": "Referer and Origin headers the QQ Music endpoints require; not a request target."
+    },
+    {
+      "url": "https://y.gtimg.cn/music/photo_new/**",
+      "files": [
+        "internal/metasearch/qq.go",
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "QQ Music album cover image host used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "http://mobilecdn.kugou.com/api/v3/search/song",
+      "files": [
+        "internal/metasearch/kugou.go"
+      ],
+      "reason": "Kugou search endpoint (served only over HTTP) used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://lyrics.kugou.com/**",
+      "files": [
+        "internal/metasearch/kugou.go"
+      ],
+      "reason": "Kugou lyrics search and download endpoints used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://imge.kugou.com/**",
+      "files": [
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "Synthetic Kugou cover URLs in the online metadata lookup tests."
+    },
+    {
+      "url": "http://imge.kugou.com/**",
+      "files": [
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "Synthetic plain-HTTP Kugou cover template in the online metadata lookup tests."
+    },
+    {
+      "url": "https://search.kuwo.cn/r.s",
+      "files": [
+        "internal/metasearch/kuwo.go"
+      ],
+      "reason": "Kuwo search endpoint used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://kuwo.cn/openapi/**",
+      "files": [
+        "internal/metasearch/kuwo.go"
+      ],
+      "reason": "Kuwo lyrics endpoint used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://img2.kuwo.cn/star/albumcover/**",
+      "files": [
+        "internal/metasearch/kuwo.go",
+        "internal/metasearch/metasearch_test.go",
+        "internal/api/metadata_test.go"
+      ],
+      "reason": "Kuwo album cover image host used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://itunes.apple.com/search",
+      "files": [
+        "internal/metasearch/itunes.go"
+      ],
+      "reason": "Apple iTunes Search API used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/**",
+      "files": [
+        "internal/metasearch/metasearch_test.go"
+      ],
+      "reason": "Synthetic iTunes artwork URLs in the online metadata lookup tests."
     }
   ]
 }

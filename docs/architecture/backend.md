@@ -39,6 +39,7 @@ from `RAINY_*` environment variables; see
 | `artwork` | Cover resolution, resizing, and the disk cache |
 | `transcode`, `lyrics` | ffmpeg streaming and LRC parsing |
 | `manage` | Tag editing, covers, lyrics, rename, upload, trash, the library doctor, and the edit log |
+| `metasearch` | Opt-in online metadata lookup for the tag editor; the only outbound requests |
 | `app` | The dependency container that wires every service |
 | `api`, `subsonic` | The native `/api` and the Subsonic `/rest` HTTP handlers |
 | `server` | Router assembly, middleware, SPA serving, and graceful shutdown |

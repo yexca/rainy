@@ -55,8 +55,10 @@ Browser (web app / PWA)            Subsonic and OpenSubsonic clients
 
 One process serves the embedded web app, both APIs, and background scans.
 Server-sent events on `/api/events` push scan progress, library changes, and
-"now playing" updates to open browsers. There are no external services and no
-outbound network requests from the server.
+"now playing" updates to open browsers. There are no external services, and
+the server sends no outbound requests unless an administrator enables the
+opt-in online metadata lookup (`internal/metasearch`), which only runs when a
+manager searches from the tag editor.
 
 ## Related Docs
 
