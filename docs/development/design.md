@@ -28,6 +28,14 @@ explains the rules every UI change must keep.
 - Light and dark themes follow the system unless the user overrides them.
 - Accent presets set `--primary`: `rain` (default periwinkle blue), `rose`,
   `violet`, `emerald`, `amber`, and `graphite`.
+- **Album colours.** Album, playlist, and artist pages take on their
+  artwork's colours, like the Apple Music album view: the dominant colour becomes the page background
+  (a deep tone in the dark theme or for dark covers, a pale tint otherwise)
+  and the most vivid colour becomes `--primary`. The tokens are scoped to the
+  page element, so the sidebar, player, and menus keep the user's theme, and
+  every text colour keeps WCAG AA contrast. Greyscale covers keep the user's
+  accent; pages without artwork keep the plain theme. Users can turn this
+  off under Settings → Appearance.
 - The font stack starts with Inter Variable and falls back to system and CJK
   fonts. Times and durations use tabular numbers.
 

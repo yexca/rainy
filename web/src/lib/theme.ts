@@ -13,6 +13,8 @@ export const DEFAULT_ACCENT: Accent = 'rain'
 
 export const THEME_STORAGE_KEY = 'rainy.theme'
 export const ACCENT_STORAGE_KEY = 'rainy.accent'
+/** Album pages take on the cover's colours (`'0'` turns it off). */
+export const ALBUM_COLORS_STORAGE_KEY = 'rainy.album-colors'
 
 /** Swatch colours for accent pickers (the light-theme `--primary` of each preset in index.css). */
 export const ACCENT_SWATCHES: Readonly<Record<Accent, string>> = {
@@ -64,12 +66,20 @@ export function readAccent(): Accent {
   return isAccent(value) ? value : DEFAULT_ACCENT
 }
 
+export function readAlbumColors(): boolean {
+  return readStorage(ALBUM_COLORS_STORAGE_KEY) !== '0'
+}
+
 export function storeTheme(theme: Theme): void {
   writeStorage(THEME_STORAGE_KEY, theme)
 }
 
 export function storeAccent(accent: Accent): void {
   writeStorage(ACCENT_STORAGE_KEY, accent)
+}
+
+export function storeAlbumColors(enabled: boolean): void {
+  writeStorage(ALBUM_COLORS_STORAGE_KEY, enabled ? '1' : '0')
 }
 
 /** Run `fn` with CSS transitions disabled so a theme switch doesn't animate every surface. */

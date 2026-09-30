@@ -54,7 +54,9 @@
   "appearance": {
     "title": "外观",
     "theme": "主题",
-    "accentHint": "用于按钮、高亮和进度条。"
+    "accentHint": "用于按钮、高亮和进度条。",
+    "albumColors": "专辑配色",
+    "albumColorsHint": "进入专辑、歌单或艺人页面时，背景和强调色跟随封面。"
   },
   "playback": {
     "title": "播放",

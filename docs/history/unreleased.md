@@ -40,6 +40,15 @@ action.
   bottom bar can auto-hide, leaving a small handle that shows it on hover and
   pins it on click. Dragging sideways on the mini bar seeks.
 
+## Library Browsing and Search
+
+- Album, playlist, and artist pages take on the colours of their artwork, like
+  Apple Music: the page background follows the cover's main colour (a deep
+  tone in the dark theme or for dark covers, a pale tint otherwise) and
+  buttons and links use its most vivid colour, with text kept readable. The
+  sidebar, player, and menus keep your theme. Turn **Album colours** off in
+  Settings → Appearance to keep the plain theme.
+
 ## Library Management
 
 - **Tracks** is a standalone entry in the sidebar (the **Manage** tab on

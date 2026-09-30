@@ -23,6 +23,7 @@ import { StarButton } from '../components/star-button'
 import { TrackList, TrackListSkeleton } from '../components/track-list'
 import { usePlayCollection } from '../lib/play'
 import { artistQuery } from '../lib/queries'
+import { useCoverTheme } from '../lib/use-cover-theme'
 
 const TOP_COLLAPSED = 5
 
@@ -33,9 +34,11 @@ export default function ArtistPage() {
   const query = useQuery(artistQuery(id))
   const artist = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
+  const coverTheme = useCoverTheme(artist?.coverArt)
 
   return (
-    <Page>
+    // Like album pages, the page takes on the artwork's colours.
+    <Page {...coverTheme}>
       <div className="relative isolate">
         {artist ? (
           <ArtworkBackdrop key={artist.coverArt} coverArt={artist.coverArt} className="bleed-x h-[30rem] md:h-[24rem]" />

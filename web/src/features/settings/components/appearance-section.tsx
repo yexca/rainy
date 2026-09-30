@@ -2,6 +2,7 @@ import { Check, Monitor, Moon, Sun } from 'lucide-react'
 import { useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Switch } from '@/components/ui/switch'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
 import { ACCENTS, ACCENT_SWATCHES, type Accent, type Theme } from '@/lib/theme'
@@ -11,7 +12,7 @@ import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
 
 export function AppearanceSection() {
   const { t, i18n } = useTranslation('settings')
-  const { theme, setTheme, accent, setAccent } = useTheme()
+  const { theme, setTheme, accent, setAccent, albumColors, setAlbumColors } = useTheme()
   // Re-render on language change (i18n.language is read for the current value).
   const language: Language = i18n.language ? currentLanguage() : 'en'
 
@@ -28,6 +29,9 @@ export function AppearanceSection() {
       </SettingsRow>
       <SettingsRow label={t('common:accent.label')} description={t('appearance.accentHint')} stacked>
         <AccentPicker value={accent} onChange={setAccent} />
+      </SettingsRow>
+      <SettingsRow label={t('appearance.albumColors')} description={t('appearance.albumColorsHint')} htmlFor="settings-album-colors">
+        <Switch id="settings-album-colors" checked={albumColors} onCheckedChange={setAlbumColors} />
       </SettingsRow>
       <SettingsRow label={t('common:language.label')} stacked>
         <Segmented

@@ -54,7 +54,9 @@
   "appearance": {
     "title": "Appearance",
     "theme": "Theme",
-    "accentHint": "Used for buttons, highlights and progress."
+    "accentHint": "Used for buttons, highlights and progress.",
+    "albumColors": "Album colours",
+    "albumColorsHint": "Album, playlist and artist pages take on the colours of their artwork."
   },
   "playback": {
     "title": "Playback",
