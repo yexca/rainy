@@ -161,6 +161,8 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"POST", "/manage/trash/purge"}, {"POST", "/manage/missing/purge"}, {"GET", "/manage/folders"},
 		{"POST", "/manage/folders/rescan"}, {"GET", "/manage/issues/summary"}, {"GET", "/manage/issues"},
 		{"POST", "/manage/encoding"}, {"GET", "/manage/log"}, {"GET", "/manage/unknown"},
+		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
+		{"GET", "/manage/metadata/cover"},
 	}
 	for _, rt := range manageRoutes {
 		if rec := e.do(rt[0], rt[1], "", nil); rec.Code != http.StatusUnauthorized {

@@ -8,6 +8,7 @@ import (
 
 	"rainy/internal/events"
 	"rainy/internal/lyrics"
+	"rainy/internal/metasearch"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
 	"rainy/internal/store"
@@ -33,6 +34,10 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 		{"NowPlayingEntry", nowplaying.Entry{}, `userId username trackId player since`},
 		{"ServerEvent", events.Event{}, `type data`},
 		{"LibraryEventData", events.LibraryData{}, `reason`},
+		{"MetadataResult", metasearch.Result{}, `provider id title artists album albumArtist trackNumber trackTotal
+			discNumber discTotal date genre duration coverUrl thumbUrl`},
+		{"MetadataLyrics", metasearch.Lyrics{}, `text translation`},
+		{"MetadataProvider", metasearch.ProviderInfo{}, `id lyrics regions`},
 	}
 	for _, c := range cases {
 		b, err := json.Marshal(c.v)

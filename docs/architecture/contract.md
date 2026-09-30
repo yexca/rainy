@@ -51,6 +51,7 @@ rainy/
 │   ├── transcode/               ffmpeg streaming
 │   ├── lyrics/                  LRC parsing, sidecar/embedded lyrics loading
 │   ├── manage/                  tag editing, covers, lyrics, rename, upload, trash, doctor, edit log
+│   ├── metasearch/              opt-in online metadata lookup (NetEase, QQ Music, Kugou, Kuwo, iTunes)
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
 │   ├── subsonic/                Subsonic + OpenSubsonic API (/rest)
@@ -233,6 +234,8 @@ type Settings struct {
     RenamePattern     string `json:"renamePattern"`     // default "{albumartist}/{album}/[{disc}-]{track:2} {title}"
     FixEncodingOnScan bool   `json:"fixEncodingOnScan"` // default true: repair GBK/Big5/SJIS mojibake when *reading* (files untouched)
     EnableDownloads   bool   `json:"enableDownloads"`   // default true
+    OnlineMetadata    bool   `json:"onlineMetadata"`    // default false: allow managers to search online catalogues (§5.13)
+    OnlineMetadataChinaIP bool `json:"onlineMetadataChinaIp"` // default false: metasearch.Options.ChinaIP (§5.13)
 }
 func DefaultSettings(scanInterval time.Duration) Settings
 ```
@@ -524,7 +527,7 @@ Read-only mounts must fail gracefully (`readonly` API error with a helpful messa
 type App struct {
     Cfg *config.Config; DB *db.DB; Store *store.Store; Auth *auth.Service; Bus *events.Bus
     NowPlaying *nowplaying.Tracker; Scanner *scanner.Scanner; Artwork *artwork.Service
-    Transcoder *transcode.Service; Manage *manage.Service; StartedAt time.Time
+    Transcoder *transcode.Service; Manage *manage.Service; Metadata *metasearch.Service; StartedAt time.Time
 }
 func New(ctx context.Context, cfg *config.Config) (*App, error) // open+migrate DB, key, services, default library
 func (a *App) Settings(ctx context.Context) model.Settings       // store.GetSettings with defaults (errors logged → defaults)
@@ -545,6 +548,37 @@ Router:
 `api` package layout (each file owned by one agent, see §11): `api.go` (New, Routes, mounts the
 per-area `routesX(r chi.Router)` funcs), `helpers.go` (writeJSON, writeError, decodeJSON, pagination,
 `userFrom`), and per-area files that each define their own `func (a *API) routesX(r chi.Router)`.
+
+### 5.13 metasearch (owner: manage agent)
+The only package that sends requests to third-party services. It is used only by the §7.6
+`/manage/metadata/*` endpoints, which refuse with `403 forbidden` unless `settings.onlineMetadata`
+is on, and it never writes files: results fill the tag editor's draft and reach the files through
+the normal save endpoints.
+```go
+func New(httpClient *http.Client) *metasearch.Service // nil → 15 s timeout, HTTPS_PROXY/HTTP_PROXY honoured
+func (s *Service) Providers() []ProviderInfo                // netease, qq, kugou, kuwo, itunes (display order)
+func (s *Service) Search(ctx, provider, query string, limit int, region string, opts Options) ([]Result, error)
+func (s *Service) Lyrics(ctx, provider, id string, opts Options) (*Lyrics, error) // ErrNotFound when none
+type Options struct { ChinaIP bool } // from settings.onlineMetadataChinaIp
+func (s *Service) Cover(ctx, url string) ([]byte, string, error)      // provider image hosts only, fetched over HTTPS
+func CoverAllowed(url string) bool
+type ProviderInfo struct { ID string; Lyrics bool; Regions []string }  // json: id lyrics regions
+type Result struct { Provider, ID, Title string; Artists []string; Album, AlbumArtist string
+    TrackNumber, TrackTotal, DiscNumber, DiscTotal int; Date, Genre string; Duration float64
+    CoverURL, ThumbURL string }                                        // json camelCase (coverUrl, thumbUrl)
+type Lyrics struct { Text, Translation string }                        // json: text translation
+var ErrUnknownProvider, ErrInvalid, ErrNotFound, ErrUpstream error
+```
+Rules: fixed endpoint URLs; the query is one encoded parameter (or a JSON value), ≤ 200 characters;
+provider ids are validated per provider before any request; responses are capped (4 MiB JSON,
+20 MiB images); covers come only from `music.126.net`, `y.gtimg.cn`, `y.qq.com`, `kugou.com`,
+`kuwo.cn`, and `mzstatic.com` (host or subdomain, default port, no userinfo), redirects stay on
+the same host, and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
+QQ Music falls back to its older mobile search (no track numbers) when the desktop search refuses.
+With `Options.ChinaIP`, requests to the NetEase, QQ Music, Kugou, and Kuwo APIs carry an
+`X-Real-IP` header with a random address from a few mainland-China ISP /16 blocks (a new one per
+lookup); iTunes and cover downloads never do.
+Kugou's search endpoint is plain HTTP only; everything else uses HTTPS.
 
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
@@ -686,6 +720,14 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 | GET | `/api/manage/issues` | `type, offset, limit` | `Page<Issue>` |
 | POST | `/api/manage/encoding` | `{trackIds, apply:boolean}` | `{items: EncodingFix[], result?: BatchResult}` |
 | GET | `/api/manage/log` | `trackId?, offset, limit` | `Page<EditLogEntry>` |
+| GET | `/api/manage/metadata` | | `MetadataStatus` |
+| GET | `/api/manage/metadata/search` | `provider, q, limit? (≤30, default 20), region?` | `{items: MetadataResult[]}` |
+| GET | `/api/manage/metadata/lyrics` | `provider, id` | `MetadataLyrics` (404 when the provider has none) |
+| GET | `/api/manage/metadata/cover` | `url` (a result's `coverUrl`/`thumbUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
+
+The `/metadata/search`, `/lyrics`, and `/cover` endpoints answer `403 forbidden` while
+`settings.onlineMetadata` is off (the default) and send nothing outside the server; invalid input
+is `400`, a provider failure `503 unavailable` (§5.13).
 
 Tag keys are TagLib property names, upper-case (`TITLE, ARTIST, ALBUM, ALBUMARTIST, TRACKNUMBER,
 DISCNUMBER, DATE, GENRE, COMPOSER, COMMENT, LYRICS, BPM, COMPILATION, DISCSUBTITLE, …`). `[]` deletes.
@@ -801,6 +843,15 @@ export type IssueType = 'missing_tags' | 'no_cover' | 'duplicates' | 'missing_fi
 export interface Issue { key: string; type: IssueType; message: string; tracks: Track[]; album?: Album }
 export interface EncodingFix { trackId: string; path: string; encoding: string; changes: Record<string, { old: string[]; new: string[] }> }
 export interface EditLogEntry { id: number; userId: string; username: string; action: string; trackId: string; path: string; details: unknown; createdAt: number }
+export type MetadataProviderId = 'netease' | 'qq' | 'kugou' | 'kuwo' | 'itunes'
+export interface MetadataProvider { id: MetadataProviderId; lyrics: boolean; regions: string[] }
+export interface MetadataStatus { enabled: boolean; providers: MetadataProvider[] }
+export interface MetadataResult {
+  provider: MetadataProviderId; id: string; title: string; artists: string[]; album: string; albumArtist: string
+  trackNumber: number; trackTotal: number; discNumber: number; discTotal: number
+  date: string; genre: string; duration: number; coverUrl: string; thumbUrl: string   // 0 / '' = unknown
+}
+export interface MetadataLyrics { text: string; translation: string }
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -815,7 +866,7 @@ export interface ScanStatus {
 export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
-  fixEncodingOnScan: boolean; enableDownloads: boolean
+  fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -937,7 +988,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.5 Management UI (manage agent)
 - **Metadata** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Rebuild tags, Delete, Rescan. Mobile: list with selection mode.
-- **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
+- **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
 - **Upload**: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
 - **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).

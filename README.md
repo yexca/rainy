@@ -154,7 +154,8 @@ Library data and media require sign-in. Without an account, a client can reach
 only the app shell, the health check, sign-in, and the first-run setup, which
 closes once the first account exists. All file operations are confined to the
 configured library roots. Rainy does not
-send telemetry and makes no outbound requests of its own. Report a suspected
+send telemetry and makes no outbound requests of its own unless an
+administrator enables the optional online metadata lookup. Report a suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
 

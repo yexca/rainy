@@ -66,7 +66,7 @@ explicitly asks for that change, and every change stays reversible or logged.
 Dependencies point downward:
 
 ```text
-cmd -> app -> api / subsonic / server -> manage / scanner / artwork / transcode / lyrics -> store / tags / auth / events -> db / model / util / config
+cmd -> app -> api / subsonic / server -> manage / scanner / artwork / transcode / lyrics / metasearch -> store / tags / auth / events -> db / model / util / config
 ```
 
 - `model`, `util`, `config`, and `buildinfo` import nothing internal. Services

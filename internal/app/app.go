@@ -17,6 +17,7 @@ import (
 	"rainy/internal/db"
 	"rainy/internal/events"
 	"rainy/internal/manage"
+	"rainy/internal/metasearch"
 	"rainy/internal/model"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
@@ -37,6 +38,7 @@ type App struct {
 	Artwork    *artwork.Service
 	Transcoder *transcode.Service
 	Manage     *manage.Service
+	Metadata   *metasearch.Service // online metadata lookup; only used when settings.onlineMetadata is on
 	StartedAt  time.Time
 }
 
@@ -84,6 +86,7 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 		Artwork:    art,
 		Transcoder: transcode.New(cfg.FFmpegPath),
 		Manage:     manage.New(st, sc, art, bus, cfg),
+		Metadata:   metasearch.New(nil),
 		StartedAt:  time.Now(),
 	}
 	if err := a.ensureDefaultLibrary(ctx); err != nil {

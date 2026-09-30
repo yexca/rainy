@@ -5,6 +5,7 @@ import {
   Copy,
   Eraser,
   FileText,
+  Globe,
   ListOrdered,
   Lock,
   Replace,
@@ -44,6 +45,7 @@ import { CoverTab } from './cover-tab'
 import { DetailsTab } from './details-tab'
 import { FileTab } from './file-tab'
 import { LyricsTab } from './lyrics-tab'
+import { OnlineDialog, type OnlineApply } from './online-dialog'
 import { RawTab } from './raw-tab'
 import { ToolsDialog } from './tools-dialog'
 import type { EditorTab, LyricsDraft, PendingCover } from './types'
@@ -84,6 +86,7 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
   const [lyricsDraft, setLyricsDraft] = useState<LyricsDraft | null>(null)
   const [tab, setTab] = useState<EditorTab>('details')
   const [tool, setTool] = useState<ToolId | null>(null)
+  const [onlineOpen, setOnlineOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveErrors, setSaveErrors] = useState<ItemError[]>([])
 
@@ -113,6 +116,15 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
   const detailsDirty = Object.values(edits).some((patch) => Object.keys(patch).some((k) => DETAIL_KEYS.has(k)))
 
   const applyTool = (values: Record<string, FieldValues>) => setEdits((current) => setFieldValues(items, current, values))
+
+  // An online result only fills the draft; it reaches the files through the normal save.
+  const applyOnline = ({ values, cover: file, lyrics: text }: OnlineApply) => {
+    if (Object.keys(values).length > 0) applyTool(values)
+    if (file) {
+      setCover({ kind: 'set', file, previewUrl: URL.createObjectURL(file), scope: 'tracks', embed: true, saveToFolder: false })
+    }
+    if (text !== null && single) setLyricsDraft({ text, target: lyrics.target })
+  }
 
   const save = async () => {
     if (!dirty || busy || coverInvalid) return
@@ -180,7 +192,14 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
 
   return (
     <div className="flex h-full min-h-0 flex-col" onKeyDown={onKeyDown}>
-      <EditorHeader items={items} trackCount={trackIds.length} onClose={onRequestClose} onTool={setTool} toolsDisabled={status !== 'ready' || saving || allReadonly} />
+      <EditorHeader
+        items={items}
+        trackCount={trackIds.length}
+        onClose={onRequestClose}
+        onTool={setTool}
+        onOnline={() => setOnlineOpen(true)}
+        toolsDisabled={status !== 'ready' || saving || allReadonly}
+      />
 
       {status === 'loading' ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8">
@@ -263,6 +282,14 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
       </footer>
 
       <ToolsDialog tool={tool} items={items} edits={edits} onApply={applyTool} onClose={() => setTool(null)} />
+      <OnlineDialog
+        open={onlineOpen}
+        items={items}
+        edits={edits}
+        currentLyrics={single ? lyrics.text : ''}
+        onApply={applyOnline}
+        onClose={() => setOnlineOpen(false)}
+      />
     </div>
   )
 }
@@ -281,10 +308,11 @@ interface EditorHeaderProps {
   trackCount: number
   onClose: () => void
   onTool: (tool: ToolId) => void
+  onOnline: () => void
   toolsDisabled: boolean
 }
 
-function EditorHeader({ items, trackCount, onClose, onTool, toolsDisabled }: EditorHeaderProps) {
+function EditorHeader({ items, trackCount, onClose, onTool, onOnline, toolsDisabled }: EditorHeaderProps) {
   const { t } = useTranslation('manage')
   const first = items[0]?.track
   const albums = new Set(items.map((i) => i.track.albumId))
@@ -311,6 +339,10 @@ function EditorHeader({ items, trackCount, onClose, onTool, toolsDisabled }: Edi
         </h2>
         <p className="truncate text-[13px] text-muted-foreground">{items.length > 0 ? subtitle : t('common:tagEditor.title')}</p>
       </div>
+      <Button variant="outline" size="sm" disabled={toolsDisabled} onClick={onOnline} className="max-sm:size-11 max-sm:px-0">
+        <Globe />
+        <span className="max-sm:sr-only">{t('online.button')}</span>
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" disabled={toolsDisabled} className="max-sm:size-11 max-sm:px-0">

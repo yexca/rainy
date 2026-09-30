@@ -64,7 +64,7 @@ func TestJSONMatchesTSContract(t *testing.T) {
 		{"TrashEntry", TrashEntry{}, `id libraryId originalPath trashPath size title artist album trackId deletedBy deletedAt`, ""},
 		{"Library", Library{}, `id name path createdAt updatedAt lastScanAt`, ""},
 		{"Settings", Settings{}, `scanInterval genreSeparators ignoredArticles coverArtFiles transcodeFormat
-			transcodeBitrate renamePattern fixEncodingOnScan enableDownloads`, ""},
+			transcodeBitrate renamePattern fixEncodingOnScan enableDownloads onlineMetadata onlineMetadataChinaIp`, ""},
 	}
 	for _, c := range cases {
 		want := fields(c.want + " " + c.extra)

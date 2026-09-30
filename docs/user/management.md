@@ -45,6 +45,22 @@ in the current order, tags from the file name, find and replace (with optional
 regular expressions), change case, copy one field to another, and clear a
 field.
 
+**Search online** looks the selection up in NetEase Cloud Music, QQ Music,
+Kugou, Kuwo, or iTunes. An administrator must first turn on **Online metadata
+lookup** in **Admin → Settings**; until then the dialog explains how. The
+search starts with the track's title and artist (or the album and album
+artist when several tracks are selected), and a length badge shows how close
+each result is to your file. Opening a result lists each field as current →
+new value with a checkbox; fields that would change are selected. With several
+tracks selected, only album-level fields (album, album artist, totals, date,
+genre) are offered. You can also take the result's cover and, for a single
+track, its lyrics, optionally with the translation paired line by line.
+**Fill in editor** only changes the editor's draft: review it and save as
+usual. The search terms are sent to the chosen service from the server; see
+[Privacy](../../PRIVACY.md#online-metadata-lookup). If the Chinese catalogues
+return few results because the server is outside mainland China, an
+administrator can also turn on **Pretend to search from mainland China**.
+
 Saving writes only the fields that changed for each track and reports any
 per-track errors.
 
