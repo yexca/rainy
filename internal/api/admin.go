@@ -11,6 +11,7 @@ import (
 	"net/mail"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -56,6 +57,13 @@ func (a *API) routesAdmin(r chi.Router) {
 	r.Post("/ytdlp/install", a.adminYtdlpInstall)
 	r.Put("/ytdlp/cookies/{site}", a.adminSetCookies)
 	r.Delete("/ytdlp/cookies/{site}", a.adminDeleteCookies)
+	r.Get("/sources", a.adminSources)
+	r.Post("/sources", a.adminImportSource)
+	r.Put("/sources/order", a.adminReorderSources)
+	r.Put("/sources/{id}", a.adminUpdateSource)
+	r.Delete("/sources/{id}", a.adminDeleteSource)
+	r.Post("/sources/{id}/reload", a.adminReloadSource)
+	r.Post("/sources/{id}/refresh", a.adminRefreshSource)
 }
 
 // ---- users
@@ -641,8 +649,21 @@ func validateSettings(s *model.Settings) error {
 		return badRequest("coverArtFiles needs at least one pattern")
 	}
 	s.CoverArtFiles = strings.Join(patterns, ",")
+	switch s.LxSourceMode = strings.TrimSpace(s.LxSourceMode); s.LxSourceMode {
+	case "":
+		s.LxSourceMode = model.LxSourceModeAuto
+	case model.LxSourceModeAuto, model.LxSourceModeFixed:
+	default:
+		return badRequest("lxSourceMode must be auto or fixed")
+	}
+	if s.LxSourceID = strings.TrimSpace(s.LxSourceID); !sourceIDPattern.MatchString(s.LxSourceID) {
+		return badRequest("lxSourceId is not a source id")
+	}
 	return nil
 }
+
+// sourceIDPattern matches lx source ids (util.NewID) and "".
+var sourceIDPattern = regexp.MustCompile(`^[0-9A-Za-z_-]{0,64}$`)
 
 func (a *API) adminPutSettings(w http.ResponseWriter, r *http.Request) {
 	var patch map[string]json.RawMessage

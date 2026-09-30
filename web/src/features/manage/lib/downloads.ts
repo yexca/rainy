@@ -1,4 +1,4 @@
-/** Helpers for downloads from YouTube / bilibili (`/api/manage/downloads`). */
+/** Helpers for download jobs: links from YouTube / bilibili and online music (`/api/manage/downloads`). */
 // Relative `.ts` import and no runtime imports, so node --test (tests/downloads.test.ts) can load it.
 import type { DownloadJob, DownloadSite } from '../../../lib/api/types.ts'
 
@@ -53,4 +53,13 @@ export function formatEta(seconds: number): string {
   const m = Math.floor((s % 3600) / 60)
   const ss = String(s % 60).padStart(2, '0')
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`
+}
+
+/** A job's display name ("title — artists" for online music). */
+export function jobName(job: Pick<DownloadJob, 'title' | 'url' | 'online'>): string {
+  if (job.online) {
+    const artists = job.online.song.artists.join(' / ')
+    return artists ? `${job.online.song.title} — ${artists}` : job.online.song.title
+  }
+  return job.title || job.url
 }

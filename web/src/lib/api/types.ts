@@ -99,15 +99,44 @@ export interface MetadataLyrics { text: string; translation: string }
 export type DownloadSite = 'youtube' | 'bilibili'
 export type DownloadFormat = 'best' | 'm4a' | 'mp3' | 'opus'
 export type DownloadJobStatus = 'queued' | 'running' | 'importing' | 'done' | 'error' | 'canceled'
+export type DownloadJobKind = 'link' | 'online'
 export interface DownloadJob {
-  id: string; url: string; site: DownloadSite; title: string; status: DownloadJobStatus
+  id: string; kind: DownloadJobKind
+  url: string                       // link jobs: the link; online jobs: the song's page on its catalogue
+  site: '' | DownloadSite           // '' for online jobs
+  title: string; status: DownloadJobStatus
   phase: '' | 'downloading' | 'processing'
   progress: number                  // 0…1 overall, -1 = unknown
   item: number; items: number       // current playlist entry (1-based) / entries, 0 = unknown
   speed: number; eta: number        // bytes per second; seconds, -1 = unknown
   error: string                     // failure, or what failed for some entries of a finished job
-  libraryId: number; dir: string; organize: boolean; format: DownloadFormat; playlist: boolean
+  libraryId: number; dir: string; organize: boolean
+  format: '' | DownloadFormat; playlist: boolean   // link jobs only
   trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+  online: OnlineJob | null                         // online jobs only
+}
+
+// ---- online music (lx-music sources)
+export type OnlinePlatform = 'kw' | 'kg' | 'tx' | 'wy' | 'mg'
+export type OnlineQualityType = '128k' | '320k' | 'flac' | 'flac24bit'
+export interface OnlineQuality { type: OnlineQualityType; size: string /* '' = unknown */; hash?: string }
+export interface OnlineSong {
+  platform: OnlinePlatform; id: string; title: string; artists: string[]; album: string; albumId: string
+  duration: number; coverUrl: string
+  qualities: OnlineQuality[]         // lowest first
+  extra: Record<string, string>      // platform ids the sources need (opaque to the UI)
+  pageUrl: string                    // the song's page on the catalogue's website
+}
+export interface OnlineSearchResult { items: OnlineSong[]; total: number; page: number; limit: number }
+export interface OnlineStatus {
+  enabled: boolean
+  sources: number                    // usable sources (enabled; in fixed mode the chosen one)
+  platforms: { id: OnlinePlatform; qualities: OnlineQualityType[] }[]   // known from the sources' last start
+}
+export interface OnlineJob {
+  song: OnlineSong; quality: OnlineQualityType   // requested (the best wanted)
+  got: '' | OnlineQualityType; source: string     // quality asked from / name of the source that answered
+  lyrics: boolean; cover: boolean
 }
 export interface DownloadsStatus {
   enabled: boolean; ready: boolean               // yt-dlp installed and runnable, ffmpeg present
@@ -130,6 +159,7 @@ export interface Settings {
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean
+  lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -154,5 +184,17 @@ export interface YtdlpInfo {
   jsRuntime: '' | 'deno' | 'node' | 'quickjs'; ffmpeg: boolean
   install: YtdlpInstallState; cookies: CookieInfo[]
 }
+export type LxSourceMode = 'auto' | 'fixed'
+export type LxSourceStatus = 'idle' | 'loading' | 'ready' | 'error'
+export interface LxSourceUpdateAlert { log: string; url: string; at: number }
+export interface LxSource {
+  id: string; name: string; description: string; version: string; author: string
+  homepage: string; sourceUrl: string   // sourceUrl '' = imported from a file
+  size: number; enabled: boolean; position: number; allowUpdateAlert: boolean
+  platforms: { platform: OnlinePlatform; qualities: OnlineQualityType[] }[]   // from the last successful start
+  status: LxSourceStatus; error: string; updateAlert: LxSourceUpdateAlert | null
+  loadedAt: number; createdAt: number; updatedAt: number
+}
+export interface LxSourcesInfo { enabled: boolean; mode: LxSourceMode; sourceId: string; sources: LxSource[] }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }

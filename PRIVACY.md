@@ -12,8 +12,8 @@ or any other project-operated service. By default the server makes no outbound
 network requests of its own: covers, lyrics, similar songs, and artist
 information all come from your own files and database. All data stays on your
 instance unless you, a user, or a client app sends it elsewhere. The
-exceptions are the opt-in online metadata lookup and downloads from YouTube
-and bilibili, both described below.
+exceptions are the opt-in online metadata lookup, downloads from YouTube and
+bilibili, and online music through music sources, all described below.
 
 The only external connections happen in the browser:
 
@@ -85,13 +85,59 @@ keeps the list of download jobs only in memory. yt-dlp's requests honor the
 `HTTPS_PROXY` and `HTTP_PROXY` environment variables. Each site's own privacy
 policy applies to the requests it receives.
 
+## Online Music and Music Sources
+
+An administrator can turn on **Allow online music and music sources** in
+**Admin → Settings → Sources**. It is off by default. While it is off, none of
+the requests below are made; a source script imported from a file is stored
+but not run.
+
+- **Searching.** Only when a manager searches in **Tracks → Online**, the
+  server sends the search terms to the chosen catalogue and loads the result
+  covers through itself, so the browser never contacts these hosts:
+
+  | Catalogue | Hosts contacted |
+  | --- | --- |
+  | Kuwo | `search.kuwo.cn`, `img*.kuwo.cn` (covers) |
+  | Kugou | `songsearch.kugou.com`, `mobilecdn.kugou.com` (plain HTTP, used when the first search finds nothing), `imge.kugou.com` (covers) |
+  | QQ Music | `u.y.qq.com`, `y.gtimg.cn` (covers) |
+  | NetEase Cloud Music | `music.163.com`, `*.music.126.net` (covers) |
+  | Migu | `jadeite.migu.cn`, `d.musicapp.migu.cn` (covers) |
+
+  The requests carry the search terms and the server's IP address. The QQ
+  Music and Migu requests also carry the fixed client identifiers lx-music
+  uses, which are the same for every installation.
+- **Music sources.** A music source is an lx-music custom source script that
+  an administrator imports, from a file or from a link the server downloads.
+  Rainy runs a script when a download needs it or an administrator tests it.
+  **The script decides which servers it contacts**, usually its author's
+  server, which then learns the server's IP address and the song being
+  downloaded (its catalogue ids, title, artists, album, and the requested
+  quality). Rainy cannot list these hosts in advance; it only lets scripts
+  reach public internet addresses, never your local network. Scripts are
+  stored in `rainy.db`. Import only scripts you trust.
+- **Downloading.** Only when a manager starts a download, the server
+  downloads the audio from the link the source returns (a catalogue's CDN or
+  the source's own server). With the default options it also fetches the
+  song's lyrics from the catalogue (`kuwo.cn`, `lyrics.kugou.com`,
+  `c.y.qq.com`, `music.163.com`, or `d.musicapp.migu.cn`) and its cover from
+  the image hosts above.
+
+Nothing about your library, users, or listening is sent, except the song
+being downloaded. The edit history records who downloaded which song, its
+catalogue page, the quality, and the source that provided it. Rainy keeps the
+list of download jobs only in memory. These requests honor the `HTTPS_PROXY`
+and `HTTP_PROXY` environment variables. Each service's own privacy policy
+applies to the requests it receives. Only download what you have the right to
+keep.
+
 ## Server-Side Data
 
 The data folder (`/data` in Docker) contains:
 
 | Location | Contents |
 | --- | --- |
-| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name, playlists, play queues, bookmarks, radio stations, server settings, the library index, trash entries, and the edit history (who changed which file, when, and the old and new values) |
+| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name, playlists, play queues, bookmarks, radio stations, server settings, imported music source scripts, the library index, trash entries, and the edit history (who changed which file, when, and the old and new values) |
 | `secret.key` | The key that encrypts stored passwords |
 | `trash/` | Music files deleted through Rainy, until the trash is emptied |
 | `cache/` | Resized cover images |

@@ -116,6 +116,7 @@
     "tabs": {
       "general": "General",
       "ytdlp": "yt-dlp",
+      "sources": "Sources",
       "system": "System"
     },
     "saved": "Settings saved",
@@ -248,6 +249,90 @@
       "dropped_one": "{{count}} cookie of another site was discarded.",
       "dropped_other": "{{count}} cookies of other sites were discarded.",
       "notSignedInHint": "They don’t include a sign-in; make sure you were signed in when exporting."
+    }
+  },
+  "sources": {
+    "sections": {
+      "online": "Online music",
+      "mode": "Which sources to use",
+      "sources_one": "Sources ({{count}})",
+      "sources_other": "Sources ({{count}})"
+    },
+    "enable": "Allow online music and music sources",
+    "enableHelp": "Managers can then search online catalogues in Tracks → Online and download songs into a library. Music sources are lx-music custom source scripts that run on this server and contact the servers their authors chose.",
+    "modes": {
+      "auto": "Automatic fallback",
+      "autoHelp": "Try the enabled sources from top to bottom until one delivers the song.",
+      "fixed": "Always use one source",
+      "fixedHelp": "Only the chosen source is asked; if it fails, the download fails.",
+      "fixedSource": "Source",
+      "choose": "Choose a source",
+      "fixedUnavailable": "This source is disabled or removed; downloads will fail until you choose another one."
+    },
+    "help": "Order sets the priority for automatic fallback. Rainy doesn’t include any source: import scripts you trust.",
+    "importButton": "Import",
+    "empty": "No sources yet. Import an lx-music custom source script (.js).",
+    "disabled": "disabled",
+    "fixedBadge": "In use",
+    "by": "by {{author}}",
+    "fromUrl": "from a link",
+    "fromFile": "from a file",
+    "loadedAt": "started {{when}}",
+    "platforms": "Platforms",
+    "platformNames": {
+      "kw": "Kuwo",
+      "kg": "Kugou",
+      "tx": "QQ Music",
+      "wy": "NetEase",
+      "mg": "Migu"
+    },
+    "qualities": {
+      "128k": "128K",
+      "320k": "320K",
+      "flac": "FLAC",
+      "flac24bit": "Hi-Res"
+    },
+    "status": {
+      "idle": "Not started",
+      "loading": "Starting",
+      "ready": "Ready",
+      "error": "Failed"
+    },
+    "updateAlert": "Update notice ({{when}})",
+    "openUpdate": "Open update page",
+    "refresh": "Update from link",
+    "refreshed": "Updated “{{name}}” (version {{version}})",
+    "reload": "Test / restart",
+    "reloaded": "“{{name}}” is working",
+    "reloadFailed": "“{{name}}” didn’t start",
+    "muteAlerts": "Hide update notices",
+    "showAlerts": "Show update notices",
+    "homepage": "Homepage",
+    "remove": "Remove",
+    "removeTitle": "Remove “{{name}}”?",
+    "removeDescription": "The script is deleted from the server. Songs already downloaded stay in the library.",
+    "removed": "Removed “{{name}}”",
+    "moveUp": "Move “{{name}}” up",
+    "moveDown": "Move “{{name}}” down",
+    "enableSource": "Use “{{name}}”",
+    "more": "More actions for “{{name}}”",
+    "import": {
+      "title": "Import a music source",
+      "description": "An lx-music custom source script (.js), from a file or a link.",
+      "warningTitle": "Only import scripts you trust",
+      "warning": "A source script is third-party code. It runs on this server, may contact any public internet address, and receives the songs you download. Rainy limits its time, network and inputs, but not its memory use.",
+      "fromFile": "File",
+      "fromUrl": "Link",
+      "chooseFile": "Choose a .js file",
+      "fileHint": "The script is sent to the server and stored there; it is never shown again.",
+      "tooLarge": "The script is larger than 9 MB.",
+      "url": "Script link",
+      "urlHint": "The server downloads the script and remembers the link, so it can update it later.",
+      "urlNeedsEnable": "Turn on online music first: the server downloads the script from the link.",
+      "submit": "Import",
+      "importing": "Importing…",
+      "imported": "Imported “{{name}}”",
+      "importedWithError": "Imported “{{name}}”, but it didn’t start"
     }
   },
   "system": {

@@ -31,11 +31,18 @@ import type {
   IssueType,
   LibraryInfo,
   LibraryStats,
+  LxSource,
+  LxSourcesInfo,
   Lyrics,
   MetadataLyrics,
   MetadataProviderId,
   MetadataResult,
   MetadataStatus,
+  OnlinePlatform,
+  OnlineQualityType,
+  OnlineSearchResult,
+  OnlineSong,
+  OnlineStatus,
   Page,
   PlayQueue,
   Playlist,
@@ -218,6 +225,21 @@ export interface StartDownloadInput {
   playlist?: boolean
 }
 export interface MetadataSearchParams { provider: MetadataProviderId; q: string; limit?: number; region?: string }
+export interface OnlineSearchParams { platform: OnlinePlatform; q: string; page?: number; limit?: number }
+export interface OnlineDownloadInput {
+  songs: OnlineSong[]
+  /** The best quality wanted; a lower one is used when the song or the sources lack it. */
+  quality: OnlineQualityType
+  libraryId: number
+  dir?: string
+  organize?: boolean
+  /** Embed the catalogue's lyrics (with a paired translation when there is one). */
+  lyrics?: boolean
+  /** Embed the catalogue's cover. */
+  cover?: boolean
+}
+export interface ImportSourceInput { script?: string; url?: string }
+export interface UpdateSourceInput { enabled?: boolean; allowUpdateAlert?: boolean }
 
 // ---- admin
 export interface CreateUserInput {
@@ -431,6 +453,16 @@ export const api = {
       /** Cancels a queued or running job; removes a finished one from the list. */
       remove: (id: string) => request<void>(`/manage/downloads/${seg(id)}`, { method: 'DELETE' }),
     },
+    /** Online music search and downloads (403 unless `settings.lxSourcesEnabled`); jobs appear in `downloads`. */
+    online: {
+      status: (opts?: CallOptions) => request<OnlineStatus>('/manage/online', opts),
+      search: (params: OnlineSearchParams, opts?: CallOptions) =>
+        request<OnlineSearchResult>('/manage/online/search', { ...opts, query: { ...params } }),
+      /** A result's cover proxied through the server — for `<img src>`. */
+      coverUrl: (url: string) => apiUrl('/manage/online/cover', { url }),
+      download: (body: OnlineDownloadInput) =>
+        request<{ jobs: DownloadJob[] }>('/manage/online/downloads', { method: 'POST', body }),
+    },
   },
 
   // ---- §7.7 admin
@@ -472,6 +504,21 @@ export const api = {
       setCookies: (site: DownloadSite, text: string) =>
         request<CookieSaveResult>(`/admin/ytdlp/cookies/${seg(site)}`, { method: 'PUT', body: { text } }),
       deleteCookies: (site: DownloadSite) => request<void>(`/admin/ytdlp/cookies/${seg(site)}`, { method: 'DELETE' }),
+    },
+    /** lx-music source scripts (never returned by the server). */
+    sources: {
+      get: (opts?: CallOptions) => request<LxSourcesInfo>('/admin/sources', opts),
+      /** Import a script's text, or download it from a link (the link needs `lxSourcesEnabled`). */
+      import: (body: ImportSourceInput) => request<LxSource>('/admin/sources', { method: 'POST', body }),
+      update: (id: string, body: UpdateSourceInput) =>
+        request<LxSource>(`/admin/sources/${seg(id)}`, { method: 'PUT', body }),
+      remove: (id: string) => request<void>(`/admin/sources/${seg(id)}`, { method: 'DELETE' }),
+      /** Priority order: every source id once. */
+      reorder: (ids: string[]) => request<LxSourcesInfo>('/admin/sources/order', { method: 'PUT', body: { ids } }),
+      /** (Re)starts the script; the result shows whether it works. */
+      reload: (id: string) => request<LxSource>(`/admin/sources/${seg(id)}/reload`, { method: 'POST' }),
+      /** Downloads the script again from the link it was imported from. */
+      refresh: (id: string) => request<LxSource>(`/admin/sources/${seg(id)}/refresh`, { method: 'POST' }),
     },
   },
 } as const

@@ -1,5 +1,5 @@
 {
-  "title": "Metadata",
+  "title": "Tracks",
   "library": {
     "default": "Music library"
   },
@@ -514,6 +514,68 @@
       "canceled": "Canceled"
     }
   },
+  "onlineMusic": {
+    "subtitle": "Search online music catalogues and download songs into your library through music sources.",
+    "disabledTitle": "Online music is off",
+    "disabledAdmin": "Turn it on and add a music source in Settings → Sources.",
+    "disabledManager": "An administrator can turn it on in Settings → Sources.",
+    "noSourcesTitle": "No music source yet",
+    "noSourcesAdmin": "Import an lx-music custom source script in Settings → Sources. Rainy doesn’t include any source.",
+    "noSourcesManager": "An administrator can add a music source in Settings → Sources.",
+    "openSettings": "Open settings",
+    "platform": "Catalogue",
+    "platforms": {
+      "kw": "Kuwo",
+      "kg": "Kugou",
+      "tx": "QQ Music",
+      "wy": "NetEase Cloud Music",
+      "mg": "Migu"
+    },
+    "searchPlaceholder": "Song, artist or album",
+    "search": "Search",
+    "enterQuery": "Search a catalogue for songs to add to your library.",
+    "noResults": "No results",
+    "noResultsHint": "Try other words or another catalogue.",
+    "searchFailed": "{{platform}} didn’t answer",
+    "total_one": "{{formatted}} result",
+    "total_other": "{{formatted}} results",
+    "loadMore": "Load more",
+    "selectAll": "Select all shown",
+    "select": "Select “{{title}}”",
+    "selected_one": "{{count}} song selected",
+    "selected_other": "{{count}} songs selected",
+    "clear": "Clear",
+    "download": "Download",
+    "downloadOne": "Download “{{title}}”",
+    "queued_one": "Added {{count}} song to the downloads",
+    "queued_other": "Added {{count}} songs to the downloads",
+    "options": "Download options",
+    "organized": "organized by tags",
+    "withLyrics": "lyrics",
+    "withCover": "cover",
+    "quality": "Quality",
+    "qualityHint": "When a song or the music sources don’t offer this quality, a lower one is used.",
+    "qualities": {
+      "128k": "Standard (128K)",
+      "320k": "High (320K)",
+      "flac": "Lossless (FLAC)",
+      "flac24bit": "Hi-Res (24-bit FLAC)"
+    },
+    "badges": {
+      "128k": "128K",
+      "320k": "320K",
+      "flac": "FLAC",
+      "flac24bit": "Hi-Res"
+    },
+    "lyrics": "Embed lyrics",
+    "lyricsHint": "From the catalogue; a translation is paired under each line when there is one.",
+    "cover": "Embed cover",
+    "openPage": "Open the song’s page",
+    "via": "{{source}} · {{quality}}",
+    "resolving": "Asking the music sources",
+    "tagging": "Writing tags",
+    "rights": "Only download what you have the right to keep. Music sources are third-party scripts; Rainy doesn’t include any."
+  },
   "folders": {
     "subtitle": "Browse the files on disk.",
     "breadcrumbs": "Folder path",
@@ -633,7 +695,7 @@
       "delete": "Moved to trash",
       "restore": "Restored",
       "upload": "Uploaded",
-      "download": "Downloaded from a link",
+      "download": "Downloaded",
       "purge": "Deleted permanently",
       "encoding": "Fixed encoding"
     },
@@ -646,6 +708,8 @@
       "name": "Uploaded file",
       "title": "Title",
       "source": "Source",
+      "quality": "Quality",
+      "via": "Music source",
       "size": "Size",
       "missing": "File was missing"
     },

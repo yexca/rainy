@@ -25,7 +25,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 - **常见格式都能播**：MP3、FLAC、AAC/M4A/ALAC、OGG Vorbis、Opus、WAV、AIFF、APE、WavPack、WMA、DSD（DSF/DFF）等。原始音质直连播放并支持拖动进度，也可以用 ffmpeg 实时转码为 MP3、Opus 或 AAC。
 - **兼容现有客户端**：实现 Subsonic API 1.16.1 和 OpenSubsonic 扩展，Symfonium、Amperfy、play:Sub、Feishin、Tempo、DSub 等客户端可以直接使用；支持密码、令牌和 API 密钥三种认证方式。
 - **值得安装的播放器**：网页端可安装为 PWA，手机上有 iOS 风格的「正在播放」页面、同步歌词、可拖动排序的队列、锁屏和耳机控制（Media Session）、iOS 上的 AirPlay、浅色/深色主题，界面支持中英文。
-- **在浏览器里管理曲库**：单曲或批量编辑标签（先预览再应用）、封面、内嵌或 `.lrc` 歌词、按规则重命名/整理、上传、通过 yt-dlp 从 YouTube 和哔哩哔哩链接下载（可选）、可还原的回收站、曲库体检和完整的修改历史。
+- **在浏览器里管理曲库**：单曲或批量编辑标签（先预览再应用）、封面、内嵌或 `.lrc` 歌词、按规则重命名/整理、上传、通过 yt-dlp 从 YouTube 和哔哩哔哩链接下载（可选）、通过兼容 lx music 的音源在线搜索并下载歌曲（可选）、可还原的回收站、曲库体检和完整的修改历史。
 - **对中文曲库友好**：扫描时自动修复 GBK、Big5、Shift-JIS 编码造成的乱码，也可以一键以 UTF-8 永久写回；中文艺人名按拼音首字母归类。
 - **多用户**：管理员、曲库管理员、普通用户三种角色，下载权限可单独控制。收藏、评分、播放次数、歌单和播放队列都按用户独立保存，队列还能在网页端和 Subsonic 客户端之间接着听。
 
@@ -147,7 +147,7 @@ docker compose exec -u 1000:1000 rainy rainy user list
 
 ## 安全与隐私
 
-曲库数据和音频都需要登录才能访问。Rainy 不收集任何遥测数据，除非管理员开启可选的在线元数据搜索或 YouTube、哔哩哔哩链接下载，服务器本身不会向外发起网络请求。漏洞请通过 [SECURITY.md](../../SECURITY.md) 私下报告；分享日志前请阅读 [PRIVACY.md](../../PRIVACY.md)。
+曲库数据和音频都需要登录才能访问。Rainy 不收集任何遥测数据，除非管理员开启可选的在线元数据搜索、YouTube 和哔哩哔哩链接下载或在线音乐，服务器本身不会向外发起网络请求。漏洞请通过 [SECURITY.md](../../SECURITY.md) 私下报告；分享日志前请阅读 [PRIVACY.md](../../PRIVACY.md)。
 
 ## 开发与贡献
 

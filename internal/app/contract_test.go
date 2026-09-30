@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"rainy/internal/events"
+	"rainy/internal/lxmusic"
 	"rainy/internal/lyrics"
 	"rainy/internal/manage"
 	"rainy/internal/metasearch"
@@ -40,8 +41,16 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 			discNumber discTotal date genre duration coverUrl thumbUrl`},
 		{"MetadataLyrics", metasearch.Lyrics{}, `text translation`},
 		{"MetadataProvider", metasearch.ProviderInfo{}, `id lyrics regions`},
-		{"DownloadJob", manage.DownloadJob{}, `id url site title status phase progress item items speed eta error
-			libraryId dir organize format playlist trackIds errors createdBy createdAt startedAt finishedAt`},
+		{"DownloadJob", manage.DownloadJob{}, `id kind url site title status phase progress item items speed eta error
+			libraryId dir organize format playlist trackIds errors createdBy createdAt startedAt finishedAt online`},
+		{"OnlineJob", manage.OnlineJob{}, `song quality got source lyrics cover`},
+		{"OnlineSong", lxmusic.Song{}, `platform id title artists album albumId duration coverUrl qualities extra pageUrl`},
+		{"OnlineQuality", lxmusic.Quality{Hash: "x"}, `type size hash`},
+		{"OnlineSearchResult", lxmusic.SearchResult{}, `items total page limit`},
+		{"LxSource", lxmusic.SourceInfo{}, `id name description version author homepage sourceUrl size enabled position
+			allowUpdateAlert platforms status error updateAlert loadedAt createdAt updatedAt`},
+		{"LxSourcePlatform", lxmusic.PlatformQualities{}, `platform qualities`},
+		{"LxSourceUpdateAlert", lxmusic.UpdateAlert{}, `log url at`},
 		{"CookieInfo", ytdlp.CookieInfo{}, `site configured count signedIn expiresAt updatedAt`},
 		{"CookieSaveResult", ytdlp.CookieSaveResult{}, `site configured count signedIn expiresAt updatedAt dropped`},
 		{"YtdlpInstallState", ytdlp.InstallState{}, `running error finishedAt`},

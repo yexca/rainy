@@ -153,7 +153,12 @@ func writeErr(w http.ResponseWriter, r *http.Request, err error) {
 // decodeJSON decodes the request body (at most 1 MiB) into dst. An empty body leaves dst
 // untouched and is not an error, so optional bodies work. Malformed JSON yields a 400 *Error.
 func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
-	r.Body = http.MaxBytesReader(w, r.Body, maxJSONBody)
+	return decodeJSONLimit(w, r, dst, maxJSONBody)
+}
+
+// decodeJSONLimit is decodeJSON with another body size limit.
+func decodeJSONLimit(w http.ResponseWriter, r *http.Request, dst any, limit int64) error {
+	r.Body = http.MaxBytesReader(w, r.Body, limit)
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(dst); err != nil {
 		var mbe *http.MaxBytesError
@@ -161,7 +166,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 		case errors.Is(err, io.EOF):
 			return nil
 		case errors.As(err, &mbe):
-			return newError(http.StatusRequestEntityTooLarge, CodeBadRequest, "request body too large (max %d bytes)", maxJSONBody)
+			return newError(http.StatusRequestEntityTooLarge, CodeBadRequest, "request body too large (max %d bytes)", limit)
 		default:
 			return badRequest("invalid JSON body: %v", err)
 		}

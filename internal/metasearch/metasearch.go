@@ -233,6 +233,7 @@ var coverHosts = []string{
 	"kugou.com",     // Kugou (imge.kugou.com)
 	"kuwo.cn",       // Kuwo (img1–4.kuwo.cn)
 	"mzstatic.com",  // iTunes
+	"migu.cn",       // Migu (d.musicapp.migu.cn; online music search, contract §5.15)
 }
 
 // CoverAllowed reports whether rawURL points at one of the providers' image hosts.

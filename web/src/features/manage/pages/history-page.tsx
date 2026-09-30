@@ -2,11 +2,11 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
   ArchiveRestore,
   ArrowRight,
+  CloudDownload,
   FilterX,
   History,
   ImageIcon,
   Languages,
-  Link2,
   ListFilter,
   MicVocal,
   PencilLine,
@@ -47,7 +47,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   delete: Trash2,
   restore: ArchiveRestore,
   upload: Upload,
-  download: Link2,
+  download: CloudDownload,
   purge: Eraser,
   encoding: Languages,
 }
@@ -253,7 +253,7 @@ function LogEntry({ entry, onFilter }: { entry: EditLogEntry; onFilter?: (trackI
 type TFunction = (key: string, options?: Record<string, unknown>) => string
 
 /** Known `details` keys of the edit log (see the manage service) with readable labels / values. */
-const FIELD_ORDER = ['op', 'embedded', 'folderImage', 'target', 'encoding', 'name', 'title', 'source', 'size', 'missing']
+const FIELD_ORDER = ['op', 'embedded', 'folderImage', 'target', 'encoding', 'name', 'title', 'source', 'quality', 'via', 'size', 'missing']
 const FIELD_KEYS = new Set(FIELD_ORDER)
 
 function fieldRank(key: string): number {

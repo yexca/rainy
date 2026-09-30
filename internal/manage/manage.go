@@ -61,7 +61,8 @@ type Service struct {
 	encMu    sync.Mutex
 	encCache map[string]encCacheEntry // abs path → raw-tag mojibake analysis
 
-	downloader Downloader // yt-dlp; nil until SetDownloader
+	downloader Downloader   // yt-dlp; nil until SetDownloader
+	online     OnlineSource // lx-music sources; nil until SetOnlineSource
 	dls        *downloads
 }
 

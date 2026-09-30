@@ -20,7 +20,7 @@ rows are in [contract §5.2](contract.md#52-models-internalmodel).
 
 | Entity | ID form | Why |
 | --- | --- | --- |
-| Tracks, users, playlists, radio stations, trash entries | Random 22-character base62 (`util.NewID`) | Opaque and stable once assigned |
+| Tracks, users, playlists, radio stations, trash entries, music sources | Random 22-character base62 (`util.NewID`) | Opaque and stable once assigned |
 | Albums, artists, genres | Deterministic hash of normalized names (`util.HashID`) | Survive a full rescan or a database rebuild without breaking favorites or playlists |
 | Libraries | Integer | Small, operator-managed list |
 
@@ -36,7 +36,7 @@ therefore survive reorganizing a library.
 | Library index | `libraries`, `tracks`, `albums`, `artists`, `genres`, `track_genres` | Rebuilt from files by the scanner |
 | Accounts | `users`, `sessions` | Passwords are stored encrypted (see below); sessions store a SHA-256 hash of the token |
 | Per-user state | `annotations`, `play_history`, `playlists`, `playlist_tracks`, `play_queues`, `bookmarks` | Cascade-deleted with the user |
-| Server state | `settings`, `radio_stations` | Settings are key/value rows over `model.Settings` defaults |
+| Server state | `settings`, `radio_stations`, `lx_sources` | Settings are key/value rows over `model.Settings` defaults; `lx_sources` holds imported lx-music source scripts, their priority, and what their last start reported |
 | Management | `edit_log`, `trash` | The history of file changes and the restorable trash |
 | Migrations | `schema_migrations` | One row per applied migration file |
 
