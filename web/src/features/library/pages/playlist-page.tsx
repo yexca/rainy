@@ -38,6 +38,7 @@ import type { ActionGroups } from '../lib/actions'
 import { useCollectionQueueGroups } from '../lib/collection-action-items'
 import { applyPlaylistEdit, withTracks, type PlaylistEditPlan } from '../lib/playlist-edits'
 import { playlistQuery } from '../lib/queries'
+import { useCoverTheme } from '../lib/use-cover-theme'
 
 type Dialog = 'details' | 'delete' | null
 
@@ -83,6 +84,7 @@ export default function PlaylistPage() {
   const query = useQuery(playlistQuery(id))
   const playlist = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
+  const coverTheme = useCoverTheme(playlist && playlist.songCount > 0 ? playlist.coverArt : undefined)
   const [dialog, setDialog] = useState<Dialog>(null)
   const [editing, setEditing] = useState(false)
 
@@ -99,7 +101,8 @@ export default function PlaylistPage() {
   ) : null
 
   return (
-    <Page>
+    // Like album pages, the page takes on the artwork's colours.
+    <Page {...coverTheme}>
       <div className="relative isolate">
         {playlist && playlist.songCount > 0 ? (
           <ArtworkBackdrop key={playlist.coverArt} coverArt={playlist.coverArt} className="bleed-x h-[34rem] md:h-[26rem]" />

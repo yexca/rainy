@@ -22,6 +22,7 @@ import { StarButton } from '../components/star-button'
 import { TrackList, TrackListSkeleton, type TrackSection } from '../components/track-list'
 import { formatGenres, formatQuality, formatReleaseDate, releaseDate, totalDuration } from '../lib/format'
 import { albumListQuery, albumQuery } from '../lib/queries'
+import { useCoverTheme } from '../lib/use-cover-theme'
 
 export default function AlbumPage() {
   const { t } = useTranslation('library')
@@ -30,9 +31,11 @@ export default function AlbumPage() {
   const query = useQuery(albumQuery(id))
   const album = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
+  const coverTheme = useCoverTheme(album?.coverArt)
 
   return (
-    <Page>
+    // The whole page (nav bar, hero, tracks, footer) takes on the album's colours.
+    <Page {...coverTheme}>
       <div className="relative isolate">
         {album ? <ArtworkBackdrop key={album.coverArt} coverArt={album.coverArt} className="bleed-x h-[34rem] md:h-[26rem]" /> : null}
         <DetailNavBar

@@ -8,8 +8,11 @@ export interface ThemeContextValue {
   /** What is actually shown. */
   resolvedTheme: ResolvedTheme
   accent: Accent
+  /** Album pages take on the cover's colours. */
+  albumColors: boolean
   setTheme: (theme: Theme) => void
   setAccent: (accent: Accent) => void
+  setAlbumColors: (enabled: boolean) => void
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null)

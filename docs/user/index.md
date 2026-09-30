@@ -18,6 +18,8 @@ app, update these pages in the same change.
 
 The web app is available in English and Simplified Chinese. Change the language
 from the user menu or under **Settings → Appearance**.
+Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
+there if you prefer the plain theme.
 
 ## Roles
 
