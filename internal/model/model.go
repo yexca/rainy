@@ -368,6 +368,8 @@ type Settings struct {
 	LxSourcesEnabled      bool   `json:"lxSourcesEnabled"`      // allow lx-music source scripts and online music downloads (outbound requests)
 	LxSourceMode          string `json:"lxSourceMode"`          // "auto" (try enabled sources by priority) | "fixed" (only LxSourceID)
 	LxSourceID            string `json:"lxSourceId"`            // the source used in "fixed" mode
+	LastfmEnabled         bool   `json:"lastfmEnabled"`         // allow users to scrobble to Last.fm (outbound requests; needs an API key)
+	ListenBrainzEnabled   bool   `json:"listenBrainzEnabled"`   // allow users to scrobble to ListenBrainz (outbound requests)
 }
 
 // Values of Settings.LxSourceMode.
@@ -402,6 +404,68 @@ type LxSource struct {
 	UpdatedAt        int64  `db:"updated_at"`
 }
 
+// Play is one entry of a user's listening history (table play_history). Title, Artist,
+// Album, AlbumArtist, ArtistID, AlbumID and Duration come from the live track row when it
+// still exists and from the snapshot taken at play time otherwise.
+type Play struct {
+	ID          int64   `db:"id" json:"id"`
+	TrackID     string  `db:"track_id" json:"trackId"`
+	PlayedAt    int64   `db:"played_at" json:"playedAt"`
+	Client      string  `db:"client" json:"client"`
+	Title       string  `db:"title" json:"title"`
+	Artist      string  `db:"artist" json:"artist"`
+	Album       string  `db:"album" json:"album"`
+	AlbumArtist string  `db:"album_artist" json:"albumArtist"`
+	ArtistID    string  `db:"artist_id" json:"artistId"`
+	AlbumID     string  `db:"album_id" json:"albumId"`
+	Duration    float64 `db:"duration" json:"duration"`
+	// Track is the live track (with the user's annotations), nil when it was purged or is
+	// missing; the web app then shows the entry without play or link actions.
+	Track *Track `db:"-" json:"track"`
+}
+
+// Scrobbling services (scrobble_accounts.service).
+const (
+	ScrobbleLastfm       = "lastfm"
+	ScrobbleListenBrainz = "listenbrainz"
+)
+
+// ScrobbleAccount is a user's linked scrobbling account (table scrobble_accounts). The API
+// shape is scrobble.AccountStatus; the credential is never returned.
+type ScrobbleAccount struct {
+	UserID        string `db:"user_id"`
+	Service       string `db:"service"`
+	Username      string `db:"username"`
+	CredentialEnc string `db:"credential_enc"` // encrypted session key / user token; "" = revoked
+	Enabled       bool   `db:"enabled"`
+	LastError     string `db:"last_error"`
+	LastErrorAt   int64  `db:"last_error_at"`
+	LastSentAt    int64  `db:"last_sent_at"`
+	CreatedAt     int64  `db:"created_at"`
+	UpdatedAt     int64  `db:"updated_at"`
+}
+
+// QueuedScrobble is a play waiting to be sent to a scrobbling service (table
+// scrobble_queue): a snapshot of the track at play time.
+type QueuedScrobble struct {
+	ID            int64   `db:"id"`
+	UserID        string  `db:"user_id"`
+	Service       string  `db:"service"`
+	TrackID       string  `db:"track_id"`
+	Title         string  `db:"title"`
+	Artist        string  `db:"artist"`
+	Album         string  `db:"album"`
+	AlbumArtist   string  `db:"album_artist"`
+	TrackNumber   int     `db:"track_number"`
+	Duration      float64 `db:"duration"`
+	MbzTrackID    string  `db:"mbz_track_id"`
+	PlayedAt      int64   `db:"played_at"`
+	Attempts      int     `db:"attempts"`
+	NextAttemptAt int64   `db:"next_attempt_at"`
+	LastError     string  `db:"last_error"`
+	CreatedAt     int64   `db:"created_at"`
+}
+
 // DefaultSettings returns the settings used when nothing is stored. scanInterval is the
 // RAINY_SCAN_INTERVAL value.
 func DefaultSettings(scanInterval time.Duration) Settings {
@@ -421,6 +485,8 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		LxSourcesEnabled:      false,
 		LxSourceMode:          LxSourceModeAuto,
 		LxSourceID:            "",
+		LastfmEnabled:         false,
+		ListenBrainzEnabled:   false,
 	}
 }
 

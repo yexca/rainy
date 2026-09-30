@@ -17,12 +17,14 @@ import (
 	"rainy/internal/config"
 	"rainy/internal/db"
 	"rainy/internal/events"
+	"rainy/internal/listening"
 	"rainy/internal/lxmusic"
 	"rainy/internal/manage"
 	"rainy/internal/metasearch"
 	"rainy/internal/model"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
+	"rainy/internal/scrobble"
 	"rainy/internal/store"
 	"rainy/internal/tags"
 	"rainy/internal/transcode"
@@ -44,6 +46,8 @@ type App struct {
 	Metadata   *metasearch.Service // online metadata lookup; only used when settings.onlineMetadata is on
 	Ytdlp      *ytdlp.Service      // downloads from YouTube / bilibili; only used when settings.ytdlpEnabled is on
 	Online     *lxmusic.Service    // online music search and lx-music sources; only used when settings.lxSourcesEnabled is on
+	Listening  *listening.Service  // listening reports from the play history
+	Scrobble   *scrobble.Service   // plays to Last.fm / ListenBrainz; only when settings.lastfmEnabled / listenBrainzEnabled is on
 	StartedAt  time.Time
 }
 
@@ -100,6 +104,10 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 		StartedAt: time.Now(),
 	}
 	a.Online = lxmusic.New(lxmusic.Options{Store: st, Metadata: a.Metadata})
+	a.Listening = listening.New(st)
+	a.Scrobble = scrobble.New(scrobble.Options{
+		Store: st, Cipher: crypto, Settings: a.Settings, UserAgent: "Rainy/" + buildinfo.Version,
+	})
 	a.Manage.SetDownloader(a.Ytdlp)
 	a.Manage.SetOnlineSource(a.Online)
 	if err := a.ensureDefaultLibrary(ctx); err != nil {
@@ -159,10 +167,11 @@ func (a *App) Settings(ctx context.Context) model.Settings {
 	return s
 }
 
-// Close stops downloads, source scripts and a running yt-dlp install, then closes the
-// database.
+// Close stops downloads, source scripts, the scrobble sender and a running yt-dlp install,
+// then closes the database.
 func (a *App) Close() error {
 	a.Manage.CloseDownloads()
+	a.Scrobble.Close()
 	a.Online.Close()
 	a.Ytdlp.Close()
 	return a.DB.Close()

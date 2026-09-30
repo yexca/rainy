@@ -100,5 +100,40 @@
     "tagline": "Your self-hosted music library",
     "version": "Version",
     "api": "Compatibility"
+  },
+  "scrobbling": {
+    "title": "Scrobbling",
+    "description": "Send what you play, in Rainy and in your Subsonic apps, to Last.fm or ListenBrainz.",
+    "footer": "A song counts once you have played half of it or 4 minutes. Plays wait on the server while a service is unreachable and are sent later; plays older than 14 days are no longer accepted. If a Subsonic app scrobbles to Last.fm by itself, turn that off in the app to avoid double scrobbles.",
+    "unavailable": "Your administrator has not turned on {{service}}.",
+    "turnedOff": "Your administrator turned {{service}} off; nothing is sent.",
+    "linkedAs": "Connected as {{user}}",
+    "paused": "Paused · {{user}}",
+    "needsRelink": "{{service}} no longer accepts this connection. Connect again.",
+    "lastSent": "Last sent {{when}}",
+    "nothingSent": "Nothing sent yet",
+    "queued_one": "{{formatted}} play waiting",
+    "queued_other": "{{formatted}} plays waiting",
+    "connect": "Connect",
+    "relink": "Connect again",
+    "enable": "Send plays to {{service}}",
+    "unlink": "Disconnect",
+    "unlinkTitle": "Disconnect {{service}}?",
+    "unlinked": "{{service}} disconnected",
+    "linked": "Connected to {{service}} as {{user}}",
+    "lastfm": {
+      "help": "Sign in on Last.fm and allow Rainy to scrobble. Starring a song also loves it on Last.fm.",
+      "unlinkDescription": "Rainy forgets the connection and the plays still waiting. To revoke Rainy's access completely, also remove it under Applications in your Last.fm settings."
+    },
+    "listenbrainz": {
+      "help": "Paste the user token from your ListenBrainz settings page.",
+      "token": "User token",
+      "unlinkDescription": "Rainy forgets your token and the plays still waiting. To revoke it completely, reset the token in your ListenBrainz settings."
+    },
+    "callbackTitle": "Connecting Last.fm",
+    "callbackDenied": "Last.fm did not grant access",
+    "callbackDeniedHint": "The sign-in was cancelled or did not finish. You can start it again from Settings.",
+    "callbackFailed": "Connecting Last.fm failed",
+    "backToSettings": "Back to Settings"
   }
 }

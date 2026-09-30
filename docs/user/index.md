@@ -10,6 +10,8 @@ app, update these pages in the same change.
   garbled-tag repair.
 - [Playback](playback.md): the web player, the PWA, lyrics, the queue, and
   playback settings.
+- [Listening report and scrobbling](listening.md): your listening statistics,
+  play history, and sending plays to Last.fm or ListenBrainz.
 - [Management](management.md): tag editing, covers, lyrics, rename and
   organize, upload, trash, the doctor, and history.
 - [Clients](clients.md): Subsonic and OpenSubsonic apps and API keys.
@@ -26,8 +28,8 @@ from the user menu or under **Settings → Appearance**.
 | Manager | Additionally use everything under **Manage** |
 | Administrator | Additionally manage users, libraries, scans, radio stations, and server settings |
 
-Each user has their own favorites, ratings, play counts, playlists, and play
-queue. Playlists can be made public so other users can see and play them.
+Each user has their own favorites, ratings, play counts, listening history and
+report, scrobbling accounts, playlists, and play queue. Playlists can be made public so other users can see and play them.
 
 ## Related Docs
 

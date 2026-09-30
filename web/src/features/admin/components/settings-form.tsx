@@ -42,6 +42,9 @@ const schema = z.object({
   lxSourcesEnabled: z.boolean(),
   lxSourceMode: z.enum(['auto', 'fixed']),
   lxSourceId: z.string(),
+  // edited on the Scrobbling tab
+  lastfmEnabled: z.boolean(),
+  listenBrainzEnabled: z.boolean(),
 })
 
 /** Server settings. Initialised once from `initial`; background refetches never overwrite edits. */

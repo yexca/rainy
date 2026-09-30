@@ -66,7 +66,9 @@ export const routes: RouteObject[] = [
                   { path: 'playlists', lazy: page(() => import('@/features/library/pages/playlists-page')) },
                   { path: 'playlists/:id', lazy: page(() => import('@/features/library/pages/playlist-page')) },
                   { path: 'radio', lazy: page(() => import('@/features/library/pages/radio-page')) },
+                  { path: 'listening', lazy: page(() => import('@/features/library/pages/listening-page')) },
                   { path: 'settings', lazy: page(() => import('@/features/settings/pages/settings-page')) },
+                  { path: 'settings/lastfm', lazy: page(() => import('@/features/settings/pages/lastfm-callback-page')) },
                   {
                     path: 'manage',
                     element: <RequireManager />,

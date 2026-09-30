@@ -230,5 +230,79 @@
     "stationSaved": "电台已保存",
     "stationDeleted": "已删除「{{name}}」"
   },
-  "songsAndDuration": "{{songs}}，{{duration}}"
+  "songsAndDuration": "{{songs}}，{{duration}}",
+  "listening": {
+    "title": "收听统计",
+    "subtitle": "你听了什么、什么时候听、听了多少",
+    "rangeLabel": "时间范围",
+    "ranges": {
+      "7d": "最近 7 天",
+      "30d": "最近 30 天",
+      "90d": "最近 90 天",
+      "12m": "最近 12 个月",
+      "all": "全部时间"
+    },
+    "tabs": {
+      "overview": "概览",
+      "history": "收听记录"
+    },
+    "plays_other": "{{formatted}} 次播放",
+    "unavailable": "已不在音乐库中",
+    "unknownTrack": "未知歌曲",
+    "unknownClient": "未知播放器",
+    "scrobbleHint": "Rainy 会在本服务器上保存你的收听记录，也可以把播放记录同步到 Last.fm 或 ListenBrainz。",
+    "scrobbleLink": "同步设置",
+    "empty": {
+      "title": "还没有播放记录",
+      "description": "在 Rainy 或已连接的应用中播放歌曲，播放到一半或满 4 分钟后就会出现在这里。",
+      "periodTitle": "这段时间没有播放记录",
+      "periodDescription": "换一个更长的时间范围，或者去听点音乐吧。"
+    },
+    "stats": {
+      "plays": "播放次数",
+      "time": "收听时长",
+      "artists": "艺人",
+      "tracks": "歌曲",
+      "albums": "专辑",
+      "activeDays": "听歌天数",
+      "perDay": "日均播放",
+      "since": "最早记录",
+      "vsPrevious": "相比上一时段",
+      "up": "上升",
+      "down": "下降",
+      "new_other": "新增 {{formatted}}",
+      "streak_other": "最长连续 {{formatted}} 天"
+    },
+    "sections": {
+      "timeline": "收听趋势",
+      "topArtists": "最常听的艺人",
+      "topAlbums": "最常听的专辑",
+      "topTracks": "最常听的歌曲",
+      "clock": "收听时段",
+      "genres": "最常听的流派",
+      "clients": "播放器"
+    },
+    "chart": {
+      "label_other": "包含 {{count}} 根柱子的柱状图。使用方向键查看数值。",
+      "tableCaption": "各时段的播放次数和收听时长",
+      "period": "时段",
+      "metric": "图表数值",
+      "hours": "小时",
+      "weekOf": "{{date}} 当周"
+    },
+    "clock": {
+      "cell_other": "{{day}} {{hour}}：{{count}} 次播放",
+      "busiest": "按星期和小时统计的播放次数。你最常在{{day}} {{hour}}左右听歌。",
+      "hint": "将鼠标悬停或点按方格查看播放次数。",
+      "less": "少",
+      "more": "多"
+    },
+    "history": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "count_other": "这段时间共 {{formatted}} 次播放",
+      "empty": "这段时间没有播放记录",
+      "more": "加载更多"
+    }
+  }
 }

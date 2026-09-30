@@ -57,6 +57,8 @@ func (a *API) routesAdmin(r chi.Router) {
 	r.Post("/ytdlp/install", a.adminYtdlpInstall)
 	r.Put("/ytdlp/cookies/{site}", a.adminSetCookies)
 	r.Delete("/ytdlp/cookies/{site}", a.adminDeleteCookies)
+	r.Get("/scrobbling", a.adminScrobbling)
+	r.Put("/scrobbling/lastfm", a.adminScrobblingLastfm)
 	r.Get("/sources", a.adminSources)
 	r.Post("/sources", a.adminImportSource)
 	r.Put("/sources/order", a.adminReorderSources)

@@ -49,6 +49,9 @@ func (a *API) setStarred(q *request, starred bool) (*Response, error) {
 		if err := a.app.Store.SetStarred(q.ctx, q.user.ID, kind, ids, starred); err != nil {
 			return nil, err
 		}
+		if kind == kindTrack {
+			a.app.Scrobble.Loved(q.user.ID, ids, starred)
+		}
 	}
 	return newResponse(), nil
 }
@@ -101,6 +104,7 @@ func (a *API) scrobble(q *request) (*Response, error) {
 		}
 		a.app.NowPlaying.Set(nowplaying.Entry{UserID: q.user.ID, Username: q.user.Username, TrackID: id, Player: q.client})
 		a.app.Bus.Publish(events.Event{Type: events.TypeNowPlaying, Data: a.app.NowPlaying.List()})
+		a.app.Scrobble.NowPlaying(q.user.ID, id)
 		return newResponse(), nil
 	}
 	for i, id := range ids {
@@ -112,7 +116,7 @@ func (a *API) scrobble(q *request) (*Response, error) {
 			}
 			at = min(ms, at) // never in the future
 		}
-		if err := a.app.Store.RecordPlay(q.ctx, q.user.ID, id, at, q.client); err != nil {
+		if err := a.app.Scrobble.Played(q.ctx, q.user.ID, id, at, q.client); err != nil {
 			return nil, notFoundAs(err, "Song")
 		}
 	}

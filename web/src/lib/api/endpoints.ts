@@ -31,6 +31,7 @@ import type {
   IssueType,
   LibraryInfo,
   LibraryStats,
+  ListeningReport,
   LxSource,
   LxSourcesInfo,
   Lyrics,
@@ -44,12 +45,16 @@ import type {
   OnlineSong,
   OnlineStatus,
   Page,
+  Play,
   PlayQueue,
   Playlist,
   PlaylistDetail,
   RadioStation,
   RenamePlan,
   ScanStatus,
+  ScrobbleAccount,
+  ScrobbleService,
+  ScrobblingAdmin,
   SearchResult,
   Settings,
   StarType,
@@ -149,6 +154,9 @@ export interface ChangePasswordInput { currentPassword: string; newPassword: str
 
 export interface StarInput { type: StarType; ids: string[]; starred: boolean }
 export interface RatingInput { type: StarType; id: string; /** 0 clears, 1–5. */ rating: number }
+/** `/api/listening/report`: plays with from <= playedAt < to (unix ms; 0 = since the first play / now). */
+export interface ListeningReportParams { from?: number; to?: number; /** IANA time zone for days and hours. */ tz?: string; limit?: number }
+export interface ListeningHistoryParams { from?: number; to?: number; offset?: number; limit?: number }
 export interface ScrobbleInput { trackId: string; submission: boolean; /** unix ms */ time?: number }
 
 /** `/api/starred` response (same shape as a search result). */
@@ -286,6 +294,20 @@ export const api = {
       request<void>('/me/password', { method: 'PUT', body, ...noAuthRedirect }),
     createApiKey: () => request<{ apiKey: string }>('/me/apikey', { method: 'POST' }),
     deleteApiKey: () => request<void>('/me/apikey', { method: 'DELETE' }),
+    // ---- §7.8 scrobbling accounts (Last.fm, ListenBrainz)
+    scrobbling: {
+      get: (opts?: CallOptions) => request<ScrobbleAccount[]>('/me/scrobbling', opts),
+      /** Starts the Last.fm web sign-in; open the returned URL. `callback` is where Last.fm sends the browser back. */
+      lastfmAuth: (callback: string) =>
+        request<{ url: string }>('/me/scrobbling/lastfm/auth', { method: 'POST', body: { callback } }),
+      linkLastfm: (body: { token: string; state: string }) =>
+        request<ScrobbleAccount>('/me/scrobbling/lastfm', { method: 'POST', body }),
+      linkListenBrainz: (token: string) =>
+        request<ScrobbleAccount>('/me/scrobbling/listenbrainz', { method: 'POST', body: { token } }),
+      setEnabled: (service: ScrobbleService, enabled: boolean) =>
+        request<ScrobbleAccount>(`/me/scrobbling/${seg(service)}`, { method: 'PUT', body: { enabled } }),
+      unlink: (service: ScrobbleService) => request<void>(`/me/scrobbling/${seg(service)}`, { method: 'DELETE' }),
+    },
   },
 
   // ---- §7.2 library
@@ -313,6 +335,14 @@ export const api = {
     request<Track[]>('/random', { ...opts, query: { ...params } }),
   recentTracks: (params: { limit?: number } = {}, opts?: CallOptions) =>
     request<Track[]>('/recent-tracks', { ...opts, query: { ...params } }),
+
+  // ---- §7.8 listening
+  listening: {
+    report: (params: ListeningReportParams = {}, opts?: CallOptions) =>
+      request<ListeningReport>('/listening/report', { ...opts, query: { ...params } }),
+    history: (params: ListeningHistoryParams = {}, opts?: CallOptions) =>
+      request<Page<Play>>('/listening/history', { ...opts, query: { ...params } }),
+  },
 
   // ---- §7.3 annotations
   star: (body: StarInput) => request<void>('/star', { method: 'POST', body }),
@@ -494,6 +524,13 @@ export const api = {
     stats: (opts?: CallOptions) => request<LibraryStats>('/admin/stats', opts),
     system: (opts?: CallOptions) => request<SystemInfo>('/admin/system', opts),
     clearCache: () => request<{ freed: number }>('/admin/cache/clear', { method: 'POST' }),
+    /** Last.fm / ListenBrainz; the Last.fm shared secret is never returned. */
+    scrobbling: {
+      get: (opts?: CallOptions) => request<ScrobblingAdmin>('/admin/scrobbling', opts),
+      /** Omitted fields stay unchanged; `''` removes. */
+      setLastfm: (body: { apiKey?: string; secret?: string }) =>
+        request<ScrobblingAdmin>('/admin/scrobbling/lastfm', { method: 'PUT', body }),
+    },
     ytdlp: {
       get: (opts?: CallOptions) => request<YtdlpInfo>('/admin/ytdlp', opts),
       /** Asks GitHub for the latest release. */

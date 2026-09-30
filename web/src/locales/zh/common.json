@@ -30,7 +30,8 @@
     "newPlaylist": "新建歌单",
     "allPlaylists": "全部歌单",
     "noPlaylists": "还没有歌单",
-    "toggleSidebar": "展开/收起侧边栏"
+    "toggleSidebar": "展开/收起侧边栏",
+    "listening": "收听统计"
   },
   "actions": {
     "play": "播放",

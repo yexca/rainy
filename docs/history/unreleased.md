@@ -5,8 +5,27 @@ an `[!IMPORTANT]` upgrade note when a change adds a migration or needs operator
 action.
 
 > [!IMPORTANT]
-> This release adds database migration `0003_lx_sources` (the table for music
-> source scripts). Back up `/data` before upgrading.
+> This release adds database migrations `0003_lx_sources` (the table for music
+> source scripts) and `0004_listening` (a copy of each play's song details in
+> the play history, filled in for existing plays, and the tables for
+> scrobbling). Back up `/data` before upgrading.
+
+## Listening and Scrobbling
+
+- New **Listening** page (Library → Listening on phones): a personal listening
+  report for the last 7, 30, or 90 days, the last 12 months, all time, or a
+  calendar year, with plays and listening time compared with the period
+  before, new artists and songs, days with music and the longest streak, plays
+  over time, a weekday-by-hour chart of when you listen, top artists, albums,
+  songs, and genres, and the players you used. A **History** tab lists every
+  play by day. Songs removed from the library stay in the history under their
+  old names.
+- **Scrobbling** (off by default): after an administrator turns it on in
+  Admin → Settings → Scrobbling (Last.fm also needs an API account there),
+  users connect Last.fm or ListenBrainz in Settings → Scrobbling. Plays from
+  the web app and Subsonic apps, "now playing", and (for Last.fm) starred songs
+  as loves are sent to the service; plays wait on the server and are retried
+  while the service is unreachable.
 
 ## Playback and the Web Player
 

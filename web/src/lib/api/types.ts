@@ -160,6 +160,7 @@ export interface Settings {
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean
   lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
+  lastfmEnabled: boolean; listenBrainzEnabled: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -198,3 +199,46 @@ export interface LxSource {
 export interface LxSourcesInfo { enabled: boolean; mode: LxSourceMode; sourceId: string; sources: LxSource[] }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }
+
+// ---- listening & scrobbling
+/** One entry of the listening history; names come from the snapshot when the track was purged. */
+export interface Play {
+  id: number; trackId: string; playedAt: number; client: string
+  title: string; artist: string; album: string; albumArtist: string; artistId: string; albumId: string; duration: number
+  /** The live track, `null` when it was purged or is missing. */
+  track: Track | null
+}
+export interface ListeningTotals { plays: number; duration: number; tracks: number; artists: number; albums: number }
+export type ListeningBucket = 'hour' | 'day' | 'week' | 'month'
+export interface ListeningTimelineBucket { start: number; plays: number; duration: number }
+export interface ListeningTopEntry {
+  id: string; name: string; artist: string; plays: number; duration: number; coverArt: string; available: boolean
+}
+export interface ListeningTopTrack extends ListeningTopEntry { track: Track | null }
+export interface ListeningReport {
+  from: number; to: number; tz: string; bucket: ListeningBucket; firstPlayAt: number
+  totals: ListeningTotals
+  /** The period of the same length just before; `null` for all time. */
+  previous: ListeningTotals | null
+  newTracks: number; newArtists: number; activeDays: number; longestStreak: number
+  timeline: ListeningTimelineBucket[]
+  /** Plays by weekday (0 = Monday) × hour, in `tz`. */
+  clock: number[][]
+  topArtists: ListeningTopEntry[]; topAlbums: ListeningTopEntry[]; topTracks: ListeningTopTrack[]
+  topGenres: ListeningTopEntry[]; clients: ListeningTopEntry[]
+}
+export type ScrobbleService = 'lastfm' | 'listenbrainz'
+export interface ScrobbleAccount {
+  service: ScrobbleService
+  /** The administrator turned the service on (and configured Last.fm). */
+  available: boolean
+  linked: boolean
+  /** The service revoked access: link again. */
+  needsRelink: boolean
+  username: string; enabled: boolean; queued: number
+  lastError: string; lastErrorAt: number; lastSentAt: number; linkedAt: number
+}
+export interface ScrobblingAdmin {
+  lastfm: { enabled: boolean; apiKey: string; hasSecret: boolean; configured: boolean; users: number }
+  listenBrainz: { enabled: boolean; users: number }
+}

@@ -100,5 +100,39 @@
     "tagline": "自托管的私人音乐库",
     "version": "版本",
     "api": "兼容性"
+  },
+  "scrobbling": {
+    "title": "播放记录同步",
+    "description": "把你在 Rainy 和 Subsonic 应用中的播放记录同步到 Last.fm 或 ListenBrainz。",
+    "footer": "一首歌播放到一半或满 4 分钟后计为一次播放。服务暂时无法访问时，记录会保存在服务器上稍后发送；超过 14 天的记录将不再被接受。如果某个 Subsonic 应用自己也会同步到 Last.fm，请在应用中关闭，以免重复记录。",
+    "unavailable": "管理员尚未开启 {{service}}。",
+    "turnedOff": "管理员已关闭 {{service}}，不会发送任何记录。",
+    "linkedAs": "已连接：{{user}}",
+    "paused": "已暂停 · {{user}}",
+    "needsRelink": "{{service}} 已不再接受此连接，请重新连接。",
+    "lastSent": "上次发送于{{when}}",
+    "nothingSent": "尚未发送",
+    "queued_other": "{{formatted}} 条记录等待发送",
+    "connect": "连接",
+    "relink": "重新连接",
+    "enable": "发送播放记录到 {{service}}",
+    "unlink": "断开连接",
+    "unlinkTitle": "断开 {{service}}？",
+    "unlinked": "已断开 {{service}}",
+    "linked": "已连接到 {{service}}：{{user}}",
+    "lastfm": {
+      "help": "在 Last.fm 登录并允许 Rainy 同步播放记录。收藏歌曲时也会在 Last.fm 上标记为喜欢。",
+      "unlinkDescription": "Rainy 会删除此连接和尚未发送的记录。如需彻底撤销 Rainy 的访问权限，请同时在 Last.fm 设置的“应用程序”中将其移除。"
+    },
+    "listenbrainz": {
+      "help": "粘贴 ListenBrainz 设置页中的用户令牌（User token）。",
+      "token": "用户令牌",
+      "unlinkDescription": "Rainy 会删除你的令牌和尚未发送的记录。如需彻底撤销，请在 ListenBrainz 设置中重置令牌。"
+    },
+    "callbackTitle": "正在连接 Last.fm",
+    "callbackDenied": "Last.fm 未授予访问权限",
+    "callbackDeniedHint": "登录已取消或未完成，可以在设置中重新开始。",
+    "callbackFailed": "连接 Last.fm 失败",
+    "backToSettings": "返回设置"
   }
 }

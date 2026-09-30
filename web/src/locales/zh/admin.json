@@ -117,7 +117,8 @@
       "general": "常规",
       "ytdlp": "yt-dlp",
       "sources": "音源",
-      "system": "系统"
+      "system": "系统",
+      "scrobbling": "播放记录同步"
     },
     "saved": "设置已保存",
     "unsaved": "有未保存的更改",
@@ -362,6 +363,46 @@
       "users": "用户",
       "missing": "丢失的文件",
       "plays30": "30 天播放次数"
+    }
+  },
+  "scrobbling": {
+    "intro": "在这里开启服务后，用户即可把播放记录同步到 Last.fm 或 ListenBrainz。服务器只会为已连接账号的用户联系对应服务，发送他们播放的歌曲；不会为其他用户发送任何内容。",
+    "users_other": "已有 {{formatted}} 位用户连接",
+    "lastfm": {
+      "title": "Last.fm",
+      "enable": "允许同步到 Last.fm",
+      "enableHelp": "默认关闭，还需要设置下方的 API 账号。",
+      "status": "状态",
+      "configured": "已设置 API 账号",
+      "notConfigured": "缺少 API key 或 shared secret",
+      "account": "Last.fm API 账号",
+      "accountHelp": "Last.fm 要求每台服务器使用自己的 API 账号。创建一个账号（回调地址可留空），然后粘贴其 API key 和 shared secret。",
+      "createAccount": "创建 API 账号",
+      "apiKey": "API key",
+      "secret": "Shared secret",
+      "secretStored": "已保存 · 输入新值即可替换",
+      "secretHelp": "Shared secret 使用 secret.key 加密保存，之后不会再显示。",
+      "hexHint": "32 位十六进制字符",
+      "removeSecret": "删除 secret",
+      "save": "保存",
+      "saved": "已保存 Last.fm API 账号"
+    },
+    "listenbrainz": {
+      "title": "ListenBrainz",
+      "enable": "允许同步到 ListenBrainz",
+      "enableHelp": "默认关闭。无需 API 账号，用户粘贴自己的令牌即可。",
+      "status": "账号",
+      "statusHelp": "用户在“设置 → 播放记录同步”中连接。"
+    },
+    "own": {
+      "label": "你的账号",
+      "help": "这里只负责允许使用该服务。每个用户（包括你）都需要在“设置 → 播放记录同步”中连接自己的账号，播放记录会发送到各自的账号。",
+      "notLinked": "未连接",
+      "linked": "已连接：{{user}}",
+      "paused": "已暂停 · {{user}}",
+      "needsRelink": "需要重新连接",
+      "connect": "去设置中连接",
+      "manage": "打开设置"
     }
   }
 }

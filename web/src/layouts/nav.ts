@@ -1,5 +1,6 @@
 import {
   AudioLines,
+  ChartColumn,
   Disc3,
   FolderTree,
   Globe,
@@ -40,6 +41,7 @@ export const LIBRARY_NAV: readonly NavItem[] = [
   { to: '/songs', labelKey: 'nav.songs', icon: Music },
   { to: '/genres', labelKey: 'nav.genres', icon: Shapes },
   { to: '/favorites', labelKey: 'nav.favorites', icon: Star },
+  { to: '/listening', labelKey: 'nav.listening', icon: ChartColumn },
   { to: '/radio', labelKey: 'nav.radio', icon: Radio },
 ]
 
@@ -88,7 +90,7 @@ export const TABS: readonly TabItem[] = [
     to: '/library',
     labelKey: 'nav.library',
     icon: LibraryBig,
-    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/playlists', '/radio', '/settings'],
+    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
   // Phones have no sidebar: this tab holds Tracks and the folded tools and admin pages.

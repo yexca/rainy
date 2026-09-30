@@ -51,9 +51,13 @@ func (a *API) annStar(w http.ResponseWriter, r *http.Request) {
 			ids = append(ids, id)
 		}
 	}
-	if err := a.app.Store.SetStarred(r.Context(), userFrom(r).ID, body.Type, ids, body.Starred); err != nil {
+	u := userFrom(r)
+	if err := a.app.Store.SetStarred(r.Context(), u.ID, body.Type, ids, body.Starred); err != nil {
 		writeErr(w, r, err)
 		return
+	}
+	if body.Type == "track" {
+		a.app.Scrobble.Loved(u.ID, ids, body.Starred)
 	}
 	writeNoContent(w)
 }
@@ -120,6 +124,7 @@ func (a *API) annScrobble(w http.ResponseWriter, r *http.Request) {
 		}
 		a.app.NowPlaying.Set(nowplaying.Entry{UserID: u.ID, Username: u.Username, TrackID: t.ID, Player: player})
 		a.app.Bus.Publish(events.Event{Type: events.TypeNowPlaying, Data: a.app.NowPlaying.List()})
+		a.app.Scrobble.NowPlaying(u.ID, t.ID)
 		writeNoContent(w)
 		return
 	}
@@ -127,7 +132,7 @@ func (a *API) annScrobble(w http.ResponseWriter, r *http.Request) {
 	if now := util.NowMs(); at <= 0 || at > now {
 		at = now
 	}
-	if err := a.app.Store.RecordPlay(ctx, u.ID, body.TrackID, at, player); err != nil {
+	if err := a.app.Scrobble.Played(ctx, u.ID, body.TrackID, at, player); err != nil {
 		writeErr(w, r, err)
 		return
 	}

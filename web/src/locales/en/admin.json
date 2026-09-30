@@ -117,7 +117,8 @@
       "general": "General",
       "ytdlp": "yt-dlp",
       "sources": "Sources",
-      "system": "System"
+      "system": "System",
+      "scrobbling": "Scrobbling"
     },
     "saved": "Settings saved",
     "unsaved": "Unsaved changes",
@@ -366,6 +367,47 @@
       "users": "Users",
       "missing": "Missing files",
       "plays30": "Plays (30 days)"
+    }
+  },
+  "scrobbling": {
+    "intro": "Users can send their plays to Last.fm or ListenBrainz once you turn a service on here. The server then contacts the service for users who connect an account, sending the songs they play; nothing is sent for anyone else.",
+    "users_one": "{{formatted}} user connected",
+    "users_other": "{{formatted}} users connected",
+    "lastfm": {
+      "title": "Last.fm",
+      "enable": "Allow scrobbling to Last.fm",
+      "enableHelp": "Off by default. Also needs the API account below.",
+      "status": "Status",
+      "configured": "API account set",
+      "notConfigured": "API key or shared secret missing",
+      "account": "Last.fm API account",
+      "accountHelp": "Last.fm requires every server to use its own API account. Create one (the callback URL can stay empty), then paste its API key and shared secret.",
+      "createAccount": "Create an API account",
+      "apiKey": "API key",
+      "secret": "Shared secret",
+      "secretStored": "Stored · enter a new one to replace it",
+      "secretHelp": "The shared secret is stored encrypted with secret.key and is never shown again.",
+      "hexHint": "32 hexadecimal characters",
+      "removeSecret": "Remove secret",
+      "save": "Save",
+      "saved": "Last.fm API account saved"
+    },
+    "listenbrainz": {
+      "title": "ListenBrainz",
+      "enable": "Allow scrobbling to ListenBrainz",
+      "enableHelp": "Off by default. No API account is needed: users paste their own token.",
+      "status": "Accounts",
+      "statusHelp": "Users connect in Settings → Scrobbling."
+    },
+    "own": {
+      "label": "Your account",
+      "help": "These settings only allow the service. Every user, you included, connects their own account in Settings → Scrobbling, and plays go to that account.",
+      "notLinked": "Not connected",
+      "linked": "Connected as {{user}}",
+      "paused": "Paused · {{user}}",
+      "needsRelink": "Needs to be connected again",
+      "connect": "Connect in Settings",
+      "manage": "Open Settings"
     }
   }
 }

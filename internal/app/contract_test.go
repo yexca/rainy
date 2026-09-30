@@ -7,12 +7,14 @@ import (
 	"testing"
 
 	"rainy/internal/events"
+	"rainy/internal/listening"
 	"rainy/internal/lxmusic"
 	"rainy/internal/lyrics"
 	"rainy/internal/manage"
 	"rainy/internal/metasearch"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
+	"rainy/internal/scrobble"
 	"rainy/internal/store"
 	"rainy/internal/ytdlp"
 )
@@ -54,6 +56,17 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 		{"CookieInfo", ytdlp.CookieInfo{}, `site configured count signedIn expiresAt updatedAt`},
 		{"CookieSaveResult", ytdlp.CookieSaveResult{}, `site configured count signedIn expiresAt updatedAt dropped`},
 		{"YtdlpInstallState", ytdlp.InstallState{}, `running error finishedAt`},
+		{"ListeningReport", listening.Report{}, `from to tz bucket firstPlayAt totals previous newTracks newArtists activeDays
+			longestStreak timeline clock topArtists topAlbums topTracks topGenres clients`},
+		{"ListeningTotals", store.ListeningTotals{}, `plays duration tracks artists albums`},
+		{"ListeningBucket", listening.Bucket{}, `start plays duration`},
+		{"ListeningTopEntry", listening.TopEntry{}, `id name artist plays duration coverArt available`},
+		{"ListeningTopTrack", listening.TopTrack{}, `id name artist plays duration coverArt available track`},
+		{"ScrobbleAccount", scrobble.AccountStatus{}, `service available linked needsRelink username enabled queued lastError
+			lastErrorAt lastSentAt linkedAt`},
+		{"ScrobblingAdmin", scrobble.AdminInfo{}, `lastfm listenBrainz`},
+		{"LastfmAdmin", scrobble.LastfmAdmin{}, `enabled apiKey hasSecret configured users`},
+		{"ListenBrainzAdmin", scrobble.ListenBrainzAdmin{}, `enabled users`},
 		{"YtdlpInfo (status fields)", ytdlp.Status{}, `managed installed version error latest checkedAt asset jsRuntime ffmpeg install`},
 	}
 	for _, c := range cases {
