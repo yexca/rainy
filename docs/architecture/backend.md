@@ -42,6 +42,8 @@ from `RAINY_*` environment variables; see
 | `metasearch` | Opt-in online metadata lookup for the tag editor |
 | `ytdlp` | Opt-in downloads from YouTube and bilibili: the yt-dlp binary (install, update), encrypted sign-in cookies, and yt-dlp runs |
 | `lxmusic` | Opt-in online music: song search in the five lx-music catalogues and lx-music custom source scripts run in a sandboxed goja interpreter |
+| `listening` | Listening reports from the play history: totals, the timeline, the hour-of-week clock, and top lists |
+| `scrobble` | Opt-in scrobbling to Last.fm and ListenBrainz: account linking, "now playing", loves, and a retrying queue of plays sent in the background |
 | `app` | The dependency container that wires every service |
 | `api`, `subsonic` | The native `/api` and the Subsonic `/rest` HTTP handlers |
 | `server` | Router assembly, middleware, SPA serving, and graceful shutdown |

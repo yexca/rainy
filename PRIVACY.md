@@ -13,7 +13,8 @@ network requests of its own: covers, lyrics, similar songs, and artist
 information all come from your own files and database. All data stays on your
 instance unless you, a user, or a client app sends it elsewhere. The
 exceptions are the opt-in online metadata lookup, downloads from YouTube and
-bilibili, and online music through music sources, all described below.
+bilibili, online music through music sources, and scrobbling to Last.fm and
+ListenBrainz, all described below.
 
 The only external connections happen in the browser:
 
@@ -131,14 +132,49 @@ and `HTTP_PROXY` environment variables. Each service's own privacy policy
 applies to the requests it receives. Only download what you have the right to
 keep.
 
+## Scrobbling to Last.fm and ListenBrainz
+
+An administrator can allow scrobbling in **Admin → Settings → Scrobbling**,
+separately for Last.fm and ListenBrainz. Both are off by default. While a
+service is off, none of the requests below are made. Even when it is on, the
+server contacts a service only for users who connect their own account there
+in **Settings → Scrobbling**; nothing is sent for anyone else.
+
+| Service | Hosts contacted |
+| --- | --- |
+| Last.fm | `ws.audioscrobbler.com` (API, from the server); `www.last.fm` (the sign-in page, opened by the user's browser) |
+| ListenBrainz | `api.listenbrainz.org` (API, from the server) |
+
+- **What is sent.** For each song a connected user plays (half of it or 4
+  minutes), and for the song they start playing, the server sends the title,
+  artist, album, album artist, track number, duration, MusicBrainz track id if
+  the file has one, and the time it was played, together with the server's IP
+  address. ListenBrainz also receives "Rainy" and its version as the
+  submitting client. Starring or unstarring a song also loves or unloves it on
+  Last.fm. No file names, paths, other users, or library contents are sent.
+- **Credentials.** Last.fm needs an API account that the administrator creates
+  at Last.fm; its shared secret is stored encrypted with `secret.key` and never
+  shown again. Connecting Last.fm stores a session key, and connecting
+  ListenBrainz stores the user's token; both are encrypted with `secret.key`,
+  never returned by the API, and never written to logs. The Last.fm sign-in
+  happens on Last.fm's own page; Rainy never sees the Last.fm password.
+- **Waiting plays.** Plays wait in `rainy.db` until the service accepts them,
+  and are dropped after 14 days. Pausing or disconnecting an account deletes
+  the plays still waiting for it. Disconnecting does not delete anything
+  already sent; manage that data, and Rainy's access, in your account at the
+  service.
+
+These requests honor the `HTTPS_PROXY` and `HTTP_PROXY` environment variables.
+Each service's own privacy policy applies to the data it receives.
+
 ## Server-Side Data
 
 The data folder (`/data` in Docker) contains:
 
 | Location | Contents |
 | --- | --- |
-| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name, playlists, play queues, bookmarks, radio stations, server settings, imported music source scripts, the library index, trash entries, and the edit history (who changed which file, when, and the old and new values) |
-| `secret.key` | The key that encrypts stored passwords |
+| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name and a copy of each played song's title, artist, album, and duration, linked Last.fm and ListenBrainz accounts (account name and encrypted session key or token) and plays waiting to be sent to them, playlists, play queues, bookmarks, radio stations, server settings, imported music source scripts, the library index, trash entries, and the edit history (who changed which file, when, and the old and new values) |
+| `secret.key` | The key that encrypts stored passwords, the Last.fm and ListenBrainz credentials, and the yt-dlp sign-in cookies |
 | `trash/` | Music files deleted through Rainy, until the trash is emptied |
 | `cache/` | Resized cover images |
 | `tmp/` | Uploads and downloads in progress |
@@ -150,8 +186,12 @@ needs the original password. Anyone who obtains both `rainy.db` and
 are stored only as SHA-256 hashes.
 
 Rainy also keeps some data only in memory: the "now playing" list (who is
-playing what, on which client, for up to 15 minutes) and sign-in rate-limit
-counters keyed by IP address and username. Both are lost on restart.
+playing what, on which client, for up to 15 minutes), sign-in rate-limit
+counters keyed by IP address and username, and Last.fm sign-ins in progress
+(for 15 minutes). All are lost on restart.
+
+Each user's listening report and history are visible only to that user in the
+app; administrators can read them only from the database itself.
 
 Rainy does not encrypt the database or your music at rest. Host permissions,
 disk encryption, and backup controls protect them.
@@ -197,7 +237,9 @@ Backups of the data folder carry the same sensitivity as the originals,
 including recoverable passwords. Store them encrypted and access-controlled.
 
 Deleting a user removes their sessions, favorites, ratings, play history,
-playlists, queue, and bookmarks through database cascades. Edit-history entries
+playlists, queue, bookmarks, linked scrobbling accounts, and waiting plays
+through database cascades. Plays already sent to Last.fm or ListenBrainz stay
+there. Edit-history entries
 keep the username that made each change. Deleting a user, a database row, or
 the container does not remove copies in backups, reverse-proxy logs, or client
 apps; operators are responsible for those systems.

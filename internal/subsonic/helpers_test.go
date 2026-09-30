@@ -27,6 +27,7 @@ import (
 	"rainy/internal/model"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
+	"rainy/internal/scrobble"
 	"rainy/internal/store"
 	"rainy/internal/transcode"
 	"rainy/internal/util"
@@ -91,6 +92,8 @@ func newFixture(t *testing.T) *fixture {
 		Transcoder: transcode.New(cfg.FFmpegPath),
 		StartedAt:  time.Now(),
 	}
+	a.Scrobble = scrobble.New(scrobble.Options{Store: st, Cipher: auth.NewCrypto(key), Settings: a.Settings, NoWorker: true})
+	t.Cleanup(a.Scrobble.Close)
 	f := &fixture{t: t, app: a, music: cfg.MusicDir}
 	f.api = New(a)
 	f.handler = f.api.Routes()

@@ -35,8 +35,8 @@ therefore survive reorganizing a library.
 | --- | --- | --- |
 | Library index | `libraries`, `tracks`, `albums`, `artists`, `genres`, `track_genres` | Rebuilt from files by the scanner |
 | Accounts | `users`, `sessions` | Passwords are stored encrypted (see below); sessions store a SHA-256 hash of the token |
-| Per-user state | `annotations`, `play_history`, `playlists`, `playlist_tracks`, `play_queues`, `bookmarks` | Cascade-deleted with the user |
-| Server state | `settings`, `radio_stations`, `lx_sources` | Settings are key/value rows over `model.Settings` defaults; `lx_sources` holds imported lx-music source scripts, their priority, and what their last start reported |
+| Per-user state | `annotations`, `play_history`, `playlists`, `playlist_tracks`, `play_queues`, `bookmarks`, `scrobble_accounts`, `scrobble_queue` | Cascade-deleted with the user. `play_history` keeps a snapshot of each play's title, artist, album, ids, and duration so reports still show plays of purged tracks; `scrobble_accounts` holds the encrypted Last.fm session key or ListenBrainz token, and `scrobble_queue` the plays waiting to be sent |
+| Server state | `settings`, `radio_stations`, `lx_sources` | Settings are key/value rows over `model.Settings` defaults, plus the Last.fm API key and encrypted shared secret (`lastfm.apiKey`, `lastfm.secretEnc`), which are not part of `model.Settings`; `lx_sources` holds imported lx-music source scripts, their priority, and what their last start reported |
 | Management | `edit_log`, `trash` | The history of file changes and the restorable trash |
 | Migrations | `schema_migrations` | One row per applied migration file |
 
@@ -67,9 +67,10 @@ everything missing.
 
 Subsonic token authentication sends `md5(password + salt)`, which requires the
 server to know each plain password. Rainy therefore stores passwords encrypted
-with AES-256-GCM using `<data>/secret.key`, not as one-way hashes. API keys and
-session tokens are stored only as SHA-256 hashes. Protect the database and
-`secret.key` together; see [Database](../operations/database.md#backups).
+with AES-256-GCM using `<data>/secret.key`, not as one-way hashes. Last.fm
+session keys, ListenBrainz tokens, and the Last.fm shared secret are encrypted
+with the same key. API keys and session tokens are stored only as SHA-256
+hashes. Protect the database and `secret.key` together; see [Database](../operations/database.md#backups).
 
 ## Related Docs
 

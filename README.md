@@ -65,6 +65,9 @@ Docker image for `linux/amd64` and `linux/arm64`.
 - **Friendly to CJK libraries.** Mojibake from legacy GBK, Big5, and Shift-JIS
   tags is repaired when reading and can be written back as UTF-8. Chinese artist
   names are indexed by pinyin initial.
+- **Your listening, in numbers.** A personal listening report and play
+  history, like Last.fm, and optional scrobbling to Last.fm and ListenBrainz
+  from the web app and your Subsonic apps.
 - **Multi-user.** Administrator, manager, and listener roles with a separate
   download permission. Favorites, ratings, play counts, playlists, and the play
   queue are per user, and the queue follows you between the web app and
@@ -158,7 +161,8 @@ closes once the first account exists. All file operations are confined to the
 configured library roots. Rainy does not
 send telemetry and makes no outbound requests of its own unless an
 administrator enables the optional online metadata lookup, downloads from
-YouTube and bilibili, or online music. Report a suspected
+YouTube and bilibili, online music, or scrobbling to Last.fm and
+ListenBrainz. Report a suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
 

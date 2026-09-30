@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router'
 
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
@@ -9,12 +11,20 @@ import { AboutSection, InstallSection, ShortcutsSection } from '../components/ab
 import { PasswordSection, ProfileSection } from '../components/account-sections'
 import { AppearanceSection } from '../components/appearance-section'
 import { PlaybackSection } from '../components/playback-section'
+import { ScrobblingSection } from '../components/scrobbling-section'
 import { SubsonicSection } from '../components/subsonic-section'
 
-/** `/settings`: account, Subsonic apps, appearance, playback and app info. */
+/** `/settings`: account, Subsonic apps, scrobbling, appearance, playback and app info. */
 export default function SettingsPage() {
   const { t } = useTranslation('settings')
   const { user } = useAuth()
+  const { hash } = useLocation()
+
+  // Links such as `/settings#scrobbling` open at their section.
+  useEffect(() => {
+    if (!user || !hash) return
+    document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ block: 'start' })
+  }, [hash, user])
 
   return (
     <Page>
@@ -25,6 +35,7 @@ export default function SettingsPage() {
           <AppearanceSection />
           <PlaybackSection />
           <SubsonicSection user={user} />
+          <ScrobblingSection />
           <PasswordSection username={user.username} />
           <InstallSection />
           <ShortcutsSection />

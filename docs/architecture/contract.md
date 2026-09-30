@@ -56,6 +56,8 @@ rainy/
 │   ├── metasearch/              opt-in online metadata lookup (NetEase, QQ Music, Kugou, Kuwo, iTunes)
 │   ├── ytdlp/                   opt-in downloads from YouTube / bilibili: yt-dlp binary, cookies, runs
 │   ├── lxmusic/                 opt-in online music: catalogue search, lx-music source scripts (goja sandbox), downloads of their links
+│   ├── listening/               listening reports from the play history (§5.17)
+│   ├── scrobble/                opt-in scrobbling to Last.fm / ListenBrainz: queue, sender, account linking (§5.16)
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
 │   ├── subsonic/                Subsonic + OpenSubsonic API (/rest)
@@ -141,7 +143,8 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 
 ### 5.1 Database
 Schema: `internal/db/migrations/0001_init.sql` plus later migrations in the same folder (`0002_play_queue_index.sql`
-adds `play_queues.current_index`, `0003_lx_sources.sql` adds the `lx_sources` table of §5.15) — read them, they are part
+adds `play_queues.current_index`, `0003_lx_sources.sql` adds the `lx_sources` table of §5.15, `0004_listening.sql` adds the
+play-history snapshot columns and the `scrobble_accounts` / `scrobble_queue` tables of §5.16) — read them, they are part
 of this contract.
 Migrations are embedded, applied in lexical order, tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`.
 
@@ -247,6 +250,8 @@ type Settings struct {
     LxSourcesEnabled  bool   `json:"lxSourcesEnabled"`  // default false: allow online music and lx-music source scripts (§5.15)
     LxSourceMode      string `json:"lxSourceMode"`      // default "auto" (enabled sources by priority) | "fixed" (only LxSourceID)
     LxSourceID        string `json:"lxSourceId"`        // default "": the source used in fixed mode
+    LastfmEnabled     bool   `json:"lastfmEnabled"`     // default false: allow users to scrobble to Last.fm (§5.16; also needs the API account)
+    ListenBrainzEnabled bool `json:"listenBrainzEnabled"` // default false: allow users to scrobble to ListenBrainz (§5.16)
 }
 func DefaultSettings(scanInterval time.Duration) Settings
 const LxSourceModeAuto, LxSourceModeFixed = "auto", "fixed"
@@ -258,6 +263,18 @@ type LxSource struct {
     Platforms string /*JSON {"kw":["128k",…]}*/; LastError string; LoadedAt int64
     UpdateLog, UpdateURL string; UpdateAt, CreatedAt, UpdatedAt int64
 }
+
+// play_history row for the listening history (§5.17). Names, ids and duration come from the live track when it
+// still exists, else from the snapshot taken at play time; Track is the live track (annotations filled), nil when
+// purged or missing (a named field, never embedded: see Track.MarshalJSON).
+type Play struct { ID int64; TrackID string; PlayedAt int64; Client, Title, Artist, Album, AlbumArtist, ArtistID, AlbumID string
+    Duration float64; Track *Track }                     // json camelCase, track
+const ScrobbleLastfm, ScrobbleListenBrainz = "lastfm", "listenbrainz"
+// scrobble_accounts / scrobble_queue rows; db tags only (API shape: scrobble.AccountStatus).
+type ScrobbleAccount struct { UserID, Service, Username, CredentialEnc /*encrypted; "" = revoked*/ string; Enabled bool
+    LastError string; LastErrorAt, LastSentAt, CreatedAt, UpdatedAt int64 }
+type QueuedScrobble struct { ID int64; UserID, Service, TrackID, Title, Artist, Album, AlbumArtist string; TrackNumber int
+    Duration float64; MbzTrackID string; PlayedAt int64; Attempts int; NextAttemptAt int64; LastError string; CreatedAt int64 }
 ```
 JSON tags on every struct follow the camelCase of the Go field name unless noted
 (`ID`→`id`, `LibraryID`→`libraryId`, `BPM`→`bpm`, `RGTrackGain`→`rgTrackGain`, `StreamURL`→`streamUrl`,
@@ -361,8 +378,35 @@ Search(ctx, SearchQuery) (*SearchResult, error) // every token must match search
 // Annotations & plays (itemType: "track"|"album"|"artist")
 SetStarred(ctx, userID, itemType string, ids []string, starred bool) error
 SetRating(ctx, userID, itemType, id string, rating int) error   // 0 clears
-RecordPlay(ctx, userID, trackID string, at int64, client string) error // +1 play_count & played_at on track, its album, its artist; insert play_history
+RecordPlay(ctx, userID, trackID string, at int64, client string) error // +1 play_count & played_at on track, its album, its artist;
+                                     // insert play_history with the track's title/artist/album/album artist/ids/duration snapshot
 RecentlyPlayedTracks(ctx, userID string, limit int) ([]model.Track, error)
+
+// Listening (§5.17): one user's plays with from <= played_at < to (to <= 0 = no bound); live track values, else the snapshot
+type ListeningTotals struct { Plays int; Duration float64; Tracks, Artists, Albums int /*distinct*/ } // json camelCase
+ListeningTotals(ctx, userID string, from, to int64) (ListeningTotals, error)
+type PlayTime struct { At int64; Duration float64 }
+ListeningTimes(ctx, userID string, from, to int64) ([]PlayTime, error)  // oldest first
+type ListeningTopItem struct { ID, Name, Artist string; Plays int; Duration float64 }
+ListeningTop(ctx, userID, kind string /*TopTracks|TopAlbums|TopArtists|TopGenres|TopClients*/, from, to int64, limit int) ([]ListeningTopItem, error)
+                                     // most plays first, ties most recent first; plays without an id are skipped; unknown kind → ErrInvalid
+ListeningFirsts(ctx, userID string, from, to int64) (tracks, artists int, err error) // first-ever plays inside the period
+FirstPlayAt(ctx, userID) (int64, error)
+ListPlays(ctx, userID string, from, to int64, offset, limit int) ([]model.Play, int, error) // newest first
+
+// Scrobbling (§5.16)
+ListScrobbleAccounts(ctx, userID) ([]model.ScrobbleAccount, error); GetScrobbleAccount(ctx, userID, service) (*model.ScrobbleAccount, error)
+SaveScrobbleAccount(ctx, *model.ScrobbleAccount) error          // link / re-link: enabled, error cleared, queue kept
+SetScrobbleAccountEnabled(ctx, userID, service string, enabled bool) error // pausing drops the account's queue; ErrNotFound
+SetScrobbleAccountError(ctx, userID, service, msg string, revoked bool) error; MarkScrobbleAccountSent(ctx, userID, service string, at int64) error
+DeleteScrobbleAccount(ctx, userID, service) error               // with its queue
+CountScrobbleAccounts(ctx, service) (int, error)                 // linked (credential present)
+EnqueueScrobble(ctx, model.QueuedScrobble, services []string) ([]string, error) // for the user's enabled, linked accounts among services
+ScrobbleDueUsers(ctx, service string, now int64) ([]string, error); DueScrobbles(ctx, userID, service string, now int64, limit int) ([]model.QueuedScrobble, error)
+DeleteScrobbles(ctx, ids []int64) error; DeferScrobbles(ctx, ids []int64, next int64, msg string) error
+PurgeScrobblesBefore(ctx, service string, before int64) (int64, error); CountQueuedScrobbles(ctx, userID, service) (int, error)
+GetValue(ctx, key) (string, error); SetValue(ctx, key, value string) error // settings rows outside model.Settings ("" deletes):
+                                     // ValueLastfmAppKey "lastfm.apiKey", ValueLastfmSigningEnc "lastfm.secretEnc" (encrypted)
 
 // Playlists (tracks join non-missing tracks only)
 ListPlaylists(ctx, userID string) ([]model.Playlist, error) // own + public
@@ -559,12 +603,12 @@ type App struct {
     Cfg *config.Config; DB *db.DB; Store *store.Store; Auth *auth.Service; Bus *events.Bus
     NowPlaying *nowplaying.Tracker; Scanner *scanner.Scanner; Artwork *artwork.Service
     Transcoder *transcode.Service; Manage *manage.Service; Metadata *metasearch.Service; Ytdlp *ytdlp.Service
-    Online *lxmusic.Service
+    Online *lxmusic.Service; Listening *listening.Service; Scrobble *scrobble.Service
     StartedAt time.Time
 }
 func New(ctx context.Context, cfg *config.Config) (*App, error) // open+migrate DB, key, services, default library
 func (a *App) Settings(ctx context.Context) model.Settings       // store.GetSettings with defaults (errors logged → defaults)
-func (a *App) Close() error // stops downloads, source scripts and a running yt-dlp install, then closes the DB
+func (a *App) Close() error // stops downloads, the scrobble sender, source scripts and a running yt-dlp install, then closes the DB
 
 // server
 func New(a *app.App) *http.Server
@@ -746,6 +790,81 @@ Rules:
   cases). Lyrics come from metasearch (Kuwo, Kugou by hash, QQ Music,
   NetEase) or Migu's `lrcUrl`/`trcUrl`; covers from the metasearch image hosts.
 
+### 5.16 scrobble (owner: native API agent)
+Sends plays, "now playing" and loved tracks to the users' linked Last.fm and ListenBrainz accounts. Nothing is sent for a
+service while its admin setting (`lastfmEnabled`, `listenBrainzEnabled`, both off by default) is off; Last.fm also needs
+the administrator's API key and shared secret. Every completed play goes through `Played` (native `POST /api/scrobble`
+and Subsonic `scrobble` with `submission=true`), "now playing" through `NowPlaying`, and starring / unstarring tracks
+(native `POST /api/star` type `track`, Subsonic `star`/`unstar` song ids) through `Loved`.
+```go
+func New(o Options) *scrobble.Service // starts the sender (unless o.NoWorker)
+type Options struct { Store *store.Store; Cipher Cipher /* *auth.Crypto */; Settings func(ctx) model.Settings; Client *http.Client
+    UserAgent, LastfmAPI, LastfmAuthURL, ListenBrainzAPI string /*tests*/; NoWorker bool }
+func (s *Service) Close(); Wake(); Flush(ctx)                // Flush: send every due queued play (the sender calls it)
+func (s *Service) Played(ctx, userID, trackID string, at int64, client string) error // store.RecordPlay, then queue for enabled accounts
+func (s *Service) NowPlaying(userID, trackID string)          // background, best effort
+func (s *Service) Loved(userID string, trackIDs []string, loved bool) // Last.fm track.love / unlove; background, ≤ 50 tracks
+func (s *Service) Status(ctx, userID) ([]AccountStatus, error) // every service, in Services order
+func (s *Service) LastfmAuthURL(ctx, userID, callback string) (string, error)
+func (s *Service) LinkLastfm(ctx, userID, token, state string) (*AccountStatus, error)
+func (s *Service) LinkListenBrainz(ctx, userID, token string) (*AccountStatus, error)
+func (s *Service) SetEnabled(ctx, userID, service string, enabled bool) (*AccountStatus, error); Unlink(ctx, userID, service) error
+func (s *Service) AdminInfo(ctx) (*AdminInfo, error); SetLastfmCredentials(ctx, apiKey, secret *string) error // nil = keep, "" = remove
+var Services = []string{"lastfm", "listenbrainz"}; func ValidService(id string) bool; const MaxAge = 14 * 24h; MinDuration = 30
+type AccountStatus struct { Service string; Available, Linked, NeedsRelink bool; Username string; Enabled bool; Queued int
+    LastError string; LastErrorAt, LastSentAt, LinkedAt int64 }                            // json camelCase
+type AdminInfo struct { Lastfm LastfmAdmin; ListenBrainz ListenBrainzAdmin }             // json: lastfm listenBrainz
+type LastfmAdmin struct { Enabled bool; APIKey string; HasSecret, Configured bool; Users int } // json: enabled apiKey hasSecret configured users
+type ListenBrainzAdmin struct { Enabled bool; Users int }
+type Error struct { Service string; Code int; Message string }; func (e *Error) Retryable() bool // a service's refusal or outage
+var ErrInvalid, ErrDisabled, ErrNotConfigured, ErrNotLinked, ErrExpired error
+```
+Rules:
+- **Queue**: `Played` queues a snapshot (title, artist, album, album artist, track number, duration, MusicBrainz id, time)
+  for each enabled, linked account of an active service, skipping tracks without a real title and artist (`[Unknown
+  Artist]`) and, for Last.fm, tracks of 30 s or less; `[Unknown Album]` is sent without an album. The sender runs every
+  minute and when woken, drops plays older than `MaxAge` for every service (Last.fm refuses them), and sends each user's due plays oldest
+  first in batches (Last.fm `track.scrobble` 50, ListenBrainz `submit-listens` 100: `single` for one listen, `import`
+  otherwise). Outcomes: accepted → removed (`last_sent_at`); an outage, rate limit, redirect or network error → the batch waits
+  1, 2, 4 … minutes (≤ 6 h) and the account shows the error; a revoked credential (Last.fm error 9, ListenBrainz 401) →
+  the credential is cleared (`needsRelink`) and the plays wait until the user links again; a wrong API key or signature
+  (Last.fm 10, 13, 26) → kept and retried; any other refusal → the batch is dropped. Plays Last.fm ignores are dropped.
+  Pausing an account drops its queue; unlinking deletes the account and its queue.
+- **Last.fm** (`https://ws.audioscrobbler.com/2.0/`, signed POSTs: `api_sig` = MD5 of the sorted `name`+`value` pairs
+  without `format`/`callback`, followed by the shared secret). Web authentication: `LastfmAuthURL` accepts an absolute
+  `http(s)` callback (≤ 1024 bytes, no user info or fragment), adds a random `state` bound to the user for 15 minutes
+  (in memory), and returns Last.fm's web authentication page (`https://www.last.fm/api/auth/` with the API key and `cb`); the browser opens it, Last.fm sends it back
+  with `token`, and `LinkLastfm` requires the same user's `state` before exchanging the token (`auth.getSession`). The
+  API key and shared secret must be 32 hex characters; the secret is encrypted with `secret.key` and never returned.
+- **ListenBrainz** (`https://api.listenbrainz.org`, `Authorization: Token <user token>`): `LinkListenBrainz` checks the
+  token with `/1/validate-token` first. Listens carry `submission_client` "Rainy" and its version.
+- **Credentials** (session keys, user tokens, the shared secret) are encrypted with `secret.key`, never returned, logged or
+  put in an error message. Requests use fixed URLs, a 15 s timeout, no redirects, 1 MiB responses, `HTTPS_PROXY` /
+  `HTTP_PROXY`; the services' messages are stored clipped (200 characters) and shown as plain text.
+
+### 5.17 listening (owner: native API agent)
+Builds a user's listening report from `play_history`; a user only ever sees their own.
+```go
+func New(st *store.Store) *listening.Service
+type Query struct { From, To int64 /*unix ms; From 0 = since the first play, To 0 = now*/; Loc *time.Location; Limit int /*≤ 50, default 10*/ }
+func (s *Service) Report(ctx, userID string, q Query) (*Report, error) // ErrInvalid when To <= From
+func LoadLocation(name string) *time.Location                        // IANA name; "" / unknown → UTC
+func BucketFor(from, to int64) string                                // hour ≤ 3 days, day ≤ 93 days, week ≤ 731 days, else month
+func Timeline(times []store.PlayTime, from, to int64, bucket string, loc *time.Location) []Bucket
+func Clock(times []store.PlayTime, loc *time.Location) [7][24]int    // weekday 0 = Monday
+func ActiveDays(times []store.PlayTime, loc *time.Location) (days, longest int)
+type Report struct { From, To int64; TZ, Bucket string; FirstPlayAt int64; Totals store.ListeningTotals; Previous *store.ListeningTotals
+    NewTracks, NewArtists, ActiveDays int; LongestRun int /*json longestStreak*/; Timeline []Bucket; Clock [7][24]int
+    TopArtists, TopAlbums []TopEntry; TopTracks []TopTrack; TopGenres, Clients []TopEntry }  // json camelCase
+type Bucket struct { Start int64; Plays int; Duration float64 }
+type TopEntry struct { ID, Name, Artist string; Plays int; Duration float64; CoverArt string; Available bool }
+type TopTrack struct { TopEntry; Track *model.Track }
+```
+Rules: `To` is capped at now + 1 ms; for all time `From` becomes the first play. `Previous` covers the period of the same
+length right before (`nil` for all time). Buckets, the clock and active days use the viewer's time zone (`tz`); weeks start
+on Monday. Durations are the sum of the played tracks' lengths. Top artists / albums / tracks carry the live library items
+(`Available`, cover art, the live track) and fall back to the snapshot names when an item no longer exists.
+
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
 - Routes: `/rest/{method}` and `/rest/{method}.view`, GET and POST (`application/x-www-form-urlencoded`
@@ -777,7 +896,8 @@ Rules:
   alphabeticalByArtist, starred, byYear (fromYear>toYear → descending), byGenre.
 - `stream`: `maxBitRate`, `format` (`raw` = original), `timeOffset`, `estimateContentLength`; raw files via
   `http.ServeContent` (Range support!). Transcoding via `transcode.Decide`/`Stream`.
-- `scrobble`: `submission=false` → now playing; `true` → `store.RecordPlay` (`time` param in ms).
+- `scrobble`: `submission=false` → now playing (+ `scrobble.NowPlaying`); `true` → `scrobble.Played` (`store.RecordPlay`
+  plus the Last.fm / ListenBrainz queue, §5.16; `time` param in ms). `star`/`unstar` of songs → `scrobble.Loved`.
 - Song (`Child`) fields: id, parent (albumId), isDir=false, title, album, artist, track, year, genre,
   coverArt, size, contentType, suffix, transcodedContentType/transcodedSuffix when relevant, duration,
   bitRate, bitDepth, samplingRate, channelCount, path, playCount, played, discNumber, created, albumId,
@@ -833,7 +953,7 @@ honoured for managers.
 | POST | `/api/star` | `{type:'track'|'album'|'artist', ids:string[], starred:boolean}` | 204 |
 |---|---|---|---|
 | POST | `/api/rating` | `{type, id, rating:0-5}` | 204 |
-| POST | `/api/scrobble` | `{trackId, submission:boolean, time?:number /*ms*/}` | 204 |
+| POST | `/api/scrobble` | `{trackId, submission:boolean, time?:number /*ms*/}` | 204 (submission → `scrobble.Played`, else now playing + `scrobble.NowPlaying`; starring tracks → `scrobble.Loved`, §5.16) |
 
 ### 7.4 Playlists & queue & radio
 | Method | Path | Body | Response |
@@ -963,8 +1083,24 @@ files move with their track; directories left empty are removed (never the libra
 | POST | `/api/admin/sources/{id}/reload` | | `LxSource` ((re)starts the script; 403 while `lxSourcesEnabled` is off) |
 | POST | `/api/admin/sources/{id}/refresh` | | `LxSource` (downloads the script again from `sourceUrl`; 400 for a file import; 403 while off) |
 
+| GET | `/api/admin/scrobbling` | | `ScrobblingAdmin` |
+| PUT | `/api/admin/scrobbling/lastfm` | `{apiKey?, secret?}` (omitted = unchanged, `""` = remove; 32 hex characters) | `ScrobblingAdmin` (the secret is stored encrypted and never returned) |
+
 Automatic fallback or one fixed source is chosen with `PUT /api/admin/settings` (`lxSourceMode` `auto` | `fixed`,
-`lxSourceId`); no endpoint returns a script.
+`lxSourceId`); no endpoint returns a script. Last.fm and ListenBrainz are turned on with `PUT /api/admin/settings`
+(`lastfmEnabled`, `listenBrainzEnabled`).
+
+### 7.8 Listening & scrobbling (any user; only their own data)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/api/listening/report` | `from?, to?` (unix ms; 0 = since the first play / now), `tz?` (IANA), `limit?` (≤ 50, default 10) | `ListeningReport` (400 when `to <= from`) |
+| GET | `/api/listening/history` | `from?, to?, offset, limit` (default 50, ≤ 500) | `Page<Play>` (newest first) |
+| GET | `/api/me/scrobbling` | | `ScrobbleAccount[]` (Last.fm, ListenBrainz) |
+| POST | `/api/me/scrobbling/lastfm/auth` | `{callback}` (absolute http(s) link Last.fm sends the browser back to) | `{url}` to open (403 while `lastfmEnabled` is off, 409 without an API account, 400 bad callback) |
+| POST | `/api/me/scrobbling/lastfm` | `{token, state}` (from the callback) | `ScrobbleAccount` (400 unknown / expired state or a token Last.fm refuses, 503 unreachable) |
+| POST | `/api/me/scrobbling/listenbrainz` | `{token}` | `ScrobbleAccount` (403 while off, 400 invalid token, 503 unreachable) |
+| PUT | `/api/me/scrobbling/{service}` | `{enabled}` (pausing drops the waiting plays) | `ScrobbleAccount` (404 not linked) |
+| DELETE | `/api/me/scrobbling/{service}` | | 204 (forgets the account and its waiting plays) |
 
 ## 8. TypeScript contract (`web/src/lib/api/types.ts`)
 
@@ -1100,6 +1236,7 @@ export interface Settings {
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean; lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
+  lastfmEnabled: boolean; listenBrainzEnabled: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -1131,6 +1268,35 @@ export interface LxSource {
 export interface LxSourcesInfo { enabled: boolean; mode: LxSourceMode; sourceId: string; sources: LxSource[] }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }
+
+// ---- listening & scrobbling
+export interface Play {
+  id: number; trackId: string; playedAt: number; client: string
+  title: string; artist: string; album: string; albumArtist: string; artistId: string; albumId: string; duration: number
+  track: Track | null   // null when purged or missing
+}
+export interface ListeningTotals { plays: number; duration: number; tracks: number; artists: number; albums: number }
+export type ListeningBucket = 'hour' | 'day' | 'week' | 'month'
+export interface ListeningTimelineBucket { start: number; plays: number; duration: number }
+export interface ListeningTopEntry { id: string; name: string; artist: string; plays: number; duration: number; coverArt: string; available: boolean }
+export interface ListeningTopTrack extends ListeningTopEntry { track: Track | null }
+export interface ListeningReport {
+  from: number; to: number; tz: string; bucket: ListeningBucket; firstPlayAt: number
+  totals: ListeningTotals; previous: ListeningTotals | null
+  newTracks: number; newArtists: number; activeDays: number; longestStreak: number
+  timeline: ListeningTimelineBucket[]; clock: number[][] /*[weekday 0 = Monday][hour]*/
+  topArtists: ListeningTopEntry[]; topAlbums: ListeningTopEntry[]; topTracks: ListeningTopTrack[]
+  topGenres: ListeningTopEntry[]; clients: ListeningTopEntry[]
+}
+export type ScrobbleService = 'lastfm' | 'listenbrainz'
+export interface ScrobbleAccount {
+  service: ScrobbleService; available: boolean; linked: boolean; needsRelink: boolean
+  username: string; enabled: boolean; queued: number; lastError: string; lastErrorAt: number; lastSentAt: number; linkedAt: number
+}
+export interface ScrobblingAdmin {
+  lastfm: { enabled: boolean; apiKey: string; hasSecret: boolean; configured: boolean; users: number }
+  listenBrainz: { enabled: boolean; users: number }
+}
 ```
 
 ## 9. Frontend architecture (`web/`)
@@ -1169,7 +1335,9 @@ web/src/
 | `/favorites` | Starred | library |
 | `/playlists`, `/playlists/:id` | Playlists, playlist detail | library |
 | `/radio` | Internet radio | library |
+| `/listening` | Listening report (overview + history; `?range=7d|30d|90d|12m|all|y<year>&tab=history`) | library |
 | `/settings` | User settings | player |
+| `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to Settings → Scrobbling) | player |
 | `/manage` | Tracks → Metadata (track table + tag editor) | manage |
 | `/manage/upload` | Tracks → Upload (files, links) | manage |
 | `/manage/online` | Tracks → Online (online music search + downloads) | manage |
@@ -1221,7 +1389,8 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - Artwork: `rounded-lg` (≥ 160px) / `rounded-md` (thumbnails), subtle `shadow-sm` and 1px `ring-black/5 dark:ring-white/10`; artists are circles. Always square (`aspect-square object-cover`), lazy loaded, fade-in, gradient placeholder with a music-note icon when missing.
 - Glass surfaces (tab bar, mini player, top bar on scroll): `bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-border/60`.
 - Layout: desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it.
-- Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening; `TRACKS_NAV` ("Tracks", `/manage`) is always visible to managers (sidebar item active on every `TRACKS_TABS` route; on phones the "Manage" tab, which also covers `/admin`); its pages `TRACKS_TABS` — Metadata `/manage`, Upload `/manage/upload`, Online `/manage/online` — are route tabs (`TracksTabs`, links with `aria-current`) in each page header; `MANAGE_NAV` (folders, doctor, trash, history) and `ADMIN_NAV` are folded — sidebar Collapsibles "Library tools" / "Admin" that start closed and open while one of their routes is active (a DropdownMenu flyout on the icon rail), and one "Library tools" DropdownMenu (`ManageSections`) next to the tabs on phones.
+- Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening (including the listening report `/listening`, which the
+  phones' Library hub lists too); `TRACKS_NAV` ("Tracks", `/manage`) is always visible to managers (sidebar item active on every `TRACKS_TABS` route; on phones the "Manage" tab, which also covers `/admin`); its pages `TRACKS_TABS` — Metadata `/manage`, Upload `/manage/upload`, Online `/manage/online` — are route tabs (`TracksTabs`, links with `aria-current`) in each page header; `MANAGE_NAV` (folders, doctor, trash, history) and `ADMIN_NAV` are folded — sidebar Collapsibles "Library tools" / "Admin" that start closed and open while one of their routes is active (a DropdownMenu flyout on the icon rail), and one "Library tools" DropdownMenu (`ManageSections`) next to the tabs on phones.
 - CSS vars in `index.css`: `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, `--player-window-w` (400px), `--compact-player-h` (68px), `--player-reserve`, `--player-clearance`, `--safe-top/bottom` (env(safe-area-inset-*)); pages use `.page-pad` bottom padding utility so content never hides behind player chrome. Never hard-code `--playerbar-h` for spacing: the bar may be hidden or replaced by a floating player.
 - Motion: `motion/react` springs (`type:'spring', stiffness: 400, damping: 36`), `MotionConfig reducedMotion="user"`. Press feedback on mobile: `active:scale-[0.97]` transitions.
 - Icons: lucide-react, `size-4`/`size-5`, `strokeWidth={1.75}`; transport controls use filled glyphs (`fill="currentColor"`).
@@ -1260,7 +1429,11 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   library root). A floating bar downloads the selection (sent in batches of 50).
 - **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (cards with path, counts, writable badge; quick/full scan buttons; live progress via `/api/events`), server settings form, system info (versions, ffmpeg, sizes, clear cache).
-  Settings tabs General / yt-dlp / Sources / System. *Sources* (`SourcesSettings`): the `lxSourcesEnabled` switch, the mode
+  Settings tabs General / yt-dlp / Sources / Scrobbling / System. *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and
+  `listenBrainzEnabled` switches (saved immediately), the Last.fm API key and write-only shared secret with a link to create an
+  API account, the number of linked users per service, and a "Your account" row per service showing whether the signed-in
+  administrator connected their own account (the switches only allow a service; everyone links in Settings → Scrobbling),
+  with a link to `/settings#scrobbling`. *Sources* (`SourcesSettings`): the `lxSourcesEnabled` switch, the mode
   (automatic fallback / always one source + a source select), and the sources in priority order (up / down buttons;
   name, version, status badge, description, author · file or link · size · last start, platform/best-quality chips, the
   start error, the script's update notice with its link and "Update from link"; an enable switch and a menu: test /
@@ -1272,6 +1445,23 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   a warning that must be acknowledged (cookies are account credentials; a malicious program could impersonate the user;
   never share them; Rainy keeps them encrypted on the server and uploads them nowhere), then the export guide for the
   "Get cookies.txt LOCALLY" extension and a paste / file field (no spell check or autofill); the text is cleared on close.
+
+### 9.5a Listening UI (library + player agents)
+- **Listening** `/listening` (`features/library/pages/listening-page.tsx`; pure helpers in `features/library/lib/listening.ts`,
+  unit-tested): a period select (last 7 / 30 / 90 days, last 12 months, all time, then each calendar year with plays; rolling
+  periods start at a local midnight), tabs Overview / History, and the browser's time zone sent as `tz`. Overview: stat tiles
+  (plays and listening time with the change against the previous period, artists and songs with the new ones, albums, days
+  with music + longest streak, plays per day, first play), a one-hue bar timeline (plays or hours; 2px gaps; hover / touch /
+  arrow-key tooltip; a hidden data table), top artists and albums shelves, top songs (tapping plays them as a queue; purged
+  items are dimmed, without links), a weekday × hour heatmap (one hue, five steps on a square-root scale, legend), top genres
+  and players as bar lists, and a link to the scrobbling settings. History: plays grouped by local day (Today, Yesterday,
+  dates), 100 per page with "Load more"; each row plays its track and has the track menu. Query keys start with `listening`
+  (a `LIBRARY_QUERY_ROOTS` root).
+- **Settings → Scrobbling** (`ScrobblingSection`, `#scrobbling`): per service the linked account, a pause switch, the waiting
+  plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
+  confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates
+  to the returned page; `lastfm-callback-page` posts `{token, state}` once and returns to `/settings#scrobbling`.
+  ListenBrainz takes the user token in a password field. Services the administrator has not enabled say so.
 
 ### 9.6 i18n
 - i18next with namespaces = files in `locales/<lng>/<ns>.json`; languages `zh` (简体中文) and `en`; detection: saved choice → `navigator.language` (`zh*` → zh) → en.

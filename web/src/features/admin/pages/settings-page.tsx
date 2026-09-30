@@ -9,14 +9,15 @@ import { PageLoader } from '@/components/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useIsMobile } from '@/hooks/use-media-query'
 
+import { ScrobblingSettings } from '../components/scrobbling-settings'
 import { SettingsForm } from '../components/settings-form'
 import { SourcesSettings } from '../components/sources-settings'
 import { SystemInfo } from '../components/system-info'
 import { YtdlpSettings } from '../components/ytdlp-settings'
 import { settingsQuery } from '../queries'
 
-type Tab = 'general' | 'ytdlp' | 'sources' | 'system'
-const TABS: readonly Tab[] = ['general', 'ytdlp', 'sources', 'system']
+type Tab = 'general' | 'ytdlp' | 'sources' | 'scrobbling' | 'system'
+const TABS: readonly Tab[] = ['general', 'ytdlp', 'sources', 'scrobbling', 'system']
 
 export default function ServerSettingsPage() {
   const { t } = useTranslation('admin')
@@ -55,6 +56,8 @@ export default function ServerSettingsPage() {
           <YtdlpSettings />
         ) : tab === 'sources' ? (
           <SourcesSettings />
+        ) : tab === 'scrobbling' ? (
+          <ScrobblingSettings />
         ) : (
           <SystemInfo />
         )}

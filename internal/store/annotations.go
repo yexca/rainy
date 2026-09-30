@@ -58,18 +58,25 @@ func (s *Store) SetRating(ctx context.Context, userID, itemType, id string, rati
 
 // RecordPlay registers a completed play at `at` (unix ms, 0 = now): play_count+1 and
 // played_at on the track, its album and its artist (and album artist when different), and
-// a play_history row. Unknown tracks yield ErrNotFound.
+// a play_history row with a snapshot of the track's names, ids and duration. Unknown
+// tracks yield ErrNotFound.
 func (s *Store) RecordPlay(ctx context.Context, userID, trackID string, at int64, client string) error {
 	if at <= 0 {
 		at = util.NowMs()
 	}
 	return s.db.Tx(ctx, func(tx *sqlx.Tx) error {
 		var t struct {
-			AlbumID       string `db:"album_id"`
-			ArtistID      string `db:"artist_id"`
-			AlbumArtistID string `db:"album_artist_id"`
+			Title         string  `db:"title"`
+			Artist        string  `db:"artist"`
+			Album         string  `db:"album"`
+			AlbumArtist   string  `db:"album_artist"`
+			AlbumID       string  `db:"album_id"`
+			ArtistID      string  `db:"artist_id"`
+			AlbumArtistID string  `db:"album_artist_id"`
+			Duration      float64 `db:"duration"`
 		}
-		if err := tx.GetContext(ctx, &t, `SELECT album_id, artist_id, album_artist_id FROM tracks WHERE id = ?`, trackID); err != nil {
+		if err := tx.GetContext(ctx, &t, `SELECT title, artist, album, album_artist, album_id, artist_id, album_artist_id, duration
+			FROM tracks WHERE id = ?`, trackID); err != nil {
 			return notFound(err)
 		}
 		items := [][2]string{{"track", trackID}, {"album", t.AlbumID}, {"artist", t.ArtistID}}
@@ -87,8 +94,10 @@ func (s *Store) RecordPlay(ctx context.Context, userID, trackID string, at int64
 				return err
 			}
 		}
-		_, err := tx.ExecContext(ctx, `INSERT INTO play_history (user_id, track_id, played_at, client) VALUES (?, ?, ?, ?)`,
-			userID, trackID, at, client)
+		_, err := tx.ExecContext(ctx, `INSERT INTO play_history (user_id, track_id, played_at, client,
+				title, artist, album, album_artist, artist_id, album_id, duration)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			userID, trackID, at, client, t.Title, t.Artist, t.Album, t.AlbumArtist, t.ArtistID, t.AlbumID, t.Duration)
 		return err
 	})
 }

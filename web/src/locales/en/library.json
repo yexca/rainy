@@ -236,5 +236,85 @@
     "stationSaved": "Station saved",
     "stationDeleted": "Deleted “{{name}}”"
   },
-  "songsAndDuration": "{{songs}}, {{duration}}"
+  "songsAndDuration": "{{songs}}, {{duration}}",
+  "listening": {
+    "title": "Listening",
+    "subtitle": "What you played, when, and how much",
+    "rangeLabel": "Period",
+    "ranges": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "12m": "Last 12 months",
+      "all": "All time"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "history": "History"
+    },
+    "plays_one": "{{formatted}} play",
+    "plays_other": "{{formatted}} plays",
+    "unavailable": "No longer in the library",
+    "unknownTrack": "Unknown track",
+    "unknownClient": "Unknown player",
+    "scrobbleHint": "Rainy keeps your listening history on this server. You can also send your plays to Last.fm or ListenBrainz.",
+    "scrobbleLink": "Scrobbling settings",
+    "empty": {
+      "title": "No plays yet",
+      "description": "Songs you listen to in Rainy or in a connected app appear here once you have played half of a song or 4 minutes of it.",
+      "periodTitle": "No plays in this period",
+      "periodDescription": "Choose a longer period, or play some music."
+    },
+    "stats": {
+      "plays": "Plays",
+      "time": "Listening time",
+      "artists": "Artists",
+      "tracks": "Songs",
+      "albums": "Albums",
+      "activeDays": "Days with music",
+      "perDay": "Plays per day",
+      "since": "Listening since",
+      "vsPrevious": "vs. the period before",
+      "up": "up",
+      "down": "down",
+      "new_one": "{{formatted}} new",
+      "new_other": "{{formatted}} new",
+      "streak_one": "Longest streak: {{formatted}} day",
+      "streak_other": "Longest streak: {{formatted}} days"
+    },
+    "sections": {
+      "timeline": "Over time",
+      "topArtists": "Top artists",
+      "topAlbums": "Top albums",
+      "topTracks": "Top songs",
+      "clock": "When you listen",
+      "genres": "Top genres",
+      "clients": "Players"
+    },
+    "chart": {
+      "label_one": "Bar chart with {{count}} bar. Use the arrow keys to read the values.",
+      "label_other": "Bar chart with {{count}} bars. Use the arrow keys to read the values.",
+      "tableCaption": "Plays and listening time per period",
+      "period": "Period",
+      "metric": "Chart value",
+      "hours": "Hours",
+      "weekOf": "Week of {{date}}"
+    },
+    "clock": {
+      "cell_one": "{{day}}, {{hour}}: {{count}} play",
+      "cell_other": "{{day}}, {{hour}}: {{count}} plays",
+      "busiest": "Plays by weekday and hour. You listen most on {{day}} around {{hour}}.",
+      "hint": "Hover or tap a square to see its plays.",
+      "less": "Less",
+      "more": "More"
+    },
+    "history": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "count_one": "{{formatted}} play in this period",
+      "count_other": "{{formatted}} plays in this period",
+      "empty": "No plays in this period",
+      "more": "Load more"
+    }
+  }
 }

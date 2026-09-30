@@ -26,6 +26,10 @@ export const queryKeys = {
   lyrics: (trackId: string) => ['lyrics', trackId] as const,
   radios: ['radios'] as const,
   queue: ['queue'] as const,
+  /** Listening report and history (`['listening', 'report', params]`, `['listening', 'history', range]`). */
+  listening: ['listening'] as const,
+  /** `/api/me/scrobbling`. */
+  scrobbling: ['scrobbling'] as const,
   manage: ['manage'] as const,
   admin: ['admin'] as const,
 } as const
@@ -44,6 +48,7 @@ export const LIBRARY_QUERY_ROOTS: ReadonlySet<string> = new Set([
   'search',
   'starred',
   'recent-tracks',
+  'listening',
   'playlists',
   'lyrics',
   'manage',

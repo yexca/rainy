@@ -63,7 +63,9 @@ manager searches from the tag editor, downloads from links
 a download and GitHub only when an administrator checks for or installs a
 yt-dlp update, or online music (`internal/lxmusic`), which searches the online
 catalogues when a manager asks and runs administrator-imported lx-music source
-scripts that contact the servers their authors chose.
+scripts that contact the servers their authors chose, or scrobbling
+(`internal/scrobble`), which sends the plays of users who linked a Last.fm or
+ListenBrainz account to that service.
 
 ## Related Docs
 

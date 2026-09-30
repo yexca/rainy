@@ -30,7 +30,8 @@
     "newPlaylist": "New playlist",
     "allPlaylists": "All playlists",
     "noPlaylists": "No playlists yet",
-    "toggleSidebar": "Toggle sidebar"
+    "toggleSidebar": "Toggle sidebar",
+    "listening": "Listening"
   },
   "actions": {
     "play": "Play",

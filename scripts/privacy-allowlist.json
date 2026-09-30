@@ -425,6 +425,38 @@
         "docs/user/management.md"
       ],
       "reason": "bilibili share-link host: synthetic examples in comments, docs and tests. Rainy resolves one redirect of such a link only when a manager starts a download (downloads from links enabled)."
+    },
+    {
+      "url": "https://ws.audioscrobbler.com/2.0/",
+      "files": [
+        "internal/scrobble/lastfm.go",
+        "docs/architecture/contract.md"
+      ],
+      "reason": "Last.fm API endpoint for scrobbling, now playing, loves and account linking; requested only for users who connected a Last.fm account while an administrator allows scrobbling to Last.fm (off by default)."
+    },
+    {
+      "url": "https://www.last.fm/api/**",
+      "files": [
+        "internal/scrobble/lastfm.go",
+        "docs/architecture/contract.md",
+        "web/src/features/admin/components/scrobbling-settings.tsx"
+      ],
+      "reason": "Last.fm web authentication page (opened by the user's browser, never by the server), the Last.fm API documentation, and the page where an administrator creates the API account."
+    },
+    {
+      "url": "https://api.listenbrainz.org/**",
+      "files": [
+        "internal/scrobble/listenbrainz.go",
+        "docs/architecture/contract.md"
+      ],
+      "reason": "ListenBrainz API for scrobbling and token validation; requested only for users who connected a ListenBrainz account while an administrator allows scrobbling to ListenBrainz (off by default)."
+    },
+    {
+      "url": "https://listenbrainz.readthedocs.io/**",
+      "files": [
+        "internal/scrobble/listenbrainz.go"
+      ],
+      "reason": "Public ListenBrainz API documentation link in a code comment."
     }
   ]
 }

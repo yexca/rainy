@@ -38,6 +38,9 @@ Rainy currently includes:
   upload, trash, a library doctor, a folder browser, and an edit history, plus
   opt-in downloads from YouTube and bilibili links and online music through
   lx-music compatible music sources.
+- A per-user listening report (plays over time, when you listen, top artists,
+  albums, songs, and genres) and play history, with opt-in scrobbling to
+  Last.fm and ListenBrainz.
 - Multiple users with administrator, manager, and download permissions, and
   multiple libraries.
 

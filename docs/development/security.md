@@ -43,6 +43,15 @@ should use the [Security Policy](../../SECURITY.md).
   resolution and on every redirect). Memory use is not bounded, which is why
   only administrators can import scripts. No endpoint returns a script, and
   songs sent back by clients are validated before their ids reach a script.
+  Scrobbling (`internal/scrobble`) sits behind the admin-only `lastfmEnabled`
+  and `listenBrainzEnabled` settings (off by default) and sends only the plays,
+  "now playing" updates, and loved tracks of users who linked an account. It
+  uses the fixed Last.fm and ListenBrainz API URLs; the browser, never the
+  server, opens the Last.fm sign-in page, and the returned token is accepted
+  only with the random `state` issued to the same user. Last.fm session keys,
+  ListenBrainz tokens, and the Last.fm shared secret are credentials: keep them
+  encrypted with `secret.key`, out of every API response, log line, and error
+  message.
   Use fixed endpoint URLs, pass user input only as an encoded parameter,
   validate provider ids before requesting, cap response sizes, and fetch covers
   only from the allow-listed provider image hosts. Responses from these
