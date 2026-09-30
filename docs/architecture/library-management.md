@@ -59,7 +59,7 @@ not contact them and the proxy cannot reach other addresses. See
 ## Downloads from Links
 
 With the administrator setting `ytdlpEnabled` on (off by default), managers can
-paste a YouTube or bilibili link on the Upload page. The server runs
+paste a YouTube or bilibili link on the Tracks → Upload tab. The server runs
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) through `internal/ytdlp` with a fixed
 argument list in a work directory under `<data>/tmp`: configuration files,
 plugins, and the generic extractor are disabled, and only links to the
@@ -75,6 +75,28 @@ it against the release checksums, and checks that it runs before replacing the
 old binary. Optional sign-in cookies are filtered to the site's own domain and
 stored encrypted with `secret.key`; no endpoint returns them. See
 [contract §5.14](contract.md#514-ytdlp-owner-manage-agent).
+
+## Online Music
+
+With the administrator setting `lxSourcesEnabled` on (off by default),
+managers can search the five catalogues lx-music knows (Kuwo, Kugou, QQ Music,
+NetEase Cloud Music, and Migu) in **Tracks → Online** and download songs into
+a library through `internal/lxmusic`. Rainy ships no way to obtain audio
+itself: the download link comes from an lx-music *custom source* script that
+an administrator imports in **Admin → Settings → Sources**. Scripts run on the
+server in a goja interpreter with only the lx-music script API; their network
+access is limited to public internet addresses, and every call has a time
+limit. With several sources, Rainy tries the enabled ones in priority order
+until one delivers a file that is really audio (or uses one fixed source,
+when the administrator chooses that); like lx-music, it asks a source for a
+new link once when the first one has expired (HTTP 401, 403 or 410).
+
+A downloaded file gets the catalogue's title, artists, album, lyrics (with a
+paired translation), and cover written through TagLib, and is then imported
+like an upload: library lock, rescan, a `download` edit-log row naming the
+song's catalogue page, the quality, and the source, and a library event.
+Existing files are never overwritten. See
+[contract §5.15](contract.md#515-lxmusic-owner-manage-agent).
 
 ## Encoding Repair
 
@@ -106,7 +128,9 @@ there until the trash is emptied.
 
 Uploads are staged in `<data>/tmp` and then moved into the chosen library
 folder, either keeping the uploaded folder structure or organizing by tags with
-the rename pattern. One request is capped at 32 GiB.
+the rename pattern. One request is capped at 32 GiB. Uploads, link downloads,
+and online music share the destination on the **Tracks** page's Upload and
+Online tabs.
 
 ## Library Doctor
 

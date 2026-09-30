@@ -116,6 +116,7 @@
     "tabs": {
       "general": "常规",
       "ytdlp": "yt-dlp",
+      "sources": "音源",
       "system": "系统"
     },
     "saved": "设置已保存",
@@ -245,6 +246,89 @@
       "saved_other": "已保存 {{count}} 个 Cookie",
       "dropped_other": "已丢弃其他网站的 {{count}} 个 Cookie。",
       "notSignedInHint": "其中不包含登录信息，请确认导出时已登录。"
+    }
+  },
+  "sources": {
+    "sections": {
+      "online": "在线音乐",
+      "mode": "使用方式",
+      "sources_other": "音源（{{count}}）"
+    },
+    "enable": "允许在线音乐和音源",
+    "enableHelp": "开启后，管理者可以在「曲目 → 在线」中搜索在线曲库，并把歌曲下载到音乐库。音源是 lx music 自定义源脚本，在本服务器上运行，并会访问脚本作者指定的服务器。",
+    "modes": {
+      "auto": "自动回退",
+      "autoHelp": "按从上到下的顺序依次尝试已启用的音源，直到有一个能提供歌曲。",
+      "fixed": "固定使用一个音源",
+      "fixedHelp": "只向所选音源请求；它失败时，下载也会失败。",
+      "fixedSource": "音源",
+      "choose": "选择音源",
+      "fixedUnavailable": "这个音源已停用或已删除；在选择其他音源之前，下载都会失败。"
+    },
+    "help": "顺序就是自动回退时的优先级。Rainy 不附带任何音源，请只导入你信任的脚本。",
+    "importButton": "导入",
+    "empty": "还没有音源。导入 lx music 自定义源脚本（.js）。",
+    "disabled": "已停用",
+    "fixedBadge": "正在使用",
+    "by": "作者 {{author}}",
+    "fromUrl": "来自链接",
+    "fromFile": "来自文件",
+    "loadedAt": "{{when}}启动",
+    "platforms": "平台",
+    "platformNames": {
+      "kw": "酷我",
+      "kg": "酷狗",
+      "tx": "QQ音乐",
+      "wy": "网易云",
+      "mg": "咪咕"
+    },
+    "qualities": {
+      "128k": "128K",
+      "320k": "320K",
+      "flac": "FLAC",
+      "flac24bit": "Hi-Res"
+    },
+    "status": {
+      "idle": "未启动",
+      "loading": "启动中",
+      "ready": "可用",
+      "error": "启动失败"
+    },
+    "updateAlert": "更新提示（{{when}}）",
+    "openUpdate": "打开更新页面",
+    "refresh": "从链接更新",
+    "refreshed": "已更新「{{name}}」（版本 {{version}}）",
+    "reload": "测试 / 重新启动",
+    "reloaded": "「{{name}}」可以使用",
+    "reloadFailed": "「{{name}}」启动失败",
+    "muteAlerts": "不显示更新提示",
+    "showAlerts": "显示更新提示",
+    "homepage": "主页",
+    "remove": "删除",
+    "removeTitle": "删除「{{name}}」？",
+    "removeDescription": "脚本会从服务器上删除。已经下载的歌曲仍保留在音乐库中。",
+    "removed": "已删除「{{name}}」",
+    "moveUp": "上移「{{name}}」",
+    "moveDown": "下移「{{name}}」",
+    "enableSource": "使用「{{name}}」",
+    "more": "「{{name}}」的更多操作",
+    "import": {
+      "title": "导入音源",
+      "description": "lx music 自定义源脚本（.js），来自文件或链接。",
+      "warningTitle": "只导入你信任的脚本",
+      "warning": "音源脚本是第三方代码。它在本服务器上运行，可以访问任何公网地址，并会收到你下载的歌曲信息。Rainy 会限制它的运行时间、网络访问和输入，但无法限制它的内存占用。",
+      "fromFile": "文件",
+      "fromUrl": "链接",
+      "chooseFile": "选择 .js 文件",
+      "fileHint": "脚本会发送到服务器并保存在那里，之后不会再显示。",
+      "tooLarge": "脚本大于 9 MB。",
+      "url": "脚本链接",
+      "urlHint": "服务器会下载脚本并记住链接，以后可以从链接更新。",
+      "urlNeedsEnable": "请先开启在线音乐：服务器需要从链接下载脚本。",
+      "submit": "导入",
+      "importing": "正在导入…",
+      "imported": "已导入「{{name}}」",
+      "importedWithError": "已导入「{{name}}」，但启动失败"
     }
   },
   "system": {

@@ -1,16 +1,6 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import {
-  CircleAlert,
-  CircleCheck,
-  FileAudio,
-  FolderOpen,
-  FolderUp,
-  RotateCw,
-  Tags,
-  Upload,
-  X,
-} from 'lucide-react'
-import { useRef, useState, type CSSProperties, type DragEvent } from 'react'
+import { CircleAlert, CircleCheck, FileAudio, FolderUp, RotateCw, Tags, Upload, X } from 'lucide-react'
+import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -18,60 +8,42 @@ import { toast } from 'sonner'
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { useLibraries, useDefaultRenamePattern } from '@/features/admin/queries'
-import { useIsMobile } from '@/hooks/use-media-query'
 import { formatBytes, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
-import { FolderPicker } from '../components/folder-picker'
+import { DestinationSection } from '../components/destination-section'
 import { LinkDownload } from '../components/link-download'
+import { TracksTabs } from '../components/tracks-tabs'
 import { toastError } from '../lib/batch'
+import { useDestination, useDestinationTarget } from '../lib/destination'
 import { filesFromDataTransfer, filesFromInput, isUploadable, type PickedFile } from '../lib/upload-files'
 import { useUploadQueue, type UploadEntry } from '../lib/upload-queue'
 import { useScrollMargin } from '../lib/use-scroll-margin'
 
-const ORGANIZE_KEY = 'rainy.manage.uploadOrganize'
-
-function loadOrganize(): boolean {
-  try {
-    return localStorage.getItem(ORGANIZE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
+/** Tracks → Upload: files and folders from this device, and downloads from YouTube / bilibili links. */
 export default function UploadPage() {
   const { t } = useTranslation('manage')
   const [searchParams] = useSearchParams()
-  const { libraries, limited } = useLibraries()
-  const renamePattern = useDefaultRenamePattern()
   const add = useUploadQueue((s) => s.add)
-  const isMobile = useIsMobile()
-
-  const urlLib = Number.parseInt(searchParams.get('libraryId') ?? '', 10)
-  const [libraryId, setLibraryId] = useState<number | null>(Number.isFinite(urlLib) ? urlLib : null)
-  const [dir, setDir] = useState(searchParams.get('dir') ?? '')
-  const [organize, setOrganize] = useState(loadOrganize)
-  const [pickerOpen, setPickerOpen] = useState(false)
+  const target = useDestinationTarget()
   const [dragging, setDragging] = useState(false)
   const filesRef = useRef<HTMLInputElement>(null)
   const folderRef = useRef<HTMLInputElement>(null)
   const dragDepth = useRef(0)
 
-  const effectiveLibraryId = libraryId ?? libraries[0]?.id ?? 1
-  const library = libraries.find((l) => l.id === effectiveLibraryId)
-  const cleanDir = dir.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
-  const invalidDir = cleanDir.split('/').some((p) => p === '..' || p === '.')
+  // "Upload into this folder" links from the folder browser (?libraryId=…&dir=…).
+  useEffect(() => {
+    const lib = Number.parseInt(searchParams.get('libraryId') ?? '', 10)
+    const dir = searchParams.get('dir')
+    if (Number.isFinite(lib)) useDestination.getState().setLibraryId(lib)
+    if (dir !== null || Number.isFinite(lib)) useDestination.getState().setDir(dir ?? '')
+  }, [searchParams])
 
   const enqueue = (files: PickedFile[]) => {
     if (files.length === 0) return
-    if (invalidDir) {
+    if (target.invalidDir) {
       toast.error(t('upload.invalidDir'))
       return
     }
@@ -80,7 +52,7 @@ export default function UploadPage() {
       toast.error(t('upload.nothingToUpload'), { description: t('upload.audioOnly') })
       return
     }
-    add(files, { libraryId: effectiveLibraryId, dir: cleanDir, organize })
+    add(files, { libraryId: target.libraryId, dir: target.dir, organize: target.organize })
     toast(t('upload.queued', { count: files.length - skipped }), {
       description: skipped > 0 ? t('upload.skippedCount', { count: skipped }) : undefined,
     })
@@ -99,75 +71,12 @@ export default function UploadPage() {
 
   return (
     <Page>
-      <PageHeader title={t('upload.title')} subtitle={t('upload.subtitle')} back={isMobile ? '/manage' : undefined} />
+      <PageHeader title={t('title')} subtitle={t('upload.subtitle')}>
+        <TracksTabs />
+      </PageHeader>
 
       <div className="mx-auto grid max-w-3xl gap-6">
-        <section className="grid gap-4 rounded-xl border p-4 sm:p-5">
-          <h2 className="text-sm font-semibold">{t('upload.target')}</h2>
-          {!limited && libraries.length > 1 ? (
-            <div className="grid gap-1.5">
-              <Label className="text-[13px] font-medium text-foreground/75">{t('filters.library')}</Label>
-              <Select value={String(effectiveLibraryId)} onValueChange={(v) => setLibraryId(Number(v))}>
-                <SelectTrigger className="w-full sm:w-72">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {libraries.map((lib) => (
-                    <SelectItem key={lib.id} value={String(lib.id)}>
-                      {lib.name || `#${lib.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
-          <div className="grid gap-1.5">
-            <Label htmlFor="upload-dir" className="text-[13px] font-medium text-foreground/75">
-              {t('upload.folder')}
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="upload-dir"
-                value={dir}
-                onChange={(e) => setDir(e.target.value)}
-                placeholder={t('upload.folderPlaceholder')}
-                aria-invalid={invalidDir || undefined}
-                className="font-mono text-sm"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <Button variant="outline" onClick={() => setPickerOpen(true)} className="shrink-0">
-                <FolderOpen />
-                <span className="max-sm:sr-only">{t('upload.browse')}</span>
-              </Button>
-            </div>
-            {invalidDir ? (
-              <p className="text-xs text-destructive">{t('upload.invalidDir')}</p>
-            ) : organize ? (
-              <p className="text-xs text-muted-foreground">{t('upload.folderOrganizeHint')}</p>
-            ) : null}
-          </div>
-          <Label className="flex items-start gap-3 font-normal">
-            <Switch
-              className="mt-0.5"
-              checked={organize}
-              onCheckedChange={(v) => {
-                setOrganize(v)
-                try {
-                  localStorage.setItem(ORGANIZE_KEY, v ? '1' : '0')
-                } catch {
-                  // not remembered
-                }
-              }}
-            />
-            <span className="grid gap-1">
-              <span className="text-sm font-medium">{t('upload.organize')}</span>
-              <span className="text-xs text-muted-foreground">
-                {t('upload.organizeHint')} <code className="font-mono break-all">{renamePattern}</code>
-              </span>
-            </span>
-          </Label>
-        </section>
+        <DestinationSection />
 
         <section
           onDragEnter={(e) => {
@@ -229,19 +138,10 @@ export default function UploadPage() {
           />
         </section>
 
-        <LinkDownload libraryId={effectiveLibraryId} dir={cleanDir} organize={organize} invalidDir={invalidDir} />
+        <LinkDownload libraryId={target.libraryId} dir={target.dir} organize={target.organize} invalidDir={target.invalidDir} />
 
         <UploadQueue />
       </div>
-
-      <FolderPicker
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        libraryId={effectiveLibraryId}
-        libraryName={library?.name ?? ''}
-        initialDir={cleanDir}
-        onSelect={setDir}
-      />
     </Page>
   )
 }

@@ -41,7 +41,7 @@ func (s *Service) SetDownloader(d Downloader) { s.downloader = d }
 const (
 	downloadWorkers       = 2
 	maxPendingDownloads   = 20
-	keepFinishedDownloads = 50
+	keepFinishedDownloads = 200
 	downloadTimeout       = 3 * time.Hour
 	maxThumbnailBytes     = 20 << 20
 )
@@ -66,9 +66,16 @@ type DownloadRequest struct {
 	Playlist  bool   `json:"playlist"` // download the whole playlist the link belongs to
 }
 
+// Download job kinds.
+const (
+	JobKindLink   = "link"   // yt-dlp, from a YouTube / bilibili link
+	JobKindOnline = "online" // an online music search result, through lx-music sources (online.go)
+)
+
 // DownloadJob is the state of one download (native API shape).
 type DownloadJob struct {
 	ID         string      `json:"id"`
+	Kind       string      `json:"kind"` // link | online
 	URL        string      `json:"url"`
 	Site       string      `json:"site"`
 	Title      string      `json:"title"`
@@ -91,6 +98,7 @@ type DownloadJob struct {
 	CreatedAt  int64       `json:"createdAt"`
 	StartedAt  int64       `json:"startedAt"`
 	FinishedAt int64       `json:"finishedAt"`
+	Online     *OnlineJob  `json:"online"` // online downloads only (null for links)
 }
 
 func (j DownloadJob) active() bool {
@@ -108,17 +116,21 @@ type downloadJob struct {
 
 // downloads is the in-memory job list.
 type downloads struct {
-	mu     sync.Mutex
-	jobs   []*downloadJob // oldest first
-	slots  chan struct{}
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	mu          sync.Mutex
+	jobs        []*downloadJob // oldest first
+	slots       chan struct{}  // running link downloads
+	onlineSlots chan struct{}  // running online downloads
+	ctx         context.Context
+	cancel      context.CancelFunc
+	wg          sync.WaitGroup
 }
 
 func newDownloads() *downloads {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &downloads{slots: make(chan struct{}, downloadWorkers), ctx: ctx, cancel: cancel}
+	return &downloads{
+		slots: make(chan struct{}, downloadWorkers), onlineSlots: make(chan struct{}, onlineWorkers),
+		ctx: ctx, cancel: cancel,
+	}
 }
 
 // CloseDownloads cancels every job and waits for them to stop.
@@ -164,19 +176,14 @@ func (s *Service) StartDownload(ctx context.Context, u *model.User, req Download
 	jctx, cancel := context.WithTimeout(s.dls.ctx, downloadTimeout)
 	j := &downloadJob{
 		DownloadJob: DownloadJob{
-			ID: util.NewID(), URL: target.URL, Site: target.Site, Status: JobQueued, Progress: 0, ETA: -1,
+			ID: util.NewID(), Kind: JobKindLink, URL: target.URL, Site: target.Site, Status: JobQueued, Progress: 0, ETA: -1,
 			LibraryID: lib.ID, Dir: baseDir, Organize: req.Organize, Format: req.Format, Playlist: req.Playlist,
 			TrackIDs: []string{}, Errors: []ItemError{}, CreatedBy: u.Username, CreatedAt: util.NowMs(),
 		},
 		target: target, user: u, lib: lib, ctx: jctx, cancel: cancel,
 	}
 	s.dls.mu.Lock()
-	pending := 0
-	for _, o := range s.dls.jobs {
-		if o.active() {
-			pending++
-		}
-	}
+	pending := s.pendingLocked(JobKindLink)
 	if pending >= maxPendingDownloads {
 		s.dls.mu.Unlock()
 		cancel()
@@ -189,6 +196,17 @@ func (s *Service) StartDownload(ctx context.Context, u *model.User, req Download
 	s.dls.mu.Unlock()
 	go s.runDownload(j)
 	return &snap, nil
+}
+
+// pendingLocked counts the queued and running jobs of a kind.
+func (s *Service) pendingLocked(kind string) int {
+	n := 0
+	for _, o := range s.dls.jobs {
+		if o.Kind == kind && o.active() {
+			n++
+		}
+	}
+	return n
 }
 
 // fromYtdlp maps ytdlp errors to the store errors the API understands.
@@ -219,6 +237,10 @@ func (s *Service) DownloadJobs() []DownloadJob {
 		d := s.dls.jobs[i].DownloadJob
 		d.TrackIDs = append([]string{}, d.TrackIDs...)
 		d.Errors = append([]ItemError{}, d.Errors...)
+		if d.Online != nil {
+			o := *d.Online
+			d.Online = &o
+		}
 		out = append(out, d)
 	}
 	return out

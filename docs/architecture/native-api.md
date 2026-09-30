@@ -28,8 +28,8 @@ Three guards protect the routes:
 | Guard | Applies to |
 | --- | --- |
 | Signed-in user | Browsing, streaming, covers, lyrics, favorites, ratings, playlists, queue, and events |
-| Manager (`canManage` or administrator) | `/api/manage/*`: tags, covers, lyrics, rename, upload, delete, trash, doctor, folders, and history |
-| Administrator | `/api/admin/*`: users, libraries, scans, server settings, statistics, system information, and cache |
+| Manager (`canManage` or administrator) | `/api/manage/*`: tags, covers, lyrics, rename, upload, link and online music downloads, delete, trash, doctor, folders, and history |
+| Administrator | `/api/admin/*`: users, libraries, scans, server settings, music sources, statistics, system information, and cache |
 
 Downloads additionally require the user's download permission and the
 `enableDownloads` server setting. Only a playlist's owner or an administrator

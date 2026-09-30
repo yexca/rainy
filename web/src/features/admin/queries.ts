@@ -18,6 +18,7 @@ export const adminKeys = {
   stats: ['admin', 'stats'] as const,
   system: ['admin', 'system'] as const,
   ytdlp: ['admin', 'ytdlp'] as const,
+  sources: ['admin', 'sources'] as const,
 }
 
 export const librariesQuery = queryOptions({
@@ -28,6 +29,11 @@ export const librariesQuery = queryOptions({
 export const settingsQuery = queryOptions({
   queryKey: adminKeys.settings,
   queryFn: ({ signal }) => api.admin.settings.get({ signal }),
+})
+
+export const sourcesQuery = queryOptions({
+  queryKey: adminKeys.sources,
+  queryFn: ({ signal }) => api.admin.sources.get({ signal }),
 })
 
 export const ytdlpQuery = queryOptions({

@@ -102,7 +102,8 @@ and are stored in the `settings` table.
 | Repair garbled tags when reading | on | Show GBK, Big5, and Shift-JIS tags correctly without modifying files |
 | Allow downloads | on | Let users with the download permission save original files |
 | Online metadata lookup | off | Let managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and iTunes from the tag editor. The server contacts these services only when someone searches; see [Privacy](../../PRIVACY.md#online-metadata-lookup). Outbound requests honor `HTTPS_PROXY` / `HTTP_PROXY`. |
-| Downloads from YouTube and bilibili | off | On the **yt-dlp** tab. Let managers download audio from YouTube and bilibili links on the Upload page. The server contacts those sites only when a download starts, and GitHub only when an administrator checks for or installs a yt-dlp update; see [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili). |
+| Downloads from YouTube and bilibili | off | On the **yt-dlp** tab. Let managers download audio from YouTube and bilibili links on the Tracks → Upload tab. The server contacts those sites only when a download starts, and GitHub only when an administrator checks for or installs a yt-dlp update; see [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili). |
+| Online music and music sources | off | On the **Sources** tab. Let managers search online catalogues in **Tracks → Online** and download songs into a library through lx-music custom source scripts that an administrator imports. Scripts run on the server and contact the servers their authors chose; see [Privacy](../../PRIVACY.md#online-music-and-music-sources). The same tab chooses automatic fallback between sources (by priority, the default) or one fixed source. |
 | Pretend to search from mainland China | off | With online lookup on, add an `X-Real-IP` header with a random mainland-China address to NetEase, QQ Music, Kugou, and Kuwo requests. Some songs are hidden from searches outside China; the spoofed header may or may not lift that. |
 
 Once saved in the web app, the scan interval setting takes precedence over
@@ -115,7 +116,7 @@ Once saved in the web app, the scan interval setting takes precedence over
 /data/secret.key                encryption key for stored passwords (created on first start)
 /data/cache/artwork/            resized cover cache (safe to delete)
 /data/trash/<libraryId>/...     deleted files, restorable from Manage → Trash
-/data/tmp/                      upload staging and running downloads
+/data/tmp/                      upload staging and running downloads (ytdlp-job-*, online-job-*)
 /data/ytdlp/                    yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies
 ```
 

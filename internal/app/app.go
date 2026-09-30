@@ -17,6 +17,7 @@ import (
 	"rainy/internal/config"
 	"rainy/internal/db"
 	"rainy/internal/events"
+	"rainy/internal/lxmusic"
 	"rainy/internal/manage"
 	"rainy/internal/metasearch"
 	"rainy/internal/model"
@@ -42,6 +43,7 @@ type App struct {
 	Manage     *manage.Service
 	Metadata   *metasearch.Service // online metadata lookup; only used when settings.onlineMetadata is on
 	Ytdlp      *ytdlp.Service      // downloads from YouTube / bilibili; only used when settings.ytdlpEnabled is on
+	Online     *lxmusic.Service    // online music search and lx-music sources; only used when settings.lxSourcesEnabled is on
 	StartedAt  time.Time
 }
 
@@ -97,7 +99,9 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 		}),
 		StartedAt: time.Now(),
 	}
+	a.Online = lxmusic.New(lxmusic.Options{Store: st, Metadata: a.Metadata})
 	a.Manage.SetDownloader(a.Ytdlp)
+	a.Manage.SetOnlineSource(a.Online)
 	if err := a.ensureDefaultLibrary(ctx); err != nil {
 		return nil, err
 	}
@@ -155,9 +159,11 @@ func (a *App) Settings(ctx context.Context) model.Settings {
 	return s
 }
 
-// Close stops downloads and a running yt-dlp install, then closes the database.
+// Close stops downloads, source scripts and a running yt-dlp install, then closes the
+// database.
 func (a *App) Close() error {
 	a.Manage.CloseDownloads()
+	a.Online.Close()
 	a.Ytdlp.Close()
 	return a.DB.Close()
 }

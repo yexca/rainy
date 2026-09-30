@@ -23,7 +23,7 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 - 支援 MP3、FLAC、AAC/M4A/ALAC、Ogg Vorbis、Opus、WAV、AIFF、APE、WavPack、WMA、DSD 等格式；原始檔直接串流，也可透過 ffmpeg 即時轉碼。
 - 實作 Subsonic API 1.16.1 與 OpenSubsonic 擴充，可直接使用 Symfonium、Amperfy、play:Sub、Feishin 等用戶端。
 - 可安裝為 PWA 的網頁播放器：iOS 風格的「正在播放」畫面、同步歌詞、可拖曳排序的佇列、鎖定畫面控制與 AirPlay。
-- 在瀏覽器中管理音樂庫：批次編輯標籤、封面、歌詞、重新命名與整理、上傳、透過 yt-dlp 從 YouTube 與嗶哩嗶哩連結下載（選用）、可還原的資源回收筒、音樂庫健檢與修改紀錄。
+- 在瀏覽器中管理音樂庫：批次編輯標籤、封面、歌詞、重新命名與整理、上傳、透過 yt-dlp 從 YouTube 與嗶哩嗶哩連結下載（選用）、透過相容 lx music 的音源線上搜尋並下載歌曲（選用）、可還原的資源回收筒、音樂庫健檢與修改紀錄。
 - 自動修復 GBK、Big5、Shift-JIS 編碼造成的亂碼，並可用 UTF-8 永久寫回檔案。
 - 多使用者：管理員、音樂庫管理者與一般使用者，下載權限可個別設定。
 

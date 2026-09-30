@@ -58,10 +58,12 @@ Server-sent events on `/api/events` push scan progress, library changes, and
 "now playing" updates to open browsers. There are no external services, and
 the server sends no outbound requests unless an administrator enables the
 opt-in online metadata lookup (`internal/metasearch`), which only runs when a
-manager searches from the tag editor, or downloads from links
+manager searches from the tag editor, downloads from links
 (`internal/ytdlp`), which contact YouTube or bilibili only when a manager starts
 a download and GitHub only when an administrator checks for or installs a
-yt-dlp update.
+yt-dlp update, or online music (`internal/lxmusic`), which searches the online
+catalogues when a manager asks and runs administrator-imported lx-music source
+scripts that contact the servers their authors chose.
 
 ## Related Docs
 

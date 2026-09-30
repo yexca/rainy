@@ -1,6 +1,8 @@
 import {
+  AudioLines,
   Disc3,
   FolderTree,
+  Globe,
   HardDrive,
   History,
   House,
@@ -17,6 +19,7 @@ import {
   Trash2,
   Upload,
   Users,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -41,14 +44,26 @@ export const LIBRARY_NAV: readonly NavItem[] = [
 ]
 
 /**
- * Metadata editing (the track table + tag editor) is used often, so it is a top-level entry of its
- * own; the rarer library tools and administration pages are folded away (MANAGE_NAV, ADMIN_NAV).
+ * The pages of the Tracks entry, shown as tabs: the track table + tag editor, and the two ways of
+ * adding music (upload / links, online search). They are used often, so Tracks is a top-level
+ * entry of its own; the rarer library tools and administration pages are folded away (MANAGE_NAV,
+ * ADMIN_NAV).
  */
-export const METADATA_NAV: NavItem = { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true }
+export const TRACKS_TABS: readonly NavItem[] = [
+  { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true },
+  { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
+  { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
+]
+
+export const TRACKS_NAV: NavItem = { to: '/manage', labelKey: 'nav.tracks', icon: AudioLines, end: true }
+
+/** Whether `pathname` is one of the Tracks tabs. */
+export function isTracksPath(pathname: string): boolean {
+  return TRACKS_TABS.some((tab) => pathMatches(pathname, tab.to, tab.end))
+}
 
 export const MANAGE_NAV: readonly NavItem[] = [
   { to: '/manage/folders', labelKey: 'nav.folders', icon: FolderTree },
-  { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
   { to: '/manage/doctor', labelKey: 'nav.doctor', icon: Stethoscope },
   { to: '/manage/trash', labelKey: 'nav.trash', icon: Trash2 },
   { to: '/manage/history', labelKey: 'nav.history', icon: History },
@@ -76,7 +91,8 @@ export const TABS: readonly TabItem[] = [
     match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/playlists', '/radio', '/settings'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
-  { ...METADATA_NAV, match: ['/manage', '/admin'], managersOnly: true },
+  // Phones have no sidebar: this tab holds Tracks and the folded tools and admin pages.
+  { to: '/manage', labelKey: 'nav.manage', icon: Wrench, end: true, match: ['/manage', '/admin'], managersOnly: true },
 ]
 
 /** Whether `pathname` is `prefix` or below it (`/albums` matches `/albums/1`, not `/albumsx`). */

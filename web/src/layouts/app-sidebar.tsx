@@ -38,7 +38,7 @@ import { api } from '@/lib/api/endpoints'
 import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 
-import { ADMIN_NAV, LIBRARY_NAV, MANAGE_NAV, METADATA_NAV, pathMatches, type NavItem } from './nav'
+import { ADMIN_NAV, LIBRARY_NAV, MANAGE_NAV, TRACKS_NAV, isTracksPath, pathMatches, type NavItem } from './nav'
 import { UserMenu } from './user-menu'
 
 /** Active items use the accent colour (Apple Music style) on a soft pill. */
@@ -156,11 +156,11 @@ function FoldedSection({ label, icon: Icon, items }: { label: string; icon: Luci
   )
 }
 
-/** Managers: metadata editing up front, the other tools and administration folded below it. */
+/** Managers: Tracks (metadata, upload, online) up front, the other tools and administration folded below it. */
 function ManageGroup({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const label = t(METADATA_NAV.labelKey)
+  const label = t(TRACKS_NAV.labelKey)
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('nav.manage')}</SidebarGroupLabel>
@@ -169,12 +169,12 @@ function ManageGroup({ isAdmin }: { isAdmin: boolean }) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={pathMatches(pathname, METADATA_NAV.to, METADATA_NAV.end)}
+              isActive={isTracksPath(pathname)}
               tooltip={label}
               className={ITEM_CLASS}
             >
-              <NavLink to={METADATA_NAV.to} end={METADATA_NAV.end}>
-                <METADATA_NAV.icon strokeWidth={1.75} />
+              <NavLink to={TRACKS_NAV.to} end={TRACKS_NAV.end}>
+                <TRACKS_NAV.icon strokeWidth={1.75} />
                 <span>{label}</span>
               </NavLink>
             </SidebarMenuButton>

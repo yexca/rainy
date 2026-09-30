@@ -365,6 +365,41 @@ type Settings struct {
 	OnlineMetadata        bool   `json:"onlineMetadata"`        // allow managers to search online catalogues (outbound requests)
 	OnlineMetadataChinaIP bool   `json:"onlineMetadataChinaIp"` // send a mainland-China X-Real-IP to the Chinese catalogues
 	YtdlpEnabled          bool   `json:"ytdlpEnabled"`          // allow managers to download audio from YouTube / bilibili with yt-dlp (outbound requests)
+	LxSourcesEnabled      bool   `json:"lxSourcesEnabled"`      // allow lx-music source scripts and online music downloads (outbound requests)
+	LxSourceMode          string `json:"lxSourceMode"`          // "auto" (try enabled sources by priority) | "fixed" (only LxSourceID)
+	LxSourceID            string `json:"lxSourceId"`            // the source used in "fixed" mode
+}
+
+// Values of Settings.LxSourceMode.
+const (
+	LxSourceModeAuto  = "auto"
+	LxSourceModeFixed = "fixed"
+)
+
+// LxSource is an imported lx-music custom source script (table lx_sources). The native API
+// shape is lxmusic.SourceInfo; the script itself is never returned.
+type LxSource struct {
+	ID               string `db:"id"`
+	Name             string `db:"name"`
+	Description      string `db:"description"`
+	Version          string `db:"version"`
+	Author           string `db:"author"`
+	Homepage         string `db:"homepage"`
+	SourceURL        string `db:"source_url"`
+	Script           string `db:"script"` // empty in list queries
+	ScriptHash       string `db:"script_hash"`
+	ScriptSize       int    `db:"script_size"` // computed: length of script in bytes
+	Enabled          bool   `db:"enabled"`
+	Position         int    `db:"position"`
+	AllowUpdateAlert bool   `db:"allow_update_alert"`
+	Platforms        string `db:"platforms"` // JSON object platform → qualities
+	LastError        string `db:"last_error"`
+	LoadedAt         int64  `db:"loaded_at"`
+	UpdateLog        string `db:"update_log"`
+	UpdateURL        string `db:"update_url"`
+	UpdateAt         int64  `db:"update_at"`
+	CreatedAt        int64  `db:"created_at"`
+	UpdatedAt        int64  `db:"updated_at"`
 }
 
 // DefaultSettings returns the settings used when nothing is stored. scanInterval is the
@@ -383,6 +418,9 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		OnlineMetadata:        false,
 		OnlineMetadataChinaIP: false,
 		YtdlpEnabled:          false,
+		LxSourcesEnabled:      false,
+		LxSourceMode:          LxSourceModeAuto,
+		LxSourceID:            "",
 	}
 }
 

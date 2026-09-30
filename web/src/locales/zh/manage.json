@@ -1,5 +1,5 @@
 {
-  "title": "元数据",
+  "title": "曲目",
   "library": {
     "default": "音乐库"
   },
@@ -511,6 +511,65 @@
       "canceled": "已取消"
     }
   },
+  "onlineMusic": {
+    "subtitle": "搜索在线曲库，通过音源把歌曲下载到音乐库。",
+    "disabledTitle": "在线音乐未开启",
+    "disabledAdmin": "在「系统 → 服务器设置 → 音源」中开启并添加音源。",
+    "disabledManager": "管理员可以在「系统 → 服务器设置 → 音源」中开启。",
+    "noSourcesTitle": "还没有可用的音源",
+    "noSourcesAdmin": "在「系统 → 服务器设置 → 音源」中导入 lx music 自定义源脚本。Rainy 不附带任何音源。",
+    "noSourcesManager": "管理员可以在「系统 → 服务器设置 → 音源」中添加音源。",
+    "openSettings": "打开设置",
+    "platform": "平台",
+    "platforms": {
+      "kw": "酷我音乐",
+      "kg": "酷狗音乐",
+      "tx": "QQ音乐",
+      "wy": "网易云音乐",
+      "mg": "咪咕音乐"
+    },
+    "searchPlaceholder": "歌名、歌手或专辑",
+    "search": "搜索",
+    "enterQuery": "搜索在线曲库，把歌曲添加到音乐库。",
+    "noResults": "没有结果",
+    "noResultsHint": "换个关键词或换个平台试试。",
+    "searchFailed": "{{platform}}没有响应",
+    "total_other": "共 {{formatted}} 个结果",
+    "loadMore": "加载更多",
+    "selectAll": "全选当前结果",
+    "select": "选择「{{title}}」",
+    "selected_other": "已选 {{count}} 首",
+    "clear": "清除",
+    "download": "下载",
+    "downloadOne": "下载「{{title}}」",
+    "queued_other": "已加入下载队列：{{count}} 首",
+    "options": "下载选项",
+    "organized": "按标签整理",
+    "withLyrics": "歌词",
+    "withCover": "封面",
+    "quality": "音质",
+    "qualityHint": "歌曲或音源不提供所选音质时，会自动改用较低的音质。",
+    "qualities": {
+      "128k": "标准 128K",
+      "320k": "高品质 320K",
+      "flac": "无损 FLAC",
+      "flac24bit": "Hi-Res 24 位 FLAC"
+    },
+    "badges": {
+      "128k": "128K",
+      "320k": "320K",
+      "flac": "FLAC",
+      "flac24bit": "Hi-Res"
+    },
+    "lyrics": "内嵌歌词",
+    "lyricsHint": "使用曲库提供的歌词；有翻译时，翻译会配对显示在每行原文下方。",
+    "cover": "内嵌封面",
+    "openPage": "打开歌曲页面",
+    "via": "{{source}} · {{quality}}",
+    "resolving": "正在向音源请求链接",
+    "tagging": "正在写入标签",
+    "rights": "只下载你有权保留的内容。音源是第三方脚本，Rainy 不附带任何音源。"
+  },
   "folders": {
     "subtitle": "浏览磁盘上的文件。",
     "breadcrumbs": "文件夹路径",
@@ -630,7 +689,7 @@
       "delete": "移到回收站",
       "restore": "已恢复",
       "upload": "上传",
-      "download": "从链接下载",
+      "download": "下载",
       "purge": "永久删除",
       "encoding": "修复了乱码"
     },
@@ -643,6 +702,8 @@
       "name": "上传的文件",
       "title": "标题",
       "source": "来源",
+      "quality": "音质",
+      "via": "音源",
       "size": "大小",
       "missing": "文件已丢失"
     },

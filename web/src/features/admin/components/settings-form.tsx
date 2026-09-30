@@ -38,6 +38,10 @@ const schema = z.object({
   onlineMetadata: z.boolean(),
   onlineMetadataChinaIp: z.boolean(),
   ytdlpEnabled: z.boolean(), // edited on the yt-dlp tab
+  // edited on the Sources tab
+  lxSourcesEnabled: z.boolean(),
+  lxSourceMode: z.enum(['auto', 'fixed']),
+  lxSourceId: z.string(),
 })
 
 /** Server settings. Initialised once from `initial`; background refetches never overwrite edits. */

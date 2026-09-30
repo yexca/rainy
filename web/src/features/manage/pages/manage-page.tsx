@@ -43,7 +43,7 @@ import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
 import { BatchDialogs, type BatchDialogKind, type BatchDialogState } from '../components/batch-dialogs'
-import { ManageSections } from '../components/manage-sections'
+import { TracksTabs } from '../components/tracks-tabs'
 import { ManageToolbar } from '../components/manage-toolbar'
 import { MOBILE_ROW_HEIGHT, MobileTrackRows } from '../components/track-list-mobile'
 import { DESKTOP_ROW_HEIGHT, TrackTableHeader, TrackTableRows } from '../components/track-table'
@@ -337,18 +337,8 @@ export default function ManagePage() {
             </Button>
           ) : null
         }
-        actions={
-          isMobile ? null : (
-            <Button asChild variant="outline">
-              <Link to="/manage/upload">
-                <Upload />
-                {t('upload.title')}
-              </Link>
-            </Button>
-          )
-        }
       >
-        {isMobile ? <ManageSections className="mb-4" /> : null}
+        <TracksTabs />
         <ManageToolbar
           filters={filters}
           onChange={update}

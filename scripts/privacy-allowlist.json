@@ -137,21 +137,25 @@
     {
       "url": "https://music.163.com/**",
       "files": [
-        "internal/metasearch/netease.go"
+        "internal/metasearch/netease.go",
+        "internal/lxmusic/platforms.go",
+        "internal/lxmusic/song.go"
       ],
       "reason": "NetEase Cloud Music search and lyrics endpoints (and Referer) used by the opt-in online metadata lookup; requests run only when an admin enabled it and a manager searches."
     },
     {
       "url": "https://p1.music.126.net/**",
       "files": [
-        "internal/metasearch/metasearch_test.go"
+        "internal/metasearch/metasearch_test.go",
+        "internal/lxmusic/search_test.go"
       ],
       "reason": "Synthetic NetEase cover URLs in the online metadata lookup tests (served by a fake transport, never fetched)."
     },
     {
       "url": "http://p1.music.126.net/**",
       "files": [
-        "internal/metasearch/metasearch_test.go"
+        "internal/metasearch/metasearch_test.go",
+        "internal/lxmusic/search_test.go"
       ],
       "reason": "Synthetic plain-HTTP NetEase cover URL that the online metadata lookup tests expect to be upgraded to HTTPS."
     },
@@ -187,16 +191,20 @@
       "url": "https://y.gtimg.cn/music/photo_new/**",
       "files": [
         "internal/metasearch/qq.go",
-        "internal/metasearch/metasearch_test.go"
+        "internal/metasearch/metasearch_test.go",
+        "internal/lxmusic/platforms.go",
+        "internal/lxmusic/search_test.go",
+        "internal/api/online_test.go"
       ],
       "reason": "QQ Music album cover image host used by the opt-in online metadata lookup."
     },
     {
       "url": "http://mobilecdn.kugou.com/api/v3/search/song",
       "files": [
-        "internal/metasearch/kugou.go"
+        "internal/metasearch/kugou.go",
+        "internal/lxmusic/platforms.go"
       ],
-      "reason": "Kugou search endpoint (served only over HTTP) used by the opt-in online metadata lookup."
+      "reason": "Kugou search endpoint (served only over HTTP) used by the opt-in online metadata lookup, and as the fallback search of the opt-in online music feature."
     },
     {
       "url": "https://lyrics.kugou.com/**",
@@ -208,21 +216,25 @@
     {
       "url": "https://imge.kugou.com/**",
       "files": [
-        "internal/metasearch/metasearch_test.go"
+        "internal/metasearch/metasearch_test.go",
+        "internal/lxmusic/search_test.go",
+        "internal/lxmusic/service_test.go"
       ],
       "reason": "Synthetic Kugou cover URLs in the online metadata lookup tests."
     },
     {
       "url": "http://imge.kugou.com/**",
       "files": [
-        "internal/metasearch/metasearch_test.go"
+        "internal/metasearch/metasearch_test.go",
+        "internal/lxmusic/search_test.go"
       ],
       "reason": "Synthetic plain-HTTP Kugou cover template in the online metadata lookup tests."
     },
     {
       "url": "https://search.kuwo.cn/r.s",
       "files": [
-        "internal/metasearch/kuwo.go"
+        "internal/metasearch/kuwo.go",
+        "internal/lxmusic/platforms.go"
       ],
       "reason": "Kuwo search endpoint used by the opt-in online metadata lookup."
     },
@@ -238,9 +250,69 @@
       "files": [
         "internal/metasearch/kuwo.go",
         "internal/metasearch/metasearch_test.go",
-        "internal/api/metadata_test.go"
+        "internal/api/metadata_test.go",
+        "internal/lxmusic/platforms.go",
+        "internal/lxmusic/search_test.go"
       ],
       "reason": "Kuwo album cover image host used by the opt-in online metadata lookup."
+    },
+    {
+      "url": "https://songsearch.kugou.com/song_search_v2",
+      "files": [
+        "internal/lxmusic/platforms.go"
+      ],
+      "reason": "Kugou song search used by the opt-in online music feature (the endpoint lx-music uses); requests run only when an admin enabled online music and a manager searches."
+    },
+    {
+      "url": "https://u.y.qq.com/cgi-bin/musics.fcg",
+      "files": [
+        "internal/lxmusic/platforms.go"
+      ],
+      "reason": "QQ Music signed desktop search used by the opt-in online music feature; requests run only when an admin enabled online music and a manager searches."
+    },
+    {
+      "url": "https://jadeite.migu.cn/music_search/v3/search/searchAll",
+      "files": [
+        "internal/lxmusic/platforms.go"
+      ],
+      "reason": "Migu song search used by the opt-in online music feature; requests run only when an admin enabled online music and a manager searches."
+    },
+    {
+      "url": "https://d.musicapp.migu.cn/**",
+      "files": [
+        "internal/lxmusic/platforms.go",
+        "internal/lxmusic/search_test.go"
+      ],
+      "reason": "Migu cover and lyrics host for the opt-in online music feature (covers are proxied by the server); the tests use synthetic paths."
+    },
+    {
+      "url": "https://www.kuwo.cn/play_detail/**",
+      "files": [
+        "internal/lxmusic/song.go"
+      ],
+      "reason": "Public Kuwo song page linked from online music results and edit-log entries; never requested by the server."
+    },
+    {
+      "url": "https://www.kugou.com/song/**",
+      "files": [
+        "internal/lxmusic/song.go"
+      ],
+      "reason": "Public Kugou song page linked from online music results and edit-log entries; never requested by the server."
+    },
+    {
+      "url": "https://y.qq.com/n/yqq/song/**",
+      "files": [
+        "internal/lxmusic/song.go",
+        "internal/manage/online_test.go"
+      ],
+      "reason": "Public QQ Music song page linked from online music results and edit-log entries; never requested by the server."
+    },
+    {
+      "url": "https://music.migu.cn/v3/music/song/**",
+      "files": [
+        "internal/lxmusic/song.go"
+      ],
+      "reason": "Public Migu song page linked from online music results and edit-log entries; never requested by the server."
     },
     {
       "url": "https://itunes.apple.com/search",

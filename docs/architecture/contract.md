@@ -24,6 +24,7 @@ the same change and say so in your report).
 | Text | `golang.org/x/text` (normalization, GBK/Big5/Shift-JIS decoders), `github.com/mozillazg/go-pinyin` | search normalization, CJK index letters, mojibake repair |
 | Transcoding | external `ffmpeg` binary | shipped in the docker image |
 | Link downloads | external `yt-dlp` binary (opt-in, §5.14) | installed at runtime into `<data>/ytdlp`; QuickJS (`qjs`) shipped in the image for YouTube |
+| Online music | `github.com/dop251/goja` (pure-Go ECMAScript interpreter) | runs lx-music custom source scripts in a sandbox (opt-in, §5.15) |
 | Frontend | Vite + React 19 + TypeScript + Tailwind CSS v4 + shadcn/ui | |
 | FE data | `@tanstack/react-query` v5, `react-router` v7 (data router), `zustand` | |
 | FE misc | `motion` (`motion/react`), `vaul` (via shadcn Drawer), `sonner`, `lucide-react`, `@tanstack/react-virtual`, `@dnd-kit/*`, `i18next` + `react-i18next`, `vite-plugin-pwa` | |
@@ -54,6 +55,7 @@ rainy/
 │   ├── manage/                  tag editing, covers, lyrics, rename, upload, trash, doctor, edit log
 │   ├── metasearch/              opt-in online metadata lookup (NetEase, QQ Music, Kugou, Kuwo, iTunes)
 │   ├── ytdlp/                   opt-in downloads from YouTube / bilibili: yt-dlp binary, cookies, runs
+│   ├── lxmusic/                 opt-in online music: catalogue search, lx-music source scripts (goja sandbox), downloads of their links
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
 │   ├── subsonic/                Subsonic + OpenSubsonic API (/rest)
@@ -129,7 +131,7 @@ Data dir layout:
 /data/secret.key        32 random bytes, created on first start (AES key + misc HMAC)
 /data/cache/artwork/    resized cover cache
 /data/trash/<libraryId>/<original relative path>   deleted files (restorable)
-/data/tmp/              upload staging; ytdlp-job-<id>/ work directories of running downloads
+/data/tmp/              upload staging; ytdlp-job-<id>/ and online-job-<id>/ work directories of running downloads
 /data/ytdlp/            yt-dlp binary installed by Rainy, cache/, cookies/<site>.enc (0700/0600, encrypted with secret.key)
 ```
 
@@ -139,7 +141,8 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 
 ### 5.1 Database
 Schema: `internal/db/migrations/0001_init.sql` plus later migrations in the same folder (`0002_play_queue_index.sql`
-adds `play_queues.current_index`) — read them, they are part of this contract.
+adds `play_queues.current_index`, `0003_lx_sources.sql` adds the `lx_sources` table of §5.15) — read them, they are part
+of this contract.
 Migrations are embedded, applied in lexical order, tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`.
 
 `internal/db`:
@@ -241,8 +244,20 @@ type Settings struct {
     OnlineMetadata    bool   `json:"onlineMetadata"`    // default false: allow managers to search online catalogues (§5.13)
     OnlineMetadataChinaIP bool `json:"onlineMetadataChinaIp"` // default false: metasearch.Options.ChinaIP (§5.13)
     YtdlpEnabled      bool   `json:"ytdlpEnabled"`      // default false: allow downloads from YouTube / bilibili with yt-dlp (§5.14)
+    LxSourcesEnabled  bool   `json:"lxSourcesEnabled"`  // default false: allow online music and lx-music source scripts (§5.15)
+    LxSourceMode      string `json:"lxSourceMode"`      // default "auto" (enabled sources by priority) | "fixed" (only LxSourceID)
+    LxSourceID        string `json:"lxSourceId"`        // default "": the source used in fixed mode
 }
 func DefaultSettings(scanInterval time.Duration) Settings
+const LxSourceModeAuto, LxSourceModeFixed = "auto", "fixed"
+
+// lx_sources row; db tags only — the API shape is lxmusic.SourceInfo and the script is never returned.
+type LxSource struct {
+    ID, Name, Description, Version, Author, Homepage, SourceURL, Script, ScriptHash string
+    ScriptSize int /*computed length(script)*/; Enabled bool; Position int; AllowUpdateAlert bool
+    Platforms string /*JSON {"kw":["128k",…]}*/; LastError string; LoadedAt int64
+    UpdateLog, UpdateURL string; UpdateAt, CreatedAt, UpdatedAt int64
+}
 ```
 JSON tags on every struct follow the camelCase of the Go field name unless noted
 (`ID`→`id`, `LibraryID`→`libraryId`, `BPM`→`bpm`, `RGTrackGain`→`rgTrackGain`, `StreamURL`→`streamUrl`,
@@ -362,6 +377,11 @@ GetPlayQueue(ctx, userID) (*model.PlayQueue, error); SavePlayQueue(ctx, userID s
 ListBookmarks(ctx, userID) ([]model.Bookmark, error); UpsertBookmark(ctx, userID string, b *model.Bookmark) error; DeleteBookmark(ctx, userID, trackID) error
 ListRadioStations(ctx) ([]model.RadioStation, error); GetRadioStation(ctx, id); CreateRadioStation(ctx, *model.RadioStation) error; UpdateRadioStation; DeleteRadioStation
 GetSettings(ctx, defaults model.Settings) (model.Settings, error); SaveSettings(ctx, model.Settings) error
+ListLxSources(ctx) ([]model.LxSource, error) /*by position, without scripts*/; GetLxSource(ctx, id) (*model.LxSource, error) /*with script*/
+CreateLxSource(ctx, *model.LxSource) error /*appended to the priority order; duplicate script → ErrConflict*/
+ReplaceLxSourceScript(ctx, *model.LxSource) error; SetLxSourceFlags(ctx, id string, enabled, allowUpdateAlert *bool) error
+SetLxSourceLoaded(ctx, id, platformsJSON, lastError string, at int64) error; SetLxSourceUpdateAlert(ctx, id, log, url string, at int64) error
+DeleteLxSource(ctx, id) error; ReorderLxSources(ctx, ids []string) error /*every id exactly once, else ErrInvalid*/
 AddEditLog(ctx, *model.EditLogEntry) error; ListEditLog(ctx, trackID string, offset, limit int) ([]model.EditLogEntry, int, error)
 AddTrash(ctx, *model.TrashEntry) error; ListTrash(ctx) ([]model.TrashEntry, error); GetTrash(ctx, id) (*model.TrashEntry, error); DeleteTrash(ctx, id) error
 type FormatStat struct { Suffix string; Count int; Size int64 }
@@ -524,7 +544,9 @@ func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events
 `(*Service).SetDownloader(d manage.Downloader)` enables link downloads (app passes `*ytdlp.Service`;
 `Downloader` = `Ready(ctx) error` + `Download(ctx, ytdlp.Request, progress) ([]ytdlp.Item, error)`), and
 `CloseDownloads()` cancels running jobs (called by `App.Close`). Download jobs: `StartDownload`, `DownloadJobs`,
-`RemoveDownload` behind §7.6 `/manage/downloads`.
+`RemoveDownload` behind §7.6 `/manage/downloads`. `(*Service).SetOnlineSource(o manage.OnlineSource)` (app passes
+`*lxmusic.Service`) enables `StartOnlineDownload` (§7.6 `/manage/online/downloads`); online jobs share the job list
+(`DownloadJob.Kind` `link` | `online`) but have their own three workers.
 Everything else inside `manage` is private to that agent; the HTTP contract (§7.6) is what matters.
 Rules: every file operation goes through `util.SafeJoin`, holds `scanner.LockLibrary()`, calls
 `scanner.RescanFiles` afterwards, writes an `edit_log` row, and publishes a `library` event.
@@ -537,11 +559,12 @@ type App struct {
     Cfg *config.Config; DB *db.DB; Store *store.Store; Auth *auth.Service; Bus *events.Bus
     NowPlaying *nowplaying.Tracker; Scanner *scanner.Scanner; Artwork *artwork.Service
     Transcoder *transcode.Service; Manage *manage.Service; Metadata *metasearch.Service; Ytdlp *ytdlp.Service
+    Online *lxmusic.Service
     StartedAt time.Time
 }
 func New(ctx context.Context, cfg *config.Config) (*App, error) // open+migrate DB, key, services, default library
 func (a *App) Settings(ctx context.Context) model.Settings       // store.GetSettings with defaults (errors logged → defaults)
-func (a *App) Close() error // stops downloads and a running yt-dlp install, then closes the DB
+func (a *App) Close() error // stops downloads, source scripts and a running yt-dlp install, then closes the DB
 
 // server
 func New(a *app.App) *http.Server
@@ -582,7 +605,7 @@ var ErrUnknownProvider, ErrInvalid, ErrNotFound, ErrUpstream error
 Rules: fixed endpoint URLs; the query is one encoded parameter (or a JSON value), ≤ 200 characters;
 provider ids are validated per provider before any request; responses are capped (4 MiB JSON,
 20 MiB images); covers come only from `music.126.net`, `y.gtimg.cn`, `y.qq.com`, `kugou.com`,
-`kuwo.cn`, and `mzstatic.com` (host or subdomain, default port, no userinfo), redirects stay on
+`kuwo.cn`, `mzstatic.com`, and `migu.cn` (for §5.15; host or subdomain, default port, no userinfo), redirects stay on
 the same host, and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
 QQ Music falls back to its older mobile search (no track numbers) when the desktop search refuses.
 With `Options.ChinaIP`, requests to the NetEase, QQ Music, Kugou, and Kuwo APIs carry an
@@ -648,6 +671,80 @@ Rules:
   domain (`youtube.com` / `bilibili.com` and subdomains), encrypted with `secret.key` (AES-GCM, like passwords) and
   written 0600 to `<data>/ytdlp/cookies/<site>.enc`. No endpoint returns them, logs and errors never quote them, and a
   run gets a private plain-text copy in its work dir that is deleted with it. Undecryptable files are ignored.
+
+### 5.15 lxmusic (owner: manage agent)
+Online music in the style of lx-music: song search in the five catalogues lx-music knows, and lx-music *custom source*
+scripts that turn a search result into a download link. Used only by the §7.6 `/manage/online*` and §7.7 `/admin/sources*`
+endpoints, which refuse every action that contacts another service (search, cover proxy, download, starting a script,
+importing from a link) with `403 forbidden` unless `settings.lxSourcesEnabled` is on. It never writes into a library:
+manage imports downloaded files like uploads.
+```go
+func New(o Options) *lxmusic.Service // starts the idle-unload loop; Close stops every script
+type Options struct { Store *store.Store; Metadata *metasearch.Service /*lyrics, covers*/; AllowPrivate bool /*tests*/ }
+var Platforms = []string{"kw", "kg", "tx", "wy", "mg"}      // Kuwo, Kugou, QQ Music, NetEase Cloud Music, Migu
+var Qualities = []string{"128k", "320k", "flac", "flac24bit"} // lowest first
+func (s *Service) Search(ctx, platform, query string, page, limit int) (*SearchResult, error) // limit ≤ 50 (default 30), page ≤ 100
+func (s *Service) List(ctx) ([]SourceInfo, error); Get(ctx, id) (*SourceInfo, error)
+func (s *Service) Import(ctx, script, sourceURL string, start bool) (*SourceInfo, error) // ErrInvalid, store.ErrConflict (duplicate)
+func (s *Service) FetchScript(ctx, url string) (string, error); Refresh(ctx, id string, start bool) (*SourceInfo, error)
+func (s *Service) Update(ctx, id string, enabled, allowUpdateAlert *bool) (*SourceInfo, error); Delete(ctx, id) error
+func (s *Service) Reorder(ctx, ids []string) error; Reload(ctx, id) (*SourceInfo, error) // a failed start is Status "error", not an error
+type Selection struct { Mode, SourceID string }         // from settings.lxSourceMode / lxSourceId
+func (s *Service) Candidates(ctx, platform string, sel Selection) ([]Candidate, error) // Candidate{ID, Name}, in order
+func (s *Service) Usable(ctx, sel Selection) (int, error); Available(ctx, sel Selection) (map[string][]string, error)
+func (s *Service) MusicURL(ctx, sourceID string, song Song, want string) (link, quality string, err error)
+func (s *Service) Download(ctx, link string, w io.Writer, limit int64, progress func(done, total int64)) (int64, error)
+func (s *Service) Lyrics(ctx, song Song) (text, translation string, err error); Cover(ctx, song Song) ([]byte, error)
+type Song struct { Platform, ID /*lx songmid*/, Title string; Artists []string; Album, AlbumID string; Duration float64
+    CoverURL string; Qualities []Quality; Extra map[string]string; PageURL string }   // json camelCase
+type Quality struct { Type, Size, Hash string }          // json: type size hash(omitempty; Kugou file hash)
+func (s Song) Validate() error; (s *Song) Normalize() error; (s Song) MusicInfo() map[string]any
+type SearchResult struct { Items []Song; Total, Page, Limit int }
+type SourceInfo struct { ID, Name, Description, Version, Author, Homepage, SourceURL string; Size int; Enabled bool
+    Position int; AllowUpdateAlert bool; Platforms []PlatformQualities; Status /*idle|loading|ready|error*/, Error string
+    UpdateAlert *UpdateAlert; LoadedAt, CreatedAt, UpdatedAt int64 }                 // json camelCase
+type PlatformQualities struct { Platform string; Qualities []string }; type UpdateAlert struct { Log, URL string; At int64 }
+var ErrInvalid, ErrNotFound, ErrUpstream, ErrUnavailable, ErrScript, ErrBlocked, ErrClosed error
+```
+Rules:
+- **Search** follows lx-music's own search code: Kuwo `search.kuwo.cn/r.s`, Kugou `songsearch.kugou.com/song_search_v2`
+  (falling back to the plain-HTTP `mobilecdn.kugou.com/api/v3/search/song`, which lacks Hi-Res, when it fails or finds
+  nothing — it answers empty for a while after many searches from one address),
+  QQ Music `u.y.qq.com/cgi-bin/musics.fcg` signed with the desktop client's `zzc` signature, NetEase Cloud Music
+  `music.163.com/api/cloudsearch/pc`, Migu `jadeite.migu.cn/music_search/v3/search/searchAll` signed like the Android
+  client. Fixed URLs, the query as one encoded parameter (≤ 200 characters), 4 MiB responses. Results carry the ids
+  source scripts need in `Extra` (Kugou `hash`, `albumAudioId`; QQ `strMediaMid`, `albumMid`, `songId`; Migu
+  `copyrightId`, `lrcUrl`, `mrcUrl`, `trcUrl`) and the qualities the catalogue lists. Songs sent back by clients are
+  validated (`Normalize`): known platform, per-platform id and `Extra` formats, bounded text, covers on the metasearch
+  image hosts; `PageURL` is recomputed. `MusicInfo` builds lx-music's old-format musicInfo (`toOldMusicInfo`).
+- **Scripts** are stored in `lx_sources` (≤ 9,000,000 bytes, UTF-8, must open with the lx-music `/** @name … */` header;
+  name 24, description 36, author 56, version 36, homepage 1024 characters, homepages only `http(s)`; sha256 dedupe).
+  A script starts on first use (or on reload) in its own goja runtime driven by one event-loop goroutine; it gets the
+  lx-music desktop API `window.lx` (`EVENT_NAMES`, `on('request')`, `send('inited' | 'updateAlert')`, `request`,
+  `utils.crypto.{aesEncrypt, rsaEncrypt, randomBytes, md5}`, `utils.buffer.{from, bufToString}`, `utils.zlib`,
+  `currentScriptInfo`, `version` `2.0.0`, `env` `desktop`) plus `setTimeout`/`setInterval`, `console` (debug log,
+  rate limited), `atob`/`btoa`, `TextEncoder`/`TextDecoder`, `URLSearchParams`, `navigator`; nothing else (no `require`,
+  file system, processes or `fetch`). Buffers are plain `Uint8Array`s, as they reach scripts through Electron's bridge.
+  The start succeeds when `inited` lists at least one of the five platforms with valid qualities (20 s); an uncaught
+  error or unhandled rejection before that fails it. The platforms and qualities, or the error, are saved in the row;
+  a failed start is retried after 2 minutes (or on reload); idle scripts stop after 15 minutes.
+- **Limits**: every run of script code stops after 10 s (the runtime is then discarded), a request event must answer
+  within 20 s with an `http(s)` link ≤ 2048 bytes, ≤ 1000 timers, ≤ 8 concurrent `lx.request`s, request bodies ≤ 4 MiB,
+  responses ≤ 10 MiB, request timeout ≤ 60 s. `lx.request` follows needle's behaviour: no redirects, bodies from
+  `body`/`form`/`formData` (objects as query strings, JSON only with a JSON content type), JSON responses parsed. Like
+  lx-music's V8 preload, a missing options object throws `TypeError: Cannot read properties of undefined (reading
+  'method')` at once and a missing callback only fails when the response arrives (scripts probe both).
+  Memory is not bounded.
+- **Network guard** for scripts, script links and audio downloads: `http(s)` only, no user info, and every dialled
+  address (after DNS) must be public — loopback, private, link-local, CGNAT, multicast, documentation and reserved
+  ranges (also IPv4-mapped and NAT64) are refused. A configured `HTTP(S)_PROXY` is dialled directly, with the target
+  resolved and checked first. Audio downloads follow ≤ 5 redirects, each checked again.
+- **Downloads** (manage): `Candidates` lists enabled sources by priority (fixed mode: only the chosen one), skipping
+  sources known not to provide the platform. `MusicURL` picks the best quality up to the requested one that both the
+  song and the source list (else the lowest above it). `Download` reports an HTTP error status as `*LinkError`;
+  `LinkExpired(err)` is true for 401, 403 and 410 and for hosts that do not resolve (lx-music's "refresh the link"
+  cases). Lyrics come from metasearch (Kuwo, Kugou by hash, QQ Music,
+  NetEase) or Migu's `lrcUrl`/`trcUrl`; covers from the metasearch image hosts.
 
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
@@ -796,6 +893,10 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 | GET | `/api/manage/downloads` | | `DownloadsStatus` |
 | POST | `/api/manage/downloads` | `{url, libraryId, dir?, organize?, format?: 'best'|'m4a'|'mp3'|'opus', playlist?}` | 202 `DownloadJob` |
 | DELETE | `/api/manage/downloads/{id}` | | 204 (cancels a queued/running job; removes a finished one) |
+| GET | `/api/manage/online` | | `OnlineStatus` |
+| GET | `/api/manage/online/search` | `platform, q, page? (≥1), limit? (≤50, default 30)` | `OnlineSearchResult` |
+| GET | `/api/manage/online/cover` | `url` (a result's `coverUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
+| POST | `/api/manage/online/downloads` | `{songs: OnlineSong[] (1–50), quality?: '128k'|'320k'|'flac'|'flac24bit' (default flac), libraryId, dir?, organize?, lyrics?, cover?}` | 202 `{jobs: DownloadJob[]}` |
 
 The `/metadata/search`, `/lyrics`, and `/cover` endpoints answer `403 forbidden` while
 `settings.onlineMetadata` is off (the default) and send nothing outside the server; invalid input
@@ -809,6 +910,19 @@ A job downloads into `<data>/tmp/ytdlp-job-<id>/`, writes the tags of `ytdlp.Ite
 JPEG cover from the thumbnail through TagLib, and then imports the files exactly like an upload (not organized:
 `<dir>/<title>.<ext>`, playlists `<dir>/<playlist>/<NN> <title>.<ext>`; organized: the rename pattern): library lock,
 rescan, one `download` edit-log row per file (`{title, source, size}`), and a `library` event.
+
+`GET /downloads` lists both kinds of jobs (`kind` `link` | `online`). `/online/search`, `/online/cover` and
+`POST /online/downloads` answer `403 forbidden` while `settings.lxSourcesEnabled` is off, `400` for invalid input (unknown
+platform, a song that does not validate, a bad target), `409 conflict` when 100 online jobs are already waiting, and
+`503 unavailable` when a catalogue fails. An online job (three run at a time, at most 3 hours) re-checks the setting when
+it starts, asks the `Candidates` in order for a link, and downloads it into `<data>/tmp/online-job-<id>/` (≤ 1 GiB); a
+source error, an HTTP error or a file that is not audio (judged by its content: FLAC, MP3, M4A, Ogg/Opus, WAV, APE,
+WavPack) moves on to the next source — except that an expired link (`lxmusic.LinkExpired`) first makes the job ask the
+same source for a new link once, like lx-music — and the job fails with every source's reason when none delivers. It then writes
+`TITLE`, `ARTIST` (one value per artist), `ALBUM`, optionally `LYRICS` (the catalogue's LRC with the translation paired
+as same-timestamp lines) and the catalogue cover through TagLib, and imports the file like an upload (not organized:
+`<dir>/<title> - <artists>.<ext>`; organized: the rename pattern) with one `download` edit-log row
+(`{title, source: the song's catalogue page, quality, via: the source name, size}`).
 
 Tag keys are TagLib property names, upper-case (`TITLE, ARTIST, ALBUM, ALBUMARTIST, TRACKNUMBER,
 DISCNUMBER, DATE, GENRE, COMPOSER, COMMENT, LYRICS, BPM, COMPILATION, DISCSUBTITLE, …`). `[]` deletes.
@@ -841,6 +955,16 @@ files move with their track; directories left empty are removed (never the libra
 | POST | `/api/admin/ytdlp/install` | | 202 `YtdlpInfo` (background install/update; 403 while off, 409 when `RAINY_YTDLP_PATH` is set or an install runs) |
 | PUT | `/api/admin/ytdlp/cookies/{site}` | `{text}` (Netscape cookies.txt) | `CookieSaveResult` (stored encrypted; never returned) |
 | DELETE | `/api/admin/ytdlp/cookies/{site}` | | 204 |
+| GET | `/api/admin/sources` | | `LxSourcesInfo` |
+| POST | `/api/admin/sources` | `{script}` or `{url}` (body ≤ ~19 MiB) | 201 `LxSource` (started right away while `lxSourcesEnabled` is on; `{url}` is 403 while off; 409 when the script is already imported) |
+| PUT | `/api/admin/sources/order` | `{ids}` (every source once) | `LxSourcesInfo` |
+| PUT | `/api/admin/sources/{id}` | `{enabled?, allowUpdateAlert?}` | `LxSource` (disabling stops the script) |
+| DELETE | `/api/admin/sources/{id}` | | 204 |
+| POST | `/api/admin/sources/{id}/reload` | | `LxSource` ((re)starts the script; 403 while `lxSourcesEnabled` is off) |
+| POST | `/api/admin/sources/{id}/refresh` | | `LxSource` (downloads the script again from `sourceUrl`; 400 for a file import; 403 while off) |
+
+Automatic fallback or one fixed source is chosen with `PUT /api/admin/settings` (`lxSourceMode` `auto` | `fixed`,
+`lxSourceId`); no endpoint returns a script.
 
 ## 8. TypeScript contract (`web/src/lib/api/types.ts`)
 
@@ -941,12 +1065,24 @@ export interface MetadataLyrics { text: string; translation: string }
 export type DownloadSite = 'youtube' | 'bilibili'
 export type DownloadFormat = 'best' | 'm4a' | 'mp3' | 'opus'
 export type DownloadJobStatus = 'queued' | 'running' | 'importing' | 'done' | 'error' | 'canceled'
+export type DownloadJobKind = 'link' | 'online'
 export interface DownloadJob {
-  id: string; url: string; site: DownloadSite; title: string; status: DownloadJobStatus
+  id: string; kind: DownloadJobKind; url: string /*online: the song's catalogue page*/; site: '' | DownloadSite; title: string; status: DownloadJobStatus
   phase: '' | 'downloading' | 'processing'; progress: number /*0…1, -1 unknown*/; item: number; items: number
-  speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; format: DownloadFormat
+  speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; format: '' | DownloadFormat
   playlist: boolean; trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+  online: OnlineJob | null
 }
+export type OnlinePlatform = 'kw' | 'kg' | 'tx' | 'wy' | 'mg'
+export type OnlineQualityType = '128k' | '320k' | 'flac' | 'flac24bit'
+export interface OnlineQuality { type: OnlineQualityType; size: string; hash?: string }
+export interface OnlineSong {
+  platform: OnlinePlatform; id: string; title: string; artists: string[]; album: string; albumId: string
+  duration: number; coverUrl: string; qualities: OnlineQuality[]; extra: Record<string, string>; pageUrl: string
+}
+export interface OnlineSearchResult { items: OnlineSong[]; total: number; page: number; limit: number }
+export interface OnlineStatus { enabled: boolean; sources: number; platforms: { id: OnlinePlatform; qualities: OnlineQualityType[] }[] }
+export interface OnlineJob { song: OnlineSong; quality: OnlineQualityType; got: '' | OnlineQualityType; source: string; lyrics: boolean; cover: boolean }
 export interface DownloadsStatus { enabled: boolean; ready: boolean; sites: { id: DownloadSite; cookies: boolean }[]; jobs: DownloadJob[] }
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
@@ -963,7 +1099,7 @@ export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
-  ytdlpEnabled: boolean
+  ytdlpEnabled: boolean; lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -983,6 +1119,16 @@ export interface YtdlpInfo {
   enabled: boolean; managed: boolean; installed: boolean; version: string; error: string; latest: string; checkedAt: number
   asset: string; jsRuntime: '' | 'deno' | 'node' | 'quickjs'; ffmpeg: boolean; install: YtdlpInstallState; cookies: CookieInfo[]
 }
+export type LxSourceMode = 'auto' | 'fixed'
+export type LxSourceStatus = 'idle' | 'loading' | 'ready' | 'error'
+export interface LxSourceUpdateAlert { log: string; url: string; at: number }
+export interface LxSource {
+  id: string; name: string; description: string; version: string; author: string; homepage: string; sourceUrl: string
+  size: number; enabled: boolean; position: number; allowUpdateAlert: boolean
+  platforms: { platform: OnlinePlatform; qualities: OnlineQualityType[] }[]; status: LxSourceStatus; error: string
+  updateAlert: LxSourceUpdateAlert | null; loadedAt: number; createdAt: number; updatedAt: number
+}
+export interface LxSourcesInfo { enabled: boolean; mode: LxSourceMode; sourceId: string; sources: LxSource[] }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }
 ```
@@ -1024,9 +1170,10 @@ web/src/
 | `/playlists`, `/playlists/:id` | Playlists, playlist detail | library |
 | `/radio` | Internet radio | library |
 | `/settings` | User settings | player |
-| `/manage` | Metadata (track table + tag editor) | manage |
+| `/manage` | Tracks → Metadata (track table + tag editor) | manage |
+| `/manage/upload` | Tracks → Upload (files, links) | manage |
+| `/manage/online` | Tracks → Online (online music search + downloads) | manage |
 | `/manage/folders` | Folder browser | manage |
-| `/manage/upload` | Upload | manage |
 | `/manage/doctor` | Library doctor | manage |
 | `/manage/trash` | Trash | manage |
 | `/manage/history` | Edit history | manage |
@@ -1073,8 +1220,8 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - Type scale: page title `text-3xl font-bold tracking-tight` (mobile large title 34px/41px bold, collapsing into a 17px semibold centered nav title on scroll — `PageHeader` handles it), section title `text-xl font-semibold`, body `text-sm`, secondary `text-muted-foreground`.
 - Artwork: `rounded-lg` (≥ 160px) / `rounded-md` (thumbnails), subtle `shadow-sm` and 1px `ring-black/5 dark:ring-white/10`; artists are circles. Always square (`aspect-square object-cover`), lazy loaded, fade-in, gradient placeholder with a music-note icon when missing.
 - Glass surfaces (tab bar, mini player, top bar on scroll): `bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-border/60`.
-- Layout: desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → bottom tab bar (Home, Library, Search, and Metadata for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it.
-- Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening; `METADATA_NAV` (`/manage`) is always visible to managers (sidebar item, phone tab); `MANAGE_NAV` (folders, upload, doctor, trash, history) and `ADMIN_NAV` are folded — sidebar Collapsibles "Library tools" / "Admin" that start closed and open while one of their routes is active (a DropdownMenu flyout on the icon rail), and one "Library tools" DropdownMenu (`ManageSections`) on the phone Metadata page.
+- Layout: desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it.
+- Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening; `TRACKS_NAV` ("Tracks", `/manage`) is always visible to managers (sidebar item active on every `TRACKS_TABS` route; on phones the "Manage" tab, which also covers `/admin`); its pages `TRACKS_TABS` — Metadata `/manage`, Upload `/manage/upload`, Online `/manage/online` — are route tabs (`TracksTabs`, links with `aria-current`) in each page header; `MANAGE_NAV` (folders, doctor, trash, history) and `ADMIN_NAV` are folded — sidebar Collapsibles "Library tools" / "Admin" that start closed and open while one of their routes is active (a DropdownMenu flyout on the icon rail), and one "Library tools" DropdownMenu (`ManageSections`) next to the tabs on phones.
 - CSS vars in `index.css`: `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, `--player-window-w` (400px), `--compact-player-h` (68px), `--player-reserve`, `--player-clearance`, `--safe-top/bottom` (env(safe-area-inset-*)); pages use `.page-pad` bottom padding utility so content never hides behind player chrome. Never hard-code `--playerbar-h` for spacing: the bar may be hidden or replaced by a floating player.
 - Motion: `motion/react` springs (`type:'spring', stiffness: 400, damping: 36`), `MotionConfig reducedMotion="user"`. Press feedback on mobile: `active:scale-[0.97]` transitions.
 - Icons: lucide-react, `size-4`/`size-5`, `strokeWidth={1.75}`; transport controls use filled glyphs (`fill="currentColor"`).
@@ -1091,6 +1238,10 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - **PWA**: `vite-plugin-pwa` (generateSW, `registerType: 'prompt'` with an "update available" toast), manifest (name "Rainy", short_name "Rainy", `display: standalone`, theme/background colours for light+dark, icons 192/512/maskable + apple-touch-icon 180), iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`, `viewport-fit=cover`), navigateFallback `index.html` with denylist `/api`, `/rest`. Runtime caching: `/api/cover/*` CacheFirst (500 entries, 30 days); never cache `/api/stream`, `/api/download`, `/api/events`.
 
 ### 9.5 Management UI (manage agent)
+- **Tracks** (sidebar entry; page title "Tracks") has three route tabs: Metadata, Upload, Online. Upload and Online share
+  the destination (`useDestination`, `DestinationSection`: library, folder, organize by tags — the folder and library are
+  kept while switching tabs, `organize` is remembered) and the server job list (`DownloadJobs`, links on Upload, online
+  music on Online; `useJobNotifications` toasts finished jobs and refreshes the library).
 - **Metadata** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Rebuild tags, Delete, Rescan. Mobile: list with selection mode.
 - **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
@@ -1100,9 +1251,22 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   `/manage/downloads` every second while a job is active (progress, entry n/m, speed, ETA, cancel / retry / remove, Edit tags
   when done) and toasts + refreshes the library when a job this page saw finishes. When the feature is off or yt-dlp is not
   installed, the section says so (admins get a link to Settings → yt-dlp).
+- **Online** `/manage/online`: when `lxSourcesEnabled` is off or no source is usable, an empty state explains it (admins get
+  a link to Settings → Sources). Otherwise a collapsible "Download options" summary (destination, quality — Hi-Res /
+  FLAC / 320K / 128K, "a lower one is used when missing", embed lyrics, embed cover; quality, toggles and platform are
+  remembered), a search form (platform select + query), and results as rows (checkbox, proxied cover, title, artists ·
+  album, duration, the quality badge a download would ask for with all sizes in its title, catalogue page link, a
+  download button); "Load more" pages through results (`useInfiniteQuery`, key `['online-search', platform, q]`, not a
+  library root). A floating bar downloads the selection (sent in batches of 50).
 - **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (cards with path, counts, writable badge; quick/full scan buttons; live progress via `/api/events`), server settings form, system info (versions, ffmpeg, sizes, clear cache).
-  Settings tabs General / yt-dlp / System. *yt-dlp* (`YtdlpSettings`): the `ytdlpEnabled` switch (saved immediately), installed
+  Settings tabs General / yt-dlp / Sources / System. *Sources* (`SourcesSettings`): the `lxSourcesEnabled` switch, the mode
+  (automatic fallback / always one source + a source select), and the sources in priority order (up / down buttons;
+  name, version, status badge, description, author · file or link · size · last start, platform/best-quality chips, the
+  start error, the script's update notice with its link and "Update from link"; an enable switch and a menu: test /
+  restart, update from link, show / hide update notices, homepage, remove with confirmation). `SourceImportDialog`
+  warns that scripts are third-party code running on the server, then imports a `.js` file (read in the browser) or a
+  link (needs the setting on). *yt-dlp* (`YtdlpSettings`): the `ytdlpEnabled` switch (saved immediately), installed
   version, latest release, Check for updates / Install / Update to X (polls while installing), ffmpeg and JavaScript runtime
   status, and per-site sign-in cookies (count, signed in, expiry, updated; Add / Replace / Remove). `CookieDialog` first shows
   a warning that must be acknowledged (cookies are account credentials; a malicious program could impersonate the user;

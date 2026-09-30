@@ -10,12 +10,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useIsMobile } from '@/hooks/use-media-query'
 
 import { SettingsForm } from '../components/settings-form'
+import { SourcesSettings } from '../components/sources-settings'
 import { SystemInfo } from '../components/system-info'
 import { YtdlpSettings } from '../components/ytdlp-settings'
 import { settingsQuery } from '../queries'
 
-type Tab = 'general' | 'ytdlp' | 'system'
-const TABS: readonly Tab[] = ['general', 'ytdlp', 'system']
+type Tab = 'general' | 'ytdlp' | 'sources' | 'system'
+const TABS: readonly Tab[] = ['general', 'ytdlp', 'sources', 'system']
 
 export default function ServerSettingsPage() {
   const { t } = useTranslation('admin')
@@ -52,6 +53,8 @@ export default function ServerSettingsPage() {
           )
         ) : tab === 'ytdlp' ? (
           <YtdlpSettings />
+        ) : tab === 'sources' ? (
+          <SourcesSettings />
         ) : (
           <SystemInfo />
         )}

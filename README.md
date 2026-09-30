@@ -59,8 +59,9 @@ Docker image for `linux/amd64` and `linux/arm64`.
 - **Library management in the browser.** Single and batch tag editing with
   preview-before-apply tools, cover art, embedded or `.lrc` lyrics,
   rename/organize by pattern, uploads, optional downloads from YouTube and
-  bilibili links through yt-dlp, a restorable trash, a library doctor, and a
-  complete edit history.
+  bilibili links through yt-dlp, optional online music search and downloads
+  through lx-music compatible music sources, a restorable trash, a library
+  doctor, and a complete edit history.
 - **Friendly to CJK libraries.** Mojibake from legacy GBK, Big5, and Shift-JIS
   tags is repaired when reading and can be written back as UTF-8. Chinese artist
   names are indexed by pinyin initial.
@@ -156,8 +157,8 @@ only the app shell, the health check, sign-in, and the first-run setup, which
 closes once the first account exists. All file operations are confined to the
 configured library roots. Rainy does not
 send telemetry and makes no outbound requests of its own unless an
-administrator enables the optional online metadata lookup or downloads from
-YouTube and bilibili. Report a suspected
+administrator enables the optional online metadata lookup, downloads from
+YouTube and bilibili, or online music. Report a suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
 

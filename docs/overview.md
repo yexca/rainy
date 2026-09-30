@@ -35,7 +35,9 @@ Rainy currently includes:
 - A web player with an iOS-style Now Playing screen, synced lyrics, queue
   editing, Media Session integration, and PWA installation.
 - Management features: tag editing, cover art, lyrics, rename and organize,
-  upload, trash, a library doctor, a folder browser, and an edit history.
+  upload, trash, a library doctor, a folder browser, and an edit history, plus
+  opt-in downloads from YouTube and bilibili links and online music through
+  lx-music compatible music sources.
 - Multiple users with administrator, manager, and download permissions, and
   multiple libraries.
 

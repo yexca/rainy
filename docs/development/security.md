@@ -32,6 +32,17 @@ should use the [Security Policy](../../SECURITY.md).
   response. Sign-in cookies are credentials: keep them encrypted, out of every
   API response, log line, and error message, and give each run a private copy
   that is deleted with its work directory.
+  Online music (`internal/lxmusic`) sits behind the admin-only
+  `lxSourcesEnabled` setting (off by default). Its catalogue searches follow the
+  same rules as metasearch. Its lx-music source scripts are third-party code
+  imported by an administrator: they run in a goja interpreter with only the
+  lx-music API (no `require`, file system, processes or `fetch`), every run of
+  script code is interrupted after 10 s and the interpreter discarded, inputs
+  and responses are bounded, and `lx.request`, script imports from a link, and
+  audio downloads may dial public internet addresses only (checked after DNS
+  resolution and on every redirect). Memory use is not bounded, which is why
+  only administrators can import scripts. No endpoint returns a script, and
+  songs sent back by clients are validated before their ids reach a script.
   Use fixed endpoint URLs, pass user input only as an encoded parameter,
   validate provider ids before requesting, cap response sizes, and fetch covers
   only from the allow-listed provider image hosts. Responses from these
