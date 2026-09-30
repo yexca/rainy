@@ -43,3 +43,5 @@ action.
 
 - `make frontend-test` runs unit tests for pure web helpers with Node's
   built-in test runner; `ci-frontend` includes it.
+- Agents build and run the app through Docker by default (`make docker-build
+  smoke`, `make docker-up`); see `AGENTS.md`.

@@ -102,6 +102,15 @@ Actions exercise the same commands.
   documentation, `make ci-style` for formatting, lint, docs, and CI-policy
   checks, `make ci-backend` for Go behavior, and `make ci-frontend` for the web
   app.
+- Build and run the application with Docker by default. Use
+  `make DOCKER_IMAGE=rainy:dev docker-build smoke` to build the image and
+  exercise it, and `make docker-up` (`RAINY_DEV_MUSIC_PATH` selects the
+  library; `make docker-logs`, `make docker-down`) when a running instance is
+  needed for manual or browser checks. Do not build or start local binaries
+  (`make backend-build`, `make backend-run`, `go run ./cmd/rainy`,
+  `pnpm build`) for this unless the user asks; host-side test and lint targets
+  are fine. Remove any local build output you create (`bin/`, generated
+  `web/dist` files, `coverage.out`).
 - Use `make DOCKER_IMAGE=rainy:ci docker-build smoke` (or `make ci-production`)
   for Dockerfile, entrypoint, or runtime changes.
 - `make ci-local` runs the complete GitHub Actions sequence locally.
