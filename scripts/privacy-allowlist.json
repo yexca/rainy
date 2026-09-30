@@ -255,6 +255,104 @@
         "internal/metasearch/metasearch_test.go"
       ],
       "reason": "Synthetic iTunes artwork URLs in the online metadata lookup tests."
+    },
+    {
+      "url": "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+      "files": [
+        "internal/ytdlp/update.go"
+      ],
+      "reason": "GitHub API endpoint that reports the latest yt-dlp release tag; requested only when an administrator enabled downloads from links and checks for or installs a yt-dlp update."
+    },
+    {
+      "url": "https://github.com/yt-dlp/yt-dlp/**",
+      "files": [
+        "internal/ytdlp/update.go",
+        "internal/ytdlp/ytdlp.go",
+        "docs/architecture/contract.md",
+        "docs/architecture/library-management.md"
+      ],
+      "reason": "yt-dlp's official repository and release downloads (binary and SHA2-256SUMS), fetched only on an administrator's install or update."
+    },
+    {
+      "url": "https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc",
+      "files": [
+        "web/src/features/admin/components/cookie-dialog.tsx",
+        "docs/user/management.md"
+      ],
+      "reason": "Public Chrome Web Store page of the \"Get cookies.txt LOCALLY\" extension that the cookie guide recommends; a link the administrator opens, never requested by the server."
+    },
+    {
+      "url": "https://www.youtube.com/**",
+      "files": [
+        "internal/ytdlp/*_test.go",
+        "internal/api/ytdlp_test.go",
+        "internal/manage/download_test.go",
+        "web/tests/downloads.test.ts"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "https://m.youtube.com/**",
+      "files": [
+        "internal/ytdlp/sites_test.go"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "https://music.youtube.com/**",
+      "files": [
+        "internal/ytdlp/sites_test.go",
+        "web/tests/downloads.test.ts"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "https://youtu.be/**",
+      "files": [
+        "internal/ytdlp/sites_test.go"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "http://youtu.be/**",
+      "files": [
+        "internal/ytdlp/sites_test.go"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched). Checks that http links are upgraded to https."
+    },
+    {
+      "url": "https://www.bilibili.com/**",
+      "files": [
+        "internal/ytdlp/sites_test.go"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "https://m.bilibili.com/**",
+      "files": [
+        "internal/ytdlp/sites_test.go",
+        "web/tests/downloads.test.ts"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched)."
+    },
+    {
+      "url": "https://live.bilibili.com/**",
+      "files": [
+        "internal/ytdlp/sites_test.go",
+        "web/tests/downloads.test.ts"
+      ],
+      "reason": "Synthetic YouTube / bilibili links in the link-validation and download tests (fake downloader or fake yt-dlp; never fetched). Live streams must be rejected."
+    },
+    {
+      "url": "https://b23.tv/**",
+      "files": [
+        "internal/ytdlp/sites_test.go",
+        "internal/ytdlp/sites.go",
+        "web/tests/downloads.test.ts",
+        "web/src/features/manage/lib/downloads.ts",
+        "docs/user/management.md"
+      ],
+      "reason": "bilibili share-link host: synthetic examples in comments, docs and tests. Rainy resolves one redirect of such a link only when a manager starts a download (downloads from links enabled)."
     }
   ]
 }

@@ -17,6 +17,7 @@ export const adminKeys = {
   settings: ['admin', 'settings'] as const,
   stats: ['admin', 'stats'] as const,
   system: ['admin', 'system'] as const,
+  ytdlp: ['admin', 'ytdlp'] as const,
 }
 
 export const librariesQuery = queryOptions({
@@ -27,6 +28,11 @@ export const librariesQuery = queryOptions({
 export const settingsQuery = queryOptions({
   queryKey: adminKeys.settings,
   queryFn: ({ signal }) => api.admin.settings.get({ signal }),
+})
+
+export const ytdlpQuery = queryOptions({
+  queryKey: adminKeys.ytdlp,
+  queryFn: ({ signal }) => api.admin.ytdlp.get({ signal }),
 })
 
 /** Default rename pattern (mirrors `model.DefaultSettings`). */

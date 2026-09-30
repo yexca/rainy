@@ -23,7 +23,7 @@ Rainy は [Navidrome](https://www.navidrome.org/) と同じく、NAS 上の音�
 - MP3、FLAC、AAC/M4A/ALAC、Ogg Vorbis、Opus、WAV、AIFF、APE、WavPack、WMA、DSD などに対応。元ファイルをそのまま配信するほか、ffmpeg によるリアルタイム変換も可能です。
 - Subsonic API 1.16.1 と OpenSubsonic 拡張を実装しており、Symfonium、Amperfy、play:Sub、Feishin などのクライアントをそのまま使えます。
 - PWA としてインストールできる Web プレーヤー。iOS 風の再生画面、同期歌詞、ドラッグで並べ替えられるキュー、ロック画面操作、AirPlay に対応します。
-- ブラウザでのライブラリ管理。一括タグ編集、カバー、歌詞、リネームと整理、アップロード、復元できるゴミ箱、ライブラリ診断、編集履歴。
+- ブラウザでのライブラリ管理。一括タグ編集、カバー、歌詞、リネームと整理、アップロード、yt-dlp による YouTube と bilibili のリンクからのダウンロード（任意）、復元できるゴミ箱、ライブラリ診断、編集履歴。
 - GBK、Big5、Shift-JIS の文字化けを読み込み時に修復し、UTF-8 でファイルに書き戻すこともできます。
 - 複数ユーザー。管理者、ライブラリ管理者、一般ユーザーの役割と、個別のダウンロード権限。
 

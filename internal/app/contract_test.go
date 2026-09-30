@@ -8,10 +8,12 @@ import (
 
 	"rainy/internal/events"
 	"rainy/internal/lyrics"
+	"rainy/internal/manage"
 	"rainy/internal/metasearch"
 	"rainy/internal/nowplaying"
 	"rainy/internal/scanner"
 	"rainy/internal/store"
+	"rainy/internal/ytdlp"
 )
 
 // TestServiceJSONMatchesTSContract locks the JSON names of the non-model types that the
@@ -38,6 +40,12 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 			discNumber discTotal date genre duration coverUrl thumbUrl`},
 		{"MetadataLyrics", metasearch.Lyrics{}, `text translation`},
 		{"MetadataProvider", metasearch.ProviderInfo{}, `id lyrics regions`},
+		{"DownloadJob", manage.DownloadJob{}, `id url site title status phase progress item items speed eta error
+			libraryId dir organize format playlist trackIds errors createdBy createdAt startedAt finishedAt`},
+		{"CookieInfo", ytdlp.CookieInfo{}, `site configured count signedIn expiresAt updatedAt`},
+		{"CookieSaveResult", ytdlp.CookieSaveResult{}, `site configured count signedIn expiresAt updatedAt dropped`},
+		{"YtdlpInstallState", ytdlp.InstallState{}, `running error finishedAt`},
+		{"YtdlpInfo (status fields)", ytdlp.Status{}, `managed installed version error latest checkedAt asset jsRuntime ffmpeg install`},
 	}
 	for _, c := range cases {
 		b, err := json.Marshal(c.v)

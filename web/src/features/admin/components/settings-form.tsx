@@ -37,6 +37,7 @@ const schema = z.object({
   enableDownloads: z.boolean(),
   onlineMetadata: z.boolean(),
   onlineMetadataChinaIp: z.boolean(),
+  ytdlpEnabled: z.boolean(), // edited on the yt-dlp tab
 })
 
 /** Server settings. Initialised once from `initial`; background refetches never overwrite edits. */

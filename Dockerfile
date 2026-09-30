@@ -7,7 +7,7 @@
 #   make docker-build      # tags rainy:dev; VERSION defaults to the repository VERSION file
 #
 # Stages: web (node, builds web/dist) → build (Go, cross-compiled, embeds web/dist) → final
-# (alpine + ffmpeg). The first two stages always run on the build host's platform; only the
+# (alpine + ffmpeg + QuickJS). The first two stages always run on the build host's platform; only the
 # final `apk add` runs on the target platform (QEMU when cross-building).
 
 ARG NODE_VERSION=24
@@ -73,7 +73,9 @@ LABEL org.opencontainers.image.title="Rainy" \
 
 COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # The entrypoint is normalised to LF in case the repo was checked out with CRLF (Windows).
-RUN apk add --no-cache ffmpeg ca-certificates tzdata su-exec \
+# quickjs (qjs, ~2 MiB) is the JavaScript runtime yt-dlp needs for YouTube. yt-dlp itself is not
+# shipped: an administrator installs it into /data/ytdlp from the admin settings (opt-in).
+RUN apk add --no-cache ffmpeg ca-certificates tzdata su-exec quickjs \
  && sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
  && addgroup -g 1000 rainy \
  && adduser -D -H -u 1000 -G rainy -h /data -s /sbin/nologin rainy \

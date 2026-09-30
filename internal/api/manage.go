@@ -45,6 +45,9 @@ func (a *API) routesManage(r chi.Router) {
 	r.Get("/metadata/search", a.manageMetadataSearch)
 	r.Get("/metadata/lyrics", a.manageMetadataLyrics)
 	r.Get("/metadata/cover", a.manageMetadataCover)
+	r.Get("/downloads", a.manageDownloads)
+	r.Post("/downloads", a.manageStartDownload)
+	r.Delete("/downloads/{id}", a.manageRemoveDownload)
 }
 
 // maxUploadRequest caps a whole upload request (the per-file limit is

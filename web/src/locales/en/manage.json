@@ -429,7 +429,7 @@
   },
   "upload": {
     "title": "Upload",
-    "subtitle": "Add music from this device to the library.",
+    "subtitle": "Add music from this device or from a YouTube or bilibili link.",
     "target": "Destination",
     "folder": "Folder",
     "folderPlaceholder": "Library root",
@@ -466,6 +466,53 @@
     "finished_other": "Uploaded {{count}} files",
     "finishedWithErrors_one": "Uploaded {{count}} file, {{failed}} failed",
     "finishedWithErrors_other": "Uploaded {{count}} files, {{failed}} failed"
+  },
+  "download": {
+    "title": "From a YouTube or bilibili link",
+    "subtitle": "The server downloads the audio with yt-dlp and adds it to the destination above.",
+    "statusError": "Couldn't load the download status.",
+    "disabled": "Downloading from links is turned off.",
+    "notInstalled": "yt-dlp isn't installed on the server yet.",
+    "askAdmin": "An administrator can set it up in Settings → yt-dlp.",
+    "openSettings": "Open settings",
+    "link": "Link",
+    "linkPlaceholder": "Paste a YouTube or bilibili link",
+    "sites": {
+      "youtube": "YouTube",
+      "bilibili": "bilibili"
+    },
+    "format": "Audio format",
+    "formats": {
+      "best": "Original (no conversion)",
+      "m4a": "M4A (AAC)",
+      "mp3": "MP3",
+      "opus": "Opus"
+    },
+    "playlist": "Whole playlist",
+    "playlistHint": "Up to 100 entries of the playlist or multi-part video are downloaded.",
+    "signedIn": "The server is signed in to {{sites}}.",
+    "rights": "Only download what you have the right to keep.",
+    "start": "Download",
+    "started": "Download started",
+    "jobs": "Downloads",
+    "entry": "{{item}} of {{items}}",
+    "eta": "{{time}} left",
+    "imported_one": "Added {{count}} track",
+    "imported_other": "Added {{count}} tracks",
+    "finished_one": "Downloaded “{{name}}”",
+    "finished_other": "Downloaded {{count}} tracks from “{{name}}”",
+    "finishedPartly_one": "Downloaded {{count}} track from “{{name}}”; some failed",
+    "finishedPartly_other": "Downloaded {{count}} tracks from “{{name}}”; some failed",
+    "failed": "Couldn't download “{{name}}”",
+    "status": {
+      "queued": "Waiting",
+      "running": "Downloading",
+      "processing": "Converting",
+      "importing": "Adding to the library",
+      "done": "Done",
+      "error": "Failed",
+      "canceled": "Canceled"
+    }
   },
   "folders": {
     "subtitle": "Browse the files on disk.",
@@ -586,6 +633,7 @@
       "delete": "Moved to trash",
       "restore": "Restored",
       "upload": "Uploaded",
+      "download": "Downloaded from a link",
       "purge": "Deleted permanently",
       "encoding": "Fixed encoding"
     },
@@ -596,6 +644,8 @@
       "target": "Saved to",
       "encoding": "Original encoding",
       "name": "Uploaded file",
+      "title": "Title",
+      "source": "Source",
       "size": "Size",
       "missing": "File was missing"
     },

@@ -30,9 +30,10 @@ const (
 
 // staged is an uploaded file waiting in the tmp dir.
 type staged struct {
-	name string // client-supplied relative name (sanitized, "/"-separated)
-	tmp  string // abs path in cfg.TmpDir()
-	size int64
+	name  string // client-supplied relative name (sanitized, "/"-separated)
+	tmp   string // abs path in cfg.TmpDir()
+	size  int64
+	title string // downloads: the title reported by the site (edit log)
 }
 
 // uploadForm is the parsed multipart request.
@@ -46,8 +47,7 @@ type uploadForm struct {
 // Upload streams the multipart parts "files" (repeated), "libraryId", "dir" and
 // "organize" to the staging directory, then places each file under dir (keeping the
 // client's relative sub-directories) or, with organize, where settings.RenamePattern puts
-// it. Existing files are never overwritten (" (1)" is appended). New files are scanned
-// immediately.
+// it (see place). New files are scanned immediately.
 func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reader) (*BatchResult, error) {
 	res := newBatch()
 	form, err := s.readUpload(mr, res)
@@ -82,15 +82,34 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 		return res, nil
 	}
 
-	// Decide targets (tags are read before taking the lock).
-	targets, err := s.uploadTargets(ctx, lib, baseDir, form)
-	if err != nil {
+	if err := s.place(ctx, u, lib, baseDir, form.organize, form.files, res, "upload", func(f *staged) map[string]any {
+		return map[string]any{"name": f.name, "size": f.size}
+	}); err != nil {
 		return nil, err
+	}
+	if err := res.failure(); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// place moves staged files into lib: under baseDir (keeping their relative names) or, with
+// organize, where settings.RenamePattern puts them. Existing files are never overwritten
+// (" (1)" is appended). It holds the library lock across the moves and the rescan, writes
+// one edit_log row per placed file (action, with details(f)), adds the new tracks to
+// res.Updated and publishes a library event. Placed files get f.tmp = "". Only a failure
+// to decide the targets or to take the lock is returned; per-file failures go to res.
+func (s *Service) place(ctx context.Context, u *model.User, lib *model.Library, baseDir string, organize bool,
+	files []staged, res *BatchResult, action string, details func(f *staged) map[string]any) error {
+	// Decide targets (tags are read before taking the lock).
+	targets, err := s.uploadTargets(ctx, baseDir, organize, files)
+	if err != nil {
+		return err
 	}
 
 	unlock, err := s.lock(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer unlock()
 	ctx = context.WithoutCancel(ctx)
@@ -100,8 +119,8 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 		rel string
 	}
 	var done []placed
-	for i := range form.files {
-		f := &form.files[i]
+	for i := range files {
+		f := &files[i]
 		rel := targets[i]
 		abs, err := libPath(lib.Path, rel)
 		if err != nil {
@@ -140,16 +159,13 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 			trackID = t.ID
 			ids = append(ids, t.ID)
 		}
-		s.logEdit(ctx, u, "upload", trackID, d.rel, map[string]any{"name": d.f.name, "size": d.f.size})
+		s.logEdit(ctx, u, action, trackID, d.rel, details(d.f))
 	}
-	res.Updated = s.tracksByID(ctx, ids, u.ID)
+	res.Updated = append(res.Updated, s.tracksByID(ctx, ids, u.ID)...)
 	if len(done) > 0 {
-		s.publish("upload")
+		s.publish(action)
 	}
-	if err := res.failure(); err != nil {
-		return nil, err
-	}
-	return res, nil
+	return nil
 }
 
 // readUpload consumes the multipart stream. Files are copied to the staging dir as they
@@ -312,8 +328,8 @@ func isLocalIOError(err error) bool {
 }
 
 // uploadTargets returns the library-relative target path of every staged file.
-func (s *Service) uploadTargets(ctx context.Context, lib *model.Library, baseDir string, form uploadForm) ([]string, error) {
-	out := make([]string, len(form.files))
+func (s *Service) uploadTargets(ctx context.Context, baseDir string, organize bool, files []staged) ([]string, error) {
+	out := make([]string, len(files))
 	join := func(parts ...string) string {
 		var keep []string
 		for _, p := range parts {
@@ -323,8 +339,8 @@ func (s *Service) uploadTargets(ctx context.Context, lib *model.Library, baseDir
 		}
 		return strings.Join(keep, "/")
 	}
-	if !form.organize {
-		for i, f := range form.files {
+	if !organize {
+		for i, f := range files {
 			out[i] = join(baseDir, f.name)
 		}
 		return out, nil
@@ -334,9 +350,9 @@ func (s *Service) uploadTargets(ctx context.Context, lib *model.Library, baseDir
 	if err != nil {
 		return nil, fmt.Errorf("the configured rename pattern is invalid: %w", err)
 	}
-	vals := make([]Values, len(form.files))
+	vals := make([]Values, len(files))
 	discs := map[string]map[int]bool{} // album id → disc numbers in this upload
-	for i, f := range form.files {
+	for i, f := range files {
 		md, err := tags.Read(f.tmp, tags.ReadOptions{FixEncoding: set.FixEncodingOnScan})
 		if err != nil {
 			slog.Warn("manage: reading tags of upload", "name", f.name, "err", err)
@@ -349,7 +365,7 @@ func (s *Service) uploadTargets(ctx context.Context, lib *model.Library, baseDir
 		}
 		discs[id][vals[i].Disc] = true
 	}
-	for i, f := range form.files {
+	for i, f := range files {
 		v := vals[i]
 		id := util.AlbumID(v.AlbumArtist, v.Album)
 		if len(discs[id]) > 1 {

@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
 import { FolderPicker } from '../components/folder-picker'
+import { LinkDownload } from '../components/link-download'
 import { toastError } from '../lib/batch'
 import { filesFromDataTransfer, filesFromInput, isUploadable, type PickedFile } from '../lib/upload-files'
 import { useUploadQueue, type UploadEntry } from '../lib/upload-queue'
@@ -227,6 +228,8 @@ export default function UploadPage() {
             }}
           />
         </section>
+
+        <LinkDownload libraryId={effectiveLibraryId} dir={cleanDir} organize={organize} invalidDir={invalidDir} />
 
         <UploadQueue />
       </div>

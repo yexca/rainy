@@ -115,6 +115,7 @@
     "subtitle": "Settings for everyone using this server.",
     "tabs": {
       "general": "General",
+      "ytdlp": "yt-dlp",
       "system": "System"
     },
     "saved": "Settings saved",
@@ -166,6 +167,87 @@
       "duration": "Use a duration like 30m or 6h (0 turns it off).",
       "required": "This can't be empty.",
       "pattern": "The pattern needs at least one token like {title}."
+    }
+  },
+  "ytdlp": {
+    "sections": {
+      "downloads": "Downloads from links",
+      "binary": "yt-dlp",
+      "cookies": "Sign-in cookies"
+    },
+    "enable": "Allow downloads from YouTube and bilibili",
+    "enableHelp": "Managers can paste a link on the Upload page; the server downloads the audio with yt-dlp and adds it to the library. The server contacts YouTube or bilibili only when someone starts a download, and GitHub only when you check for or install an update.",
+    "version": "Installed version",
+    "managedHelp": "Rainy installs the official yt-dlp release in the data folder.",
+    "unmanagedHelp": "Managed by the server operator (RAINY_YTDLP_PATH); update it there.",
+    "notInstalled": "Not installed",
+    "updateAvailable": "{{version}} available",
+    "latest": "Latest: {{version}} · checked {{when}}",
+    "updates": "Updates",
+    "updatesHelp": "YouTube changes often, so keep yt-dlp up to date. It is downloaded from GitHub and verified against the release checksums.",
+    "enableFirst": "Turn on downloads from links first.",
+    "check": "Check for updates",
+    "install": "Install yt-dlp",
+    "update": "Update to {{version}}",
+    "installing": "Installing…",
+    "installed": "yt-dlp {{version}} is installed",
+    "installFailed": "Installing yt-dlp failed",
+    "upToDate": "yt-dlp {{version}} is up to date",
+    "requirements": "Requirements",
+    "requirementsHelp": "ffmpeg extracts the audio; a JavaScript runtime solves YouTube’s challenges.",
+    "ffmpegOk": "ffmpeg found",
+    "ffmpegMissing": "ffmpeg not found; downloads can’t run",
+    "jsRuntime": "JavaScript runtime: {{name}}",
+    "jsRuntimeMissing": "No JavaScript runtime; YouTube downloads may fail",
+    "runtimes": {
+      "deno": "Deno",
+      "node": "Node.js",
+      "quickjs": "QuickJS"
+    },
+    "sites": {
+      "youtube": "YouTube",
+      "bilibili": "bilibili"
+    },
+    "warning": {
+      "title": "Cookies are the keys to your account",
+      "body": "Providing cookies is the same as handing over access to your account: a malicious program that gets hold of them can impersonate you.",
+      "never": "Never share your cookies with anyone or paste them anywhere you don’t trust. Consider signing in with a separate account for downloads.",
+      "local": "Rainy stores them encrypted on this server only and never uploads them to any external network. During a download, yt-dlp sends them only to the site they belong to, just as your browser does.",
+      "short": "Treat cookies like a password",
+      "accept": "I understand"
+    },
+    "cookies": {
+      "help": "Optional. With sign-in cookies, yt-dlp can download members-only or age-restricted videos and higher-quality audio. Public videos work without them.",
+      "none": "Not set",
+      "count_one": "{{formatted}} cookie",
+      "count_other": "{{formatted}} cookies",
+      "updated": "updated {{when}}",
+      "expires": "sign-in expires {{date}}",
+      "signedIn": "Signed in",
+      "notSignedIn": "Not signed in",
+      "set": "Add cookies",
+      "replace": "Replace",
+      "remove": "Remove",
+      "removeTitle": "Remove the {{site}} cookies?",
+      "removeLabel": "Remove the {{site}} cookies",
+      "removeDescription": "Downloads will run without signing in. The session stays valid in your browser; sign out there to revoke it.",
+      "removed": "Cookies removed",
+      "dialogTitle": "{{site}} cookies",
+      "dialogDescription": "Export the cookies from a browser where you are signed in, then paste them here.",
+      "step1": "Install the <ext>Get cookies.txt LOCALLY<icon/></ext> extension in Chrome or Edge. It exports cookies without sending them anywhere.",
+      "step2": "Open {{domain}} and sign in to {{site}}.",
+      "step2youtube": "Open a private (incognito) window, allow the extension there, and sign in to YouTube. Export from that window and close it afterwards: YouTube soon invalidates the cookies of a session that stays open.",
+      "step3": "On {{domain}}, click the extension and choose Export for the current site. Don’t export the cookies of all sites.",
+      "step4": "Choose the downloaded cookies.txt file, or paste its content below.",
+      "paste": "cookies.txt content",
+      "chooseFile": "Choose file",
+      "tooLarge": "The file is too large for a cookies.txt export.",
+      "keepsOnly": "Only cookies for {{domain}} are kept; everything else is discarded. The text is never shown again after saving.",
+      "saved_one": "Saved {{count}} cookie",
+      "saved_other": "Saved {{count}} cookies",
+      "dropped_one": "{{count}} cookie of another site was discarded.",
+      "dropped_other": "{{count}} cookies of other sites were discarded.",
+      "notSignedInHint": "They don’t include a sign-in; make sure you were signed in when exporting."
     }
   },
   "system": {

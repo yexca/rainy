@@ -24,6 +24,7 @@ type Config struct {
 	ScanInterval time.Duration // default for settings.scanInterval; 0 disables (RAINY_SCAN_INTERVAL)
 	ScanOnStart  bool          // quick scan at startup (RAINY_SCAN_ON_START)
 	FFmpegPath   string        // ffmpeg binary (RAINY_FFMPEG_PATH)
+	YtdlpPath    string        // operator-managed yt-dlp binary; "" = Rainy installs it in YtdlpDir (RAINY_YTDLP_PATH)
 	LogLevel     string        // debug|info|warn|error (RAINY_LOG_LEVEL)
 	LogFormat    string        // text|json (RAINY_LOG_FORMAT)
 	SessionTTL   time.Duration // sliding web session lifetime (RAINY_SESSION_TTL)
@@ -99,6 +100,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if v, ok := get("RAINY_FFMPEG_PATH"); ok {
 		c.FFmpegPath = v
+	}
+	if v, ok := get("RAINY_YTDLP_PATH"); ok {
+		c.YtdlpPath = v
 	}
 	if v, ok := get("RAINY_LOG_LEVEL"); ok {
 		v = strings.ToLower(v)
@@ -212,6 +216,9 @@ func (c *Config) TrashDir() string { return filepath.Join(c.DataDir, "trash") }
 
 // TmpDir is the upload staging directory.
 func (c *Config) TmpDir() string { return filepath.Join(c.DataDir, "tmp") }
+
+// YtdlpDir holds the yt-dlp binary Rainy installs, its cache and the encrypted cookies.
+func (c *Config) YtdlpDir() string { return filepath.Join(c.DataDir, "ytdlp") }
 
 // SecretKeyPath is the 32-byte secret key file (AES key for stored passwords).
 func (c *Config) SecretKeyPath() string { return filepath.Join(c.DataDir, "secret.key") }

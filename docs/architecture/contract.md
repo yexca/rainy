@@ -23,6 +23,7 @@ the same change and say so in your report).
 | Images | `image/jpeg`, `image/png`, `golang.org/x/image/{draw,webp}` | cover resizing, JPEG output |
 | Text | `golang.org/x/text` (normalization, GBK/Big5/Shift-JIS decoders), `github.com/mozillazg/go-pinyin` | search normalization, CJK index letters, mojibake repair |
 | Transcoding | external `ffmpeg` binary | shipped in the docker image |
+| Link downloads | external `yt-dlp` binary (opt-in, §5.14) | installed at runtime into `<data>/ytdlp`; QuickJS (`qjs`) shipped in the image for YouTube |
 | Frontend | Vite + React 19 + TypeScript + Tailwind CSS v4 + shadcn/ui | |
 | FE data | `@tanstack/react-query` v5, `react-router` v7 (data router), `zustand` | |
 | FE misc | `motion` (`motion/react`), `vaul` (via shadcn Drawer), `sonner`, `lucide-react`, `@tanstack/react-virtual`, `@dnd-kit/*`, `i18next` + `react-i18next`, `vite-plugin-pwa` | |
@@ -52,6 +53,7 @@ rainy/
 │   ├── lyrics/                  LRC parsing, sidecar/embedded lyrics loading
 │   ├── manage/                  tag editing, covers, lyrics, rename, upload, trash, doctor, edit log
 │   ├── metasearch/              opt-in online metadata lookup (NetEase, QQ Music, Kugou, Kuwo, iTunes)
+│   ├── ytdlp/                   opt-in downloads from YouTube / bilibili: yt-dlp binary, cookies, runs
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
 │   ├── subsonic/                Subsonic + OpenSubsonic API (/rest)
@@ -109,6 +111,7 @@ Environment variables (all optional):
 | `RAINY_SCAN_INTERVAL` | `1h` | periodic quick scan; `0` disables. Default for the DB setting `scanInterval` |
 | `RAINY_SCAN_ON_START` | `true` | quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | ffmpeg binary |
+| `RAINY_YTDLP_PATH` | `` | a yt-dlp binary the operator manages; empty = Rainy installs and updates yt-dlp in `<data>/ytdlp` (§5.14) |
 | `RAINY_LOG_LEVEL` | `info` | debug/info/warn/error |
 | `RAINY_LOG_FORMAT` | `text` (docker: `json`) | |
 | `RAINY_SESSION_TTL` | `720h` | web session lifetime (sliding) |
@@ -117,8 +120,8 @@ Environment variables (all optional):
 
 `config.Load() (*config.Config, error)` reads them; `Config` fields:
 `Address, Port string/int; DataDir, MusicDir string; ScanInterval time.Duration; ScanOnStart bool;
-FFmpegPath string; LogLevel, LogFormat string; SessionTTL time.Duration; TrustProxy bool; DevCORS string`
-plus helpers `DBPath()`, `CacheDir()`, `ArtworkCacheDir()`, `TrashDir()`, `TmpDir()`, `SecretKeyPath()`.
+FFmpegPath, YtdlpPath string; LogLevel, LogFormat string; SessionTTL time.Duration; TrustProxy bool; DevCORS string`
+plus helpers `DBPath()`, `CacheDir()`, `ArtworkCacheDir()`, `TrashDir()`, `TmpDir()`, `YtdlpDir()`, `SecretKeyPath()`.
 
 Data dir layout:
 ```
@@ -126,7 +129,8 @@ Data dir layout:
 /data/secret.key        32 random bytes, created on first start (AES key + misc HMAC)
 /data/cache/artwork/    resized cover cache
 /data/trash/<libraryId>/<original relative path>   deleted files (restorable)
-/data/tmp/              upload staging
+/data/tmp/              upload staging; ytdlp-job-<id>/ work directories of running downloads
+/data/ytdlp/            yt-dlp binary installed by Rainy, cache/, cookies/<site>.enc (0700/0600, encrypted with secret.key)
 ```
 
 Runtime-editable settings live in the `settings` table (see `model.Settings`, §5.2).
@@ -236,6 +240,7 @@ type Settings struct {
     EnableDownloads   bool   `json:"enableDownloads"`   // default true
     OnlineMetadata    bool   `json:"onlineMetadata"`    // default false: allow managers to search online catalogues (§5.13)
     OnlineMetadataChinaIP bool `json:"onlineMetadataChinaIp"` // default false: metasearch.Options.ChinaIP (§5.13)
+    YtdlpEnabled      bool   `json:"ytdlpEnabled"`      // default false: allow downloads from YouTube / bilibili with yt-dlp (§5.14)
 }
 func DefaultSettings(scanInterval time.Duration) Settings
 ```
@@ -516,6 +521,10 @@ func Load(t *model.Track, audioAbsPath string) (*Lyrics, error) // sidecar .lrc 
 ```go
 func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events.Bus, cfg *config.Config) *manage.Service
 ```
+`(*Service).SetDownloader(d manage.Downloader)` enables link downloads (app passes `*ytdlp.Service`;
+`Downloader` = `Ready(ctx) error` + `Download(ctx, ytdlp.Request, progress) ([]ytdlp.Item, error)`), and
+`CloseDownloads()` cancels running jobs (called by `App.Close`). Download jobs: `StartDownload`, `DownloadJobs`,
+`RemoveDownload` behind §7.6 `/manage/downloads`.
 Everything else inside `manage` is private to that agent; the HTTP contract (§7.6) is what matters.
 Rules: every file operation goes through `util.SafeJoin`, holds `scanner.LockLibrary()`, calls
 `scanner.RescanFiles` afterwards, writes an `edit_log` row, and publishes a `library` event.
@@ -527,11 +536,12 @@ Read-only mounts must fail gracefully (`readonly` API error with a helpful messa
 type App struct {
     Cfg *config.Config; DB *db.DB; Store *store.Store; Auth *auth.Service; Bus *events.Bus
     NowPlaying *nowplaying.Tracker; Scanner *scanner.Scanner; Artwork *artwork.Service
-    Transcoder *transcode.Service; Manage *manage.Service; Metadata *metasearch.Service; StartedAt time.Time
+    Transcoder *transcode.Service; Manage *manage.Service; Metadata *metasearch.Service; Ytdlp *ytdlp.Service
+    StartedAt time.Time
 }
 func New(ctx context.Context, cfg *config.Config) (*App, error) // open+migrate DB, key, services, default library
 func (a *App) Settings(ctx context.Context) model.Settings       // store.GetSettings with defaults (errors logged → defaults)
-func (a *App) Close() error
+func (a *App) Close() error // stops downloads and a running yt-dlp install, then closes the DB
 
 // server
 func New(a *app.App) *http.Server
@@ -579,6 +589,65 @@ With `Options.ChinaIP`, requests to the NetEase, QQ Music, Kugou, and Kuwo APIs 
 `X-Real-IP` header with a random address from a few mainland-China ISP /16 blocks (a new one per
 lookup); iTunes and cover downloads never do.
 Kugou's search endpoint is plain HTTP only; everything else uses HTTPS.
+
+### 5.14 ytdlp (owner: manage agent)
+Downloads audio from YouTube and bilibili with the external `yt-dlp` program and manages its binary and
+sign-in cookies. Used only by the §7.6 `/manage/downloads` and §7.7 `/admin/ytdlp` endpoints, which refuse
+every action that contacts another service (start a download, check for an update, install) with
+`403 forbidden` unless `settings.ytdlpEnabled` is on. It never writes into a library: manage imports the
+files like uploads.
+```go
+func New(o Options) *ytdlp.Service // removes stale <tmp>/ytdlp-* work dirs and partial installs
+type Options struct { Dir, TmpDir, BinaryPath, FFmpegPath string; Cipher Cipher /* *auth.Crypto */; Client *http.Client; UserAgent string }
+func (s *Service) Close()
+func (s *Service) Managed() bool                       // BinaryPath == "" (RAINY_YTDLP_PATH unset)
+func (s *Service) Status(ctx) Status                    // runs "yt-dlp --version" when the binary changed (cached)
+func (s *Service) Ready(ctx) error                      // ErrNotInstalled | "yt-dlp cannot run: …" | ErrNoFFmpeg
+func (s *Service) CheckLatest(ctx) (string, error)      // GitHub releases/latest tag, remembered for Status
+func (s *Service) StartInstall() error                  // async; ErrUnmanaged, ErrBusy, ErrUnsupportedPlatform
+func (s *Service) SetCookies(site, text string) (CookieSaveResult, error)
+func (s *Service) DeleteCookies(site string) error
+func (s *Service) Cookies() []CookieInfo; func (s *Service) HasCookies(site string) bool
+func (s *Service) Download(ctx, req Request, progress func(Progress)) ([]Item, error) // partial results + error for playlists
+func ParseURL(text string) (Target, error)              // ErrInvalid; Target{Site, URL}
+var Sites = []string{"youtube", "bilibili"}; func ValidSite(id string) bool; func ValidFormat(f string) bool
+type Request struct { Target Target; Format string /*best|m4a|mp3|opus*/; Playlist bool; Dir string /*caller-owned work dir*/ }
+type Item struct { Path, Thumbnail, ID, Title string; Artists []string; Album string; AlbumArtists []string
+    TrackNumber int; Date, WebpageURL, PlaylistTitle string; PlaylistIndex int }
+func (it Item) Tags() map[string][]string               // TITLE ARTIST ALBUM ALBUMARTIST DATE TRACKNUMBER COMMENT(=source URL)
+type Progress struct { Phase string /*downloading|processing*/; Item, Items int; Title string; Fraction, Speed float64; ETA int }
+type Status struct { Managed, Installed bool; Version, Error, Latest string; CheckedAt int64; Asset, JSRuntime string
+    FFmpeg bool; Install InstallState }                 // json camelCase; jsRuntime deno|node|quickjs|""
+type InstallState struct { Running bool; Error string; FinishedAt int64 }
+type CookieInfo struct { Site string; Configured bool; Count int; SignedIn bool; ExpiresAt, UpdatedAt int64 }
+type CookieSaveResult struct { CookieInfo; Dropped int }
+var ErrInvalid, ErrNotInstalled, ErrUnmanaged, ErrBusy, ErrUpstream, ErrUnsupportedPlatform, ErrNoFFmpeg error
+```
+Rules:
+- **Links**: only the exact hosts `youtube.com`, `www.`/`m.`/`music.youtube.com`, `youtu.be`, `bilibili.com`,
+  `www.`/`m.`/`space.bilibili.com` and `b23.tv`; http(s) only, no user info, no port, ≤ 2048 bytes; the first URL
+  in pasted share text is used. `m.` hosts are rewritten to `www.`. A `b23.tv` share link is resolved by one
+  redirect that must lead to bilibili (yt-dlp has no extractor for it).
+- **Invocation** (fixed argument list, no shell): `--ignore-config --no-plugin-dirs --use-extractors default,-generic`,
+  `--match-filters !is_live`, `--max-filesize 2G`, `-f bestaudio/best -x` (`--audio-format <f> --audio-quality 0`
+  unless `best`), `--write-thumbnail --convert-thumbnails jpg`, `--no-playlist` (or `--yes-playlist
+  --playlist-items 1:100`), `--paths <dir>/out -o %(id)s.%(ext)s`, `--cache-dir <data>/ytdlp/cache`,
+  `--ffmpeg-location <abs ffmpeg>`, `--js-runtimes <deno|node|quickjs>:<path>` for the first runtime found on
+  PATH, `--cookies <dir>/cookies.txt` only when cookies are stored for the site, and the link last after `--`.
+  Progress and results come from `--progress-template` / `--print` marker lines; reported files must be regular
+  audio files inside `<dir>/out`. The process runs in its own process group (killed as a group on cancel),
+  with `TMPDIR` inside the work dir. Fragmented (DASH) MP4 results, which bilibili serves and TagLib reads no
+  duration from, are remuxed with `ffmpeg -i file:<in> -map 0:a:0 -c copy -movflags +faststart file:<out>`.
+- **Binary**: managed installs download the platform asset (`yt-dlp_musllinux[_aarch64]` on Alpine, `yt-dlp_linux
+  [_aarch64]`, `yt-dlp_macos`, `yt-dlp[_arm64].exe`) from `https://github.com/yt-dlp/yt-dlp/releases/download/<tag>/`,
+  where `<tag>` comes from the GitHub releases API and must match `YYYY.MM.DD[.N]` (URLs in the API answer are
+  never followed); the file must match the release's `SHA2-256SUMS` and report `<tag>` from `--version` before it
+  atomically replaces `<data>/ytdlp/yt-dlp`. Redirects stay on `github.com` / `*.githubusercontent.com` (HTTPS);
+  sizes are capped (2 MiB JSON, 256 MiB binary). With `RAINY_YTDLP_PATH`, Rainy never installs or updates.
+- **Cookies** are credentials: a Netscape `cookies.txt` (≤ 512 KiB, ≤ 2000 cookies) is filtered to the site's own
+  domain (`youtube.com` / `bilibili.com` and subdomains), encrypted with `secret.key` (AES-GCM, like passwords) and
+  written 0600 to `<data>/ytdlp/cookies/<site>.enc`. No endpoint returns them, logs and errors never quote them, and a
+  run gets a private plain-text copy in its work dir that is deleted with it. Undecryptable files are ignored.
 
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
@@ -724,10 +793,22 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 | GET | `/api/manage/metadata/search` | `provider, q, limit? (≤30, default 20), region?` | `{items: MetadataResult[]}` |
 | GET | `/api/manage/metadata/lyrics` | `provider, id` | `MetadataLyrics` (404 when the provider has none) |
 | GET | `/api/manage/metadata/cover` | `url` (a result's `coverUrl`/`thumbUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
+| GET | `/api/manage/downloads` | | `DownloadsStatus` |
+| POST | `/api/manage/downloads` | `{url, libraryId, dir?, organize?, format?: 'best'|'m4a'|'mp3'|'opus', playlist?}` | 202 `DownloadJob` |
+| DELETE | `/api/manage/downloads/{id}` | | 204 (cancels a queued/running job; removes a finished one) |
 
 The `/metadata/search`, `/lyrics`, and `/cover` endpoints answer `403 forbidden` while
 `settings.onlineMetadata` is off (the default) and send nothing outside the server; invalid input
 is `400`, a provider failure `503 unavailable` (§5.13).
+
+`POST /downloads` answers `403 forbidden` while `settings.ytdlpEnabled` is off, `400` for a link that is not a
+supported YouTube / bilibili link or a bad target, and `409 conflict` when yt-dlp is not installed or cannot run,
+ffmpeg is missing, or 20 jobs are already waiting. Jobs live in memory (the newest 50 finished ones are kept; a
+restart cancels running jobs), run two at a time for at most 3 hours, and re-check the setting when they start.
+A job downloads into `<data>/tmp/ytdlp-job-<id>/`, writes the tags of `ytdlp.Item.Tags()` and a centre-cropped square
+JPEG cover from the thumbnail through TagLib, and then imports the files exactly like an upload (not organized:
+`<dir>/<title>.<ext>`, playlists `<dir>/<playlist>/<NN> <title>.<ext>`; organized: the rename pattern): library lock,
+rescan, one `download` edit-log row per file (`{title, source, size}`), and a `library` event.
 
 Tag keys are TagLib property names, upper-case (`TITLE, ARTIST, ALBUM, ALBUMARTIST, TRACKNUMBER,
 DISCNUMBER, DATE, GENRE, COMPOSER, COMMENT, LYRICS, BPM, COMPILATION, DISCSUBTITLE, …`). `[]` deletes.
@@ -755,6 +836,11 @@ files move with their track; directories left empty are removed (never the libra
 | GET | `/api/admin/stats` | | `LibraryStats` |
 | GET | `/api/admin/system` | | `SystemInfo` |
 | POST | `/api/admin/cache/clear` | | `{freed:number}` |
+| GET | `/api/admin/ytdlp` | | `YtdlpInfo` |
+| POST | `/api/admin/ytdlp/check` | | `YtdlpInfo` (asks GitHub for the latest release; 403 while `ytdlpEnabled` is off, 503 when unreachable) |
+| POST | `/api/admin/ytdlp/install` | | 202 `YtdlpInfo` (background install/update; 403 while off, 409 when `RAINY_YTDLP_PATH` is set or an install runs) |
+| PUT | `/api/admin/ytdlp/cookies/{site}` | `{text}` (Netscape cookies.txt) | `CookieSaveResult` (stored encrypted; never returned) |
+| DELETE | `/api/admin/ytdlp/cookies/{site}` | | 204 |
 
 ## 8. TypeScript contract (`web/src/lib/api/types.ts`)
 
@@ -852,6 +938,16 @@ export interface MetadataResult {
   date: string; genre: string; duration: number; coverUrl: string; thumbUrl: string   // 0 / '' = unknown
 }
 export interface MetadataLyrics { text: string; translation: string }
+export type DownloadSite = 'youtube' | 'bilibili'
+export type DownloadFormat = 'best' | 'm4a' | 'mp3' | 'opus'
+export type DownloadJobStatus = 'queued' | 'running' | 'importing' | 'done' | 'error' | 'canceled'
+export interface DownloadJob {
+  id: string; url: string; site: DownloadSite; title: string; status: DownloadJobStatus
+  phase: '' | 'downloading' | 'processing'; progress: number /*0…1, -1 unknown*/; item: number; items: number
+  speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; format: DownloadFormat
+  playlist: boolean; trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+}
+export interface DownloadsStatus { enabled: boolean; ready: boolean; sites: { id: DownloadSite; cookies: boolean }[]; jobs: DownloadJob[] }
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -867,6 +963,7 @@ export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
+  ytdlpEnabled: boolean
 }
 export interface LibraryStats {
   tracks: number; albums: number; artists: number; genres: number; playlists: number; users: number
@@ -878,6 +975,13 @@ export interface SystemInfo {
   uptimeSec: number; dataDir: string; dbSize: number; cacheSize: number; trashSize: number
   ffmpeg: { available: boolean; version: string; path: string }
   libraries: LibraryInfo[]
+}
+export interface CookieInfo { site: DownloadSite; configured: boolean; count: number; signedIn: boolean; expiresAt: number; updatedAt: number }
+export interface CookieSaveResult extends CookieInfo { dropped: number }
+export interface YtdlpInstallState { running: boolean; error: string; finishedAt: number }
+export interface YtdlpInfo {
+  enabled: boolean; managed: boolean; installed: boolean; version: string; error: string; latest: string; checkedAt: number
+  asset: string; jsRuntime: '' | 'deno' | 'node' | 'quickjs'; ffmpeg: boolean; install: YtdlpInstallState; cookies: CookieInfo[]
 }
 export interface NowPlayingEntry { userId: string; username: string; trackId: string; player: string; since: number }
 export interface ServerEvent { type: 'scan' | 'library' | 'nowPlaying'; data: unknown }
@@ -991,8 +1095,19 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
 - **Upload**: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
+  *From a link* (`LinkDownload`): YouTube / bilibili link (share text accepted; `detectSite` shows a site chip), audio format
+  (original / M4A / MP3 / Opus, remembered), "whole playlist", same destination and organize options; the job list polls
+  `/manage/downloads` every second while a job is active (progress, entry n/m, speed, ETA, cancel / retry / remove, Edit tags
+  when done) and toasts + refreshes the library when a job this page saw finishes. When the feature is off or yt-dlp is not
+  installed, the section says so (admins get a link to Settings → yt-dlp).
 - **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (cards with path, counts, writable badge; quick/full scan buttons; live progress via `/api/events`), server settings form, system info (versions, ffmpeg, sizes, clear cache).
+  Settings tabs General / yt-dlp / System. *yt-dlp* (`YtdlpSettings`): the `ytdlpEnabled` switch (saved immediately), installed
+  version, latest release, Check for updates / Install / Update to X (polls while installing), ffmpeg and JavaScript runtime
+  status, and per-site sign-in cookies (count, signed in, expiry, updated; Add / Replace / Remove). `CookieDialog` first shows
+  a warning that must be acknowledged (cookies are account credentials; a malicious program could impersonate the user;
+  never share them; Rainy keeps them encrypted on the server and uploads them nowhere), then the export guide for the
+  "Get cookies.txt LOCALLY" extension and a paste / file field (no spell check or autofill); the text is cleared on close.
 
 ### 9.6 i18n
 - i18next with namespaces = files in `locales/<lng>/<ns>.json`; languages `zh` (简体中文) and `en`; detection: saved choice → `navigator.language` (`zh*` → zh) → en.

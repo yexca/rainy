@@ -15,6 +15,7 @@ export const manageKeys = {
   issuesSummary: ['manage', 'issues', 'summary'] as const,
   issues: (type: IssueType) => ['manage', 'issues', 'list', type] as const,
   log: (trackId: string) => ['manage', 'log', trackId] as const,
+  downloads: ['manage', 'downloads'] as const,
   /** Paged track table of the library manager (`tracks` root). */
   trackPage: (params: TrackListParams, page: number) => ['tracks', 'manage', params, page] as const,
   trackTotal: (params: TrackListParams) => ['tracks', 'manage', params] as const,

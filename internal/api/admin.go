@@ -51,6 +51,11 @@ func (a *API) routesAdmin(r chi.Router) {
 	r.Get("/stats", a.adminStats)
 	r.Get("/system", a.adminSystem)
 	r.Post("/cache/clear", a.adminClearCache)
+	r.Get("/ytdlp", a.adminYtdlp)
+	r.Post("/ytdlp/check", a.adminYtdlpCheck)
+	r.Post("/ytdlp/install", a.adminYtdlpInstall)
+	r.Put("/ytdlp/cookies/{site}", a.adminSetCookies)
+	r.Delete("/ytdlp/cookies/{site}", a.adminDeleteCookies)
 }
 
 // ---- users

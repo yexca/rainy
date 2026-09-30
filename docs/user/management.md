@@ -138,6 +138,44 @@ library immediately.
 Uploads through a reverse proxy are limited by the proxy's body size; see
 [Reverse proxy](../operations/reverse-proxy.md).
 
+### Download from a Link
+
+The Upload page can also download the audio of a YouTube or bilibili video.
+Paste a link (bilibili share text such as `【Title】 https://b23.tv/…` works
+too), choose the audio format, and select **Download**. **Original (no
+conversion)** keeps the site's audio stream (Opus from YouTube, AAC from
+bilibili); M4A, MP3, and Opus convert it. **Whole playlist** downloads up to
+100 entries of the playlist or multi-part video the link belongs to. Files go
+to the destination above and follow **Organize by tags** like uploads;
+otherwise they are named after the video title, and playlist entries go into a
+folder named after the playlist. Rainy writes the title, artist (the channel
+when nothing better is known), album, date, the source link as the comment, and
+a square cover cut from the thumbnail; fix the rest in the tag editor. Downloads
+run on the server, so you can leave the page; live streams are skipped. Only
+download what you have the right to keep.
+
+An administrator sets this up in **Admin → Settings → yt-dlp**:
+
+1. Turn on **Allow downloads from YouTube and bilibili**.
+2. Select **Install yt-dlp**. Rainy downloads the official release from GitHub
+   and verifies it. YouTube changes often: use **Check for updates** now and
+   then and update when a new version is available.
+3. Optionally add **sign-in cookies** for members-only, age-restricted, or
+   higher-quality downloads. Export them with the
+   [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+   browser extension for the current site only, then paste the file or choose
+   it. For YouTube, sign in from a private window and close it after
+   exporting, because YouTube soon invalidates the cookies of a session that
+   stays open.
+
+> [!WARNING]
+> Cookies are the keys to your account. Anyone, or any malicious program, that
+> obtains them can act as you. Never share them. Rainy keeps only the cookies of
+> the site itself, stores them encrypted on the server, never shows them again,
+> and never uploads them anywhere; yt-dlp sends them only to that site during a
+> download. Consider a separate account for downloads, and sign out in the
+> browser to revoke a session.
+
 ## Trash
 
 **Delete** moves files to the trash in the data folder. **Manage → Trash** can
@@ -164,8 +202,8 @@ and can rescan a single folder.
 ## History
 
 **Manage → History** records every change Rainy made to your files: tag edits and rebuilds,
-covers, lyrics, renames, uploads, deletions, restores, purges, and encoding
-fixes, with who made them, when, and a readable before-and-after view.
+covers, lyrics, renames, uploads, downloads from links, deletions, restores,
+purges, and encoding fixes, with who made them, when, and a readable before-and-after view.
 
 ## Related Docs
 

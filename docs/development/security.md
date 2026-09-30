@@ -22,7 +22,16 @@ should use the [Security Policy](../../SECURITY.md).
 - Library roots and the data directory are trusted operator mounts. Paths from
   requests, tags, uploads, archive names, and the database remain untrusted.
 - Outbound requests exist only in `internal/metasearch`, behind the
-  admin-only `onlineMetadata` setting (off by default) and the manager role.
+  admin-only `onlineMetadata` setting (off by default) and the manager role,
+  and in `internal/ytdlp`, behind the admin-only `ytdlpEnabled` setting (off by
+  default). yt-dlp runs with a fixed argument list (`--ignore-config`,
+  `--no-plugin-dirs`, no generic extractor, the link last after `--`), only for
+  links to the allow-listed YouTube and bilibili hosts, and writes only into
+  its work directory; its binary comes from the official GitHub release,
+  verified against `SHA2-256SUMS`, and never from a URL taken from an API
+  response. Sign-in cookies are credentials: keep them encrypted, out of every
+  API response, log line, and error message, and give each run a private copy
+  that is deleted with its work directory.
   Use fixed endpoint URLs, pass user input only as an encoded parameter,
   validate provider ids before requesting, cap response sizes, and fetch covers
   only from the allow-listed provider image hosts. Responses from these
