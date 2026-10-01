@@ -77,7 +77,7 @@ export default function FavoritesPage() {
               <TrackList
                 tracks={tracks}
                 empty={
-                  <EmptyState icon={Star} title={t('favorites.emptySongs')} description={t('favorites.emptyHint')} />
+                  <EmptyState icon={Star} art="empty" title={t('favorites.emptySongs')} description={t('favorites.emptyHint')} />
                 }
               />
             </TabsContent>
@@ -89,7 +89,7 @@ export default function FavoritesPage() {
                   ))}
                 </CardGrid>
               ) : (
-                <EmptyState icon={Disc3} title={t('favorites.emptyAlbums')} description={t('favorites.emptyHint')} />
+                <EmptyState icon={Disc3} art="empty" title={t('favorites.emptyAlbums')} description={t('favorites.emptyHint')} />
               )}
             </TabsContent>
             <TabsContent value="artists">
@@ -100,7 +100,7 @@ export default function FavoritesPage() {
                   ))}
                 </CardGrid>
               ) : (
-                <EmptyState icon={MicVocal} title={t('favorites.emptyArtists')} description={t('favorites.emptyHint')} />
+                <EmptyState icon={MicVocal} art="empty" title={t('favorites.emptyArtists')} description={t('favorites.emptyHint')} />
               )}
             </TabsContent>
           </>

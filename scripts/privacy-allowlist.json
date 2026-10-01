@@ -22,13 +22,6 @@
       "reason": "Rainy's public source repository, release pages, and security advisory form."
     },
     {
-      "url": "http://www.w3.org/2000/svg",
-      "files": [
-        "web/public/*.svg"
-      ],
-      "reason": "The SVG XML namespace."
-    },
-    {
       "url": "https://ui.shadcn.com/schema.json",
       "files": [
         "web/components.json"

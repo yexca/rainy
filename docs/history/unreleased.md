@@ -40,6 +40,16 @@ action.
   bottom bar can auto-hide, leaving a small handle that shows it on hover and
   pins it on click. Dragging sideways on the mini bar seeks.
 
+## Look and Feel
+
+- Rainy has a mascot. She is the new app icon and appears on empty library
+  pages, "no results", error, 404, and no-access screens, beside the sign-in
+  card on wide screens, and in Settings. On tablets and desktops she sits in the
+  bottom-right corner above the player, listens along while music plays, and
+  dozes off after a while; click her for a short line or hide her with ×.
+  **Settings → Mascot** turns the illustrations and the companion off
+  separately.
+
 ## Library Browsing and Search
 
 - Album, playlist, and artist pages take on the colours of their artwork, like

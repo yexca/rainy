@@ -137,5 +137,13 @@
     "callbackDeniedHint": "The sign-in was cancelled or did not finish. You can start it again from Settings.",
     "callbackFailed": "Connecting Last.fm failed",
     "backToSettings": "Back to Settings"
+  },
+  "mascot": {
+    "title": "Mascot",
+    "intro": "Rainy’s mascot keeps you company on empty pages, errors and the sign-in screen, and listens along from the corner.",
+    "art": "Illustrations",
+    "artHint": "Show the mascot on empty, error and sign-in screens.",
+    "companion": "Corner companion",
+    "companionHint": "Show her in the bottom-right corner on tablets and desktops. She reacts to playback."
   }
 }

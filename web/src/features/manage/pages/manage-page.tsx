@@ -245,6 +245,7 @@ export default function ManagePage() {
     content = filtered ? (
       <EmptyState
         icon={SearchX}
+        art="lost"
         title={t('table.noResults')}
         description={t('table.noResultsDescription')}
         action={
@@ -256,6 +257,7 @@ export default function ManagePage() {
     ) : (
       <EmptyState
         icon={LibraryBig}
+        art="empty"
         title={t('table.empty')}
         description={t('table.emptyDescription')}
         action={

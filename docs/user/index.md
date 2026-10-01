@@ -20,6 +20,9 @@ The web app is available in English and Simplified Chinese. Change the language
 from the user menu or under **Settings → Appearance**.
 Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
 there if you prefer the plain theme.
+Rainy's mascot appears on empty and error pages and keeps you company in the
+bottom-right corner on tablets and desktops; **Settings → Mascot** turns the
+illustrations and the corner companion off separately.
 
 ## Roles
 

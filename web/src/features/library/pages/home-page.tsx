@@ -126,6 +126,7 @@ export default function HomePage() {
       ) : empty ? (
         <EmptyState
           icon={Disc3}
+          art="empty"
           title={t('home.emptyTitle')}
           description={isManager ? t('home.emptyManager') : t('home.emptyListener')}
           action={

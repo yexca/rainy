@@ -19,7 +19,7 @@ export const pwaOptions: Partial<VitePWAOptions> = {
   strategies: 'generateSW',
   registerType: 'prompt',
   injectRegister: false,
-  includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
+  includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
   manifest: {
     id: '/',
     name: 'Rainy',
@@ -60,9 +60,10 @@ export const pwaOptions: Partial<VitePWAOptions> = {
     ],
   },
   workbox: {
-    globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
-    // The maskable source is only needed by the icon generator.
-    globIgnores: ['**/icon-maskable.svg'],
+    // webp: the mascot art, so the offline screen can still show it.
+    globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2,webmanifest}'],
+    // The icon sources are only needed by the icon generator.
+    globIgnores: ['**/icon-source*.png'],
     cleanupOutdatedCaches: true,
     clientsClaim: true,
     navigateFallback: 'index.html',

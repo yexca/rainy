@@ -1,10 +1,17 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { MascotArt, type MascotPose } from '@/components/mascot'
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import { cn } from '@/lib/utils'
 
 export interface EmptyStateProps {
   icon?: LucideIcon
+  /**
+   * Mascot illustration shown instead of the icon at the default size, unless the listener
+   * turned illustrations off (Settings › Mascot).
+   */
+  art?: MascotPose
   title: ReactNode
   description?: ReactNode
   /** Button(s) below the text. */
@@ -15,8 +22,10 @@ export interface EmptyStateProps {
 }
 
 /** Friendly placeholder for empty lists, missing pages and unfinished features. */
-export function EmptyState({ icon: Icon, title, description, action, size = 'default', className }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, art, title, description, action, size = 'default', className }: EmptyStateProps) {
   const compact = size === 'compact'
+  const artEnabled = useMascotArt()
+  const showArt = art !== undefined && artEnabled && !compact
   return (
     <div
       className={cn(
@@ -25,7 +34,9 @@ export function EmptyState({ icon: Icon, title, description, action, size = 'def
         className,
       )}
     >
-      {Icon ? (
+      {showArt ? (
+        <MascotArt pose={art} className="mb-1 h-40 md:h-48" />
+      ) : Icon ? (
         <div
           className={cn(
             'mb-1 grid place-items-center rounded-2xl bg-muted text-muted-foreground',

@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AddToPlaylistHost } from '@/features/library/components/add-to-playlist-host'
 import { TagEditorHost } from '@/features/manage/tag-editor-host'
 import { AudioEngine } from '@/features/player/components/audio-engine'
+import { MascotCompanion } from '@/features/player/components/mascot-companion'
 import { MiniPlayer } from '@/features/player/components/mini-player'
 import { NowPlayingSheet } from '@/features/player/components/now-playing-sheet'
 import { PlayerDock } from '@/features/player/components/player-dock'
@@ -33,6 +34,8 @@ const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.2
  *   optionally auto-hiding), a floating window or a floating mini bar in the bottom-right corner.
  *   It publishes `<html data-player-dock>`; the sidebar, `.page-pad` and toasts read the space it
  *   reserves from `--player-reserve` / `--player-clearance` (index.css).
+ * - `<MascotCompanion/>` (≥ 768px, Settings › Mascot) sits on top of that chrome in the
+ *   bottom-right corner (`--player-clearance`, `--mascot-right`).
  * - `<MiniPlayer/>` renders inside a `fixed` slot 8px above the tab bar with 8px side margins
  *   and owns its height (`h-(--miniplayer-h)`); it may render nothing when idle.
  * Slots have no transform/filter, so `position: fixed` descendants stay viewport-relative.
@@ -44,6 +47,7 @@ export function AppShell() {
   const isDesktop = useIsDesktop()
   const sidebarOpen = useUI((s) => s.sidebarOpen)
   const setSidebarOpen = useUI((s) => s.setSidebarOpen)
+  const mascotCompanion = useUI((s) => s.mascotCompanion)
   const [tabletOpen, setTabletOpen] = useState(false)
 
   return (
@@ -75,7 +79,10 @@ export function AppShell() {
           <MobileTabBar />
         </>
       ) : (
-        <PlayerDock />
+        <>
+          <PlayerDock />
+          {mascotCompanion ? <MascotCompanion /> : null}
+        </>
       )}
 
       <AudioEngine />
