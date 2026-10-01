@@ -130,7 +130,7 @@ export default function HistoryPage() {
       ) : log.isError ? (
         <ErrorState error={log.error} onRetry={() => void log.refetch()} retrying={log.isFetching} />
       ) : entries.length === 0 ? (
-        <EmptyState icon={History} title={t('history.empty')} description={t('history.emptyDescription')} />
+        <EmptyState icon={History} art="empty" title={t('history.empty')} description={t('history.emptyDescription')} />
       ) : (
         <div className="grid gap-6">
           {groups.map((group) => (

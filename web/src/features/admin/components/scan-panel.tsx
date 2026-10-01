@@ -3,9 +3,11 @@ import { CircleAlert, CircleCheck, RefreshCw, ScanSearch } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { MascotArt } from '@/components/mascot'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import type { LibraryInfo } from '@/lib/api/types'
 import { formatDateTime, formatDuration, formatNumber, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -25,6 +27,7 @@ function useNow(enabled: boolean): number {
 
 export function ScanPanel({ libraries }: { libraries: LibraryInfo[] }) {
   const { t } = useTranslation('admin')
+  const showArt = useMascotArt()
   const queryClient = useQueryClient()
   const status = useScanStatus()
   const start = useStartScan()
@@ -94,6 +97,13 @@ export function ScanPanel({ libraries }: { libraries: LibraryInfo[] }) {
       </div>
 
       {scanning ? <Progress className="h-1 [&>[data-slot=progress-indicator]]:animate-pulse" value={100} /> : null}
+
+      {scanning && showArt ? (
+        <div className="flex items-center gap-4 rounded-lg bg-muted/40 px-4 py-2">
+          <MascotArt pose="scanning" className="h-20 shrink-0 sm:h-24" />
+          <p className="text-sm text-pretty text-muted-foreground">{t('scan.mascot')}</p>
+        </div>
+      ) : null}
 
       {s && (scanning || s.finishedAt > 0) ? (
         <dl className="grid grid-cols-3 gap-2 sm:grid-cols-6">

@@ -2,6 +2,8 @@ import { Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Logo } from '@/components/logo'
+import { MascotArt } from '@/components/mascot'
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import { cn } from '@/lib/utils'
 
 const SIZES = {
@@ -39,16 +41,24 @@ export function PageLoader({ className }: { className?: string }) {
   )
 }
 
-/** Full-viewport splash (initial auth check, lazy route bootstrap). */
+/**
+ * Full-viewport splash (initial auth check, lazy route bootstrap): the mascot twirling her
+ * umbrella, or the pulsing logo when illustrations are off.
+ */
 export function FullscreenLoader() {
   const { t } = useTranslation()
+  const showArt = useMascotArt()
   return (
     <div
       role="status"
       aria-label={t('a11y.loading')}
       className="fixed inset-0 z-50 grid place-items-center bg-background"
     >
-      <Logo size={56} className="animate-pulse drop-shadow-sm" />
+      {showArt ? (
+        <MascotArt pose="loading" className="h-40 origin-bottom motion-safe:animate-mascot-sway" />
+      ) : (
+        <Logo size={56} className="animate-pulse drop-shadow-sm" />
+      )}
     </div>
   )
 }

@@ -6,15 +6,17 @@ import { Logo } from '@/components/logo'
 import { FullscreenLoader } from '@/components/spinner'
 import { ForbiddenPage } from '@/components/status-pages'
 import { useAuth } from '@/hooks/use-auth'
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import { redirectTarget, type LoginRedirectState } from '@/lib/navigation'
 
-/** The auth status could not be loaded (backend down / offline). */
+/** The auth status could not be loaded (backend down / offline). The logo stands in when illustrations are off. */
 function ServerUnavailable({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   const { t } = useTranslation()
+  const showArt = useMascotArt()
   return (
     <div className="grid min-h-dvh place-items-center px-6 pt-safe pb-safe">
       <div className="flex flex-col items-center">
-        <Logo size={48} />
+        {showArt ? null : <Logo size={48} />}
         <ErrorState error={error} title={t('errors.serverUnreachableTitle')} onRetry={onRetry} className="py-8" />
       </div>
     </div>

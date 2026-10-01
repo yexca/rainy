@@ -143,6 +143,7 @@ function NoPlays({ allTime }: { allTime: boolean }) {
   return (
     <EmptyState
       icon={ChartColumn}
+      art="report"
       title={allTime ? t('listening.empty.title') : t('listening.empty.periodTitle')}
       description={allTime ? t('listening.empty.description') : t('listening.empty.periodDescription')}
     />

@@ -23,6 +23,7 @@ import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { api } from '@/lib/api/endpoints'
 import type { Issue, IssueType, Track } from '@/lib/api/types'
@@ -133,6 +134,7 @@ export default function DoctorPage() {
 
 function IssueList({ type, count }: { type: IssueType; count: number }) {
   const { t } = useTranslation('manage')
+  const showArt = useMascotArt()
   const queryClient = useQueryClient()
   const openTagEditor = useUI((s) => s.openTagEditor)
   const [dialog, setDialog] = useState<BatchDialogState | null>(null)
@@ -211,7 +213,7 @@ function IssueList({ type, count }: { type: IssueType; count: number }) {
       ) : issues.isError ? (
         <ErrorState error={issues.error} onRetry={() => void issues.refetch()} size="compact" />
       ) : all.length === 0 ? (
-        <EmptyState icon={CircleCheck} size="compact" title={t('doctor.none')} description={t('doctor.noneDescription')} />
+        <EmptyState icon={CircleCheck} art="happy" size={showArt ? 'default' : 'compact'} title={t('doctor.none')} description={t('doctor.noneDescription')} />
       ) : (
         <>
           <ul className="grid gap-3">

@@ -43,8 +43,10 @@ action.
 ## Look and Feel
 
 - Rainy has a mascot. She is the new app icon and appears on empty library
-  pages, "no results", error, 404, and no-access screens, beside the sign-in
-  card on wide screens, and in Settings. On tablets and desktops she sits in the
+  pages, "no results", error, 404, and no-access screens, the startup screen,
+  the listening report before your first play, an empty trash, a clean doctor
+  report, the library scan panel while a scan runs, beside the sign-in card on
+  wide screens, and in Settings. On tablets and desktops she sits in the
   bottom-right corner above the player, listens along while music plays, and
   dozes off after a while; click her for a short line or hide her with ×.
   **Settings → Mascot** turns the illustrations and the companion off

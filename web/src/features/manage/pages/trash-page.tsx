@@ -90,7 +90,7 @@ export default function TrashPage() {
       ) : trash.isError ? (
         <ErrorState error={trash.error} onRetry={() => void trash.refetch()} retrying={trash.isFetching} />
       ) : entries.length === 0 ? (
-        <EmptyState icon={Trash2} title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} />
+        <EmptyState icon={Trash2} art="happy" title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} />
       ) : (
         <div className="grid gap-3">
           <div className="bleed-x page-x hairline-b sticky top-[calc(var(--safe-top)+2.75rem)] z-20 flex h-12 items-center gap-3 bg-background/90 backdrop-blur-xl md:top-[calc(var(--safe-top)+3rem)]">
