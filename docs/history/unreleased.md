@@ -44,6 +44,10 @@ action.
   or fewer are left, similar songs from your library are added to the queue,
   marked with ∞; songs you add yourself play before them. It waits while
   repeat is on.
+- **Picture-in-picture lyrics**: a button next to the lyrics button opens a
+  small always-on-top window with the line being sung, its translation, the
+  next line, and playback controls (a mini player in Chrome and Edge, a
+  lyrics video in Safari on Mac, iPhone, and iPad).
 - Bilingual lyrics show the translation in smaller text under each original
   line, both for lines that share a timestamp and for `original 中文` lines. A
   translation button beside the lyrics button (and a setting under Playback)

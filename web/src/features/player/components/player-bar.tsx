@@ -11,6 +11,7 @@ import { useCurrentTrack, usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
 import { DockModeMenu } from './dock-mode-menu'
 import { LiveProgress } from './live-badge'
+import { PipLyricsButton } from './pip-lyrics-button'
 import { Scrubber } from './scrubber'
 import { StarButton } from './star-button'
 import { ModeToggle, NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } from './transport'
@@ -58,6 +59,7 @@ export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: bool
         >
           <MessageSquareQuote className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>
+        <PipLyricsButton tone="bar" />
         <BarToggle label={t('queue.title')} active={panel === 'queue'} onClick={() => togglePanel('queue')}>
           <ListMusic className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>

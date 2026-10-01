@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import { FastAverageColor } from 'fast-average-color'
 
 import { coverUrlForPixels } from '@/lib/cover'
@@ -51,9 +51,12 @@ export function paletteFromRgb(r: number, g: number, b: number): CoverPalette {
   }
 }
 
-/** Background palette derived from a cover (cached per cover id). */
-export function useCoverColor(coverArt: string | undefined): CoverPalette {
-  const { data } = useQuery({
+/**
+ * Background palette derived from a cover, cached per cover id. Shared by
+ * {@link useCoverColor} and the picture-in-picture lyrics canvas.
+ */
+export function coverColorQuery(coverArt: string | undefined) {
+  return queryOptions({
     queryKey: ['player', 'cover-color', coverArt ?? ''],
     queryFn: async () => {
       fac ??= new FastAverageColor()
@@ -73,5 +76,10 @@ export function useCoverColor(coverArt: string | undefined): CoverPalette {
     gcTime: 30 * 60_000,
     retry: false,
   })
+}
+
+/** Background palette derived from a cover (cached per cover id). */
+export function useCoverColor(coverArt: string | undefined): CoverPalette {
+  const { data } = useQuery(coverColorQuery(coverArt))
   return data ?? DEFAULT_PALETTE
 }
