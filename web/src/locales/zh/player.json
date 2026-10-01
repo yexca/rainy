@@ -17,6 +17,12 @@
     "all": "循环：全部",
     "one": "循环：单曲"
   },
+  "infinite": {
+    "label": "无限模式",
+    "on": "无限模式：开启——队列快播完时自动加入相似歌曲",
+    "paused": "无限模式：开启（循环开启时暂停）",
+    "off": "无限模式：关闭"
+  },
   "airplay": "隔空播放",
   "layout": {
     "title": "播放器布局",
@@ -57,6 +63,10 @@
     "upcoming_other": "{{count}} 首歌曲",
     "clear": "清除",
     "empty": "接下来没有要播放的歌曲",
+    "findingMore": "正在寻找相似的歌曲…",
+    "suggested_one": "{{count}} 首推荐",
+    "suggested_other": "{{count}} 首推荐",
+    "suggestion": "无限模式推荐",
     "remove": "移除",
     "removeTrack": "从队列中移除“{{title}}”",
     "reorder": "调整“{{title}}”的顺序"

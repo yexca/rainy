@@ -66,8 +66,12 @@ Docker image for `linux/amd64` and `linux/arm64`.
   tags is repaired when reading and can be written back as UTF-8. Chinese artist
   names are indexed by pinyin initial.
 - **Your listening, in numbers.** A personal listening report and play
-  history, like Last.fm, and optional scrobbling to Last.fm and ListenBrainz
-  from the web app and your Subsonic apps.
+  history, like Last.fm, with monthly and yearly recaps, and optional
+  scrobbling to Last.fm and ListenBrainz from the web app and your Subsonic
+  apps.
+- **Music picked for you.** A daily mix and an infinite mode that keeps
+  playing similar songs, chosen from your own library and plays on your
+  server; nothing is sent anywhere.
 - **Multi-user.** Administrator, manager, and listener roles with a separate
   download permission. Favorites, ratings, play counts, playlists, and the play
   queue are per user, and the queue follows you between the web app and

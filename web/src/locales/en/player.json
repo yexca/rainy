@@ -17,6 +17,12 @@
     "all": "Repeat: all",
     "one": "Repeat: one"
   },
+  "infinite": {
+    "label": "Infinite mode",
+    "on": "Infinite mode: on — similar songs are added when the queue runs low",
+    "paused": "Infinite mode: on (waits while repeat is on)",
+    "off": "Infinite mode: off"
+  },
   "airplay": "AirPlay",
   "layout": {
     "title": "Player layout",
@@ -57,6 +63,10 @@
     "upcoming_other": "{{count}} songs",
     "clear": "Clear",
     "empty": "Nothing up next",
+    "findingMore": "Finding more songs like this…",
+    "suggested_one": "{{count}} suggested",
+    "suggested_other": "{{count}} suggested",
+    "suggestion": "Suggested by infinite mode",
     "remove": "Remove",
     "removeTrack": "Remove “{{title}}” from the queue",
     "reorder": "Reorder “{{title}}”"

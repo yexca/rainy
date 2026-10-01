@@ -17,6 +17,7 @@ import type { Album } from '@/lib/api/types'
 import { formatNumber } from '@/lib/format'
 
 import { AlbumCard, AlbumCardSkeleton } from '../components/album-card'
+import { ForYou } from '../components/for-you'
 import { HorizontalShelf } from '../components/horizontal-shelf'
 import { usePlayCollection } from '../lib/play'
 import { homeQuery } from '../lib/queries'
@@ -149,6 +150,7 @@ export default function HomePage() {
         />
       ) : (
         <div className="-mt-2">
+          <ForYou />
           <Shelf title={t('home.recentlyAdded')} albums={home.data.recentlyAdded} to="/albums?sort=recent" />
           <Shelf title={t('home.recentlyPlayed')} albums={home.data.recentlyPlayed} to="/albums?sort=played" />
           <Shelf title={t('home.mostPlayed')} albums={home.data.mostPlayed} to="/albums?sort=frequent" />

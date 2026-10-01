@@ -1,5 +1,5 @@
 /**
- * Player state (docs/architecture/contract.md §9.2) — queue, transport, shuffle/repeat, volume and the
+ * Player state (docs/architecture/contract.md §9.2) — queue, transport, shuffle/repeat/infinite, volume and the
  * now-playing UI flags. Playback position lives in the separate high-frequency
  * {@link usePlayback} store so track lists don't re-render on every `timeupdate`.
  *
@@ -16,6 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 import type { Track } from '@/lib/api/types'
 
+import { autoEntries, manualInsertAt } from './lib/infinite'
 import type { PlayableTrack, PlayerPanel, RepeatMode } from './types'
 
 export type { PlayableTrack, PlayerPanel, RepeatMode } from './types'
@@ -36,6 +37,10 @@ export interface PlayerState {
   isPlaying: boolean
   shuffle: boolean
   repeat: RepeatMode
+  /** Infinite mode: with repeat off, songs like the ones playing are added when the queue runs low. */
+  infinite: boolean
+  /** The queue ended in infinite mode; the next added songs start playing. */
+  awaitingMore: boolean
   /** 0..1 (slider position; the engine applies a perceptual curve). */
   volume: number
   muted: boolean
@@ -48,12 +53,16 @@ export interface PlayerState {
   playTracks(tracks: readonly PlayableTrack[], startIndex?: number, opts?: { shuffle?: boolean }): void
   /** Insert right after the current track (starts playback when nothing is loaded). */
   playNext(tracks: readonly PlayableTrack[]): void
-  /** Append to the queue (starts playback when nothing is loaded). */
+  /** Append to the queue, before songs infinite mode added (starts playback when nothing is loaded). */
   addToQueue(tracks: readonly PlayableTrack[]): void
+  /** Append songs picked by infinite mode (marked `autoAdded`; continues playback when the queue had ended). */
+  appendAuto(tracks: readonly PlayableTrack[]): void
+  /** Remove the upcoming songs infinite mode added. */
+  clearAuto(): void
   play(): void
   pause(): void
   togglePlay(): void
-  /** Skip forward (ignores repeat-one). At the end: wraps with repeat-all, otherwise stops. */
+  /** Skip forward (ignores repeat-one). At the end: wraps with repeat-all, otherwise stops (infinite mode then waits for more). */
   next(): void
   /** Restart the track when > 3 s in, otherwise go to the previous one (wraps with repeat-all). */
   prev(): void
@@ -70,6 +79,7 @@ export interface PlayerState {
   toggleMute(): void
   toggleShuffle(): void
   cycleRepeat(): void
+  toggleInfinite(): void
   setNowPlayingOpen(open: boolean): void
   setPanel(p: PlayerPanel): void
   /** Replace the queue without starting playback (startup restore). */
@@ -114,6 +124,8 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       isPlaying: false,
       shuffle: false,
       repeat: 'off',
+      infinite: false,
+      awaitingMore: false,
       volume: 1,
       muted: false,
       nowPlayingOpen: false,
@@ -133,6 +145,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
             index: 0,
             shuffle: true,
             isPlaying: true,
+            awaitingMore: false,
           })
           return
         }
@@ -142,6 +155,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
           index: clampIndex(startIndex ?? 0, list.length),
           shuffle: false,
           isPlaying: true,
+          awaitingMore: false,
         })
       },
 
@@ -170,9 +184,45 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
           set({ queue: added, originalQueue: null, index: 0, isPlaying: true })
           return
         }
+        const at = manualInsertAt(queue, index)
+        let nextOriginal = originalQueue
+        if (originalQueue) {
+          // Before the same auto entry in the unshuffled order, else at its end.
+          const auto = queue[at]
+          const atOriginal = auto ? originalQueue.indexOf(auto) : -1
+          nextOriginal =
+            atOriginal >= 0
+              ? [...originalQueue.slice(0, atOriginal), ...added, ...originalQueue.slice(atOriginal)]
+              : [...originalQueue, ...added]
+        }
+        set({ queue: [...queue.slice(0, at), ...added, ...queue.slice(at)], originalQueue: nextOriginal })
+      },
+
+      appendAuto: (tracks) => {
+        const { queue, index, originalQueue, awaitingMore, infinite, isPlaying } = get()
+        if (!infinite || queue.length === 0) return
+        const added = autoEntries(tracks, queue)
+        if (added.length === 0) {
+          if (awaitingMore) set({ awaitingMore: false })
+          return
+        }
+        // Continue only while still stopped at the end (not after the user pressed play again).
+        const resume = awaitingMore && !isPlaying && index === queue.length - 1
         set({
           queue: [...queue, ...added],
           originalQueue: originalQueue ? [...originalQueue, ...added] : null,
+          awaitingMore: false,
+          ...(resume ? { index: index + 1, isPlaying: true } : {}),
+        })
+      },
+
+      clearAuto: () => {
+        const { queue, index, originalQueue } = get()
+        const drop = new Set(queue.filter((t, i) => i > index && t.autoAdded))
+        if (drop.size === 0) return
+        set({
+          queue: queue.filter((t) => !drop.has(t)),
+          originalQueue: originalQueue ? originalQueue.filter((t) => !drop.has(t)) : null,
         })
       },
 
@@ -192,8 +242,9 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
         } else if (repeat === 'all') {
           set({ index: 0, isPlaying: true })
         } else {
-          // End of the queue: stop on the last track, rewound.
-          set({ isPlaying: false })
+          // End of the queue: stop on the last track, rewound. Infinite mode continues as soon
+          // as more songs arrive.
+          set({ isPlaying: false, awaitingMore: get().infinite && !queue[index]?.isRadio })
           usePlayback.getState().seek(0)
         }
       },
@@ -214,7 +265,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       jumpTo: (target) => {
         const { queue } = get()
         if (target < 0 || target >= queue.length) return
-        set({ index: target, isPlaying: true })
+        set({ index: target, isPlaying: true, awaitingMore: false })
       },
 
       removeAt: (at) => {
@@ -246,7 +297,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
         set({ queue: nextQueue, index: nextIndex })
       },
 
-      clearQueue: () => set({ queue: [], originalQueue: null, index: -1, isPlaying: false }),
+      clearQueue: () => set({ queue: [], originalQueue: null, index: -1, isPlaying: false, awaitingMore: false }),
 
       clearUpcoming: () => {
         const { queue, index, originalQueue } = get()
@@ -305,6 +356,13 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
         set({ repeat: nextMode })
       },
 
+      toggleInfinite: () => {
+        const infinite = !get().infinite
+        // Turning it off drops the suggestions that haven't played yet.
+        if (!infinite) get().clearAuto()
+        set({ infinite, awaitingMore: false })
+      },
+
       setNowPlayingOpen: (nowPlayingOpen) => set({ nowPlayingOpen }),
       setPanel: (panel) => set({ panel }),
 
@@ -319,6 +377,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
           shuffle,
           originalQueue: shuffle ? originalQueue : null,
           isPlaying: false,
+          awaitingMore: false,
         })
       },
 
@@ -346,7 +405,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       version: 1,
       storage: createJSONStorage(() => localStorage),
       // Preferences only; the queue is persisted by the engine (`lib/queue-storage.ts`).
-      partialize: (s) => ({ volume: s.volume, muted: s.muted, repeat: s.repeat }),
+      partialize: (s) => ({ volume: s.volume, muted: s.muted, repeat: s.repeat, infinite: s.infinite }),
     },
   ),
 )

@@ -28,8 +28,8 @@ func TestOpenMigrate(t *testing.T) {
 		t.Fatalf("second migrate: %v", err)
 	}
 	v, err := d.Versions(ctx)
-	if err != nil || len(v) != 4 || v[0] != "0001_init" || v[1] != "0002_play_queue_index" || v[2] != "0003_lx_sources" ||
-		v[3] != "0004_listening" {
+	if err != nil || len(v) != 5 || v[0] != "0001_init" || v[1] != "0002_play_queue_index" || v[2] != "0003_lx_sources" ||
+		v[3] != "0004_listening" || v[4] != "0005_daily_mixes" {
 		t.Fatalf("versions = %v, %v", v, err)
 	}
 	var mode string

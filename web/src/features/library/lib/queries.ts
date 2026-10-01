@@ -7,6 +7,7 @@
  *   ['artists', id] / ['artists', 'list', p]  artist detail / paged artist lists
  *   ['tracks', 'list', p]                     paged track lists
  *   ['genres'], ['search', q], ['starred'], ['playlists'], ['playlists', id]
+ *   ['recommend', 'daily', day, tz]          daily mix (the server keeps it for the day)
  *   ['radios']                                (not library data; invalidated by the radio page)
  */
 import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
@@ -53,6 +54,29 @@ export const homeQuery = () =>
     queryKey: queryKeys.home,
     queryFn: ({ signal }) => api.home({ signal }),
   })
+
+/** The browser's IANA time zone ('' when unknown: the server then uses UTC). */
+export function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  } catch {
+    return ''
+  }
+}
+
+/** Local day (`2026-10-01`) so the daily mix query changes at midnight. */
+function localDay(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+export const dailyMixQuery = () => {
+  const tz = browserTimeZone()
+  return queryOptions({
+    queryKey: [...queryKeys.recommend, 'daily', localDay(), tz],
+    queryFn: ({ signal }) => api.recommend.daily({ tz }, { signal }),
+    staleTime: 5 * 60_000,
+  })
+}
 
 export const albumQuery = (id: string) =>
   queryOptions({

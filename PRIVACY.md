@@ -191,7 +191,10 @@ counters keyed by IP address and username, and Last.fm sign-ins in progress
 (for 15 minutes). All are lost on restart.
 
 Each user's listening report and history are visible only to that user in the
-app; administrators can read them only from the database itself.
+app; administrators can read them only from the database itself. The same
+applies to the daily mix (the songs picked for a user each day, kept for 30
+days) and to infinite-mode suggestions, which Rainy computes on the server from
+that user's own plays, stars, and ratings without contacting any service.
 
 Rainy does not encrypt the database or your music at rest. Host permissions,
 disk encryption, and backup controls protect them.

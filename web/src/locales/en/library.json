@@ -26,7 +26,15 @@
     "emptyManager": "Upload some music or point a library at your music folder and run a scan.",
     "emptyListener": "Music will show up here once an administrator adds some to the library.",
     "upload": "Upload music",
-    "scanLibrary": "Libraries & scan"
+    "scanLibrary": "Libraries & scan",
+    "forYou": "Made for You",
+    "recap": {
+      "eyebrow": "Monthly recap",
+      "title": "Your {{month}} in music",
+      "summary": "{{time}} of listening",
+      "summaryTop": "{{time}} of listening · most played: {{artist}}",
+      "open": "Open your {{month}} listening recap"
+    }
   },
   "search": {
     "placeholder": "Artists, songs, albums",
@@ -315,6 +323,45 @@
       "count_other": "{{formatted}} plays in this period",
       "empty": "No plays in this period",
       "more": "Load more"
+    },
+    "recap": {
+      "eyebrow": "{{period}} recap",
+      "headline": "You listened for {{time}}",
+      "summary_one": "{{plays}} play · {{songs}} songs · {{artists}} artists",
+      "summary_other": "{{plays}} plays · {{songs}} songs · {{artists}} artists",
+      "topArtist": "Top artist",
+      "topSong": "Top song",
+      "discoveries": "New to you",
+      "newArtists_one": "{{formatted}} new artist",
+      "newArtists_other": "{{formatted}} new artists",
+      "newSongs_one": "{{formatted}} new song",
+      "newSongs_other": "{{formatted}} new songs",
+      "busiest": "You listen most on",
+      "around": "usually around {{time}}",
+      "streak": "Longest streak",
+      "days_one": "{{formatted}} day in a row",
+      "days_other": "{{formatted}} days in a row",
+      "activeDays_one": "music on {{formatted}} day",
+      "activeDays_other": "music on {{formatted}} days",
+      "vsMonth": "Compared with the month before",
+      "vsYear": "Compared with the year before",
+      "more": "{{pct}}% more",
+      "less": "{{pct}}% less",
+      "listeningTime": "listening time",
+      "since": "Listening since",
+      "firstPlay": "your first play in Rainy"
     }
+  },
+  "daily": {
+    "title": "Daily Mix",
+    "eyebrow": "Updated every day",
+    "open": "Open today’s Daily Mix",
+    "play": "Play Daily Mix",
+    "artists_one": "{{artists}} · {{count}} song",
+    "artists_other": "{{artists}} and more · {{count}} songs",
+    "separator": ", ",
+    "description": "Songs picked for you each day from your library: artists like the ones you play most, favorites you haven’t heard in a while, and songs you have never played. It stays the same all day.",
+    "emptyTitle": "Nothing to pick yet",
+    "emptyDescription": "Your Daily Mix appears once the library has songs."
   }
 }

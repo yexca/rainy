@@ -27,7 +27,7 @@ Three guards protect the routes:
 
 | Guard | Applies to |
 | --- | --- |
-| Signed-in user | Browsing, streaming, covers, lyrics, favorites, ratings, playlists, queue, events, their own listening report and history, and their own scrobbling accounts |
+| Signed-in user | Browsing, streaming, covers, lyrics, favorites, ratings, playlists, queue, events, their own listening report and history, their own mixes and daily mix, and their own scrobbling accounts |
 | Manager (`canManage` or administrator) | `/api/manage/*`: tags, covers, lyrics, rename, upload, link and online music downloads, delete, trash, doctor, folders, and history |
 | Administrator | `/api/admin/*`: users, libraries, scans, server settings, music sources, scrobbling, statistics, system information, and cache |
 

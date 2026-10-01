@@ -6,9 +6,10 @@ action.
 
 > [!IMPORTANT]
 > This release adds database migrations `0003_lx_sources` (the table for music
-> source scripts) and `0004_listening` (a copy of each play's song details in
+> source scripts), `0004_listening` (a copy of each play's song details in
 > the play history, filled in for existing plays, and the tables for
-> scrobbling). Back up `/data` before upgrading.
+> scrobbling), and `0005_daily_mixes` (each user's daily mix). Back up `/data`
+> before upgrading.
 
 ## Listening and Scrobbling
 
@@ -20,6 +21,16 @@ action.
   songs, and genres, and the players you used. A **History** tab lists every
   play by day. Songs removed from the library stay in the history under their
   old names.
+- Calendar months (the last 12) can be chosen as report periods. Month and
+  year reports open with a **recap**: listening time, top artist and song,
+  new artists and songs, when you listen most, the longest streak, and the
+  change against the month or year before. In the first week of a month the
+  home page links to last month's recap.
+- **Daily Mix** under **Made for You** on the home page: about 30 songs picked
+  each day from your library (artists similar to your favorites, favorites
+  you haven't heard in a month, never played songs from your top genres) that
+  stay the same all day on every device. Picks are computed on the server
+  from your own plays, stars, and ratings only.
 - **Scrobbling** (off by default): after an administrator turns it on in
   Admin → Scrobbling (Last.fm also needs an API account there),
   users connect Last.fm or ListenBrainz in Settings → Scrobbling. Plays from
@@ -29,6 +40,10 @@ action.
 
 ## Playback and the Web Player
 
+- **Infinite mode** (∞ in Playing Next, or Settings → Playback): when two songs
+  or fewer are left, similar songs from your library are added to the queue,
+  marked with ∞; songs you add yourself play before them. It waits while
+  repeat is on.
 - Bilingual lyrics show the translation in smaller text under each original
   line, both for lines that share a timestamp and for `original 中文` lines. A
   translation button beside the lyrics button (and a setting under Playback)

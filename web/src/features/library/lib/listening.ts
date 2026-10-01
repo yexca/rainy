@@ -3,8 +3,8 @@
  * in the viewer's local calendar, comparisons, and chart scales.
  */
 
-/** Rolling periods, calendar years (`y2025`) and all time. */
-export type ListeningRange = '7d' | '30d' | '90d' | '12m' | 'all' | `y${number}`
+/** Rolling periods, calendar months (`m2026-09`), calendar years (`y2025`) and all time. */
+export type ListeningRange = '7d' | '30d' | '90d' | '12m' | 'all' | `y${number}` | `m${number}-${string}`
 
 export const ROLLING_RANGES = ['7d', '30d', '90d', '12m', 'all'] as const
 
@@ -37,6 +37,8 @@ export function rangeBounds(range: ListeningRange, now: Date = new Date()): Rang
     case 'all':
       return { from: 0, to: 0 }
   }
+  const month = monthOf(range)
+  if (month) return { from: new Date(month.year, month.month - 1, 1).getTime(), to: new Date(month.year, month.month, 1).getTime() }
   const year = yearOf(range)
   if (year === null) return { from: 0, to: 0 }
   return { from: new Date(year, 0, 1).getTime(), to: new Date(year + 1, 0, 1).getTime() }
@@ -48,10 +50,78 @@ export function yearOf(range: string): number | null {
   return m ? Number(m[1]) : null
 }
 
+/** The month (1–12) of a `m2026-09` range, `null` for other ranges. */
+export function monthOf(range: string): { year: number; month: number } | null {
+  const m = /^m(\d{4})-(\d{2})$/.exec(range)
+  if (!m) return null
+  const month = Number(m[2])
+  return month >= 1 && month <= 12 ? { year: Number(m[1]), month } : null
+}
+
+/** The range of a calendar month (`month` 1–12). */
+export function monthRange(year: number, month: number): ListeningRange {
+  return `m${year}-${String(month).padStart(2, '0')}`
+}
+
+/** Whether a range is a calendar month or year (the report then opens with a recap). */
+export function isCalendarRange(range: string): boolean {
+  return monthOf(range) !== null || yearOf(range) !== null
+}
+
 /** Whether `value` is a range (for URL parameters). */
 export function isListeningRange(value: string | null | undefined): value is ListeningRange {
   if (!value) return false
-  return (ROLLING_RANGES as readonly string[]).includes(value) || yearOf(value) !== null
+  return (ROLLING_RANGES as readonly string[]).includes(value) || yearOf(value) !== null || monthOf(value) !== null
+}
+
+/**
+ * Calendar months with plays, newest first: from `now`'s month back to the first play's month,
+ * at most `max` (the current month included).
+ */
+export function monthsSince(firstPlayAt: number, now: Date = new Date(), max = 12): ListeningRange[] {
+  if (!firstPlayAt) return []
+  const first = new Date(firstPlayAt)
+  const firstIndex = first.getFullYear() * 12 + first.getMonth()
+  const out: ListeningRange[] = []
+  for (let i = now.getFullYear() * 12 + now.getMonth(); i >= firstIndex && out.length < max; i--) {
+    out.push(monthRange(Math.floor(i / 12), (i % 12) + 1))
+  }
+  return out
+}
+
+/**
+ * The month whose recap the home page offers: last month, during the first `days` days of a
+ * month; `null` otherwise.
+ */
+export function recapMonth(now: Date = new Date(), days = 7): ListeningRange | null {
+  if (now.getDate() > days) return null
+  const last = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  return monthRange(last.getFullYear(), last.getMonth() + 1)
+}
+
+/**
+ * When the user listens most, from the report clock (rows = ISO weekdays, 0 = Monday;
+ * columns = hours): the busiest weekday and hour, `null` without plays. Ties go to the
+ * earlier one.
+ */
+export function busiestTimes(clock: readonly (readonly number[])[]): { weekday: number; hour: number } | null {
+  let total = 0
+  let weekday = 0
+  let best = -1
+  const hours = Array.from({ length: 24 }, () => 0)
+  clock.forEach((row, d) => {
+    const sum = row.reduce((a, b) => a + b, 0)
+    total += sum
+    if (sum > best) {
+      best = sum
+      weekday = d
+    }
+    row.forEach((v, h) => {
+      hours[h] += v
+    })
+  })
+  if (total === 0) return null
+  return { weekday, hour: hours.indexOf(Math.max(...hours)) }
 }
 
 /** Calendar years with plays, newest first (from the first play's year to `now`'s). */

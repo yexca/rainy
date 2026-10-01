@@ -13,6 +13,7 @@ import (
 	"rainy/internal/manage"
 	"rainy/internal/metasearch"
 	"rainy/internal/nowplaying"
+	"rainy/internal/recommend"
 	"rainy/internal/scanner"
 	"rainy/internal/scrobble"
 	"rainy/internal/store"
@@ -62,6 +63,7 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 		{"ListeningBucket", listening.Bucket{}, `start plays duration`},
 		{"ListeningTopEntry", listening.TopEntry{}, `id name artist plays duration coverArt available`},
 		{"ListeningTopTrack", listening.TopTrack{}, `id name artist plays duration coverArt available track`},
+		{"DailyMix", recommend.DailyMix{}, `date createdAt tracks`},
 		{"ScrobbleAccount", scrobble.AccountStatus{}, `service available linked needsRelink username enabled queued lastError
 			lastErrorAt lastSentAt linkedAt`},
 		{"ScrobblingAdmin", scrobble.AdminInfo{}, `lastfm listenBrainz`},

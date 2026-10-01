@@ -43,6 +43,7 @@ from `RAINY_*` environment variables; see
 | `ytdlp` | Opt-in downloads from YouTube and bilibili: the yt-dlp binary (install, update), encrypted sign-in cookies, and yt-dlp runs |
 | `lxmusic` | Opt-in online music: song search in the five lx-music catalogues and lx-music custom source scripts run in a sandboxed goja interpreter |
 | `listening` | Listening reports from the play history: totals, the timeline, the hour-of-week clock, and top lists |
+| `recommend` | Songs picked from the user's own library and plays: infinite-mode mixes and the stored daily mix |
 | `scrobble` | Opt-in scrobbling to Last.fm and ListenBrainz: account linking, "now playing", loves, and a retrying queue of plays sent in the background |
 | `app` | The dependency container that wires every service |
 | `api`, `subsonic` | The native `/api` and the Subsonic `/rest` HTTP handlers |

@@ -13,7 +13,7 @@ import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { defaultRangeExtractor, useVirtualizer, type Range } from '@tanstack/react-virtual'
-import { GripHorizontal, ListMusic, Radio, Trash2, X } from 'lucide-react'
+import { GripHorizontal, Infinity as InfinityIcon, ListMusic, Radio, Trash2, X } from 'lucide-react'
 import { motion, useMotionValue, useTransform, type PanInfo } from 'motion/react'
 import { memo, useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils'
 import { entryKey, useCurrentTrack, usePlayer } from '../store'
 import type { PlayableTrack } from '../types'
 import { LiveBadge } from './live-badge'
-import { RepeatButton, ShuffleButton } from './transport'
+import { InfiniteButton, RepeatButton, ShuffleButton } from './transport'
 
 export type QueueTone = 'sheet' | 'panel' | 'stage'
 
@@ -46,10 +46,12 @@ export function QueueView({ tone, className }: QueueViewProps) {
   const queue = usePlayer((s) => s.queue)
   const index = usePlayer((s) => s.index)
   const clearUpcoming = usePlayer((s) => s.clearUpcoming)
+  const refilling = usePlayer((s) => s.infinite && s.repeat === 'off')
   const current = useCurrentTrack()
   const onArt = tone !== 'panel'
   const start = index + 1
   const upcoming = useMemo(() => queue.slice(start), [queue, start])
+  const suggested = useMemo(() => upcoming.filter((t) => t.autoAdded).length, [upcoming])
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
@@ -72,6 +74,7 @@ export function QueueView({ tone, className }: QueueViewProps) {
           {upcoming.length > 0 ? (
             <p className={cn('text-xs', onArt ? 'text-white/55' : 'text-muted-foreground')}>
               {t('queue.upcoming', { count: upcoming.length })}
+              {suggested > 0 ? ` · ${t('queue.suggested', { count: suggested })}` : null}
             </p>
           ) : null}
         </div>
@@ -93,14 +96,19 @@ export function QueueView({ tone, className }: QueueViewProps) {
           <>
             <ShuffleButton tone="sheet" className="size-8" />
             <RepeatButton tone="sheet" className="size-8" />
+            <InfiniteButton tone="sheet" className="size-8" />
           </>
-        ) : null}
+        ) : (
+          <InfiniteButton tone="bar" className="size-8" />
+        )}
       </div>
 
       {upcoming.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 pb-10 text-center">
           <ListMusic className={cn('size-8', onArt ? 'text-white/45' : 'text-muted-foreground/60')} strokeWidth={1.5} />
-          <p className={cn('text-sm font-medium', onArt ? 'text-white/70' : 'text-muted-foreground')}>{t('queue.empty')}</p>
+          <p className={cn('text-sm font-medium', onArt ? 'text-white/70' : 'text-muted-foreground')}>
+            {refilling && current && !current.isRadio ? t('queue.findingMore') : t('queue.empty')}
+          </p>
         </div>
       ) : (
         <SortableQueue entries={upcoming} offset={start} tone={tone} />
@@ -274,8 +282,11 @@ function RowContent({ entry, tone, dragging }: { entry: PlayableTrack; tone: Que
       <CoverArt coverArt={entry.coverArt} size={40} flat={onArt} icon={entry.isRadio ? Radio : undefined} />
       <div className="min-w-0 flex-1 leading-tight">
         <p className={cn('truncate text-[15px] font-medium md:text-sm', onArt ? 'text-white' : 'text-foreground')}>{entry.title}</p>
-        <p className={cn('truncate text-[13px] md:text-xs', onArt ? 'text-white/55' : 'text-muted-foreground')}>
-          {entry.isRadio ? t('live.radio') : entry.artist}
+        <p className={cn('flex items-center gap-1 text-[13px] md:text-xs', onArt ? 'text-white/55' : 'text-muted-foreground')}>
+          {entry.autoAdded ? (
+            <InfinityIcon className="size-3.5 shrink-0" strokeWidth={2} role="img" aria-label={t('queue.suggestion')} />
+          ) : null}
+          <span className="truncate">{entry.isRadio ? t('live.radio') : entry.artist}</span>
         </p>
       </div>
       {entry.isRadio ? (

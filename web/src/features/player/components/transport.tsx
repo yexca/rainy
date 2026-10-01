@@ -1,4 +1,4 @@
-import { Repeat, Repeat1, Shuffle } from 'lucide-react'
+import { Infinity as InfinityIcon, Repeat, Repeat1, Shuffle } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -181,6 +181,20 @@ export function RepeatButton({ tone, className }: { tone: PlayerTone; className?
   return (
     <ModeToggle tone={tone} active={repeat !== 'off'} onClick={cycleRepeat} aria-label={label} title={label} className={className}>
       <Icon className="size-[18px]" strokeWidth={2} />
+    </ModeToggle>
+  )
+}
+
+/** Infinite mode: keeps adding songs like the ones playing while repeat is off. */
+export function InfiniteButton({ tone, className }: { tone: PlayerTone; className?: string }) {
+  const { t } = useTranslation('player')
+  const infinite = usePlayer((s) => s.infinite)
+  const repeat = usePlayer((s) => s.repeat)
+  const toggleInfinite = usePlayer((s) => s.toggleInfinite)
+  const label = infinite ? (repeat === 'off' ? t('infinite.on') : t('infinite.paused')) : t('infinite.off')
+  return (
+    <ModeToggle tone={tone} active={infinite} onClick={toggleInfinite} aria-label={t('infinite.label')} title={label} className={className}>
+      <InfinityIcon className="size-[18px]" strokeWidth={2} />
     </ModeToggle>
   )
 }

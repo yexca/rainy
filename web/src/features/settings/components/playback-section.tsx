@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Switch } from '@/components/ui/switch'
 import { canControlVolume, canPlayFormat } from '@/features/player/lib/audio-support'
 import { usePlaybackPrefs } from '@/features/player/prefs'
+import { usePlayer } from '@/features/player/store'
 import type { ReplayGainMode, StreamQuality, TranscodeFormat } from '@/features/player/types'
 import { formatNumber } from '@/lib/format'
 import { isIOS } from '@/lib/platform'
@@ -22,6 +23,8 @@ export function PlaybackSection() {
   const preloadNext = usePlaybackPrefs((s) => s.preloadNext)
   const lyricsTranslation = usePlaybackPrefs((s) => s.lyricsTranslation)
   const setPrefs = usePlaybackPrefs((s) => s.setPrefs)
+  const infinite = usePlayer((s) => s.infinite)
+  const toggleInfinite = usePlayer((s) => s.toggleInfinite)
   const volumeControl = canControlVolume()
   const opusSupported = canPlayFormat('opus')
 
@@ -83,6 +86,9 @@ export function PlaybackSection() {
           disabled={isIOS}
           onCheckedChange={(checked) => setPrefs({ preloadNext: checked })}
         />
+      </SettingsRow>
+      <SettingsRow label={t('playback.infinite')} description={t('playback.infiniteHint')} htmlFor="settings-infinite">
+        <Switch id="settings-infinite" checked={infinite} onCheckedChange={(checked) => checked !== infinite && toggleInfinite()} />
       </SettingsRow>
       <SettingsRow
         label={t('playback.lyricsTranslation')}
