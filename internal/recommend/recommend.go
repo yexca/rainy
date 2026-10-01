@@ -414,16 +414,31 @@ func interleave(groups [][]string) []string {
 }
 
 // spread reorders picks so the same artist doesn't play twice in a row when another song can
-// go in between.
+// go in between: a later song by someone else is swapped in, or, when only that artist is
+// left (a run at the end), the song moves back to the earliest gap between two other artists.
 func (p *picker) spread(ids []string) []string {
 	artist := func(id string) string { return p.cands[id].artist() }
 	for i := 1; i < len(ids); i++ {
-		if artist(ids[i]) != artist(ids[i-1]) {
+		a := artist(ids[i])
+		if a != artist(ids[i-1]) {
 			continue
 		}
+		swapped := false
 		for j := i + 1; j < len(ids); j++ {
-			if artist(ids[j]) != artist(ids[i-1]) {
+			if artist(ids[j]) != a {
 				ids[i], ids[j] = ids[j], ids[i]
+				swapped = true
+				break
+			}
+		}
+		if swapped {
+			continue
+		}
+		for k := 0; k < i; k++ {
+			if (k == 0 || artist(ids[k-1]) != a) && artist(ids[k]) != a {
+				id := ids[i]
+				copy(ids[k+1:i+1], ids[k:i])
+				ids[k] = id
 				break
 			}
 		}
