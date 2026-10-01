@@ -45,21 +45,24 @@
     {
       "url": "https://hub.docker.com/r/yexca/rainy",
       "files": [
-        "README.md"
+        "README.md",
+        "docs/readme/*.md"
       ],
       "reason": "Rainy's public Docker Hub image page."
     },
     {
       "url": "https://img.shields.io/github/**",
       "files": [
-        "README.md"
+        "README.md",
+        "docs/readme/*.md"
       ],
       "reason": "Public GitHub release and license badges for the README."
     },
     {
       "url": "https://img.shields.io/badge/**",
       "files": [
-        "README.md"
+        "README.md",
+        "docs/readme/*.md"
       ],
       "reason": "Static README badges rendered by shields.io."
     },

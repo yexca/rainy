@@ -1,4 +1,14 @@
 <p align="center">
+  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy 图标">
+</p>
+
+<h1 align="center">Rainy</h1>
+
+<p align="center">
+  给 NAS 用的自托管音乐服务器：兼容 Subsonic，自带好看的 Web 播放器，还能直接在网页里整理曲库。
+</p>
+
+<p align="center">
   <a href="../../README.md">English</a> ·
   <a href="README.zh-Hans.md">简体中文</a> ·
   <a href="README.zh-Hant.md">繁體中文</a> ·
@@ -6,12 +16,14 @@
 </p>
 
 <p align="center">
-  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy 图标">
+  <a href="https://github.com/yexca/rainy/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/yexca/rainy"></a>
+  <a href="https://hub.docker.com/r/yexca/rainy"><img alt="Docker image" src="https://img.shields.io/badge/docker-yexca%2Frainy-2496ed?logo=docker&amp;logoColor=white"></a>
+  <a href="../../LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/github/license/yexca/rainy"></a>
 </p>
 
-# Rainy
-
-给 NAS 用的自托管音乐服务器：兼容 Subsonic，自带好看的 Web 播放器，还能直接在网页里整理曲库。
+<p align="center">
+  <img src="../assets/rainy-showcase.png" width="1200" alt="Rainy 首页：专辑列表、播放栏、正在播放卡片，以及在角落听歌的看板娘">
+</p>
 
 Rainy 和 [Navidrome](https://www.navidrome.org/) 定位相似：把 NAS 上的音乐文件夹变成随时随地可听的私人流媒体服务。不同的是，Rainy 把**曲库管理**当成一等公民——改标签、换封面、加歌词、按规则重命名、上传、删除、找出有问题的文件，都能在浏览器里完成，不必再开电脑跑 Mp3tag 或 foobar2000。
 
@@ -134,6 +146,10 @@ docker compose exec -u 1000:1000 rainy rainy user reset-password admin '新密�
 docker compose exec -u 1000:1000 rainy rainy user list
 ```
 
+## 用户文档
+
+[用户指南](../user/index.md)涵盖入门、曲库与扫描、播放与 PWA、收听报表与 Scrobble、曲库管理和 Subsonic 客户端。[运维文档](../operations/configuration.md)涵盖 Docker 与 NAS 部署、配置、反向代理、数据库与备份以及故障排查。
+
 ## 文档
 
 | 目标 | 从这里开始 |
@@ -154,6 +170,10 @@ docker compose exec -u 1000:1000 rainy rainy user list
 ## 开发与贡献
 
 开发环境、测试、迁移和发布流程见[本地开发](../development/local-dev.md)和[测试](../development/testing.md)。贡献前请阅读 [CONTRIBUTING.md](../../CONTRIBUTING.md) 和 [AGENTS.md](../../AGENTS.md)。
+
+## 致谢
+
+Rainy 基于 TagLib（通过编译为 WebAssembly 的 go-taglib）、FFmpeg、SQLite（通过 modernc.org/sqlite），以及开启后使用的 yt-dlp。Subsonic 与 OpenSubsonic API 让它可以直接配合你已在用的客户端；[Navidrome](https://www.navidrome.org/) 则让人看到自托管音乐服务器可以多么好用。
 
 ## 许可证
 

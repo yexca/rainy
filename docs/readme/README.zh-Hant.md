@@ -1,4 +1,14 @@
 <p align="center">
+  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy 圖示">
+</p>
+
+<h1 align="center">Rainy</h1>
+
+<p align="center">
+  為 NAS 打造的自架音樂伺服器：相容 Subsonic，內建美觀的網頁播放器，還能直接在網頁上整理音樂庫。
+</p>
+
+<p align="center">
   <a href="../../README.md">English</a> ·
   <a href="README.zh-Hans.md">简体中文</a> ·
   <a href="README.zh-Hant.md">繁體中文</a> ·
@@ -6,12 +16,14 @@
 </p>
 
 <p align="center">
-  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy 圖示">
+  <a href="https://github.com/yexca/rainy/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/yexca/rainy"></a>
+  <a href="https://hub.docker.com/r/yexca/rainy"><img alt="Docker image" src="https://img.shields.io/badge/docker-yexca%2Frainy-2496ed?logo=docker&amp;logoColor=white"></a>
+  <a href="../../LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/github/license/yexca/rainy"></a>
 </p>
 
-# Rainy
-
-為 NAS 打造的自架音樂伺服器：相容 Subsonic，內建美觀的網頁播放器，還能直接在網頁上整理音樂庫。
+<p align="center">
+  <img src="../assets/rainy-showcase.png" width="1200" alt="Rainy 首頁：專輯列表、播放列、正在播放卡片，以及在角落聽歌的看板娘">
+</p>
 
 Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的音樂資料夾變成隨時隨地可聽的私人串流服務。不同之處在於 Rainy 把**音樂庫管理**視為核心功能：編輯標籤、更換封面、加入歌詞、依規則重新命名、上傳、刪除、找出有問題的檔案，都能在瀏覽器中完成。
 
@@ -62,6 +74,10 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 
 `secret.key` 用於加密儲存的密碼，請與 `rainy.db` 一併備份並妥善保管。請勿將這些目錄提交到版本庫。
 
+## 使用者文件
+
+[使用者指南](../user/index.md)涵蓋入門、音樂庫與掃描、播放與 PWA、收聽報表與 Scrobble、音樂庫管理以及 Subsonic 用戶端。[維運文件](../operations/configuration.md)涵蓋 Docker 與 NAS 部署、設定、反向代理、資料庫與備份以及疑難排解（目前為英文）。
+
 ## 文件
 
 完整文件（英文）請見[文件索引](../README.md)，包括[使用者指南](../user/index.md)、[反向代理](../operations/reverse-proxy.md)與[疑難排解](../operations/troubleshooting.md)。
@@ -73,6 +89,10 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 ## 開發與貢獻
 
 請閱讀 [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md) 與[本地開發](../development/local-dev.md)。
+
+## 致謝
+
+Rainy 建立在 TagLib（透過編譯為 WebAssembly 的 go-taglib）、FFmpeg、SQLite（透過 modernc.org/sqlite）之上，啟用時也會使用 yt-dlp。Subsonic 與 OpenSubsonic API 讓它能直接搭配你已在使用的用戶端；[Navidrome](https://www.navidrome.org/) 則讓人看見自架音樂伺服器可以多麼好用。
 
 ## 授權
 
