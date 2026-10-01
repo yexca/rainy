@@ -28,6 +28,8 @@ import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { TOOLS_SECTION } from '@/layouts/nav'
+import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { EditLogEntry } from '@/lib/api/types'
 import { formatBytes, formatDate, formatDateTime } from '@/lib/format'
@@ -112,6 +114,7 @@ export default function HistoryPage() {
   return (
     <Page>
       <PageHeader title={t('history.title')} subtitle={log.data ? t('history.count', { count: total }) : t('history.subtitle')} back={isMobile ? '/manage' : undefined}>
+        <SectionTabs section={TOOLS_SECTION} />
         {trackId ? (
           <div className="flex items-center gap-2 pb-4">
             <span className="inline-flex h-8 max-w-full items-center gap-2 rounded-full bg-secondary pr-1 pl-3 text-sm">
@@ -135,7 +138,7 @@ export default function HistoryPage() {
         <div className="grid gap-6">
           {groups.map((group) => (
             <section key={group.day}>
-              <h2 className="sticky top-[calc(var(--safe-top)+2.75rem)] z-10 -mx-1 mb-2 bg-background/90 px-1 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase backdrop-blur md:top-[calc(var(--safe-top)+3rem)]">
+              <h2 className="sticky top-[calc(var(--safe-top)+2.75rem)] z-10 -mx-1 mb-2 bg-background/90 px-1 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase backdrop-blur md:top-(--app-header-h)">
                 {group.day}
               </h2>
               <ol className="grid gap-2">

@@ -39,6 +39,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLibraries } from '@/features/admin/queries'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { TOOLS_SECTION } from '@/layouts/nav'
+import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { FileEntry } from '@/lib/api/types'
 import { formatBytes, formatDate } from '@/lib/format'
@@ -165,6 +167,7 @@ export default function FoldersPage() {
         actions={isMobile ? null : menu}
         navActions={isMobile ? menu : null}
       >
+        <SectionTabs section={TOOLS_SECTION} />
         <div className="flex flex-wrap items-center gap-2 pb-4">
           {!limited && libraries.length > 1 ? (
             <Select value={String(libraryId)} onValueChange={(v) => navigate({ libraryId: Number(v), dir: '' })}>

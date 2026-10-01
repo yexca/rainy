@@ -429,7 +429,7 @@
   },
   "upload": {
     "title": "上传",
-    "subtitle": "把这台设备上的音乐，或 YouTube、哔哩哔哩链接中的音频添加到音乐库。",
+    "subtitle": "把这台设备上的音乐添加到音乐库。",
     "target": "保存位置",
     "folder": "文件夹",
     "folderPlaceholder": "音乐库根目录",
@@ -468,6 +468,7 @@
     "finishedWithErrors_other": "已上传 {{count}} 个文件，{{failed}} 个失败"
   },
   "download": {
+    "pageSubtitle": "把 YouTube、哔哩哔哩视频中的音频下载到音乐库。",
     "title": "从 YouTube 或哔哩哔哩链接下载",
     "subtitle": "服务器使用 yt-dlp 下载音频，并保存到上方的保存位置。",
     "statusError": "无法读取下载状态。",

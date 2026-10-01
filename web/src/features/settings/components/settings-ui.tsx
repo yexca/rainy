@@ -22,7 +22,7 @@ export function SettingsSection({
   className?: string
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className={cn('scroll-mt-16', className)}>
+    <section id={id} aria-labelledby={`${id}-title`} className={cn('scroll-mt-[calc(var(--app-header-h)+4rem)]', className)}>
       <div className="px-1 pb-2">
         <h2 id={`${id}-title`} className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">
           {title}

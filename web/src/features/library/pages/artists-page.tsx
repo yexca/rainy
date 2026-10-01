@@ -40,8 +40,9 @@ const LETTERS = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'] as const
  * a handful of artists, one-card rows under every letter look broken.
  */
 const GROUP_MIN_DESKTOP = 24
-/** Space kept above a jumped-to section (sticky nav bar + breathing room). */
+/** Space kept above a jumped-to section (sticky nav bar + breathing room; plus the app header from tablets up). */
 const JUMP_PADDING = 64
+const JUMP_PADDING_HEADER = 112
 
 function isArtistSort(value: string | null): value is ArtistSort {
   return !!value && (SORTS as readonly string[]).includes(value)
@@ -204,7 +205,7 @@ function ArtistsList({ artists, grouped, mobile }: { artists: Artist[]; grouped:
     },
     overscan: mobile ? 12 : 3,
     scrollMargin: geometry.top,
-    scrollPaddingStart: JUMP_PADDING,
+    scrollPaddingStart: mobile ? JUMP_PADDING : JUMP_PADDING_HEADER,
   })
 
   useEffect(() => {

@@ -25,6 +25,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMascotArt } from '@/hooks/use-mascot-art'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { TOOLS_SECTION } from '@/layouts/nav'
+import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { Issue, IssueType, Track } from '@/lib/api/types'
 import { formatBytes, formatDuration, formatNumber } from '@/lib/format'
@@ -82,7 +84,9 @@ export default function DoctorPage() {
             {t('common:actions.refresh')}
           </Button>
         }
-      />
+      >
+        <SectionTabs section={TOOLS_SECTION} />
+      </PageHeader>
 
       {summary.isError ? (
         <ErrorState error={summary.error} onRetry={() => void summary.refetch()} />

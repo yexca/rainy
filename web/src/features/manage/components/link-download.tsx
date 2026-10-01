@@ -42,7 +42,7 @@ export interface LinkDownloadProps {
 }
 
 /**
- * "From a link" section of the Upload tab: the server downloads the audio of a YouTube or
+ * The Links tab (Tracks → Links): the server downloads the audio of a YouTube or
  * bilibili video with yt-dlp and imports it like an upload (same destination and organize
  * options). Jobs run on the server, so they keep going when the page is closed.
  */
@@ -97,7 +97,7 @@ export function LinkDownload({ libraryId, dir, organize, invalidDir }: LinkDownl
           </p>
           {isAdmin ? (
             <Button asChild variant="outline" size="sm" className="max-sm:h-10">
-              <Link to="/admin/settings?tab=ytdlp">
+              <Link to="/admin/settings/ytdlp">
                 <Settings2 />
                 {t('download.openSettings')}
               </Link>

@@ -59,7 +59,7 @@ not contact them and the proxy cannot reach other addresses. See
 ## Downloads from Links
 
 With the administrator setting `ytdlpEnabled` on (off by default), managers can
-paste a YouTube or bilibili link on the Tracks → Upload tab. The server runs
+paste a YouTube or bilibili link on the Tracks → Links tab. The server runs
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) through `internal/ytdlp` with a fixed
 argument list in a work directory under `<data>/tmp`: configuration files,
 plugins, and the generic extractor are disabled, and only links to the
@@ -69,7 +69,7 @@ cover cropped from the thumbnail through TagLib, and imports the files exactly
 like an upload: library lock, rescan, a `download` edit-log row per file, and
 a library event. Existing files are never overwritten.
 
-Administrators install and update yt-dlp from **Admin → Settings → yt-dlp**:
+Administrators install and update yt-dlp from **Admin → yt-dlp**:
 Rainy downloads the official release from GitHub into `<data>/ytdlp`, verifies
 it against the release checksums, and checks that it runs before replacing the
 old binary. Optional sign-in cookies are filtered to the site's own domain and
@@ -83,7 +83,7 @@ managers can search the five catalogues lx-music knows (Kuwo, Kugou, QQ Music,
 NetEase Cloud Music, and Migu) in **Tracks → Online** and download songs into
 a library through `internal/lxmusic`. Rainy ships no way to obtain audio
 itself: the download link comes from an lx-music *custom source* script that
-an administrator imports in **Admin → Settings → Sources**. Scripts run on the
+an administrator imports in **Admin → Sources**. Scripts run on the
 server in a goja interpreter with only the lx-music script API; their network
 access is limited to public internet addresses, and every call has a time
 limit. With several sources, Rainy tries the enabled ones in priority order

@@ -57,7 +57,7 @@ environment variables.
 ## Downloads from YouTube and Bilibili
 
 An administrator can turn on **Allow downloads from YouTube and bilibili** in
-**Admin → Settings → yt-dlp**. It is off by default. While it is off, none of
+**Admin → yt-dlp**. It is off by default. While it is off, none of
 the requests below are made.
 
 - **Installing and updating yt-dlp.** Only when an administrator selects
@@ -89,7 +89,7 @@ policy applies to the requests it receives.
 ## Online Music and Music Sources
 
 An administrator can turn on **Allow online music and music sources** in
-**Admin → Settings → Sources**. It is off by default. While it is off, none of
+**Admin → Sources**. It is off by default. While it is off, none of
 the requests below are made; a source script imported from a file is stored
 but not run.
 
@@ -134,7 +134,7 @@ keep.
 
 ## Scrobbling to Last.fm and ListenBrainz
 
-An administrator can allow scrobbling in **Admin → Settings → Scrobbling**,
+An administrator can allow scrobbling in **Admin → Scrobbling**,
 separately for Last.fm and ListenBrainz. Both are off by default. While a
 service is off, none of the requests below are made. Even when it is on, the
 server contacts a service only for users who connect their own account there

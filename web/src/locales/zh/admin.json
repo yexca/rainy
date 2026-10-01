@@ -114,13 +114,6 @@
   "settings": {
     "title": "服务器设置",
     "subtitle": "对这台服务器上的所有用户生效。",
-    "tabs": {
-      "general": "常规",
-      "ytdlp": "yt-dlp",
-      "sources": "音源",
-      "system": "系统",
-      "scrobbling": "播放记录同步"
-    },
     "saved": "设置已保存",
     "unsaved": "有未保存的更改",
     "discard": "放弃",
@@ -179,7 +172,7 @@
       "cookies": "登录 Cookie"
     },
     "enable": "允许从 YouTube 和哔哩哔哩下载",
-    "enableHelp": "管理者可以在上传页粘贴链接，服务器使用 yt-dlp 下载音频并加入音乐库。只有在有人开始下载时，服务器才会访问 YouTube 或哔哩哔哩；只有在检查或安装更新时才会访问 GitHub。",
+    "enableHelp": "管理者可以在「曲目 → 链接下载」中粘贴链接，服务器使用 yt-dlp 下载音频并加入音乐库。只有在有人开始下载时，服务器才会访问 YouTube 或哔哩哔哩；只有在检查或安装更新时才会访问 GitHub。",
     "version": "已安装版本",
     "managedHelp": "Rainy 会把 yt-dlp 官方发行版安装到数据目录中。",
     "unmanagedHelp": "由服务器运维者管理（RAINY_YTDLP_PATH），请在那里更新。",

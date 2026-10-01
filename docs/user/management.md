@@ -1,12 +1,15 @@
 # Management
 
 Managers and administrators can change the music library from the **Manage**
-section. **Tracks** is used most, so it is always visible: in the sidebar on
-desktop and as the **Manage** tab on phones. It has three tabs: **Metadata**
-(the track table and tag editor), **Upload** (files and links), and
-**Online** (online music). The other tools (Folders, Doctor, Trash, History)
-and the admin pages stay folded under **Library tools** and **Admin** until
-you open them. Every change writes to your files, so:
+section, which has three entries in the sidebar: **Tracks**, **Library
+tools**, and (for administrators) **Admin**. Each entry's pages are tabs at
+the top of the page. **Tracks** has **Metadata** (the track table and tag
+editor), **Upload** (files from this device), **Links** (YouTube and
+bilibili), and **Online** (online music); **Library tools** has Folders,
+Doctor, Trash, and History; **Admin** has Users, Libraries, and the server
+settings: Settings, yt-dlp, Sources, Scrobbling, and System. On phones the **Manage** tab opens
+Tracks, with links to Library tools and Admin beside its tabs. Every change
+writes to your files, so:
 
 - The music folder must be writable by the container user; see
   [Docker](../operations/docker.md#permissions-puid-and-pgid). On a read-only
@@ -141,7 +144,8 @@ Uploads through a reverse proxy are limited by the proxy's body size; see
 
 ### Download from a Link
 
-The Upload tab can also download the audio of a YouTube or bilibili video.
+The **Links** tab downloads the audio of a YouTube or bilibili video into the
+same destination as Upload.
 Paste a link (bilibili share text such as `【Title】 https://b23.tv/…` works
 too), choose the audio format, and select **Download**. **Original (no
 conversion)** keeps the site's audio stream (Opus from YouTube, AAC from
@@ -155,7 +159,7 @@ a square cover cut from the thumbnail; fix the rest in the tag editor. Downloads
 run on the server, so you can leave the page; live streams are skipped. Only
 download what you have the right to keep.
 
-An administrator sets this up in **Admin → Settings → yt-dlp**:
+An administrator sets this up in **Admin → yt-dlp**:
 
 1. Turn on **Allow downloads from YouTube and bilibili**.
 2. Select **Install yt-dlp**. Rainy downloads the official release from GitHub
@@ -182,7 +186,7 @@ An administrator sets this up in **Admin → Settings → yt-dlp**:
 **Tracks → Online** searches Kuwo, Kugou, QQ Music, NetEase Cloud Music, or
 Migu and downloads songs into your library. Pick a catalogue, search, and
 select songs (or use a row's download button). Under **Download options**
-choose the destination (shared with the Upload tab), the best quality you
+choose the destination (shared with the Upload and Links tabs), the best quality you
 want (Hi-Res, FLAC, 320K, or 128K; a lower one is used when the song or the
 sources lack it), and whether to embed the catalogue's lyrics (with a paired
 translation) and cover. Rainy writes the title, artists, album, lyrics, and
@@ -193,7 +197,7 @@ can leave the page. Only download what you have the right to keep.
 Rainy cannot obtain songs by itself: the download link comes from a **music
 source**, an lx-music custom source script that an administrator imports.
 Rainy doesn't include or recommend any source. An administrator sets this up
-in **Admin → Settings → Sources**:
+in **Admin → Sources**:
 
 1. Turn on **Allow online music and music sources**.
 2. Select **Import** and choose the script's `.js` file, or paste a link to it

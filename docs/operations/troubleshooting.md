@@ -59,7 +59,7 @@ See [Clients](../user/clients.md).
 ## Transcoding Does Not Work
 
 The image includes ffmpeg. When running the binary yourself, install ffmpeg or
-set `RAINY_FFMPEG_PATH`. **Admin → Settings → System** shows whether ffmpeg was
+set `RAINY_FFMPEG_PATH`. **Admin → System** shows whether ffmpeg was
 found and its version. Without ffmpeg, Rainy streams original files.
 
 ## Scan Progress Does Not Move
