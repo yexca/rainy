@@ -287,29 +287,8 @@ func (a *API) resolveArtist(q *request, id string) (string, error) {
 	return id, nil
 }
 
-// similarArtistIDs returns album artists sharing the most genres with artistID.
-func (a *API) similarArtistIDs(ctx context.Context, artistID string, limit int) ([]string, error) {
-	if limit <= 0 {
-		return nil, nil
-	}
-	var ids []string
-	err := a.app.Store.DB().R.SelectContext(ctx, &ids, `
-		WITH g AS (
-			SELECT DISTINCT tg.genre_id FROM track_genres tg JOIN tracks t ON t.id = tg.track_id
-			WHERE t.missing = 0 AND (t.artist_id = ? OR t.album_artist_id = ?)
-		)
-		SELECT t.album_artist_id FROM tracks t
-		JOIN track_genres tg ON tg.track_id = t.id
-		JOIN artists ar ON ar.id = t.album_artist_id AND ar.album_count > 0
-		WHERE t.missing = 0 AND tg.genre_id IN (SELECT genre_id FROM g) AND t.album_artist_id != ?
-		GROUP BY t.album_artist_id
-		ORDER BY COUNT(DISTINCT tg.genre_id) DESC, COUNT(*) DESC, t.album_artist_id
-		LIMIT ?`, artistID, artistID, artistID, limit)
-	return ids, err
-}
-
 func (a *API) similarArtists(q *request, artistID string, limit int) ([]model.Artist, error) {
-	ids, err := a.similarArtistIDs(q.ctx, artistID, limit)
+	ids, err := a.app.Store.SimilarArtistIDs(q.ctx, []string{artistID}, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +392,7 @@ func (a *API) similarSongs(q *request) ([]Child, error) {
 	if err != nil {
 		return nil, err
 	}
-	similar, err := a.similarArtistIDs(q.ctx, artistID, 10)
+	similar, err := a.app.Store.SimilarArtistIDs(q.ctx, []string{artistID}, 10)
 	if err != nil {
 		return nil, err
 	}

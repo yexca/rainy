@@ -13,6 +13,8 @@ export type PlayableTrack = Track & {
   streamUrlOverride?: string
   /** Live stream: no duration, no seeking, no scrobbling. */
   isRadio?: boolean
+  /** Added by infinite mode (shown as a suggestion; "Add to queue" goes before these). */
+  autoAdded?: boolean
 }
 
 export type RepeatMode = 'off' | 'all' | 'one'

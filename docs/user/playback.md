@@ -32,10 +32,25 @@ the Media Session API.
 - Play an album, playlist, or selection to replace the queue, or use **Play
   next** and **Add to queue** from any "…" menu.
 - In **Playing Next**, drag songs to reorder them, remove them, shuffle, change
-  the repeat mode, or clear the queue.
+  the repeat mode, turn infinite mode on or off, or clear the queue.
 - The queue is saved on the device immediately and on the server shortly
   after, so you can reload the page, or continue in a Subsonic app that
   supports play-queue sync, where you left off.
+
+### Infinite Mode
+
+Turn on infinite mode with the ∞ button in **Playing Next** (or in **Settings →
+Playback**) and the music doesn't stop when the queue runs out. When two songs
+or fewer are left, Rainy adds about ten songs like the ones you are playing:
+songs by the same artists, by artists sharing their genres, and from the same
+genres, favoring songs you starred, rated highly, or play often. Songs you
+played in the last day, songs already in the queue, and songs you rated one
+star are left out.
+
+Suggested songs are marked with ∞ in the queue. Songs you add with **Add to
+queue** play before them, and turning infinite mode off removes the
+suggestions that haven't played yet. Infinite mode waits while repeat is on,
+and the choice is saved on the device.
 
 ## Lyrics
 

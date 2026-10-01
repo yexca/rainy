@@ -57,6 +57,7 @@ rainy/
 │   ├── ytdlp/                   opt-in downloads from YouTube / bilibili: yt-dlp binary, cookies, runs
 │   ├── lxmusic/                 opt-in online music: catalogue search, lx-music source scripts (goja sandbox), downloads of their links
 │   ├── listening/               listening reports from the play history (§5.17)
+│   ├── recommend/               infinite-mode mixes and daily mixes from the user's library and plays (§5.18)
 │   ├── scrobble/                opt-in scrobbling to Last.fm / ListenBrainz: queue, sender, account linking (§5.16)
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
@@ -144,8 +145,8 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 ### 5.1 Database
 Schema: `internal/db/migrations/0001_init.sql` plus later migrations in the same folder (`0002_play_queue_index.sql`
 adds `play_queues.current_index`, `0003_lx_sources.sql` adds the `lx_sources` table of §5.15, `0004_listening.sql` adds the
-play-history snapshot columns and the `scrobble_accounts` / `scrobble_queue` tables of §5.16) — read them, they are part
-of this contract.
+play-history snapshot columns and the `scrobble_accounts` / `scrobble_queue` tables of §5.16, `0005_daily_mixes.sql` adds the
+`daily_mixes` table of §5.18) — read them, they are part of this contract.
 Migrations are embedded, applied in lexical order, tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`.
 
 `internal/db`:
@@ -393,6 +394,19 @@ ListeningTop(ctx, userID, kind string /*TopTracks|TopAlbums|TopArtists|TopGenres
 ListeningFirsts(ctx, userID string, from, to int64) (tracks, artists int, err error) // first-ever plays inside the period
 FirstPlayAt(ctx, userID) (int64, error)
 ListPlays(ctx, userID string, from, to int64, offset, limit int) ([]model.Play, int, error) // newest first
+
+// Recommendations (§5.18)
+SimilarArtistIDs(ctx, artistIDs []string, limit int) ([]string, error) // album artists (album_count > 0) sharing the most genres
+                                     // with the given artists' non-missing tracks, then most matching tracks; never a given artist
+TrackGenreIDs(ctx, trackIDs []string) ([]string, error)
+type Candidate struct { ID, ArtistID, AlbumArtistID, AlbumID string; Duration float64; Plays int; PlayedAt int64; Starred bool; Rating int }
+type CandidateQuery struct { ArtistIDs, GenreIDs []string /*artist or album artist listed OR has a genre; both empty = all*/
+    Played string /*PlayedAny "" | PlayedNever | PlayedBefore*/; Before int64; Favorites bool /*starred or ≥ 2 plays*/; Limit int /*≤ 1000*/ }
+RecommendCandidates(ctx, userID string, q CandidateQuery) ([]Candidate, error) // random sample of non-missing tracks with the user's signals
+type DailyMixRow struct { Day string; TrackIDs []string; CreatedAt int64 }
+GetDailyMix(ctx, userID, day string) (*DailyMixRow, error)      // ErrNotFound
+SaveDailyMix(ctx, userID string, mix DailyMixRow, pruneBefore int64) (*DailyMixRow, error) // the day's first mix wins; prunes the
+                                     // user's mixes created before pruneBefore; returns the stored mix
 
 // Scrobbling (§5.16)
 ListScrobbleAccounts(ctx, userID) ([]model.ScrobbleAccount, error); GetScrobbleAccount(ctx, userID, service) (*model.ScrobbleAccount, error)
@@ -865,6 +879,32 @@ length right before (`nil` for all time). Buckets, the clock and active days use
 on Monday. Durations are the sum of the played tracks' lengths. Top artists / albums / tracks carry the live library items
 (`Available`, cover art, the live track) and fall back to the snapshot names when an item no longer exists.
 
+### 5.18 recommend (owner: native API agent)
+Picks songs for a user from their own library, plays, stars and ratings; nothing leaves the server. Subsonic's
+`getSimilarSongs(2)` and `getArtistInfo(2)` keep their own rules but share `store.SimilarArtistIDs`.
+```go
+func New(st *store.Store) *recommend.Service
+const DefaultMixSize, MaxMixSize, MaxSeeds, MaxExclude, DailySize = 10, 50, 10, 1000, 30
+type MixQuery struct { Seeds, Exclude []string; Limit int }
+func (s *Service) Mix(ctx, userID string, q MixQuery) ([]model.Track, error)       // ErrInvalid beyond the limits
+type DailyMix struct { Date string /*local YYYY-MM-DD*/; CreatedAt int64; Tracks []model.Track } // json date createdAt tracks
+func (s *Service) Daily(ctx, userID string, loc *time.Location) (*DailyMix, error)  // loc nil = UTC
+```
+Rules:
+- **Scoring** (both): source weight + 0.35 starred + 0.15 × (rating − 3) when rated + 0.08 × min(ln(1 + plays), 3) + a random
+  part in [0, 0.4); −1 when played within the recent window (mix: 1 day; daily: 3 days), −0.25 within 7 days. Songs rated
+  one star and excluded ids are never picked. Picking takes the best scores with at most two songs per artist (track artist,
+  else album artist), lifting the cap only when the library cannot fill the request, then moves songs so one artist doesn't
+  play twice in a row when another can go between.
+- **Mix**: seeds are the given tracks that exist and aren't missing (the user's top artists of 90 days without any).
+  Sources: tracks by the seeds' artists and album artists (1.0), by `SimilarArtistIDs` of them (0.8, 10 artists), with the
+  seeds' genres (0.55), and a random fill (0.25); seeds and `Exclude` are never picked.
+- **Daily**: the local day of `loc`; the first request of a day makes the mix and stores it (`daily_mixes`), later requests
+  (any device) return the stored ids as live tracks without missing ones; mixes older than 30 days are pruned. Sources and
+  quotas: artists similar to the user's top artists of 30 days (all time without plays then) — 9; favorites (starred or
+  ≥ 2 plays) not played for 30 days — 8; never played tracks of the top genres of 90 days — 7; the top artists' tracks
+  and starred tracks — 6; then the best of everything (including a random fill) up to 30. The sources are interleaved.
+
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
 - Routes: `/rest/{method}` and `/rest/{method}.view`, GET and POST (`application/x-www-form-urlencoded`
@@ -1102,6 +1142,12 @@ Automatic fallback or one fixed source is chosen with `PUT /api/admin/settings` 
 | PUT | `/api/me/scrobbling/{service}` | `{enabled}` (pausing drops the waiting plays) | `ScrobbleAccount` (404 not linked) |
 | DELETE | `/api/me/scrobbling/{service}` | | 204 (forgets the account and its waiting plays) |
 
+### 7.9 Recommendations (any user; only their own data)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| POST | `/api/recommend/mix` | `{seeds: string[] (≤ 10, newest last), exclude?: string[] (≤ 1000), limit?: number (≤ 50, default 10)}` | `Track[]` (§5.18; 400 beyond the limits) |
+| GET | `/api/recommend/daily` | `tz?` (IANA; the day the mix belongs to) | `DailyMix` (made and stored on the first request of the day) |
+
 ## 8. TypeScript contract (`web/src/lib/api/types.ts`)
 
 ```ts
@@ -1288,6 +1334,8 @@ export interface ListeningReport {
   topArtists: ListeningTopEntry[]; topAlbums: ListeningTopEntry[]; topTracks: ListeningTopTrack[]
   topGenres: ListeningTopEntry[]; clients: ListeningTopEntry[]
 }
+export interface MixInput { seeds: string[]; exclude?: string[]; limit?: number }
+export interface DailyMix { date: string; createdAt: number; tracks: Track[] }
 export type ScrobbleService = 'lastfm' | 'listenbrainz'
 export interface ScrobbleAccount {
   service: ScrobbleService; available: boolean; linked: boolean; needsRelink: boolean
@@ -1335,7 +1383,8 @@ web/src/
 | `/favorites` | Starred | library |
 | `/playlists`, `/playlists/:id` | Playlists, playlist detail | library |
 | `/radio` | Internet radio | library |
-| `/listening` | Listening report (overview + history; `?range=7d|30d|90d|12m|all|y<year>&tab=history`) | library |
+| `/listening` | Listening report (overview + history; `?range=7d|30d|90d|12m|all|m<YYYY-MM>|y<year>&tab=history`) | library |
+| `/daily` | Daily mix (today's songs, play / shuffle) | library |
 | `/settings` | User settings | player |
 | `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to Settings → Scrobbling) | player |
 | `/manage` | Tracks → Metadata (track table + tag editor) | manage |
@@ -1367,9 +1416,12 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   interface PlayerState {
     queue: Track[]; index: number            // -1 = nothing loaded
     isPlaying: boolean; shuffle: boolean; repeat: RepeatMode; volume: number; muted: boolean
+    infinite: boolean                         // infinite mode (persisted with volume, muted, repeat)
+    awaitingMore: boolean                     // the queue ended in infinite mode; appendAuto continues playback
     nowPlayingOpen: boolean; panel: 'none' | 'queue' | 'lyrics'
     playTracks(tracks: Track[], startIndex?: number, opts?: { shuffle?: boolean }): void
-    playNext(tracks: Track[]): void; addToQueue(tracks: Track[]): void
+    playNext(tracks: Track[]): void; addToQueue(tracks: Track[]): void   // addToQueue: before the upcoming autoAdded entries
+    appendAuto(tracks: Track[]): void; clearAuto(): void; toggleInfinite(): void   // toggling off runs clearAuto
     play(): void; pause(): void; togglePlay(): void; next(): void; prev(): void
     jumpTo(index: number): void; removeAt(index: number): void; move(from: number, to: number): void; clearQueue(): void
     setVolume(v: number): void; toggleMute(): void; toggleShuffle(): void; cycleRepeat(): void
@@ -1378,6 +1430,12 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   export const usePlayer: UseBoundStore<StoreApi<PlayerState>>
   export const useCurrentTrack: () => Track | undefined
   ```
+  Queue entries are `PlayableTrack` (`Track & {streamUrlOverride?, isRadio?, autoAdded?}`); `autoAdded` marks songs infinite
+  mode added. Infinite mode (`engine/infinite.ts`, pure helpers in `lib/infinite.ts`, started by `<AudioEngine/>`): with
+  `infinite` on, `repeat` off and a non-radio current entry, when two or fewer entries follow the current one it posts
+  `/recommend/mix` (seeds: the last 5 distinct non-radio entries up to the current one plus the user's own upcoming ones;
+  exclude: the queue, ≤ 500; limit 10) and calls `appendAuto` (duplicates of queued songs dropped); a request that failed
+  or added nothing is not repeated until the queue changes, and results for a replaced queue are dropped.
   Playback position lives in a separate high-frequency store `usePlayback` (`currentTime, duration, buffered, seek(t)`) so lists don't re-render.
 - Shell slots imported from the player feature: `<PlayerDock/>` (tablet/desktop: bottom bar, floating window or floating mini bar; positions itself), `<MiniPlayer/>` (mobile, above tab bar), `<NowPlayingSheet/>`, `<AudioEngine/>` (headless), `<MascotCompanion/>` (tablet/desktop while `mascotCompanion` is on; positions itself above the player chrome).
 - `@/features/player/dock` — `usePlayerDock` zustand store (persisted as `rainy.player-dock`): `mode: 'bar' | 'window' | 'compact'`, `barAutoHide: boolean`, `setMode(mode)`, `setBarAutoHide(b)`. `<PlayerDock/>` mirrors it to `<html data-player-dock="bar|collapsed|window|compact|idle">`, which `index.css` maps to `--player-reserve` (full-width bottom space: sidebar, side panel), `--player-clearance` (`.page-pad`, sticky footers) and `--player-toast-bottom/right`.
@@ -1404,7 +1462,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.4 iOS-style player (player agent)
 - **Mini player** (mobile): floating glass pill above the tab bar: artwork 40px rounded-md, title/artist (one line each, ellipsis), play/pause + next; thin progress line along the bottom edge; tap → Now Playing; swipe up also opens.
-- **Now Playing** (full-screen sheet, mobile; large centered modal/overlay on desktop): slides up with a spring, drag-down to dismiss (grabber at top), background = blurred, saturated artwork colours (`fast-average-color` or canvas sampling + large blurred artwork layer), light text. Artwork large and rounded, **scales down with a spring when paused** and back up when playing (Apple Music behaviour). Title (semibold) + artist (tappable → artist page, closes sheet) with a star button and "…" menu. Scrubber: thin track that thickens while dragging, elapsed / −remaining underneath in tabular nums. Transport: prev / play-pause / next, large filled glyphs, press-scale feedback. Volume slider (hidden on iOS where `audio.volume` is read-only). Bottom row: lyrics toggle, AirPlay button when `window.WebKitPlaybackTargetAvailabilityEvent` exists (`audio.webkitShowPlaybackTargetPicker()`), queue toggle. Lyrics view: synced lines, active line bold/bright with others dimmed, auto-scroll with smooth centring, tap a line to seek; plain lyrics scroll normally. Bilingual lyrics (`groupBilingual`: consecutive synced lines with the same `start` → original + translations; otherwise space-separated `original 中文` lines when most lines split) render the translation beneath each line (~0.68em, dimmer); lines carry `lang` from `guessLang` (`ja`/`ko`/`zh`, with matching CJK font stacks in `index.css`). `TranslationToggle` (bottom action row on phones, stage header, side panel header; only while lyrics are open and have translations) flips the persisted playback pref `lyricsTranslation` (default on, also in Settings → Playback). Queue view: "Playing Next" list with drag handles (dnd-kit), shuffle / repeat toggles, clear.
+- **Now Playing** (full-screen sheet, mobile; large centered modal/overlay on desktop): slides up with a spring, drag-down to dismiss (grabber at top), background = blurred, saturated artwork colours (`fast-average-color` or canvas sampling + large blurred artwork layer), light text. Artwork large and rounded, **scales down with a spring when paused** and back up when playing (Apple Music behaviour). Title (semibold) + artist (tappable → artist page, closes sheet) with a star button and "…" menu. Scrubber: thin track that thickens while dragging, elapsed / −remaining underneath in tabular nums. Transport: prev / play-pause / next, large filled glyphs, press-scale feedback. Volume slider (hidden on iOS where `audio.volume` is read-only). Bottom row: lyrics toggle, AirPlay button when `window.WebKitPlaybackTargetAvailabilityEvent` exists (`audio.webkitShowPlaybackTargetPicker()`), queue toggle. Lyrics view: synced lines, active line bold/bright with others dimmed, auto-scroll with smooth centring, tap a line to seek; plain lyrics scroll normally. Bilingual lyrics (`groupBilingual`: consecutive synced lines with the same `start` → original + translations; otherwise space-separated `original 中文` lines when most lines split) render the translation beneath each line (~0.68em, dimmer); lines carry `lang` from `guessLang` (`ja`/`ko`/`zh`, with matching CJK font stacks in `index.css`). `TranslationToggle` (bottom action row on phones, stage header, side panel header; only while lyrics are open and have translations) flips the persisted playback pref `lyricsTranslation` (default on, also in Settings → Playback). Queue view: "Playing Next" list with drag handles (dnd-kit), shuffle / repeat / infinite (∞, `InfiniteButton`; also in the side panel header and Settings → Playback) toggles, clear; `autoAdded` rows show ∞ before the artist and the header counts them ("3 suggested"); an empty queue in infinite mode says it is finding more songs.
 - **Desktop player bar**: artwork + title/artist (links) + star | transport + scrubber with times | lyrics, queue, volume, layout menu, expand. Side panel (right, 360px) for queue / lyrics (bar layout only).
 - **Player layouts** (≥ 768px, layout menu = `PictureInPicture2` button in the bar, window and mini bar; persisted in `usePlayerDock`): *bottom bar* (default); *auto-hide* (NetEase style: the bar slides below the viewport leaving a centred handle tab; hovering the handle / bottom edge or keyboard focus peeks it until the pointer or focus leaves, clicking the handle pins it open; on a pinned bar the handle appears on hover and turns auto-hide on); *floating window* (bottom-right 400×min(640px, viewport − 3rem), artwork backdrop like Now Playing: queue position, grabber → mini bar, layout menu, full screen; artwork that scales down while paused, title/star/…, scrubber, shuffle/prev/play/next/repeat, volume, lyrics/translation/AirPlay/queue — lyrics and queue replace the artwork inside the window; not modal); *floating mini bar* (bottom-right 390×68px glass card: artwork + title/artist → opens the window, layout menu, play/pause, next, thin progress line; dragging sideways on it scrubs relative to the current position — a full-width drag = 20 % of the track, 20 s…10 min — with an origin → target ±delta preview above it, Escape cancels). Floating layouts render nothing while idle and hide under full-screen Now Playing, which is available from every layout and returns to it on close. Phones keep the mini pill + sheet.
 - Audio engine: single `HTMLAudioElement`, `preload="auto"`, next track preloaded ~20 s before the end with a second element; Media Session (metadata with artwork 96–512, play/pause/prev/next/seekto/seekbackward/seekforward, `setPositionState`); scrobble "now playing" on start and submission after 50 % or 4 min; queue persisted to localStorage immediately and to `/api/queue` debounced (10 s) so the Subsonic clients can resume it; restore on load (paused). Streaming quality setting (original / 320 / 192 / 128 kbps + format) → stream URL params. ReplayGain option (track/album/off) applied via volume scaling (not on iOS). Keyboard: space, ←/→ seek 5s, shift+←/→ prev/next, m mute. Errors → toast and skip.
@@ -1452,15 +1510,25 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.5a Listening UI (library + player agents)
 - **Listening** `/listening` (`features/library/pages/listening-page.tsx`; pure helpers in `features/library/lib/listening.ts`,
-  unit-tested): a period select (last 7 / 30 / 90 days, last 12 months, all time, then each calendar year with plays; rolling
-  periods start at a local midnight), tabs Overview / History, and the browser's time zone sent as `tz`. Overview: stat tiles
+  unit-tested): a period select (last 7 / 30 / 90 days, last 12 months, all time, then the last 12 calendar months with plays,
+  then each calendar year with plays; rolling periods start at a local midnight; a month linked from elsewhere stays selectable), tabs Overview / History, and the browser's time zone sent as `tz`. Overview: stat tiles
   (plays and listening time with the change against the previous period, artists and songs with the new ones, albums, days
   with music + longest streak, plays per day, first play), a one-hue bar timeline (plays or hours; 2px gaps; hover / touch /
   arrow-key tooltip; a hidden data table), top artists and albums shelves, top songs (tapping plays them as a queue; purged
   items are dimmed, without links), a weekday × hour heatmap (one hue, five steps on a square-root scale, legend), top genres
   and players as bar lists, and a link to the scrobbling settings. History: plays grouped by local day (Today, Yesterday,
   dates), 100 per page with "Load more"; each row plays its track and has the track menu. Query keys start with `listening`
-  (a `LIBRARY_QUERY_ROOTS` root).
+  (a `LIBRARY_QUERY_ROOTS` root). Calendar months and years open the overview with `ListeningRecap`
+  (`components/listening-recap.tsx`): eyebrow "<period> recap", listening time as the headline, plays · songs · artists, and
+  facts — top artist and song (linked), new artists and songs, busiest weekday and hour (`busiestTimes(clock)`), longest
+  streak and active days, and the change in listening time against the period before (else the first play); the `report`
+  mascot pose on ≥ 640px while illustrations are on.
+- **Made for You** (home, `components/for-you.tsx`, above the shelves): the daily mix card (2×2 cover mosaic of the first
+  distinct albums under a date badge, "Updated every day", title, first artists and count; a stretched link to `/daily` and
+  a play button) and, during the first 7 days of a month (`recapMonth`), last month's recap card (report with `limit: 1`,
+  shown only with plays) linking to `/listening?range=m<YYYY-MM>`. Hidden when neither has content. The daily mix query
+  (`dailyMixQuery`, key `['recommend', 'daily', localDay, tz]`, `recommend` is a `LIBRARY_QUERY_ROOTS` root) is shared with
+  `/daily` (`pages/daily-page.tsx`: date · song count, play / shuffle, description, track list).
 - **Settings → Scrobbling** (`ScrobblingSection`, `#scrobbling`): per service the linked account, a pause switch, the waiting
   plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
   confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates

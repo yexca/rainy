@@ -1,8 +1,8 @@
-# Listening Report and Scrobbling
+# Listening Report, Daily Mix, and Scrobbling
 
 Rainy keeps a history of what each user plays and turns it into a listening
-report, much like Last.fm. It can also send your plays to Last.fm or
-ListenBrainz ("scrobbling").
+report, much like Last.fm, and picks a daily mix for you from your library. It
+can also send your plays to Last.fm or ListenBrainz ("scrobbling").
 
 ## What Counts as a Play
 
@@ -18,8 +18,8 @@ cannot see them in the app.
 
 Open **Listening** in the sidebar (on phones: **Library → Listening**). Choose
 a period in the top-right corner: the last 7, 30, or 90 days, the last 12
-months, all time, or a calendar year. Days and hours follow your device's time
-zone.
+months, all time, a calendar month, or a calendar year. Days and hours follow
+your device's time zone.
 
 The **Overview** tab shows:
 
@@ -35,12 +35,41 @@ The **Overview** tab shows:
 - **When you listen**: a weekday-by-hour grid; darker squares mean more plays.
 - **Top genres** and **Players** (web, Symfonium, and so on).
 
+For a calendar month (the last 12 are listed) or a calendar year, the
+overview opens with a **recap**: your listening time, plays, songs, and
+artists, your top artist and song, how many artists and songs were new to you,
+the day of the week and time you listen most, your longest streak, and the
+change in listening time against the month or year before. During the first
+week of a month the home page offers last month's recap under **Made for
+You**.
+
 The **History** tab lists every play of the period, newest first and grouped
 by day.
 
 Songs deleted from the library stay in your history and report under their
 old names, dimmed and without links. Listening time is the total length of the
 songs you played.
+
+## Daily Mix
+
+**Made for You** on the home page has your **Daily Mix**: about 30 songs from
+the library, picked for you once a day. It mixes:
+
+- songs by artists similar to the ones you played most in the last 30 days
+  (artists that share their genres);
+- favorites to rediscover: songs you starred or played several times but
+  haven't heard for a month;
+- songs you have never played from the genres you listen to most;
+- songs by your top artists and songs you starred.
+
+Songs you played in the last three days and songs you rated one star are left
+out, and no artist appears more than twice when the library allows it. A new
+user without plays gets songs from the whole library. The mix stays the same
+all day on every device and changes at midnight in your time zone; tap the card
+to see the songs, or the play button to start it.
+
+Recommendations use only your own library and plays on the server. See also
+[infinite mode](playback.md#infinite-mode).
 
 ## Scrobbling to Last.fm and ListenBrainz
 

@@ -18,6 +18,7 @@ import type {
   AuthStatus,
   BatchResult,
   CookieSaveResult,
+  DailyMix,
   DownloadFormat,
   DownloadJob,
   DownloadSite,
@@ -39,6 +40,7 @@ import type {
   MetadataProviderId,
   MetadataResult,
   MetadataStatus,
+  MixInput,
   OnlinePlatform,
   OnlineQualityType,
   OnlineSearchResult,
@@ -342,6 +344,13 @@ export const api = {
       request<ListeningReport>('/listening/report', { ...opts, query: { ...params } }),
     history: (params: ListeningHistoryParams = {}, opts?: CallOptions) =>
       request<Page<Play>>('/listening/history', { ...opts, query: { ...params } }),
+  },
+
+  // ---- §7.9 recommendations
+  recommend: {
+    mix: (body: MixInput, opts?: CallOptions) => request<Track[]>('/recommend/mix', { ...opts, method: 'POST', body }),
+    daily: (params: { tz?: string } = {}, opts?: CallOptions) =>
+      request<DailyMix>('/recommend/daily', { ...opts, query: { ...params } }),
   },
 
   // ---- §7.3 annotations

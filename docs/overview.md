@@ -39,8 +39,11 @@ Rainy currently includes:
   opt-in downloads from YouTube and bilibili links and online music through
   lx-music compatible music sources.
 - A per-user listening report (plays over time, when you listen, top artists,
-  albums, songs, and genres) and play history, with opt-in scrobbling to
-  Last.fm and ListenBrainz.
+  albums, songs, and genres, with a recap for each month and year) and play
+  history, with opt-in scrobbling to Last.fm and ListenBrainz.
+- Recommendations from your own library and listening history, computed on
+  the server: an infinite mode that keeps the queue going with similar songs,
+  and a daily mix.
 - Multiple users with administrator, manager, and download permissions, and
   multiple libraries.
 

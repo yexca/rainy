@@ -76,6 +76,8 @@
     "preload": "Preload next song",
     "preloadHint": "Buffers the next song before the current one ends for near-gapless playback.",
     "preloadUnsupported": "Not available on iPhone and iPad.",
+    "infinite": "Infinite mode",
+    "infiniteHint": "When the queue is about to end, keeps adding songs like the ones you are playing, picked from your library and listening history. Also in the queue (∞). Waits while repeat is on.",
     "lyricsTranslation": "Show lyric translations",
     "lyricsTranslationHint": "Shows the translation under each line of bilingual lyrics.",
     "footer": "Playback settings are saved on this device only."

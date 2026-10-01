@@ -76,6 +76,8 @@
     "preload": "预加载下一首",
     "preloadHint": "在当前歌曲结束前缓冲下一首，实现近乎无缝的播放。",
     "preloadUnsupported": "iPhone 和 iPad 不支持此功能。",
+    "infinite": "无限模式",
+    "infiniteHint": "队列快播完时，根据正在播放的歌曲和你的听歌记录，从曲库中自动加入相似歌曲。也可以在播放队列里（∞）开关。循环开启时暂停。",
     "lyricsTranslation": "显示歌词翻译",
     "lyricsTranslationHint": "在双语歌词的每一行下方显示译文。",
     "footer": "播放设置仅保存在此设备上。"

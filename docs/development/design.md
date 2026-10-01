@@ -93,7 +93,8 @@ rain-blue tile.
 
 - **Where she appears.** Full-size empty states (empty library pages and
   history, no search results, an empty trash, a clean doctor report, no plays in
-  the listening report), errors (offline, render errors), 404, no access, the
+  the listening report), month and year recaps and the home recap card,
+  errors (offline, render errors), 404, no access, the
   startup splash, the admin scan panel while a scan runs, beside the sign-in
   card on wide screens, Settings › Mascot, and as a companion in the
   bottom-right corner on tablets and desktops. Route changes keep the small

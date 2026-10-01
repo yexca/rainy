@@ -28,10 +28,13 @@ import { SectionHeader } from '../components/section-header'
 import { SegmentedTabs } from '../components/tab-bar'
 import { TrackActionsMenu } from '../components/track-actions'
 import { HorizontalShelf } from '../components/horizontal-shelf'
+import { ListeningRecap } from '../components/listening-recap'
 import {
   ROLLING_RANGES,
   groupByDay,
   isListeningRange,
+  monthOf,
+  monthsSince,
   percentChange,
   rangeBounds,
   relativeDay,
@@ -43,6 +46,11 @@ import {
 type Tab = 'overview' | 'history'
 const TABS: readonly Tab[] = ['overview', 'history']
 const HISTORY_PAGE = 100
+
+/** "September 2026" / "2026年9月". */
+function monthLabel(year: number, month: number): string {
+  return new Intl.DateTimeFormat(currentLocale(), { year: 'numeric', month: 'long' }).format(new Date(year, month - 1, 1))
+}
 
 function timeZone(): string {
   try {
@@ -83,10 +91,16 @@ export default function ListeningPage() {
   }
 
   const years = yearsSince(report.data?.firstPlayAt ?? 0)
+  const months = monthsSince(report.data?.firstPlayAt ?? 0)
+  // A month opened from a link (the home page recap) stays selectable before the report loads.
+  if (monthOf(range) && !months.includes(range)) months.unshift(range)
   const rangeLabel = (r: ListeningRange) => {
+    const month = monthOf(r)
+    if (month) return monthLabel(month.year, month.month)
     const year = yearOf(r)
     return year !== null ? String(year) : t(`listening.ranges.${r}`)
   }
+  const recapKind = monthOf(range) ? 'month' : yearOf(range) !== null ? 'year' : null
 
   return (
     <Page>
@@ -103,6 +117,12 @@ export default function ListeningPage() {
               {ROLLING_RANGES.map((r) => (
                 <SelectItem key={r} value={r}>
                   {rangeLabel(r)}
+                </SelectItem>
+              ))}
+              {months.length > 0 ? <SelectSeparator /> : null}
+              {months.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {rangeLabel(m)}
                 </SelectItem>
               ))}
               {years.length > 0 ? <SelectSeparator /> : null}
@@ -122,7 +142,11 @@ export default function ListeningPage() {
             report.data.totals.plays === 0 ? (
               <NoPlays allTime={range === 'all'} />
             ) : (
-              <Overview report={report.data} stale={report.isPlaceholderData} />
+              <Overview
+                report={report.data}
+                stale={report.isPlaceholderData}
+                recap={recapKind ? { kind: recapKind, period: rangeLabel(range) } : null}
+              />
             )
           ) : report.isError ? (
             <ErrorState error={report.error} onRetry={() => void report.refetch()} retrying={report.isFetching} />
@@ -152,7 +176,16 @@ function NoPlays({ allTime }: { allTime: boolean }) {
 
 // ---- overview
 
-function Overview({ report, stale }: { report: ListeningReport; stale: boolean }) {
+function Overview({
+  report,
+  stale,
+  recap,
+}: {
+  report: ListeningReport
+  stale: boolean
+  /** Calendar months and years open with a recap card. */
+  recap: { kind: 'month' | 'year'; period: string } | null
+}) {
   const { t } = useTranslation('library')
   const [metric, setMetric] = useState<TimelineMetric>('plays')
   const tracks = report.topTracks
@@ -160,6 +193,7 @@ function Overview({ report, stale }: { report: ListeningReport; stale: boolean }
 
   return (
     <div className={cn('grid grid-cols-[minmax(0,1fr)] gap-10 transition-opacity', stale && 'opacity-60')}>
+      {recap ? <ListeningRecap report={report} period={recap.period} kind={recap.kind} /> : null}
       <StatTiles report={report} />
 
       <section aria-labelledby="listening-timeline">

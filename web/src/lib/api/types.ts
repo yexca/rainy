@@ -227,6 +227,13 @@ export interface ListeningReport {
   topArtists: ListeningTopEntry[]; topAlbums: ListeningTopEntry[]; topTracks: ListeningTopTrack[]
   topGenres: ListeningTopEntry[]; clients: ListeningTopEntry[]
 }
+
+// ---- recommendations
+/** `POST /api/recommend/mix` body: songs to follow `seeds` (newest last), never one of `exclude`. */
+export interface MixInput { seeds: string[]; exclude?: string[]; limit?: number /* ≤ 50, default 10 */ }
+/** The user's daily mix: the same songs all day (`date` is the local day, YYYY-MM-DD). */
+export interface DailyMix { date: string; createdAt: number; tracks: Track[] }
+
 export type ScrobbleService = 'lastfm' | 'listenbrainz'
 export interface ScrobbleAccount {
   service: ScrobbleService

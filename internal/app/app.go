@@ -23,6 +23,7 @@ import (
 	"rainy/internal/metasearch"
 	"rainy/internal/model"
 	"rainy/internal/nowplaying"
+	"rainy/internal/recommend"
 	"rainy/internal/scanner"
 	"rainy/internal/scrobble"
 	"rainy/internal/store"
@@ -47,6 +48,7 @@ type App struct {
 	Ytdlp      *ytdlp.Service      // downloads from YouTube / bilibili; only used when settings.ytdlpEnabled is on
 	Online     *lxmusic.Service    // online music search and lx-music sources; only used when settings.lxSourcesEnabled is on
 	Listening  *listening.Service  // listening reports from the play history
+	Recommend  *recommend.Service  // infinite-mode mixes and daily mixes from the user's library and plays
 	Scrobble   *scrobble.Service   // plays to Last.fm / ListenBrainz; only when settings.lastfmEnabled / listenBrainzEnabled is on
 	StartedAt  time.Time
 }
@@ -105,6 +107,7 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 	}
 	a.Online = lxmusic.New(lxmusic.Options{Store: st, Metadata: a.Metadata})
 	a.Listening = listening.New(st)
+	a.Recommend = recommend.New(st)
 	a.Scrobble = scrobble.New(scrobble.Options{
 		Store: st, Cipher: crypto, Settings: a.Settings, UserAgent: "Rainy/" + buildinfo.Version,
 	})

@@ -26,7 +26,15 @@
     "emptyManager": "上传一些音乐，或者把音乐库指向你的音乐文件夹并开始扫描。",
     "emptyListener": "管理员向资料库添加音乐后，就会显示在这里。",
     "upload": "上传音乐",
-    "scanLibrary": "音乐库与扫描"
+    "scanLibrary": "音乐库与扫描",
+    "forYou": "为你推荐",
+    "recap": {
+      "eyebrow": "月度报告",
+      "title": "你的{{month}}听歌报告",
+      "summary": "听了 {{time}}",
+      "summaryTop": "听了 {{time}} · 最常听 {{artist}}",
+      "open": "打开{{month}}听歌报告"
+    }
   },
   "search": {
     "placeholder": "艺人、歌曲、专辑",
@@ -303,6 +311,39 @@
       "count_other": "这段时间共 {{formatted}} 次播放",
       "empty": "这段时间没有播放记录",
       "more": "加载更多"
+    },
+    "recap": {
+      "eyebrow": "{{period}}回顾",
+      "headline": "你听了 {{time}} 的音乐",
+      "summary_other": "{{plays}} 次播放 · {{songs}} 首歌 · {{artists}} 位艺人",
+      "topArtist": "最常听的艺人",
+      "topSong": "最常听的歌曲",
+      "discoveries": "新发现",
+      "newArtists_other": "{{formatted}} 位新艺人",
+      "newSongs_other": "{{formatted}} 首新歌",
+      "busiest": "最常听歌的日子",
+      "around": "通常在 {{time}} 左右",
+      "streak": "最长连续收听",
+      "days_other": "连续 {{formatted}} 天",
+      "activeDays_other": "共 {{formatted}} 天有音乐",
+      "vsMonth": "与上个月相比",
+      "vsYear": "与上一年相比",
+      "more": "多 {{pct}}%",
+      "less": "少 {{pct}}%",
+      "listeningTime": "收听时长",
+      "since": "开始收听于",
+      "firstPlay": "你在 Rainy 的第一次播放"
     }
+  },
+  "daily": {
+    "title": "每日推荐",
+    "eyebrow": "每天更新",
+    "open": "打开今天的每日推荐",
+    "play": "播放每日推荐",
+    "artists_other": "{{artists}} 等 · {{count}} 首",
+    "separator": "、",
+    "description": "每天从你的曲库里挑选：与你常听的艺人相似的歌、好久没听的心头好，以及从没播放过的歌。一整天都保持不变。",
+    "emptyTitle": "暂时没有可推荐的歌曲",
+    "emptyDescription": "曲库里有歌曲后，这里就会出现每日推荐。"
   }
 }

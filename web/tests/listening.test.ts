@@ -3,13 +3,18 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import {
+  busiestTimes,
   dayKey,
   groupByDay,
   heatLevel,
+  isCalendarRange,
   isListeningRange,
+  monthOf,
+  monthsSince,
   niceMax,
   percentChange,
   rangeBounds,
+  recapMonth,
   relativeDay,
   weekdayOrder,
   yearsSince,
@@ -27,7 +32,16 @@ describe('rangeBounds', () => {
   it('covers a whole calendar year', () => {
     assert.deepEqual(rangeBounds('y2025', now), { from: new Date(2025, 0, 1).getTime(), to: new Date(2026, 0, 1).getTime() })
   })
+  it('covers a whole calendar month', () => {
+    assert.deepEqual(rangeBounds('m2026-09', now), { from: new Date(2026, 8, 1).getTime(), to: new Date(2026, 9, 1).getTime() })
+    assert.deepEqual(rangeBounds('m2025-12', now), { from: new Date(2025, 11, 1).getTime(), to: new Date(2026, 0, 1).getTime() })
+    assert.deepEqual(monthOf('m2026-02'), { year: 2026, month: 2 })
+    assert.equal(monthOf('m2026-13'), null)
+    assert.ok(isCalendarRange('m2026-09') && isCalendarRange('y2025') && !isCalendarRange('30d'))
+  })
   it('accepts only known ranges', () => {
+    assert.ok(isListeningRange('m2026-09'))
+    assert.ok(!isListeningRange('m2026-9'))
     assert.ok(isListeningRange('90d'))
     assert.ok(isListeningRange('y2024'))
     assert.ok(!isListeningRange('y24'))
@@ -40,6 +54,35 @@ describe('yearsSince', () => {
   it('lists the years with plays, newest first', () => {
     assert.deepEqual(yearsSince(new Date(2024, 5, 1).getTime(), now), [2026, 2025, 2024])
     assert.deepEqual(yearsSince(0, now), [])
+  })
+})
+
+describe('monthsSince', () => {
+  it('lists the months with plays, newest first, at most a year', () => {
+    assert.deepEqual(monthsSince(new Date(2026, 6, 20).getTime(), now), ['m2026-09', 'm2026-08', 'm2026-07'])
+    assert.equal(monthsSince(new Date(2020, 0, 1).getTime(), now).length, 12)
+    assert.deepEqual(monthsSince(new Date(2025, 11, 31).getTime(), new Date(2026, 0, 5)), ['m2026-01', 'm2025-12'])
+    assert.deepEqual(monthsSince(0, now), [])
+  })
+})
+
+describe('recapMonth', () => {
+  it('offers last month during the first week of a month', () => {
+    assert.equal(recapMonth(new Date(2026, 9, 1)), 'm2026-09')
+    assert.equal(recapMonth(new Date(2026, 0, 7)), 'm2025-12')
+    assert.equal(recapMonth(new Date(2026, 9, 8)), null)
+  })
+})
+
+describe('busiestTimes', () => {
+  it('finds the weekday and hour with the most plays', () => {
+    const clock = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0))
+    assert.equal(busiestTimes(clock), null)
+    clock[5][22] = 4
+    clock[5][9] = 1
+    clock[0][22] = 2
+    clock[1][8] = 3
+    assert.deepEqual(busiestTimes(clock), { weekday: 5, hour: 22 })
   })
 })
 
