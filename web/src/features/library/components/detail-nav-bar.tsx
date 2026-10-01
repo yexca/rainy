@@ -36,9 +36,11 @@ export function DetailNavBar({ title, watch, actions, backTo, className }: Detai
   useEffect(() => {
     const bar = barRef.current
     if (!bar || !watch || typeof IntersectionObserver === 'undefined') return
+    // The bar's bottom edge: it sticks below the app header (`--app-header-h`, 0 on phones).
+    const edge = (Number.parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight
     const observer = new IntersectionObserver(
-      ([entry]) => setCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < bar.offsetHeight),
-      { rootMargin: `-${bar.offsetHeight}px 0px 0px 0px`, threshold: 0 },
+      ([entry]) => setCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < edge),
+      { rootMargin: `-${edge}px 0px 0px 0px`, threshold: 0 },
     )
     observer.observe(watch)
     return () => observer.disconnect()
@@ -67,7 +69,7 @@ export function DetailNavBar({ title, watch, actions, backTo, className }: Detai
     <div
       ref={barRef}
       className={cn(
-        'ui-chrome bleed-x page-x hairline-b sticky top-0 z-30 pt-safe transition-[background-color,border-color,backdrop-filter] duration-200',
+        'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 pt-safe md:pt-0 transition-[background-color,border-color,backdrop-filter] duration-200',
         collapsed ? 'glass' : '[--hairline-color:transparent]',
         className,
       )}

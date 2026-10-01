@@ -400,7 +400,7 @@ function SidePanel({ hidden }: { hidden: boolean }) {
         <motion.aside
           key="side-panel"
           aria-label={panel === 'lyrics' ? t('lyrics.title') : t('queue.title')}
-          className="ui-chrome glass fixed top-0 right-0 bottom-(--player-reserve) z-35 flex w-[360px] max-w-[calc(100vw-4rem)] flex-col border-l border-border/60 pt-safe shadow-[-12px_0_32px_-24px_rgba(0,0,0,0.35)]"
+          className="ui-chrome glass fixed top-(--app-header-h) right-0 bottom-(--player-reserve) z-35 flex w-[360px] max-w-[calc(100vw-4rem)] flex-col border-l border-border/60 pt-safe md:pt-0 shadow-[-12px_0_32px_-24px_rgba(0,0,0,0.35)]"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}

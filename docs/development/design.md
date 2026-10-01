@@ -43,17 +43,23 @@ explains the rules every UI change must keep.
 
 | Width | Navigation | Player |
 | --- | --- | --- |
-| 1024 px and wider | Left sidebar (240 px), collapsible to icons | 80 px bottom player bar |
-| 768 to 1023 px | Collapsed icon sidebar | Bottom player bar |
+| 1024 px and wider | App header, left sidebar (240 px) below it, collapsible to icons | 80 px bottom player bar |
+| 768 to 1023 px | App header, collapsed icon sidebar | Bottom player bar |
 | Below 768 px | 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
 
-Navigation is tiered so everyday listening stays uncluttered. Managers see
-**Metadata** (the track table and tag editor) as a first-class entry: a sidebar
-item and the fourth phone tab. The rarer library tools (folders, upload,
-doctor, trash, history) and the admin pages are folded: collapsible sidebar
-sections that start closed and open while one of their pages is showing (a
-flyout on the icon rail), and a single "Library tools" menu on the phone
-Metadata page.
+From tablets up, a full-width app header runs across the top in the sidebar's
+colours: the sidebar toggle and the logo on the left, the account menu
+(avatar, plus the name on desktops) on the right. Page top bars stick right
+below it. Phones have no app header; their account menu is the avatar in the
+Home and Library nav bars.
+
+Navigation is tiered so everyday listening stays uncluttered. Managers get
+three sections, each a single sidebar item: **Tracks** (metadata, upload,
+online), **Library tools** (folders, doctor, trash, history), and, for admins,
+**Admin** (users, libraries, server settings). A section's pages are
+horizontal tabs at the top of each of its pages, so the sidebar never grows a
+second level. On phones the Manage tab opens Tracks, with links to Library
+tools and Admin beside its tabs.
 
 The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
 `--safe-top`/`--safe-bottom` describe the player chrome. Pages use the

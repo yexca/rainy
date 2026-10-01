@@ -114,13 +114,6 @@
   "settings": {
     "title": "Server settings",
     "subtitle": "Settings for everyone using this server.",
-    "tabs": {
-      "general": "General",
-      "ytdlp": "yt-dlp",
-      "sources": "Sources",
-      "system": "System",
-      "scrobbling": "Scrobbling"
-    },
     "saved": "Settings saved",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
@@ -179,7 +172,7 @@
       "cookies": "Sign-in cookies"
     },
     "enable": "Allow downloads from YouTube and bilibili",
-    "enableHelp": "Managers can paste a link on the Upload page; the server downloads the audio with yt-dlp and adds it to the library. The server contacts YouTube or bilibili only when someone starts a download, and GitHub only when you check for or install an update.",
+    "enableHelp": "Managers can paste a link in Tracks → Links; the server downloads the audio with yt-dlp and adds it to the library. The server contacts YouTube or bilibili only when someone starts a download, and GitHub only when you check for or install an update.",
     "version": "Installed version",
     "managedHelp": "Rainy installs the official yt-dlp release in the data folder.",
     "unmanagedHelp": "Managed by the server operator (RAINY_YTDLP_PATH); update it there.",

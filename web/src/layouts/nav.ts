@@ -1,18 +1,24 @@
 import {
   AudioLines,
+  AudioWaveform,
   ChartColumn,
   Disc3,
+  Download,
   FolderTree,
   Globe,
   HardDrive,
   History,
   House,
+  Info,
   LibraryBig,
+  Link2,
+  ListMusic,
   MicVocal,
   Music,
   Radio,
   Search,
   Shapes,
+  ShieldCheck,
   SlidersHorizontal,
   Star,
   Stethoscope,
@@ -46,36 +52,62 @@ export const LIBRARY_NAV: readonly NavItem[] = [
 ]
 
 /**
- * The pages of the Tracks entry, shown as tabs: the track table + tag editor, and the two ways of
- * adding music (upload / links, online search). They are used often, so Tracks is a top-level
- * entry of its own; the rarer library tools and administration pages are folded away (MANAGE_NAV,
- * ADMIN_NAV).
+ * A manager entry: one sidebar item whose pages are route tabs in each page header
+ * (`SectionTabs`). The item links to the first tab and stays active on every tab.
  */
-export const TRACKS_TABS: readonly NavItem[] = [
-  { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true },
-  { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
-  { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
-]
-
-export const TRACKS_NAV: NavItem = { to: '/manage', labelKey: 'nav.tracks', icon: AudioLines, end: true }
-
-/** Whether `pathname` is one of the Tracks tabs. */
-export function isTracksPath(pathname: string): boolean {
-  return TRACKS_TABS.some((tab) => pathMatches(pathname, tab.to, tab.end))
+export interface NavSection {
+  /** i18n key in the `common` namespace. */
+  labelKey: string
+  icon: LucideIcon
+  tabs: readonly NavItem[]
 }
 
-export const MANAGE_NAV: readonly NavItem[] = [
-  { to: '/manage/folders', labelKey: 'nav.folders', icon: FolderTree },
-  { to: '/manage/doctor', labelKey: 'nav.doctor', icon: Stethoscope },
-  { to: '/manage/trash', labelKey: 'nav.trash', icon: Trash2 },
-  { to: '/manage/history', labelKey: 'nav.history', icon: History },
-]
+/**
+ * Tracks: the track table + tag editor, and the ways of adding music (upload from this device,
+ * YouTube / bilibili links, online search). Used often, so it comes first.
+ */
+export const TRACKS_SECTION: NavSection = {
+  labelKey: 'nav.tracks',
+  icon: AudioLines,
+  tabs: [
+    { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true },
+    { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
+    { to: '/manage/links', labelKey: 'nav.links', icon: Link2 },
+    { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
+  ],
+}
 
-export const ADMIN_NAV: readonly NavItem[] = [
-  { to: '/admin/users', labelKey: 'nav.users', icon: Users },
-  { to: '/admin/libraries', labelKey: 'nav.libraries', icon: HardDrive },
-  { to: '/admin/settings', labelKey: 'nav.serverSettings', icon: SlidersHorizontal },
-]
+/** The rarer library tools. */
+export const TOOLS_SECTION: NavSection = {
+  labelKey: 'nav.libraryTools',
+  icon: Wrench,
+  tabs: [
+    { to: '/manage/folders', labelKey: 'nav.folders', icon: FolderTree },
+    { to: '/manage/doctor', labelKey: 'nav.doctor', icon: Stethoscope },
+    { to: '/manage/trash', labelKey: 'nav.trash', icon: Trash2 },
+    { to: '/manage/history', labelKey: 'nav.history', icon: History },
+  ],
+}
+
+/** Administration (admins only). Each server settings page is a tab of its own. */
+export const ADMIN_SECTION: NavSection = {
+  labelKey: 'nav.admin',
+  icon: ShieldCheck,
+  tabs: [
+    { to: '/admin/users', labelKey: 'nav.users', icon: Users },
+    { to: '/admin/libraries', labelKey: 'nav.libraries', icon: HardDrive },
+    { to: '/admin/settings', labelKey: 'nav.serverSettings', icon: SlidersHorizontal, end: true },
+    { to: '/admin/settings/ytdlp', labelKey: 'nav.ytdlp', icon: Download },
+    { to: '/admin/settings/sources', labelKey: 'nav.sources', icon: ListMusic },
+    { to: '/admin/settings/scrobbling', labelKey: 'nav.scrobbling', icon: AudioWaveform },
+    { to: '/admin/settings/system', labelKey: 'nav.system', icon: Info },
+  ],
+}
+
+/** Whether `pathname` is one of the section's tabs. */
+export function isSectionPath(section: NavSection, pathname: string): boolean {
+  return section.tabs.some((tab) => pathMatches(pathname, tab.to, tab.end))
+}
 
 export interface TabItem extends NavItem {
   /** Path prefixes that mark this tab active. */
@@ -93,7 +125,7 @@ export const TABS: readonly TabItem[] = [
     match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
-  // Phones have no sidebar: this tab holds Tracks and the folded tools and admin pages.
+  // Phones have no sidebar: this tab holds Tracks and links to the library tools and admin pages.
   { to: '/manage', labelKey: 'nav.manage', icon: Wrench, end: true, match: ['/manage', '/admin'], managersOnly: true },
 ]
 

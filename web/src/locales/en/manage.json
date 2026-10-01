@@ -429,7 +429,7 @@
   },
   "upload": {
     "title": "Upload",
-    "subtitle": "Add music from this device or from a YouTube or bilibili link.",
+    "subtitle": "Add music from this device.",
     "target": "Destination",
     "folder": "Folder",
     "folderPlaceholder": "Library root",
@@ -468,6 +468,7 @@
     "finishedWithErrors_other": "Uploaded {{count}} files, {{failed}} failed"
   },
   "download": {
+    "pageSubtitle": "Download the audio of YouTube and bilibili videos into the library.",
     "title": "From a YouTube or bilibili link",
     "subtitle": "The server downloads the audio with yt-dlp and adds it to the destination above.",
     "statusError": "Couldn't load the download status.",

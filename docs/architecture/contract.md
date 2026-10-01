@@ -1306,7 +1306,7 @@ web/src/
 ├── main.tsx, app.tsx (providers), router.tsx, index.css
 ├── components/ui/*            shadcn components (generated; edit only to theme)
 ├── components/                shared: cover-art, page-header, empty-state, error-state, spinner, theme-provider, logo
-├── layouts/                   app-shell (sidebar / mobile tab bar / top bar / player slots), auth-layout
+├── layouts/                   app-shell (app header / sidebar / mobile tab bar / player slots), nav + section tabs, auth-layout
 ├── lib/api/{client,types,endpoints}.ts   fetch wrapper, contract types, one typed function per endpoint
 ├── lib/{utils,format,cover,i18n,query-client,platform}.ts
 ├── lib/lyrics/bilingual.ts    bilingual lyrics analysis, split, and display grouping (no imports; unit-tested in web/tests)
@@ -1339,13 +1339,15 @@ web/src/
 | `/settings` | User settings | player |
 | `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to Settings → Scrobbling) | player |
 | `/manage` | Tracks → Metadata (track table + tag editor) | manage |
-| `/manage/upload` | Tracks → Upload (files, links) | manage |
+| `/manage/upload` | Tracks → Upload (files and folders from this device) | manage |
+| `/manage/links` | Tracks → Links (YouTube / bilibili downloads with yt-dlp) | manage |
 | `/manage/online` | Tracks → Online (online music search + downloads) | manage |
 | `/manage/folders` | Folder browser | manage |
 | `/manage/doctor` | Library doctor | manage |
 | `/manage/trash` | Trash | manage |
 | `/manage/history` | Edit history | manage |
-| `/admin/users`, `/admin/libraries`, `/admin/settings` | Admin | manage |
+| `/admin/users`, `/admin/libraries` | Admin → Users, Libraries | admin |
+| `/admin/settings`, `/admin/settings/:tab` | Admin → server settings: general, and `ytdlp`, `sources`, `scrobbling`, `system` (each an Admin tab; an unknown `:tab` and the old `?tab=` links redirect) | admin |
 
 Every page module lives at `web/src/features/<area>/pages/<name>-page.tsx` and default-exports its
 component; `router.tsx` lazy-loads them. Manage routes are guarded (canManage/admin), admin routes
@@ -1389,10 +1391,10 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - Type scale: page title `text-3xl font-bold tracking-tight` (mobile large title 34px/41px bold, collapsing into a 17px semibold centered nav title on scroll — `PageHeader` handles it), section title `text-xl font-semibold`, body `text-sm`, secondary `text-muted-foreground`.
 - Artwork: `rounded-lg` (≥ 160px) / `rounded-md` (thumbnails), subtle `shadow-sm` and 1px `ring-black/5 dark:ring-white/10`; artists are circles. Always square (`aspect-square object-cover`), lazy loaded, fade-in, gradient placeholder with a music-note icon when missing.
 - Glass surfaces (tab bar, mini player, top bar on scroll): `bg-background/75 backdrop-blur-xl backdrop-saturate-150 border-border/60`.
-- Layout: desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it.
+- Layout: ≥ 768px → a full-width app header (`layouts/app-header.tsx`, `--app-header-h` = 48px + safe area, sidebar colours, bottom border) with the sidebar toggle and logo on the left and the account menu (`UserMenu variant="header"`: avatar, plus the display name from 1024px) on the right; the sidebar and content sit below it, and page top bars (`PageHeader`, `DetailNavBar`) and the player side panel stick at `top: var(--app-header-h)`. Desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → no app header (`--app-header-h: 0`); bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it; the account menu is the avatar button in the Home and Library nav bars.
 - Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening (including the listening report `/listening`, which the
-  phones' Library hub lists too); `TRACKS_NAV` ("Tracks", `/manage`) is always visible to managers (sidebar item active on every `TRACKS_TABS` route; on phones the "Manage" tab, which also covers `/admin`); its pages `TRACKS_TABS` — Metadata `/manage`, Upload `/manage/upload`, Online `/manage/online` — are route tabs (`TracksTabs`, links with `aria-current`) in each page header; `MANAGE_NAV` (folders, doctor, trash, history) and `ADMIN_NAV` are folded — sidebar Collapsibles "Library tools" / "Admin" that start closed and open while one of their routes is active (a DropdownMenu flyout on the icon rail), and one "Library tools" DropdownMenu (`ManageSections`) next to the tabs on phones.
-- CSS vars in `index.css`: `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, `--player-window-w` (400px), `--compact-player-h` (68px), `--player-reserve`, `--player-clearance`, `--mascot-right` (companion right offset; beside the floating window in `window` mode), `--safe-top/bottom` (env(safe-area-inset-*)); pages use `.page-pad` bottom padding utility so content never hides behind player chrome. Never hard-code `--playerbar-h` for spacing: the bar may be hidden or replaced by a floating player.
+  phones' Library hub lists too); managers get three sections (`NavSection`: label, icon, route `tabs`) — `TRACKS_SECTION` ("Tracks": Metadata `/manage`, Upload `/manage/upload`, Links `/manage/links`, Online `/manage/online`), `TOOLS_SECTION` ("Library tools": folders, doctor, trash, history) and, for admins, `ADMIN_SECTION` ("Admin": users, libraries, and the server settings pages — Settings, yt-dlp, Sources, Scrobbling, System — as tabs of their own). Each is one sidebar item that links to its first tab and is active on every tab (`isSectionPath`); its pages are horizontal route tabs (`SectionTabs` in `layouts/section-tabs.tsx`, links with `aria-current`, scrolling sideways on phones) in each page header. On phones the "Manage" tab (which also covers `/admin`) opens Tracks, whose tabs are followed by links to Library tools and Admin (`ManageSections`); their pages keep a back button to `/manage`.
+- CSS vars in `index.css`: `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, `--player-window-w` (400px), `--compact-player-h` (68px), `--player-reserve`, `--player-clearance`, `--mascot-right` (companion right offset; beside the floating window in `window` mode), `--app-header-h` (app header height, 0 on phones), `--safe-top/bottom` (env(safe-area-inset-*)); pages use `.page-pad` bottom padding utility so content never hides behind player chrome. Never hard-code `--playerbar-h` for spacing: the bar may be hidden or replaced by a floating player.
 - Motion: `motion/react` springs (`type:'spring', stiffness: 400, damping: 36`), `MotionConfig reducedMotion="user"`. Press feedback on mobile: `active:scale-[0.97]` transitions.
 - Icons: lucide-react, `size-4`/`size-5`, `strokeWidth={1.75}`; transport controls use filled glyphs (`fill="currentColor"`).
 - Density: desktop list rows 48px; mobile rows 60px with 44px artwork, iOS-style hairline separators inset from the artwork.
@@ -1409,21 +1411,21 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - **PWA**: `vite-plugin-pwa` (generateSW, `registerType: 'prompt'` with an "update available" toast), manifest (name "Rainy", short_name "Rainy", `display: standalone`, theme/background colours for light+dark, icons 64/192/512/maskable + apple-touch-icon 180 and `favicon.ico`, generated by `pnpm generate-pwa-assets` from `public/icon-source.png` (rounded tile) and `public/icon-source-maskable.png` (full bleed), which the precache ignores; `webp` is precached so the mascot art works offline), iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`, `viewport-fit=cover`), navigateFallback `index.html` with denylist `/api`, `/rest`. Runtime caching: `/api/cover/*` CacheFirst (500 entries, 30 days); never cache `/api/stream`, `/api/download`, `/api/events`.
 
 ### 9.5 Management UI (manage agent)
-- **Tracks** (sidebar entry; page title "Tracks") has three route tabs: Metadata, Upload, Online. Upload and Online share
-  the destination (`useDestination`, `DestinationSection`: library, folder, organize by tags — the folder and library are
-  kept while switching tabs, `organize` is remembered) and the server job list (`DownloadJobs`, links on Upload, online
+- **Tracks** (sidebar entry; page title "Tracks") has four route tabs: Metadata, Upload, Links, Online. Upload, Links and
+  Online share the destination (`useDestination`, `DestinationSection`: library, folder, organize by tags — the folder and library are
+  kept while switching tabs, `organize` is remembered) and the server job list (`DownloadJobs`, links on Links, online
   music on Online; `useJobNotifications` toasts finished jobs and refreshes the library).
 - **Metadata** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Rebuild tags, Delete, Rescan. Mobile: list with selection mode.
 - **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
-- **Upload**: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
-  *From a link* (`LinkDownload`): YouTube / bilibili link (share text accepted; `detectSite` shows a site chip), audio format
+- **Upload** `/manage/upload`: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
+- **Links** `/manage/links` (`LinkDownload` below the shared `DestinationSection`): YouTube / bilibili link (share text accepted; `detectSite` shows a site chip), audio format
   (original / M4A / MP3 / Opus, remembered), "whole playlist", same destination and organize options; the job list polls
   `/manage/downloads` every second while a job is active (progress, entry n/m, speed, ETA, cancel / retry / remove, Edit tags
   when done) and toasts + refreshes the library when a job this page saw finishes. When the feature is off or yt-dlp is not
-  installed, the section says so (admins get a link to Settings → yt-dlp).
+  installed, the page says so (admins get a link to Admin → yt-dlp, `/admin/settings/ytdlp`).
 - **Online** `/manage/online`: when `lxSourcesEnabled` is off or no source is usable, an empty state explains it (admins get
-  a link to Settings → Sources). Otherwise a collapsible "Download options" summary (destination, quality — Hi-Res /
+  a link to Admin → Sources, `/admin/settings/sources`). Otherwise a collapsible "Download options" summary (destination, quality — Hi-Res /
   FLAC / 320K / 128K, "a lower one is used when missing", embed lyrics, embed cover; quality, toggles and platform are
   remembered), a search form (platform select + query), and results as rows (checkbox, proxied cover, title, artists ·
   album, duration, the quality badge a download would ask for with all sizes in its title, catalogue page link, a

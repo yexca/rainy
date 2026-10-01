@@ -357,7 +357,7 @@ export default function ManagePage() {
       </PageHeader>
 
       {!isMobile && total > 0 ? (
-        <div className="bleed-x page-x hairline-b sticky top-[calc(var(--safe-top)+3rem)] z-20 bg-background/90 backdrop-blur-xl">
+        <div className="bleed-x page-x hairline-b sticky top-(--app-header-h) z-20 bg-background/90 backdrop-blur-xl">
           <div className="flex h-12 items-center gap-2">
             <p className="tnum min-w-0 flex-1 truncate text-sm">
               {count > 0 ? (

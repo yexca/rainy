@@ -6,8 +6,9 @@ Rainy is configured in three layers:
    image, host paths, host port, and the environment passed to the container.
 2. **Process environment variables** (`RAINY_*`, plus the container-only
    `PUID`, `PGID`, `UMASK`, and `TZ`) are read once at startup.
-3. **Server settings** are edited in the web app under **Admin → Settings** and
-   stored in the database.
+3. **Server settings** are edited in the web app under **Admin** (the
+   Settings, yt-dlp, Sources, Scrobbling, and System tabs) and stored in the
+   database.
 
 ## Compose Variables
 
@@ -102,7 +103,7 @@ and are stored in the `settings` table.
 | Repair garbled tags when reading | on | Show GBK, Big5, and Shift-JIS tags correctly without modifying files |
 | Allow downloads | on | Let users with the download permission save original files |
 | Online metadata lookup | off | Let managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and iTunes from the tag editor. The server contacts these services only when someone searches; see [Privacy](../../PRIVACY.md#online-metadata-lookup). Outbound requests honor `HTTPS_PROXY` / `HTTP_PROXY`. |
-| Downloads from YouTube and bilibili | off | On the **yt-dlp** tab. Let managers download audio from YouTube and bilibili links on the Tracks → Upload tab. The server contacts those sites only when a download starts, and GitHub only when an administrator checks for or installs a yt-dlp update; see [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili). |
+| Downloads from YouTube and bilibili | off | On the **yt-dlp** tab. Let managers download audio from YouTube and bilibili links on the Tracks → Links tab. The server contacts those sites only when a download starts, and GitHub only when an administrator checks for or installs a yt-dlp update; see [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili). |
 | Online music and music sources | off | On the **Sources** tab. Let managers search online catalogues in **Tracks → Online** and download songs into a library through lx-music custom source scripts that an administrator imports. Scripts run on the server and contact the servers their authors chose; see [Privacy](../../PRIVACY.md#online-music-and-music-sources). The same tab chooses automatic fallback between sources (by priority, the default) or one fixed source. |
 | Scrobbling to Last.fm | off | On the **Scrobbling** tab, together with the Last.fm API key and shared secret of an API account you create at Last.fm (the secret is stored encrypted and never shown again). Users then connect their Last.fm account in **Settings → Scrobbling**, and the server sends their plays, "now playing", and loved (starred) songs to Last.fm; see [Privacy](../../PRIVACY.md#scrobbling-to-lastfm-and-listenbrainz). |
 | Scrobbling to ListenBrainz | off | On the **Scrobbling** tab. Users paste their ListenBrainz user token in **Settings → Scrobbling**; no API account is needed. |

@@ -15,6 +15,7 @@ import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query'
 import { useServerEvents } from '@/hooks/use-server-events'
 import { useUI } from '@/stores/ui'
 
+import { AppHeader } from './app-header'
 import { AppSidebar } from './app-sidebar'
 import { MobileTabBar } from './mobile-tab-bar'
 import { NavigationProgress } from './navigation-progress'
@@ -24,6 +25,8 @@ const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.2
 /**
  * Signed-in layout (docs/architecture/contract.md §9.3).
  *
+ * - ≥ 768px: `<AppHeader/>` across the top (sidebar toggle, logo, account menu; `--app-header-h`),
+ *   with the sidebar and the content below it.
  * - ≥ 1024px: expandable sidebar (state persisted) + content + bottom player bar.
  * - 768–1023px: icon sidebar (expandable for the session) + player bar.
  * - < 768px: no sidebar; bottom glass tab bar with a floating mini player above it.
@@ -65,8 +68,17 @@ export function AppShell() {
         onOpenChange={isDesktop ? setSidebarOpen : setTabletOpen}
         style={SIDEBAR_STYLE}
       >
-        {isMobile ? null : <AppSidebar className="bottom-(--player-reserve) h-auto transition-[bottom] duration-300 ease-out" />}
-        <SidebarInset id="main" tabIndex={-1} className="min-w-0 outline-none transition-[padding] duration-200 xl:pr-(--player-panel-w,0px)">
+        {isMobile ? null : (
+          <>
+            <AppHeader />
+            <AppSidebar className="top-(--app-header-h) bottom-(--player-reserve) h-auto transition-[bottom] duration-300 ease-out" />
+          </>
+        )}
+        <SidebarInset
+          id="main"
+          tabIndex={-1}
+          className="min-w-0 pt-(--app-header-h) outline-none transition-[padding] duration-200 xl:pr-(--player-panel-w,0px)"
+        >
           <Outlet />
         </SidebarInset>
       </SidebarProvider>

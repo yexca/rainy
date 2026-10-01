@@ -21,7 +21,7 @@ action.
   play by day. Songs removed from the library stay in the history under their
   old names.
 - **Scrobbling** (off by default): after an administrator turns it on in
-  Admin → Settings → Scrobbling (Last.fm also needs an API account there),
+  Admin → Scrobbling (Last.fm also needs an API account there),
   users connect Last.fm or ListenBrainz in Settings → Scrobbling. Plays from
   the web app and Subsonic apps, "now playing", and (for Last.fm) starred songs
   as loves are sent to the service; plays wait on the server and are retried
@@ -64,9 +64,16 @@ action.
 ## Library Management
 
 - **Tracks** is a standalone entry in the sidebar (the **Manage** tab on
-  phones) with three tabs: Metadata, Upload, and the new Online. Upload left
-  the folded library tools; Upload and Online share the destination folder.
-  The other library tools and the admin pages are folded away until opened.
+  phones) with four tabs: Metadata, Upload, and the new Links and Online.
+  Downloads from YouTube and bilibili links moved from Upload to their own
+  Links tab. Upload, Links, and Online share the destination folder.
+- **Library tools** and **Admin** are single sidebar entries too, with their
+  pages as tabs (Folders, Doctor, Trash, History; Users, Libraries, and the
+  server settings pages Settings, yt-dlp, Sources, Scrobbling, and System)
+  instead of a folded second-level menu.
+- A new app header runs across the top on tablets and desktops, with the
+  sidebar toggle and logo on the left and the account menu, moved from the
+  bottom of the sidebar, on the right.
 - **Online music** (off by default): search Kuwo, Kugou, QQ Music, NetEase
   Cloud Music, and Migu in Tracks → Online and download songs into the library
   in the quality you choose, with the catalogue's tags, lyrics (translation
@@ -84,7 +91,7 @@ action.
   iTunes for tags, covers, and lyrics (with optional paired translations). A
   chosen result only fills the editor; nothing is written until you save. With
   several tracks selected, only album-level fields are offered.
-- Tracks → Upload can download the audio of YouTube and bilibili videos with
+- Tracks → Links can download the audio of YouTube and bilibili videos with
   yt-dlp: paste a link (bilibili share text works too), pick the original audio
   or M4A, MP3, or Opus, and optionally the whole playlist (up to 100 entries).
   Files land in the chosen folder or follow "Organize by tags", get title,
@@ -94,7 +101,7 @@ action.
 
 ## Operations and Deployment
 
-- New **Sources** tab in Admin → Settings with **Allow online music and music
+- New **Sources** tab in Admin with **Allow online music and music
   sources** (off by default): import lx-music source scripts from a file or a
   link, order them, enable or disable each, test them, update them from their
   link, and see their update notices; choose automatic fallback or one fixed
@@ -106,7 +113,7 @@ action.
   [Privacy](../../PRIVACY.md#online-metadata-lookup). A second setting,
   **Pretend to search from mainland China** (also off), adds a spoofed
   mainland-China `X-Real-IP` header to the Chinese catalogues' requests.
-- New **yt-dlp** tab in Admin → Settings with **Allow downloads from YouTube
+- New **yt-dlp** tab in Admin with **Allow downloads from YouTube
   and bilibili** (off by default), yt-dlp install / update checks (the
   official GitHub release, verified against its checksums, installed into
   `/data/ytdlp`), and optional sign-in cookies. Cookies are account

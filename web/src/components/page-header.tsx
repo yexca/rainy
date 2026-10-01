@@ -56,12 +56,14 @@ export function PageHeader({
     const bar = barRef.current
     const heading = titleRef.current
     if (!bar || !heading || typeof IntersectionObserver === 'undefined') return
+    // The bar's bottom edge: it sticks below the app header (`--app-header-h`, 0 on phones).
+    const edge = (Number.parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Collapsed once the large title is fully hidden under the bar (and not below the fold).
-        setCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < bar.offsetHeight)
+        setCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < edge)
       },
-      { rootMargin: `-${bar.offsetHeight}px 0px 0px 0px`, threshold: 0 },
+      { rootMargin: `-${edge}px 0px 0px 0px`, threshold: 0 },
     )
     observer.observe(heading)
     return () => observer.disconnect()
@@ -91,7 +93,7 @@ export function PageHeader({
       <div
         ref={barRef}
         className={cn(
-          'ui-chrome bleed-x page-x hairline-b sticky top-0 z-30 pt-safe transition-[background-color,border-color,backdrop-filter] duration-200',
+          'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 pt-safe md:pt-0 transition-[background-color,border-color,backdrop-filter] duration-200',
           collapsed ? 'glass' : '[--hairline-color:transparent]',
         )}
       >

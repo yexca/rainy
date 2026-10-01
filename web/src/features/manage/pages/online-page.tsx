@@ -118,7 +118,7 @@ function Unavailable({ status }: { status: OnlineStatus }) {
       action={
         isAdmin ? (
           <Button asChild variant="outline" className="max-sm:h-11">
-            <Link to="/admin/settings?tab=sources">
+            <Link to="/admin/settings/sources">
               <Settings2 />
               {t('onlineMusic.openSettings')}
             </Link>

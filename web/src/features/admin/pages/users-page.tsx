@@ -22,6 +22,8 @@ import {
 import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
 import { useCurrentUser } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { ADMIN_SECTION } from '@/layouts/nav'
+import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { User } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -84,7 +86,9 @@ export default function UsersPage() {
             </Button>
           ) : null
         }
-      />
+      >
+        <SectionTabs section={ADMIN_SECTION} />
+      </PageHeader>
 
       {users.isPending ? (
         <PageLoader />

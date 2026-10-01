@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
 import { DestinationSection } from '../components/destination-section'
-import { LinkDownload } from '../components/link-download'
 import { TracksTabs } from '../components/tracks-tabs'
 import { toastError } from '../lib/batch'
 import { useDestination, useDestinationTarget } from '../lib/destination'
@@ -22,7 +21,7 @@ import { filesFromDataTransfer, filesFromInput, isUploadable, type PickedFile } 
 import { useUploadQueue, type UploadEntry } from '../lib/upload-queue'
 import { useScrollMargin } from '../lib/use-scroll-margin'
 
-/** Tracks → Upload: files and folders from this device, and downloads from YouTube / bilibili links. */
+/** Tracks → Upload: files and folders from this device. Links have a tab of their own (Tracks → Links). */
 export default function UploadPage() {
   const { t } = useTranslation('manage')
   const [searchParams] = useSearchParams()
@@ -137,8 +136,6 @@ export default function UploadPage() {
             }}
           />
         </section>
-
-        <LinkDownload libraryId={target.libraryId} dir={target.dir} organize={target.organize} invalidDir={target.invalidDir} />
 
         <UploadQueue />
       </div>

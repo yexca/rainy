@@ -62,6 +62,8 @@
   --player-toast-right: 16px;
   /* Mascot companion: right offset (bottom = --player-clearance). */
   --mascot-right: calc(1rem + var(--safe-right));
+  /* App header (tablet / desktop; phones have none): page top bars stick below it. */
+  --app-header-h: 0px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -76,6 +78,7 @@
 @media (width >= 48rem) {
   :root {
     --page-px: 1.5rem;
+    --app-header-h: calc(3rem + var(--safe-top));
   }
 }
 

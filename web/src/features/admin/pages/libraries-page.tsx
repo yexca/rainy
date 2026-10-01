@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { ADMIN_SECTION } from '@/layouts/nav'
+import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { LibraryInfo } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -75,7 +77,9 @@ export default function LibrariesPage() {
             </Button>
           ) : null
         }
-      />
+      >
+        <SectionTabs section={ADMIN_SECTION} />
+      </PageHeader>
 
       <div className="grid gap-8">
         <ScanPanel libraries={list} />

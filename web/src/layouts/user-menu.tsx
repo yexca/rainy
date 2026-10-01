@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, Languages, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { Check, ChevronDown, Languages, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -18,7 +18,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { useAuth, useLogout } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
 import type { User } from '@/lib/api/types'
@@ -46,7 +45,7 @@ export function UserAvatar({ user, className }: { user: User; className?: string
   )
 }
 
-function UserMenuContent({ user, side }: { user: User; side: 'top' | 'bottom' | 'right' }) {
+function UserMenuContent({ user }: { user: User }) {
   const { t } = useTranslation()
   const { theme, setTheme } = useTheme()
   const logout = useLogout()
@@ -61,7 +60,7 @@ function UserMenuContent({ user, side }: { user: User; side: 'top' | 'bottom' | 
   }
 
   return (
-    <DropdownMenuContent side={side} align="end" sideOffset={8} className="min-w-60 rounded-xl">
+    <DropdownMenuContent side="bottom" align="end" sideOffset={8} className="min-w-60 rounded-xl">
       <DropdownMenuLabel className="flex items-center gap-3 py-2 font-normal">
         <UserAvatar user={user} />
         <div className="grid min-w-0 flex-1 leading-tight">
@@ -121,8 +120,8 @@ function UserMenuContent({ user, side }: { user: User; side: 'top' | 'bottom' | 
 }
 
 export interface UserMenuProps {
-  /** `sidebar`: full-width row for the sidebar footer. `avatar`: round button (mobile nav bars). */
-  variant?: 'sidebar' | 'avatar'
+  /** `header`: avatar and name for the app header (tablet / desktop). `avatar`: round button (phone nav bars). */
+  variant?: 'header' | 'avatar'
   className?: string
 }
 
@@ -132,24 +131,24 @@ export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
   const { user } = useAuth()
   if (!user) return null
 
-  if (variant === 'sidebar') {
+  if (variant === 'header') {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-            size="lg"
+          <button
+            type="button"
             aria-label={t('user.menu')}
-            className={cn('data-[state=open]:bg-sidebar-accent', className)}
+            className={cn(
+              'flex h-9 min-w-0 items-center gap-2 rounded-full p-0.5 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[state=open]:bg-sidebar-accent lg:pr-2.5',
+              className,
+            )}
           >
             <UserAvatar user={user} />
-            <div className="grid min-w-0 flex-1 text-left leading-tight">
-              <span className="truncate text-sm font-medium">{displayName(user)}</span>
-              <span className="truncate text-xs text-muted-foreground">{t(roleKey(user))}</span>
-            </div>
-            <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
-          </SidebarMenuButton>
+            <span className="hidden max-w-40 truncate text-sm font-medium lg:block">{displayName(user)}</span>
+            <ChevronDown className="hidden size-4 shrink-0 text-muted-foreground lg:block" aria-hidden />
+          </button>
         </DropdownMenuTrigger>
-        <UserMenuContent user={user} side="right" />
+        <UserMenuContent user={user} />
       </DropdownMenu>
     )
   }
@@ -161,7 +160,7 @@ export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
           <UserAvatar user={user} />
         </Button>
       </DropdownMenuTrigger>
-      <UserMenuContent user={user} side="bottom" />
+      <UserMenuContent user={user} />
     </DropdownMenu>
   )
 }
