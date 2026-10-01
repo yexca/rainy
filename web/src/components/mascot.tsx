@@ -2,10 +2,14 @@ import type { ImgHTMLAttributes } from 'react'
 
 import empty from '@/assets/mascot/empty.webp'
 import forbidden from '@/assets/mascot/forbidden.webp'
+import happy from '@/assets/mascot/happy.webp'
 import idle from '@/assets/mascot/idle.webp'
 import listening from '@/assets/mascot/listening.webp'
+import loading from '@/assets/mascot/loading.webp'
 import lost from '@/assets/mascot/lost.webp'
 import offline from '@/assets/mascot/offline.webp'
+import report from '@/assets/mascot/report.webp'
+import scanning from '@/assets/mascot/scanning.webp'
 import settings from '@/assets/mascot/settings.webp'
 import sleeping from '@/assets/mascot/sleeping.webp'
 import welcome from '@/assets/mascot/welcome.webp'
@@ -23,6 +27,10 @@ const MASCOT_POSES = {
   empty,
   welcome,
   settings,
+  loading,
+  scanning,
+  happy,
+  report,
   idle,
   listening,
   sleeping,

@@ -108,7 +108,8 @@
       "refreshing": "Updating albums and artists…",
       "done": "Finishing…",
       "error": "Scan failed"
-    }
+    },
+    "mascot": "Sorting your records into place… new songs show up as soon as they are read."
   },
   "settings": {
     "title": "Server settings",

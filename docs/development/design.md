@@ -85,10 +85,13 @@ with raindrop ear cups, a white sailor dress, and a clear umbrella that drips
 music notes. She is also the app icon: listening to music, eyes closed, on the
 rain-blue tile.
 
-- **Where she appears.** Full-size empty states (empty library pages, no search
-  results), errors (offline, render errors), 404, no access, beside the sign-in
+- **Where she appears.** Full-size empty states (empty library pages and
+  history, no search results, an empty trash, a clean doctor report, no plays in
+  the listening report), errors (offline, render errors), 404, no access, the
+  startup splash, the admin scan panel while a scan runs, beside the sign-in
   card on wide screens, Settings › Mascot, and as a companion in the
-  bottom-right corner on tablets and desktops. Compact empty states in panels
+  bottom-right corner on tablets and desktops. Route changes keep the small
+  spinner. Compact empty states in panels
   and lists keep their icon.
 - **Corner companion.** She sits on top of the player chrome (above the bottom
   bar or mini bar, beside the floating window) and follows playback: listening
