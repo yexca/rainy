@@ -126,6 +126,35 @@ func TestMixFollowsSeeds(t *testing.T) {
 	}
 }
 
+// spread separates songs by the same artist even when they all come last: with nothing
+// later to swap in, a trailing repeat moves back between two other artists (a regression:
+// "A B A B G G" used to stay as it was).
+func TestSpreadMovesTrailingRepeatsBack(t *testing.T) {
+	p := &picker{cands: map[string]*scored{}}
+	for id, artist := range map[string]string{"a1": "A", "a2": "A", "b1": "B", "b2": "B", "g1": "G", "g2": "G", "g3": "G"} {
+		p.cands[id] = &scored{Candidate: store.Candidate{ArtistID: artist}}
+	}
+	for _, in := range [][]string{
+		{"a1", "b1", "a2", "b2", "g1", "g2"},
+		{"g1", "g2", "a1", "b1"},
+		{"a1", "b1", "a2", "g1", "g2", "g3"},
+	} {
+		got := p.spread(slices.Clone(in))
+		if len(got) != len(in) {
+			t.Fatalf("spread(%v) = %v: lost songs", in, got)
+		}
+		for i := 1; i < len(got); i++ {
+			if p.cands[got[i]].artist() == p.cands[got[i-1]].artist() {
+				t.Fatalf("spread(%v) = %v: same artist twice in a row", in, got)
+			}
+		}
+	}
+	// One artist only: nothing can go in between, and nothing is lost.
+	if got := p.spread([]string{"g1", "g2", "g3"}); len(got) != 3 {
+		t.Fatalf("spread of one artist = %v", got)
+	}
+}
+
 // A small library still fills the mix by lifting the per-artist cap; without seeds or plays
 // a mix is random songs.
 func TestMixFallbacks(t *testing.T) {
