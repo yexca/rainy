@@ -55,6 +55,14 @@
     "showTranslation": "显示翻译",
     "hideTranslation": "隐藏翻译"
   },
+  "pip": {
+    "title": "Rainy · 歌词",
+    "open": "画中画歌词",
+    "close": "关闭画中画歌词",
+    "failed": "无法打开画中画歌词",
+    "tryAgain": "再点一次按钮，改用小视频窗口显示。",
+    "notSynced": "这首歌的歌词没有时间轴，无法跟随播放。"
+  },
   "queue": {
     "title": "播放队列",
     "nowPlaying": "正在播放",

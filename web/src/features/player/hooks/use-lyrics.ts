@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import { isApiError } from '@/lib/api/client'
@@ -11,10 +11,13 @@ import type { PlayableTrack } from '../types'
 
 const NO_LYRICS: Lyrics = { synced: false, lines: [], source: 'none', raw: '', offset: 0, lang: '' }
 
-/** Lyrics of a track (`/api/lyrics/{id}`); missing / unsupported lyrics resolve to "none". */
-export function useLyrics(track: PlayableTrack | undefined) {
+/**
+ * Lyrics of a track (`/api/lyrics/{id}`); missing / unsupported lyrics resolve to "none". Shared
+ * by {@link useLyrics} and code outside React (the picture-in-picture lyrics canvas).
+ */
+export function lyricsQuery(track: PlayableTrack | undefined) {
   const id = track && !track.isRadio ? track.id : ''
-  return useQuery({
+  return queryOptions({
     queryKey: queryKeys.lyrics(id),
     queryFn: async ({ signal }) => {
       try {
@@ -28,6 +31,10 @@ export function useLyrics(track: PlayableTrack | undefined) {
     enabled: id !== '',
     staleTime: 10 * 60_000,
   })
+}
+
+export function useLyrics(track: PlayableTrack | undefined) {
+  return useQuery(lyricsQuery(track))
 }
 
 /** Whether the track's lyrics have translations to show (bilingual lyrics, lib/lyrics/bilingual). */

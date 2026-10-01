@@ -17,6 +17,7 @@ import { NowPlayingBackground } from './now-playing-background'
 import { AirPlayButton, NowPlayingActions, NowPlayingArtwork, NowPlayingTitle } from './now-playing-parts'
 import { QueueView } from './queue-view'
 import { Scrubber } from './scrubber'
+import { PipLyricsButton } from './pip-lyrics-button'
 import { TranslationToggle } from './translation-toggle'
 import { NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } from './transport'
 import { SheetVolume } from './volume-control'
@@ -308,6 +309,7 @@ function StageNowPlaying({ track }: { track: PlayableTrack }) {
           <ChevronDown className="size-5" />
         </button>
         <div className="flex items-center gap-1">
+          <PipLyricsButton tone="stage" />
           {panel === 'lyrics' ? <TranslationToggle track={track} tone="stage" /> : null}
           <StageToggle active={panel === 'lyrics'} onClick={() => toggle('lyrics')} label={t('lyrics.title')}>
             <MessageSquareQuote className="size-[18px]" strokeWidth={1.9} />
@@ -425,6 +427,7 @@ function SidePanel({ hidden }: { hidden: boolean }) {
               ))}
             </div>
             {panel === 'lyrics' ? <TranslationToggle track={track} tone="panel" /> : null}
+            {panel === 'lyrics' ? <PipLyricsButton tone="panel" /> : null}
             <button
               type="button"
               onClick={() => setPanel('none')}

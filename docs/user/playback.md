@@ -66,6 +66,21 @@ button next to the lyrics button hides or shows translations; the choice is
 remembered in this browser and is also under **Settings → Playback**. Managers can edit
 lyrics; see [Management](management.md#lyrics).
 
+### Picture-in-Picture Lyrics
+
+The picture-in-picture button (next to the lyrics button in the player bar,
+Now Playing, and the floating window) opens a small window that stays on top
+of other apps and windows. It shows the song, previous / play-pause / next,
+the line being sung with its translation, and the next line dimmed. Press the
+button again or close the window to stop.
+
+- In Chrome and Edge on a computer, the window is a full mini player.
+- In Safari (Mac, iPhone, and iPad) the lyrics play as a small video; its
+  play and pause buttons control the music. On iPhone and iPad the lyrics may
+  stop moving while Safari is in the background.
+- Browsers without picture-in-picture (such as Firefox) don't show the
+  button. Lyrics without timing can't follow the song, so the window says so.
+
 ## Playback Settings
 
 These are under **Settings → Playback** and are saved on the current device
