@@ -10,13 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="docs/README.md">Documentation</a> ·
-  <a href="https://github.com/yexca/rainy/releases">Releases</a> ·
-  <a href="SECURITY.md">Security</a> ·
-  <a href="PRIVACY.md">Privacy</a>
-</p>
-
-<p align="center">
   <a href="README.md">English</a> ·
   <a href="docs/readme/README.zh-Hans.md">简体中文</a> ·
   <a href="docs/readme/README.zh-Hant.md">繁體中文</a> ·
@@ -27,6 +20,10 @@
   <a href="https://github.com/yexca/rainy/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/yexca/rainy"></a>
   <a href="https://hub.docker.com/r/yexca/rainy"><img alt="Docker image" src="https://img.shields.io/badge/docker-yexca%2Frainy-2496ed?logo=docker&amp;logoColor=white"></a>
   <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/github/license/yexca/rainy"></a>
+</p>
+
+<p align="center">
+  <img src="docs/assets/rainy-showcase.png" width="1200" alt="Rainy home page with album shelves, the player bar, a Now Playing card, and the mascot listening in the corner">
 </p>
 
 Rainy turns the music folder on your NAS into a private streaming service, much
@@ -133,6 +130,14 @@ install the web app as a PWA.
 their password reset. Do not commit either directory: they contain account
 data, listening history, and your media.
 
+## User documentation
+
+The [User Guide](docs/user/index.md) covers getting started, the library and
+scanning, playback and the PWA, the listening report and scrobbling, library
+management, and Subsonic clients. The [Operations
+docs](docs/operations/configuration.md) cover Docker and NAS deployment,
+configuration, reverse proxies, the database and backups, and troubleshooting.
+
 ## Documentation
 
 | Goal | Start here |
@@ -169,6 +174,14 @@ YouTube and bilibili, online music, or scrobbling to Last.fm and
 ListenBrainz. Report a suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
+
+## Acknowledgements
+
+Rainy builds on TagLib (through go-taglib, compiled to WebAssembly), FFmpeg,
+SQLite (through modernc.org/sqlite), and, when enabled, yt-dlp. The Subsonic
+and OpenSubsonic APIs make it work with the apps you already use, and
+[Navidrome](https://www.navidrome.org/) showed how pleasant a self-hosted music
+server can be.
 
 ## License
 

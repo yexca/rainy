@@ -1,4 +1,14 @@
 <p align="center">
+  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy のアイコン">
+</p>
+
+<h1 align="center">Rainy</h1>
+
+<p align="center">
+  NAS 向けのセルフホスト型音楽サーバーです。Subsonic 互換で、インストールできる Web プレーヤーとライブラリ管理機能を備えています。
+</p>
+
+<p align="center">
   <a href="../../README.md">English</a> ·
   <a href="README.zh-Hans.md">简体中文</a> ·
   <a href="README.zh-Hant.md">繁體中文</a> ·
@@ -6,12 +16,14 @@
 </p>
 
 <p align="center">
-  <img src="../assets/rainy-readme-icon.png" width="128" height="128" alt="Rainy のアイコン">
+  <a href="https://github.com/yexca/rainy/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/yexca/rainy"></a>
+  <a href="https://hub.docker.com/r/yexca/rainy"><img alt="Docker image" src="https://img.shields.io/badge/docker-yexca%2Frainy-2496ed?logo=docker&amp;logoColor=white"></a>
+  <a href="../../LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/github/license/yexca/rainy"></a>
 </p>
 
-# Rainy
-
-NAS 向けのセルフホスト型音楽サーバーです。Subsonic 互換で、インストールできる Web プレーヤーとライブラリ管理機能を備えています。
+<p align="center">
+  <img src="../assets/rainy-showcase.png" width="1200" alt="アルバムの棚、プレーヤーバー、再生中カード、隅で音楽を聴くマスコットが並ぶ Rainy のホーム画面">
+</p>
 
 Rainy は [Navidrome](https://www.navidrome.org/) と同じく、NAS 上の音楽フォルダをどこからでも聴けるプライベートなストリーミングサービスにします。違いはライブラリ管理を中心機能として扱う点で、タグ編集、カバー画像、歌詞、パターンによるリネーム、アップロード、削除、問題のあるファイルの検出をすべてブラウザ上で行えます。
 
@@ -62,6 +74,10 @@ Web インターフェースは現在、英語と簡体字中国語に対応し�
 
 `secret.key` は保存されたパスワードの暗号化に使われます。`rainy.db` と一緒にバックアップし、厳重に保管してください。これらのディレクトリはリポジトリにコミットしないでください。
 
+## ユーザー文書
+
+[ユーザーガイド](../user/index.md)では、はじめに、ライブラリとスキャン、再生と PWA、再生レポートと Scrobble、ライブラリ管理、Subsonic クライアントを扱います。[運用ドキュメント](../operations/configuration.md)では、Docker と NAS へのデプロイ、設定、リバースプロキシ、データベースとバックアップ、トラブルシューティングを扱います（英語）。
+
 ## ドキュメント
 
 詳しいドキュメント（英語）は[ドキュメント索引](../README.md)にあります。[ユーザーガイド](../user/index.md)、[リバースプロキシ](../operations/reverse-proxy.md)、[トラブルシューティング](../operations/troubleshooting.md)もご覧ください。
@@ -73,6 +89,10 @@ Web インターフェースは現在、英語と簡体字中国語に対応し�
 ## 開発と貢献
 
 [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md)、[ローカル開発](../development/local-dev.md)をお読みください。
+
+## 謝辞
+
+Rainy は TagLib（WebAssembly にコンパイルした go-taglib 経由）、FFmpeg、SQLite（modernc.org/sqlite 経由）、そして有効にした場合は yt-dlp の上に成り立っています。Subsonic と OpenSubsonic の API のおかげで、いつものアプリからそのまま使えます。また [Navidrome](https://www.navidrome.org/) は、セルフホストの音楽サーバーがどれほど快適になれるかを示してくれました。
 
 ## ライセンス
 
