@@ -15,6 +15,7 @@ export function NotFoundPage() {
       <PageHeader title={t('notFound.title')} back />
       <EmptyState
         icon={FileQuestion}
+        art="lost"
         title={t('notFound.title')}
         description={t('notFound.description')}
         action={
@@ -35,6 +36,7 @@ export function ForbiddenPage() {
       <PageHeader title={t('forbidden.title')} back />
       <EmptyState
         icon={ShieldAlert}
+        art="forbidden"
         title={t('forbidden.title')}
         description={t('forbidden.description')}
         action={
@@ -58,7 +60,7 @@ export function RouteErrorPage() {
   if (isRouteErrorResponse(error) && error.status === 404) {
     return (
       <div className="grid min-h-dvh place-items-center p-6">
-        <EmptyState icon={FileQuestion} title={t('notFound.title')} description={t('notFound.description')} />
+        <EmptyState icon={FileQuestion} art="lost" title={t('notFound.title')} description={t('notFound.description')} />
       </div>
     )
   }
@@ -68,6 +70,7 @@ export function RouteErrorPage() {
     <div className="grid min-h-dvh place-items-center p-6">
       <EmptyState
         icon={TriangleAlert}
+        art="offline"
         title={t('errors.renderTitle')}
         description={t('errors.renderDescription')}
         action={

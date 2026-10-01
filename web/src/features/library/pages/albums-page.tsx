@@ -126,6 +126,7 @@ export default function AlbumsPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Disc3}
+          art="empty"
           title={filtered ? t('albums.emptyFilteredTitle') : t('albums.emptyTitle')}
           description={filtered ? t('albums.emptyFilteredDescription') : t('albums.emptyDescription')}
           action={

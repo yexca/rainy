@@ -126,6 +126,7 @@ export default function SongsPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Music}
+          art="empty"
           title={starred ? t('songs.emptyFavoritesTitle') : t('songs.emptyTitle')}
           description={starred ? t('songs.emptyFavoritesDescription') : t('songs.emptyDescription')}
           action={

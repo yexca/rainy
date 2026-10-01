@@ -27,6 +27,7 @@ export function ErrorState({ error, title, description, onRetry, retrying, size,
   return (
     <EmptyState
       icon={offline ? WifiOff : TriangleAlert}
+      art="offline"
       title={title ?? (offline ? t('errors.serverUnreachableTitle') : t('errors.title'))}
       description={description ?? errorMessage(error, t)}
       size={size}

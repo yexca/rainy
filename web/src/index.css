@@ -60,6 +60,8 @@
   --player-clearance: var(--player-reserve);
   --player-toast-bottom: calc(var(--player-reserve) + 16px);
   --player-toast-right: 16px;
+  /* Mascot companion: right offset (bottom = --player-clearance). */
+  --mascot-right: calc(1rem + var(--safe-right));
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -139,6 +141,7 @@
   --player-toast-right: calc(1.5rem + var(--safe-right));
 }
 :root[data-player-dock="window"] {
+  --mascot-right: calc(var(--player-window-w) + 2.5rem + var(--safe-right));
   /* Beside the window; overlapping it only when the viewport is too narrow for a toast. */
   --player-toast-right: min(calc(var(--player-window-w) + 3rem + var(--safe-right)), calc(100vw - 372px));
 }
@@ -252,6 +255,18 @@
   --animate-blob: blob-drift 22s ease-in-out infinite alternate;
   /* Indeterminate top progress bar (route loading). */
   --animate-nav-progress: nav-progress 1.1s ease-in-out infinite;
+  /* The mascot companion swaying to the music. */
+  --animate-mascot-sway: mascot-sway 2.4s ease-in-out infinite;
+
+  @keyframes mascot-sway {
+    0%,
+    100% {
+      transform: rotate(-1.5deg);
+    }
+    50% {
+      transform: rotate(1.5deg) translateY(-2px);
+    }
+  }
 
   @keyframes nav-progress {
     from {

@@ -80,6 +80,7 @@ export default function PlaylistsPage() {
       ) : own.length + shared.length === 0 ? (
         <EmptyState
           icon={ListMusic}
+          art="empty"
           title={t('playlists.emptyTitle')}
           description={t('playlists.emptyDescription')}
           action={

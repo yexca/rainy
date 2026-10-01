@@ -153,7 +153,7 @@ export default function ArtistsPage() {
       ) : query.isError && items.length === 0 ? (
         <ErrorState error={query.error} onRetry={() => void query.refetch()} retrying={query.isFetching} />
       ) : items.length === 0 ? (
-        <EmptyState icon={MicVocal} title={t('artists.emptyTitle')} description={t('artists.emptyDescription')} />
+        <EmptyState icon={MicVocal} art="empty" title={t('artists.emptyTitle')} description={t('artists.emptyDescription')} />
       ) : (
         <ArtistsList artists={items} grouped={grouped} mobile={isMobile} />
       )}

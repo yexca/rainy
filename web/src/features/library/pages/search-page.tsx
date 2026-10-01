@@ -94,6 +94,7 @@ export default function SearchPage() {
       ) : data && data.artists.length + data.albums.length + data.tracks.length === 0 ? (
         <EmptyState
           icon={SearchX}
+          art="lost"
           title={t('search.noResultsTitle', { query: term })}
           description={t('search.noResultsDescription')}
         />

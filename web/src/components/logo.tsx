@@ -1,80 +1,33 @@
-import { useId, type SVGProps } from 'react'
+import type { ImgHTMLAttributes } from 'react'
 
+import iconUrl from '@/assets/brand/rainy-icon.webp'
 import { cn } from '@/lib/utils'
 
-/** Raindrop outline (64×64 grid): straight flanks tangent to the round bottom. */
-const DROP_PATH = 'M32 9.5 45.01 30.07A15.5 15.5 0 1 1 18.99 30.07Z'
-const NOTE_FLAG_PATH =
-  'M31.6 26c0 4 3.4 5 5.9 6.8 1.9 1.4 2.6 3.3 2.1 5.6-.4-2.4-2.5-4-5.3-4.6-1.1-.2-2 .1-2.7.6Z'
-
-function NoteCutout() {
-  return (
-    <g fill="#000">
-      <ellipse cx="28.4" cy="43.4" rx="4.9" ry="3.7" transform="rotate(-22 28.4 43.4)" />
-      <rect x="30.9" y="26" width="2.7" height="17.6" rx="1" />
-      <path d={NOTE_FLAG_PATH} />
-    </g>
-  )
-}
-
-export interface LogoProps extends Omit<SVGProps<SVGSVGElement>, 'children'> {
+export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt' | 'width' | 'height' | 'title'> {
   /** Rendered size in px (square). */
   size?: number
-  /**
-   * `icon`: the app icon (accent gradient tile with the drop glyph).
-   * `mark`: the bare drop glyph in the accent colour, for use on any background.
-   */
-  variant?: 'icon' | 'mark'
   /** Accessible name; omit for decorative use next to the "Rainy" wordmark. */
   title?: string
 }
 
 /**
- * The Rainy logo — a raindrop with a music note. Follows the active accent colour
- * (`public/favicon.svg` is the static rain-blue version).
+ * The Rainy app icon: the mascot listening to music on a rain-blue rounded tile. The same art
+ * as the PWA icons in `public/` (generated from `public/icon-source*.png`).
  */
-export function Logo({ size = 32, variant = 'icon', title, className, ...props }: LogoProps) {
-  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
-  const gradientId = `rainy-g-${uid}`
-  const maskId = `rainy-m-${uid}`
-
+export function Logo({ size = 32, title, className, ...props }: LogoProps) {
   return (
-    <svg
-      viewBox="0 0 64 64"
+    <img
+      src={iconUrl}
       width={size}
       height={size}
-      role={title ? 'img' : undefined}
+      alt={title ?? ''}
       aria-hidden={title ? undefined : true}
-      className={cn('shrink-0', className)}
+      title={title}
+      draggable={false}
+      decoding="async"
+      className={cn('shrink-0 select-none', className)}
       {...props}
-    >
-      {title ? <title>{title}</title> : null}
-      <defs>
-        <linearGradient id={gradientId} x1="10" y1="2" x2="54" y2="62" gradientUnits="userSpaceOnUse">
-          <stop offset="0" style={{ stopColor: 'color-mix(in oklab, var(--primary) 72%, white)' }} />
-          <stop offset="1" style={{ stopColor: 'color-mix(in oklab, var(--primary) 82%, black)' }} />
-        </linearGradient>
-        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
-          <path fill="#fff" d={DROP_PATH} />
-          <NoteCutout />
-        </mask>
-      </defs>
-      {variant === 'icon' ? (
-        <>
-          <rect width="64" height="64" rx="14.4" fill={`url(#${gradientId})`} />
-          <rect width="64" height="64" mask={`url(#${maskId})`} style={{ fill: 'var(--primary-foreground)' }} />
-        </>
-      ) : (
-        <rect
-          x="0"
-          y="0"
-          width="64"
-          height="64"
-          fill={`url(#${gradientId})`}
-          mask={`url(#${maskId})`}
-        />
-      )}
-    </svg>
+    />
   )
 }
 

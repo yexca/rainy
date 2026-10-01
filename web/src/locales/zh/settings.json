@@ -136,5 +136,13 @@
     "callbackDeniedHint": "登录已取消或未完成，可以在设置中重新开始。",
     "callbackFailed": "连接 Last.fm 失败",
     "backToSettings": "返回设置"
+  },
+  "mascot": {
+    "title": "看板娘",
+    "intro": "看板娘会出现在空页面、出错提示和登录页上，还会在角落里陪你一起听歌。",
+    "art": "插画",
+    "artHint": "在空状态、错误页和登录页显示看板娘插画。",
+    "companion": "角落陪伴",
+    "companionHint": "在平板和电脑的右下角显示看板娘，她会随播放状态变化。"
   }
 }

@@ -78,6 +78,31 @@ The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
   transport controls use filled glyphs.
 - On touch devices, disable the tap highlight and body overscroll.
 
+## Mascot
+
+Rainy's mascot is a girl with long silver-blue hair, blue cat-ear headphones
+with raindrop ear cups, a white sailor dress, and a clear umbrella that drips
+music notes. She is also the app icon: listening to music, eyes closed, on the
+rain-blue tile.
+
+- **Where she appears.** Full-size empty states (empty library pages, no search
+  results), errors (offline, render errors), 404, no access, beside the sign-in
+  card on wide screens, Settings › Mascot, and as a companion in the
+  bottom-right corner on tablets and desktops. Compact empty states in panels
+  and lists keep their icon.
+- **Corner companion.** She sits on top of the player chrome (above the bottom
+  bar or mini bar, beside the floating window) and follows playback: listening
+  while music plays, waving when paused, asleep after two minutes. Clicking her
+  shows a short line; the × hides her. She never appears on phones, where the
+  tab bar and mini player already fill the bottom edge.
+- **Off switches.** Settings › Mascot turns the illustrations and the
+  companion off separately; with illustrations off, empty and error states fall
+  back to their icons.
+- **Art rules.** Illustrations are decorative transparent WebP files
+  (`alt=""`), sized by height, with a white sticker outline so they work in
+  light and dark themes. New poses keep the same character sheet and palette;
+  upper-body poses for the corner end in a flat bottom edge.
+
 ## iOS-Style Player
 
 The player is Rainy's signature surface. Changes must keep this behavior:
@@ -124,7 +149,8 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 ## PWA
 
 The manifest names the app "Rainy", uses `standalone` display, and provides
-192 px, 512 px, maskable, and 180 px Apple touch icons. iOS meta tags enable
+192 px, 512 px, maskable, and 180 px Apple touch icons, all drawn from the
+mascot icon art in `web/public/icon-source*.png` (`pnpm generate-pwa-assets`). iOS meta tags enable
 full-screen, black-translucent status bar, and `viewport-fit=cover` layouts.
 An "update available" toast offers new versions instead of reloading silently.
 

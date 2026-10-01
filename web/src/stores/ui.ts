@@ -26,6 +26,13 @@ export interface UIState {
   /** Desktop sidebar expanded (persisted). Tablets always show the icon rail. */
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+
+  /** Mascot illustrations on empty, error and sign-in screens (persisted). */
+  mascotArt: boolean
+  setMascotArt: (on: boolean) => void
+  /** Mascot companion in the bottom-right corner on tablets and desktops (persisted). */
+  mascotCompanion: boolean
+  setMascotCompanion: (on: boolean) => void
 }
 
 const closed: TrackSelectionDialog = { open: false, trackIds: [] }
@@ -45,12 +52,17 @@ export const useUI = create<UIState>()(
 
       sidebarOpen: true,
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+
+      mascotArt: true,
+      setMascotArt: (mascotArt) => set({ mascotArt }),
+      mascotCompanion: true,
+      setMascotCompanion: (mascotCompanion) => set({ mascotCompanion }),
     }),
     {
       name: 'rainy.ui',
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ sidebarOpen: s.sidebarOpen }),
+      partialize: (s) => ({ sidebarOpen: s.sidebarOpen, mascotArt: s.mascotArt, mascotCompanion: s.mascotCompanion }),
     },
   ),
 )

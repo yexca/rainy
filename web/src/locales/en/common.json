@@ -174,5 +174,20 @@
     "coverArt": "Cover art",
     "loading": "Loading",
     "skipToContent": "Skip to content"
+  },
+  "mascot": {
+    "companionLabel": "Rainy's mascot — say hi",
+    "hide": "Hide the mascot",
+    "hidden": "Mascot hidden. Bring her back in Settings › Mascot.",
+    "lines": {
+      "playing": "Listening to “{{title}}” with you ♪",
+      "sleeping": "Zzz… play something to wake me up.",
+      "idle": [
+        "What shall we listen to today?",
+        "Rainy days are for music.",
+        "Your library, your rules ♪",
+        "Press Space to play or pause."
+      ]
+    }
   }
 }
