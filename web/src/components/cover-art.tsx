@@ -1,8 +1,10 @@
-import { Music, type LucideIcon } from 'lucide-react'
+import { ListMusic, Music, Radio, type LucideIcon } from 'lucide-react'
 import { useCallback, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useMascotArt } from '@/hooks/use-mascot-art'
 import { coverSrcSet, coverUrlForPixels } from '@/lib/cover'
+import { placeholderArt, type PlaceholderKind } from '@/lib/placeholder-art'
 import { cn } from '@/lib/utils'
 
 const ROUNDED = {
@@ -30,8 +32,14 @@ export interface CoverArtProps {
   rounded?: keyof typeof ROUNDED
   /** Load eagerly (above-the-fold hero art). */
   priority?: boolean
-  /** Placeholder glyph (default: music note). */
+  /** Placeholder glyph (default: music note), shown when mascot illustrations are off. */
   icon?: LucideIcon
+  /**
+   * Which mascot artwork stands in for a missing cover. Default: `artist` for circles,
+   * `playlist` / `radio` for the `ListMusic` / `Radio` icons, else `cover` (one of three
+   * variants picked by `alt`).
+   */
+  placeholder?: PlaceholderKind
   /** Drop the shadow + hairline ring (e.g. inside an already framed surface). */
   flat?: boolean
   /**
@@ -44,8 +52,10 @@ export interface CoverArtProps {
 }
 
 /**
- * Square artwork with lazy loading, a fade-in, a 1x/2x `srcset`, and a soft gradient
- * placeholder when the cover is missing or fails to load (docs/architecture/contract.md §9.3).
+ * Square artwork with lazy loading, a fade-in, a 1x/2x `srcset`, and a placeholder when the
+ * cover is missing or fails to load: the mascot (docs/development/design.md#mascot), or a soft
+ * gradient with a glyph when illustrations are off (docs/architecture/contract.md §9.3). A cover
+ * that is still loading sits on the plain gradient, so the mascot never flashes before it.
  */
 export function CoverArt({
   coverArt,
@@ -56,6 +66,7 @@ export function CoverArt({
   rounded,
   priority,
   icon: Icon = Music,
+  placeholder,
   flat,
   keepPrevious,
   className,
@@ -66,6 +77,11 @@ export function CoverArt({
   const radius = shape === 'circle' ? 'rounded-full' : ROUNDED[rounded ?? (size >= 160 ? 'lg' : 'md')]
   const src = coverArt ? coverUrlForPixels(coverArt, size) : ''
   const iconSize = Math.round(Math.min(64, Math.max(14, size * 0.34)))
+  const mascot = useMascotArt()
+  const [failed, setFailed] = useState('')
+  const missing = !src || failed === src
+  const kind: PlaceholderKind =
+    placeholder ?? (shape === 'circle' ? 'artist' : Icon === ListMusic ? 'playlist' : Icon === Radio ? 'radio' : 'cover')
 
   return (
     <div
@@ -82,9 +98,22 @@ export function CoverArt({
         aria-hidden
         className="absolute inset-0 grid place-items-center bg-linear-to-br from-muted via-muted to-muted-foreground/20"
       >
-        <Icon className="text-muted-foreground/55" style={{ width: iconSize, height: iconSize }} strokeWidth={1.5} />
+        {mascot ? null : (
+          <Icon className="text-muted-foreground/55" style={{ width: iconSize, height: iconSize }} strokeWidth={1.5} />
+        )}
       </div>
-      {keepPrevious && shown && shown.src !== src ? (
+      {mascot && missing ? (
+        <img
+          aria-hidden
+          alt=""
+          src={placeholderArt(kind, alt)}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : null}
+      {keepPrevious && shown && src && shown.src !== src ? (
         <img
           aria-hidden
           alt=""
@@ -102,6 +131,7 @@ export function CoverArt({
           alt={alt ?? t('a11y.coverArt')}
           priority={priority}
           onSettled={keepPrevious ? setShown : undefined}
+          onError={setFailed}
         />
       ) : null}
     </div>
@@ -115,10 +145,12 @@ interface CoverImageProps {
   priority?: boolean
   /** Called with the image once it loaded, or `null` if it failed. */
   onSettled?: (image: { src: string; srcSet: string } | null) => void
+  /** Called with `src` when it fails to load. */
+  onError?: (src: string) => void
 }
 
 /** Keyed by `src` so load/error state resets whenever the cover changes. */
-function CoverImage({ src, srcSet, alt, priority, onSettled }: CoverImageProps) {
+function CoverImage({ src, srcSet, alt, priority, onSettled, onError }: CoverImageProps) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading')
   const loaded = useCallback(() => {
     setState('loaded')
@@ -148,6 +180,7 @@ function CoverImage({ src, srcSet, alt, priority, onSettled }: CoverImageProps) 
       onError={() => {
         setState('error')
         onSettled?.(null)
+        onError?.(src)
       }}
       className={cn(
         'absolute inset-0 size-full object-cover transition-opacity duration-300 ease-out',

@@ -11,9 +11,9 @@ explains the rules every UI change must keep.
 
 - **Mobile first.** Design at 375 px width first, then scale up. Respect iOS
   safe areas and keep every touch target at least 44 px.
-- **Artwork leads.** Covers are square, rounded, lazy-loaded, and fade in. A
-  gradient placeholder with a music-note icon replaces missing art. Artists are
-  circles.
+- **Artwork leads.** Covers are square, rounded, lazy-loaded, and fade in.
+  Missing art shows the mascot (see [Mascot](#mascot)), or a gradient
+  placeholder with a glyph when illustrations are off. Artists are circles.
 - **Accent sparingly.** The accent color marks play buttons, active
   navigation, and progress, not decoration.
 - **Every string is translated.** Use i18next keys with both `en` and `zh`
@@ -102,6 +102,12 @@ rain-blue tile.
   bottom-right corner on tablets and desktops. Route changes keep the small
   spinner. Compact empty states in panels
   and lists keep their icon.
+- **Missing artwork.** Songs and albums without a cover show one of three
+  square mascot covers (picked by title, so a grid doesn't repeat one picture);
+  artists without a photo, playlists without a cover, and radio stations each
+  have their own. Covers that are still loading keep the plain gradient, so the
+  mascot never flashes in before real art. The lock screen and notifications
+  (Media Session) show the same placeholder for songs without a cover.
 - **Corner companion.** She sits on top of the player chrome (above the bottom
   bar or mini bar, beside the floating window) and follows playback: listening
   while music plays, waving when paused, asleep after two minutes. Clicking her

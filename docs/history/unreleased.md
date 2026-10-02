@@ -3,3 +3,13 @@ Changes through v0.1.0 are summarized in [v0.1.0](v0.1.0.md).
 Add user-facing changes for the next release here, grouped by area. Start with
 an `[!IMPORTANT]` upgrade note when a change adds a migration or needs operator
 action.
+
+## Look And Feel
+
+- Songs and albums without a cover, artists without a photo, playlists without
+  a cover, and radio stations now show the mascot instead of a grey icon, with
+  three different covers so a grid of missing art doesn't repeat one picture.
+  The lock screen and notifications show her too. Turn **Settings → Mascot →
+  Illustrations** off to keep the plain placeholders.
+- The player no longer keeps showing the previous song's cover when the next
+  song has none.
