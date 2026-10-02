@@ -3,6 +3,8 @@
  */
 import i18n from '@/lib/i18n'
 import { coverUrlForPixels } from '@/lib/cover'
+import { placeholderArt } from '@/lib/placeholder-art'
+import { useUI } from '@/stores/ui'
 
 import type { PlayableTrack } from '../types'
 
@@ -61,13 +63,22 @@ export function setMediaSessionMetadata(track: PlayableTrack | undefined): void 
     ms.metadata = null
     return
   }
+  // Without a cover, the lock screen shows the mascot placeholder (unless illustrations are off).
   const artwork = track.coverArt
     ? ARTWORK_SIZES.map((size) => ({
         src: new URL(coverUrlForPixels(track.coverArt, size), window.location.href).href,
         sizes: `${size}x${size}`,
         type: 'image/jpeg',
       }))
-    : []
+    : useUI.getState().mascotArt
+      ? [
+          {
+            src: new URL(placeholderArt(track.isRadio ? 'radio' : 'cover', track.album || track.title), window.location.href).href,
+            sizes: '384x384',
+            type: 'image/webp',
+          },
+        ]
+      : []
   ms.metadata = new MediaMetadata({
     title: track.title,
     artist: track.isRadio ? i18n.t('player:live.radio') : track.artist,
