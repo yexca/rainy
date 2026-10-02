@@ -27,8 +27,8 @@ import { queryKeys } from '@/lib/query-keys'
 export const ALBUM_PAGE_SIZE = 120
 /** Tracks per page for infinite lists. */
 export const TRACK_PAGE_SIZE = 200
-/** Artists per page (the artists page loads everything for the A–Z index). */
-export const ARTIST_PAGE_SIZE = 1000
+/** Small batches keep artist-page updates responsive; only A–Z indexing loads everything. */
+export const ARTIST_PAGE_SIZE = 200
 
 type Paged = Omit<AlbumListParams | ArtistListParams | TrackListParams, 'offset' | 'limit'>
 
@@ -154,7 +154,8 @@ export const artistsInfiniteQuery = (params: Omit<ArtistListParams, 'offset' | '
   infiniteQueryOptions({
     queryKey: [...queryKeys.artists, 'list', clean(params), 'infinite'],
     queryFn: ({ signal, pageParam }) =>
-      api.artists.list({ ...params, offset: pageParam, limit: ARTIST_PAGE_SIZE }, { signal }),
+      // Keep first paint small; larger later batches complete the A–Z rail with fewer updates.
+      api.artists.list({ ...params, offset: pageParam, limit: params.sort === 'name' && pageParam > 0 ? 1000 : ARTIST_PAGE_SIZE }, { signal }),
     initialPageParam: 0,
     getNextPageParam: nextOffset,
   })

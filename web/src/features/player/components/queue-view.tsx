@@ -123,6 +123,7 @@ function SortableQueue({ entries, offset, tone }: { entries: PlayableTrack[]; of
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const ids = useMemo(() => entries.map(entryKey), [entries])
+  const getItemKey = useCallback((index: number) => ids[index], [ids])
   const activeIndex = activeId ? ids.indexOf(activeId) : -1
 
   const sensors = useSensors(
@@ -147,7 +148,7 @@ function SortableQueue({ entries, offset, tone }: { entries: PlayableTrack[]; of
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 8,
-    getItemKey: (i) => ids[i],
+    getItemKey,
     rangeExtractor,
   })
 
