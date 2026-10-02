@@ -69,7 +69,7 @@ export function DetailNavBar({ title, watch, actions, backTo, className }: Detai
     <div
       ref={barRef}
       className={cn(
-        'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 pt-safe md:pt-0 transition-[background-color,border-color,backdrop-filter] duration-200',
+        'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 pt-safe md:pt-0 transition-[background-color,border-color] duration-200',
         collapsed ? 'glass' : '[--hairline-color:transparent]',
         className,
       )}

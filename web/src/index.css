@@ -402,9 +402,14 @@
 /* Translucent "glass" surface (tab bar, mini player, collapsed nav bars); softens hairlines. */
 @utility glass {
   --hairline-color: color-mix(in oklab, var(--border) 60%, transparent);
-  background-color: color-mix(in oklab, var(--background) 75%, transparent);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  backdrop-filter: blur(24px) saturate(150%);
+  /* Opaque phone chrome avoids filtering moving content during native scrolling. */
+  background-color: var(--background);
+
+  @media (width >= 48rem) and (height > 540px) {
+    background-color: color-mix(in oklab, var(--background) 75%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+  }
 }
 
 @utility scrollbar-none {

@@ -15,16 +15,14 @@ import { cn } from '@/lib/utils'
 
 import { ActionMenuContext, type ActionMenuContextValue } from '../lib/actions'
 import type { TrackActionsContext } from '../lib/track-action-items'
+import { createTrackRows, type TrackSection } from '../lib/track-rows'
 import { useElementGeometry } from '../lib/use-element-geometry'
 import { Hairline } from './hairline'
 import { PlayingIndicator } from './playing-indicator'
 import { StarButton } from './star-button'
 import { TrackActionItems, TrackActionsMenu } from './track-actions'
 
-export interface TrackSection {
-  key: string
-  label: ReactNode
-}
+export type { TrackSection } from '../lib/track-rows'
 
 export interface TrackListProps {
   tracks: Track[]
@@ -54,11 +52,6 @@ export interface TrackListProps {
   empty?: ReactNode
   className?: string
 }
-
-type Row =
-  | { type: 'header'; key: string; label: ReactNode }
-  | { type: 'track'; index: number }
-  | { type: 'skeleton'; index: number }
 
 const HEIGHT = {
   desktopTrack: 48,
@@ -101,36 +94,17 @@ export function TrackList({
   const album = (showAlbum ?? !isAlbum) && !isMobile
   const count = Math.max(total ?? tracks.length, tracks.length)
 
-  const rows = useMemo<Row[]>(() => {
-    const out: Row[] = []
-    let lastSection: string | null = null
-    tracks.forEach((track, index) => {
-      const section = sectionOf?.(track, index)
-      if (section && section.key !== lastSection) {
-        out.push({ type: 'header', key: section.key, label: section.label })
-        lastSection = section.key
-      }
-      out.push({ type: 'track', index })
-    })
-    for (let index = tracks.length; index < count; index++) out.push({ type: 'skeleton', index })
-    return out
-  }, [tracks, count, sectionOf])
+  const rows = useMemo(() => createTrackRows(tracks, count, sectionOf), [tracks, count, sectionOf])
 
   const trackHeight = isMobile ? (isAlbum ? HEIGHT.mobileAlbumTrack : HEIGHT.mobileTrack) : HEIGHT.desktopTrack
   const headerHeight = isMobile ? HEIGHT.mobileHeader : HEIGHT.desktopHeader
 
   const virtualizer = useWindowVirtualizer({
-    count: rows.length,
-    estimateSize: (i) => (rows[i]?.type === 'header' ? headerHeight : trackHeight),
+    count: rows.count,
+    estimateSize: (i) => (rows.loaded[i]?.type === 'header' ? headerHeight : trackHeight),
     overscan: 12,
     scrollMargin: geometry.top,
-    getItemKey: (i) => {
-      const row = rows[i]
-      if (!row) return i
-      if (row.type === 'header') return `h:${row.key}`
-      if (row.type === 'skeleton') return `s:${row.index}`
-      return `t:${row.index}:${tracks[row.index]?.id ?? ''}`
-    },
+    getItemKey: rows.getItemKey,
   })
   const virtualItems = virtualizer.getVirtualItems()
   const lastVisible = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : -1
@@ -142,8 +116,8 @@ export function TrackList({
 
   useEffect(() => {
     if (!onEndReached || tracks.length >= count || lastVisible < 0) return
-    if (lastVisible >= rows.length - (count - tracks.length) - END_THRESHOLD) onEndReached()
-  }, [lastVisible, onEndReached, rows.length, tracks.length, count])
+    if (lastVisible >= rows.loaded.length - END_THRESHOLD) onEndReached()
+  }, [lastVisible, onEndReached, rows, tracks.length, count])
 
   const play = useCallback(
     (index: number) => {
@@ -177,7 +151,7 @@ export function TrackList({
       ) : null}
       <div ref={listRef} className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualItems.map((item) => {
-          const row = rows[item.index]
+          const row = rows.getRow(item.index)
           if (!row) return null
           const style = {
             height: item.size,
@@ -214,7 +188,7 @@ export function TrackList({
                   albumArtist={albumArtist}
                   hideArtist={hideArtist}
                   playlist={playlist}
-                  last={row.index === count - 1 || rows[item.index + 1]?.type === 'header'}
+                  last={row.index === count - 1 || rows.getRow(item.index + 1)?.type === 'header'}
                   onPlay={play}
                 />
               ) : (

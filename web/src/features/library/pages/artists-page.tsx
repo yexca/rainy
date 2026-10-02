@@ -98,13 +98,20 @@ export default function ArtistsPage() {
 
   const query = useInfiniteQuery(artistsInfiniteQuery({ sort, order, all: all || undefined }))
   const { items, total } = useFlattenedPages(query.data, query.hasNextPage)
-  // The A–Z index needs everything: keep loading pages in the background.
+  const grouped = sort === 'name' && (isMobile || items.length >= GROUP_MIN_DESKTOP)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
-  useEffect(() => {
+  const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const grouped = sort === 'name' && (isMobile || items.length >= GROUP_MIN_DESKTOP)
+  // Only the A–Z rail needs all artists. Let the initial page settle and leave a gap between
+  // batches; other sorts fetch only when the user reaches the end of the loaded rows.
+  useEffect(() => {
+    if (!grouped || !hasNextPage || isFetchingNextPage || query.isFetchNextPageError) return
+    const timer = window.setTimeout(() => void fetchNextPage(), 500)
+    return () => window.clearTimeout(timer)
+  }, [grouped, hasNextPage, isFetchingNextPage, fetchNextPage, query.isFetchNextPageError])
+
   const sortOptions = useMemo<SortOption<ArtistSort>[]>(
     () => SORTS.map((value) => ({ value, label: t(`sort.artist.${value}`) })),
     [t],
@@ -156,13 +163,23 @@ export default function ArtistsPage() {
       ) : items.length === 0 ? (
         <EmptyState icon={MicVocal} art="empty" title={t('artists.emptyTitle')} description={t('artists.emptyDescription')} />
       ) : (
-        <ArtistsList artists={items} grouped={grouped} mobile={isMobile} />
+        <ArtistsList artists={items} grouped={grouped} mobile={isMobile} onEndReached={loadMore} />
       )}
     </Page>
   )
 }
 
-function ArtistsList({ artists, grouped, mobile }: { artists: Artist[]; grouped: boolean; mobile: boolean }) {
+function ArtistsList({
+  artists,
+  grouped,
+  mobile,
+  onEndReached,
+}: {
+  artists: Artist[]
+  grouped: boolean
+  mobile: boolean
+  onEndReached: () => void
+}) {
   const [ref, geometry] = useElementGeometry<HTMLDivElement>()
   const gap = 24
   const minWidth = 150
@@ -207,6 +224,12 @@ function ArtistsList({ artists, grouped, mobile }: { artists: Artist[]; grouped:
     scrollMargin: geometry.top,
     scrollPaddingStart: mobile ? JUMP_PADDING : JUMP_PADDING_HEADER,
   })
+  const virtualItems = virtualizer.getVirtualItems()
+  const lastRow = virtualItems.length > 0 ? virtualItems[virtualItems.length - 1].index : -1
+
+  useEffect(() => {
+    if (lastRow >= 0 && lastRow >= rows.length - (mobile ? 20 : 4)) onEndReached()
+  }, [lastRow, rows.length, mobile, onEndReached])
 
   useEffect(() => {
     virtualizer.measure()
@@ -222,7 +245,7 @@ function ArtistsList({ artists, grouped, mobile }: { artists: Artist[]; grouped:
   return (
     <div className={cn('relative', showRail && 'pr-5 md:pr-8')}>
       <div ref={ref} className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((item) => {
+        {virtualItems.map((item) => {
           const row = rows[item.index]
           if (!row) return null
           const style = { height: item.size, transform: `translateY(${item.start - virtualizer.options.scrollMargin}px)` }

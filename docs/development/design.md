@@ -77,7 +77,9 @@ The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
 ## Surfaces, Motion, and Icons
 
 - Glass surfaces (tab bar, mini player, top bar on scroll) use a translucent
-  background with a strong backdrop blur and a subtle border.
+  background with a strong backdrop blur and a subtle border on larger screens.
+  Phones, including landscape phones up to 540 px high, use opaque surfaces to
+  keep native scrolling smooth. Backdrop filters never animate.
 - Motion uses `motion/react` springs and honours the user's reduced-motion
   preference. Mobile presses scale down slightly for feedback.
 - Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke;
@@ -117,14 +119,17 @@ rain-blue tile.
 
 The player is Rainy's signature surface. Changes must keep this behavior:
 
-- **Mini player (mobile).** A floating glass pill above the tab bar with 40 px
+- **Mini player (mobile).** A floating opaque pill above the tab bar with 40 px
   artwork, one-line title and artist, play/pause and next, and a thin progress
   line. Tapping or swiping up opens Now Playing.
 - **Now Playing.** A full-screen sheet on phones (a large overlay on desktop)
   that slides up with a spring and closes by dragging down from the grabber.
-  The background is built from blurred, saturated artwork colors with light
-  text. The artwork shrinks with a spring when paused and grows back when
-  playing.
+  The background uses static gradients from the artwork colors on phones;
+  larger screens add one blurred cover sized to the player container, drifting
+  only during playback and when reduced motion is off. Backgrounds cross-fade
+  on cover changes; extracting the palette does not create another layer.
+  Text stays light. The artwork shrinks with a spring when paused and grows
+  back when playing.
 - **Controls.** The title, a tappable artist link, a star button, and a "…"
   menu sit above a scrubber that thickens while dragging, with elapsed and
   remaining time beneath. Transport controls are large filled glyphs with

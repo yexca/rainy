@@ -40,6 +40,13 @@ redirected to `/login` (or `/setup` before the first account exists).
 - The queue is saved to `localStorage` immediately and to `/api/queue` after a
   short debounce, so a Subsonic client can resume where the browser stopped.
 
+Track lists keep only loaded rows in memory; unloaded rows have implicit
+positions. Their virtualizer keys, and the queue's keys, keep stable function
+references during scrolling so measurements are reused. Artist browsing loads
+200 items initially and loads other sorts near the end of the visible list.
+The name view completes its A–Z index in later batches of up to 1000, with a
+500 ms pause between background requests.
+
 ## Player and PWA
 
 A single audio element plays the current track while a second one preloads

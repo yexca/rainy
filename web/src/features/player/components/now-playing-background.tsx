@@ -1,50 +1,43 @@
 import { AnimatePresence, motion } from 'motion/react'
 
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { coverUrlForPixels } from '@/lib/cover'
 import { cn } from '@/lib/utils'
 
 import { useCoverColor } from '../hooks/use-cover-color'
 
 /**
- * Dynamic Now Playing backdrop: a gradient from the cover's dominant colour plus the artwork
- * itself, hugely blurred and saturated, drifting slowly (transform-only animation, paused for
- * reduced motion). Cross-fades between tracks. A scrim keeps white text readable.
+ * Cover-colour gradients on phones; larger screens add one container-sized blurred cover.
+ * Only the desktop artwork drifts. Palette updates repaint the current layer instead of
+ * creating another cross-fade. A scrim keeps white text readable.
  */
 export function NowPlayingBackground({ coverArt, playing, className }: { coverArt: string | undefined; playing: boolean; className?: string }) {
   const palette = useCoverColor(coverArt)
+  const detailed = useMediaQuery('(width >= 48rem) and (height > 540px)')
   const src = coverArt ? coverUrlForPixels(coverArt, 128) : ''
 
   return (
     <div aria-hidden className={cn('pointer-events-none absolute inset-0 overflow-hidden bg-neutral-900', className)}>
       <AnimatePresence initial={false}>
         <motion.div
-          key={`${coverArt ?? ''}|${palette.top}`}
+          key={coverArt ?? ''}
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.9, ease: 'easeOut' }}
-          style={{ background: `linear-gradient(180deg, ${palette.top} 0%, ${palette.bottom} 100%)` }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          style={{
+            background: `radial-gradient(ellipse at 15% 20%, ${palette.top}, transparent 65%), radial-gradient(ellipse at 90% 65%, color-mix(in srgb, ${palette.top} 80%, white), transparent 70%), linear-gradient(180deg, ${palette.top}, ${palette.bottom})`,
+          }}
         >
-          {src ? (
-            <img
-              src={src}
-              alt=""
-              draggable={false}
-              decoding="async"
-              className={cn(
-                'absolute top-1/2 left-1/2 size-[160vmax] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover opacity-55 blur-[72px] saturate-[1.7] will-change-transform',
-              )}
-            />
-          ) : null}
-          {src ? (
-            <div className="absolute inset-0 animate-blob will-change-transform" style={{ animationPlayState: playing ? 'running' : 'paused' }}>
+          {detailed && src ? (
+            <div className="absolute -inset-12 motion-safe:animate-blob" style={{ animationPlayState: playing ? 'running' : 'paused' }}>
               <img
                 src={src}
                 alt=""
                 draggable={false}
                 decoding="async"
-                className="absolute -top-1/4 -right-1/3 size-[110vmax] max-w-none rotate-180 object-cover opacity-45 blur-[90px] saturate-[1.8]"
+                className="size-full max-w-none object-cover opacity-50 blur-[32px] saturate-150"
               />
             </div>
           ) : null}
