@@ -46,7 +46,10 @@ export function InstallSection() {
   )
 }
 
+const APPLE = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+
 const SHORTCUTS = [
+  { keys: [APPLE ? '⌘' : 'Ctrl', 'K'], label: 'shortcuts.quickActions' },
   { keys: ['Space'], label: 'shortcuts.playPause' },
   { keys: ['←', '→'], label: 'shortcuts.seek' },
   { keys: ['Shift', '←'], label: 'shortcuts.previous' },
@@ -54,7 +57,7 @@ const SHORTCUTS = [
   { keys: ['M'], label: 'shortcuts.mute' },
 ] as const
 
-/** Player keyboard shortcuts (hidden on touch-only devices). */
+/** Keyboard shortcuts: Quick actions and the player (hidden on touch-only devices). */
 export function ShortcutsSection() {
   const { t } = useTranslation('settings')
   if (typeof window.matchMedia === 'function' && !window.matchMedia('(any-pointer: fine)').matches) return null

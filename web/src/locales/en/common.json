@@ -88,6 +88,27 @@
     "manager": "Library manager",
     "listener": "Listener"
   },
+  "quickActions": {
+    "label": "Quick actions",
+    "description": "Jump to a page, control playback or search the library.",
+    "placeholder": "Search pages and actions…",
+    "empty": "No matching actions",
+    "searchFor": "Search the library for “{{query}}”",
+    "groups": {
+      "playback": "Playback",
+      "manage": "Manage"
+    },
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next track",
+    "previous": "Previous track",
+    "shuffleOn": "Turn shuffle on",
+    "shuffleOff": "Turn shuffle off",
+    "nowPlaying": "Open Now Playing",
+    "keys": {
+      "space": "Space"
+    }
+  },
   "theme": {
     "label": "Appearance",
     "light": "Light",

@@ -88,6 +88,27 @@
     "manager": "曲库管理员",
     "listener": "听众"
   },
+  "quickActions": {
+    "label": "快捷操作",
+    "description": "跳转页面、控制播放或搜索资料库。",
+    "placeholder": "搜索页面和操作…",
+    "empty": "没有匹配的操作",
+    "searchFor": "在资料库中搜索“{{query}}”",
+    "groups": {
+      "playback": "播放",
+      "manage": "管理"
+    },
+    "play": "播放",
+    "pause": "暂停",
+    "next": "下一首",
+    "previous": "上一首",
+    "shuffleOn": "开启随机播放",
+    "shuffleOff": "关闭随机播放",
+    "nowPlaying": "打开正在播放",
+    "keys": {
+      "space": "空格"
+    }
+  },
   "theme": {
     "label": "外观",
     "light": "浅色",

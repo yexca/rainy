@@ -37,11 +37,17 @@ action.
   with, the projects it learned from (Navidrome, lx-music, and Music Tag), the
   main technologies, and the license.
 - On tablets and desktops, the top-right corner of the header has a round tray
-  with Search and an **Appearance** panel for theme, accent colour, and
-  language, next to an account button that shows your name and role.
+  with **Quick actions** and an **Appearance** panel for theme, accent colour,
+  and language, next to an account button that shows your name and role.
   **Settings** is pinned at the bottom of the sidebar. Phones get the header
-  too, as a glass bar with the logo, the **Appearance** button, and your
-  avatar for the account menu; page titles and back buttons sit just below it.
+  too, as a glass bar with the logo, **Quick actions**, the **Appearance**
+  button, and your avatar for the account menu; page titles and back buttons
+  sit just below it.
+- **Quick actions** (the lightning button in the header, or Ctrl+K / ⌘K
+  anywhere) opens a searchable list: play, pause, and skip while music is
+  queued, every library page and your playlists, the manager and admin pages
+  you can open, and your settings. Typed text that matches nothing searches the
+  library. Phones open it as a bottom sheet.
 - **Settings** is split into tabs: Account, Appearance, Playback, Apps, and
   Scrobbling. Older links to a settings section open its tab, **Log out** sits
   at the bottom of Account, and the version and compatibility moved to

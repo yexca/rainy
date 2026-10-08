@@ -1,4 +1,4 @@
-import { Monitor, Moon, Palette, Search, Settings, Sun } from 'lucide-react'
+import { Monitor, Moon, Palette, Settings, Sun } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -13,6 +13,7 @@ import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage } from '@/lib/i18n'
 import type { Theme } from '@/lib/theme'
 
+import { QuickActions } from './quick-actions'
 import { UserMenu } from './user-menu'
 
 /** Icon buttons inside the header tray: round, muted until hovered or open; 44px touch targets on phones. */
@@ -84,19 +85,18 @@ function AppearanceMenu() {
 }
 
 /**
- * Right side of the app header: a bordered tray of quick controls (search; appearance: theme,
- * style, accent, immersive mode and language), a divider, then the account button with the user's
- * name and role. Phones drop the tray outline, the divider and Search (a tab there) and show the
- * account as an avatar.
+ * Right side of the app header: a bordered tray of quick controls (Quick actions, the Ctrl/⌘K
+ * command palette; appearance: theme, style, accent, immersive mode and language), a divider,
+ * then the account button with the user's name and role. Phones keep both controls as 44px
+ * targets but drop the tray outline and the divider, and show the account as an avatar.
  */
 export function HeaderActions() {
-  const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const searchLabel = t('nav.search')
 
   if (isMobile) {
     return (
       <div className="ml-auto flex shrink-0 items-center">
+        <QuickActions className={TRAY_BUTTON_CLASS} />
         <AppearanceMenu />
         <UserMenu variant="avatar" />
       </div>
@@ -106,11 +106,7 @@ export function HeaderActions() {
   return (
     <div className="ml-auto flex shrink-0 items-center gap-2">
       <div className="flex items-center gap-0.5 rounded-full border border-sidebar-border bg-background/60 p-0.5">
-        <Button variant="ghost" size="icon" asChild className={TRAY_BUTTON_CLASS}>
-          <Link to="/search" aria-label={searchLabel} title={searchLabel}>
-            <Search strokeWidth={1.75} />
-          </Link>
-        </Button>
+        <QuickActions className={TRAY_BUTTON_CLASS} />
         <AppearanceMenu />
       </div>
       <span aria-hidden className="h-5 w-px bg-sidebar-border" />

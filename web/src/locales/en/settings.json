@@ -96,6 +96,7 @@
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
+    "quickActions": "Quick actions",
     "playPause": "Play / pause",
     "seek": "Back / forward 5 seconds",
     "previous": "Previous song",

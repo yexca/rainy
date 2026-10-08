@@ -96,6 +96,7 @@
   },
   "shortcuts": {
     "title": "键盘快捷键",
+    "quickActions": "快捷操作",
     "playPause": "播放 / 暂停",
     "seek": "后退 / 快进 5 秒",
     "previous": "上一首",

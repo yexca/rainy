@@ -62,12 +62,21 @@ explains the rules every UI change must keep.
 
 A full-width app header runs across the top at every width. From tablets up
 it uses the sidebar's colours: the sidebar toggle and the logo on the left; on
-the right, a round tray of quick controls (search; appearance with theme, style,
-accent and language), a divider, and the account menu (avatar, plus the name and
-role on desktops). Settings and About sit in the sidebar footer. Phones get a
-glass bar matching the tab bar: the logo on the left, and the appearance button
-and the account avatar on the right (44 px targets; search is a tab there).
+the right, a round tray of quick controls (Quick actions; appearance with theme,
+style, accent and language), a divider, and the account menu (avatar, plus the
+name and role on desktops). Settings and About sit in the sidebar footer. Phones
+get a glass bar matching the tab bar: the logo on the left, and Quick actions,
+the appearance button and the account avatar on the right (44 px targets).
 Page top bars stick right below the header.
+
+Quick actions is a lightning icon, never a search field, so it is not mistaken
+for library search; its tooltip names the shortcut, Ctrl+K (⌘K on Apple
+devices), which opens it from anywhere. It opens a command palette — a centered
+dialog from tablets up, a bottom sheet on phones — that filters playback
+controls (while something is queued), library pages and playlists, the manager
+and admin pages the user may open, and personal settings. Typed text also offers
+a library search, ranked below the matching actions so Enter opens the best
+match.
 
 Navigation is tiered so everyday listening stays uncluttered. Managers get
 three sections, each a single sidebar item: **Tracks** (metadata, upload,
@@ -195,7 +204,7 @@ The player is Rainy's signature surface. Changes must keep this behavior:
   the window on tap, and scrubs when dragged sideways. Layout-dependent spacing
   uses `--player-reserve` and `--player-clearance`, never `--playerbar-h`.
 - **Keyboard.** Space plays or pauses, ←/→ seek 5 seconds, Shift+←/→ change
-  track, and M mutes.
+  track, and M mutes. Ctrl/⌘+K opens Quick actions.
 - **Continuity.** The next track preloads shortly before the end; Media Session
   exposes artwork and transport controls; plays are scrobbled after half the
   track or 4 minutes; playback errors show a toast and skip ahead.
