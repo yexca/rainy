@@ -56,7 +56,7 @@ The version stored in `schema_migrations` is the file name without `.sql`.
    `dbtest.New(t)`, which runs the complete chain.
 5. Mention the migration in
    [`docs/history/unreleased.md`](../history/unreleased.md) so the release note
-   can tell operators to back up `/data` first.
+   can tell operators to back up `/config` first.
 
 ## Related Docs
 

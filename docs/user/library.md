@@ -9,7 +9,7 @@ images, and lyrics files.
 Use one folder per album artist and one folder per album:
 
 ```text
-/music
+/data
 ├── Example Artist/
 │   ├── artist.jpg                  artist image, one level above album folders
 │   └── 2003 - Example Album/

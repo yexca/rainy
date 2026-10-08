@@ -1,5 +1,5 @@
 // Production image smoke test: runs the image in a disposable container with empty
-// /data and /music mounts and exercises the public contract end to end.
+// /config and /data mounts and exercises the public contract end to end.
 //
 //   node scripts/production-smoke.mjs <image>
 import { spawnSync } from "node:child_process";
@@ -17,9 +17,9 @@ if (!image) {
 const docker = process.env.DOCKER || "docker";
 const name = `rainy-smoke-${process.pid}`;
 const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "rainy-smoke-"));
-const dataDir = path.join(workDir, "data");
-const musicDir = path.join(workDir, "music");
-fs.mkdirSync(dataDir);
+const configDir = path.join(workDir, "config");
+const musicDir = path.join(workDir, "data");
+fs.mkdirSync(configDir);
 fs.mkdirSync(musicDir);
 
 function run(args, { allowFailure = false } = {}) {
@@ -28,7 +28,7 @@ function run(args, { allowFailure = false } = {}) {
   if (result.status !== 0 && !allowFailure) {
     throw new Error(`${docker} ${args.join(" ")} failed:\n${result.stderr}`);
   }
-  return result.stdout.trim();
+  return (args[0] === "logs" ? result.stdout + result.stderr : result.stdout).trim();
 }
 
 function check(condition, message) {
@@ -37,6 +37,11 @@ function check(condition, message) {
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function containerURL() {
+  const mapping = run(["port", name, "7650/tcp"]).split("\n")[0];
+  return "http://127.0.0.1:" + mapping.slice(mapping.lastIndexOf(":") + 1);
+}
 
 async function waitForHealth(base) {
   const deadline = Date.now() + 90_000;
@@ -63,12 +68,11 @@ async function main() {
     "run", "-d", "--name", name,
     "-p", "127.0.0.1::7650",
     ...ids,
-    "-v", `${dataDir}:/data`,
-    "-v", `${musicDir}:/music`,
+    "-v", `${configDir}:/config`,
+    "-v", `${musicDir}:/data:ro`,
     image,
   ]);
-  const mapping = run(["port", name, "7650/tcp"]).split("\n")[0];
-  const base = "http://127.0.0.1:" + mapping.slice(mapping.lastIndexOf(":") + 1);
+  let base = containerURL();
   console.log(`container ${name} listening on ${base}`);
 
   await waitForHealth(base);
@@ -109,6 +113,23 @@ async function main() {
 
   const me = await fetch(`${base}/api/me`, { headers: { Cookie: cookie } }).then((r) => r.json());
   check(me.username === username && me.isAdmin === true, "GET /api/me returns the admin");
+
+  const system = await fetch(`${base}/api/admin/system`, { headers: { Cookie: cookie } }).then((r) => r.json());
+  check(system.dataDir === "/config", "application state is stored in /config");
+  const libraries = await fetch(`${base}/api/admin/libraries`, { headers: { Cookie: cookie } }).then((r) => r.json());
+  check(libraries.length === 1 && libraries[0].path === "/data", "default music library is /data");
+  check(
+    fs.existsSync(path.join(configDir, "rainy.db")) && fs.existsSync(path.join(configDir, "secret.key")),
+    "database and encryption key persist in the config bind mount",
+  );
+  check(fs.readdirSync(musicDir).length === 0, "read-only music mount receives no application state");
+
+  run(["restart", name]);
+  // Docker may assign a new ephemeral host port after a restart.
+  base = containerURL();
+  await waitForHealth(base);
+  const restored = await fetch(`${base}/api/me`, { headers: { Cookie: cookie } }).then((r) => r.json());
+  check(restored.username === username && restored.isAdmin === true, "account and session survive a container restart");
 
   const anonymous = await fetch(`${base}/api/home`);
   check(anonymous.status === 401, "GET /api/home without a session is 401");

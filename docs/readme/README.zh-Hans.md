@@ -30,7 +30,7 @@ Rainy 和 [Navidrome](https://www.navidrome.org/) 定位相似：把 NAS 上的�
 Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发布，支持 `linux/amd64` 和 `linux/arm64`（群晖 Plus 系列、ARM 版 NAS、树莓派 4/5 都能用）。
 
 > [!IMPORTANT]
-> Rainy 仍在积极开发中。升级前请备份数据目录（`/data`）；在网页里编辑标签、重命名之前，请先备份音乐文件。把实例暴露到家庭网络之外前，请阅读[部署安全](../operations/security.md)。
+> Rainy 仍在积极开发中。升级前请备份数据目录（`/config`）；在网页里编辑标签、重命名之前，请先备份音乐文件。把实例暴露到家庭网络之外前，请阅读[部署安全](../operations/security.md)。
 
 ## 功能
 
@@ -64,7 +64,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
    docker compose logs -f rainy   # 看到 "Rainy is listening" 即可
    ```
 
-4. 浏览器打开 `http://<NAS 的 IP>:7650`，第一次访问时创建管理员账号。Rainy 会自动把 `/music` 添加为第一个音乐库并开始扫描。
+4. 浏览器打开 `http://<NAS 的 IP>:7650`，第一次访问时创建管理员账号。Rainy 会自动把 `/data` 添加为第一个音乐库并开始扫描。
 
 [`.env.example`](../../.env.example) 列出了所有可选项：镜像、数据目录、主机端口、扫描间隔、日志级别、反向代理信任和登录有效期。修改 `.env` 后执行 `docker compose up -d` 生效；`docker compose restart` 不会重新读取 `.env`。需要可复现的部署时，请在 `.env` 中把 `RAINY_IMAGE` 固定为某个发布版本或镜像 digest。完整说明见[配置](../operations/configuration.md)。
 
@@ -72,13 +72,16 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 
 | 主机路径 | 容器路径 | 内容 | 权限 |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH`（默认 `./data`） | `/data` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；启动时自动改为 `PUID:PGID` 所有 |
-| `RAINY_MUSIC_PATH` | `/music` | 你的音乐 | 播放只需可读；**要在网页里改标签、换封面、重命名、上传、删除，就必须可写** |
+| `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；启动时自动改为 `PUID:PGID` 所有 |
+| `RAINY_MUSIC_PATH`（默认 `./data`） | `/data` | 你的音乐 | 播放只需可读；**要在网页里改标签、换封面、重命名、上传、删除，就必须可写** |
 
-容器以 root 启动，只是为了把 `/data` 的所有者改为 `PUID:PGID`，随后立即降权运行。**`/music` 不会被 chown**，它的权限由你的 NAS 决定。
+旧安装将应用数据挂载到 `/data`、音乐挂载到 `/music` 时，请先按
+[挂载路径升级说明](../operations/docker.md#upgrading-the-mount-layout)保留数据库和密钥，并修改已有音乐库的路径。
+
+容器以 root 启动，只是为了把 `/config` 的所有者改为 `PUID:PGID`，随后立即降权运行。**`/data` 不会被 chown**，它的权限由你的 NAS 决定。
 
 - SSH 登录 NAS 执行 `id 你的用户名`，例如得到 `uid=1026 gid=100`，就填 `PUID=1026`、`PGID=100`，并在共享文件夹权限里给该用户读写权限。
-- 只想播放、不想让 Rainy 改动文件时，可以把音乐目录挂载为只读（给 `/music` 卷加上 `:ro`，写法见 [Docker 指南](../operations/docker.md#permissions-puid-and-pgid)）。
+- 只想播放、不想让 Rainy 改动文件时，可以把音乐目录挂载为只读（给 `/data` 卷加上 `:ro`，写法见 [Docker 指南](../operations/docker.md#permissions-puid-and-pgid)）。
 - `UMASK`（默认 `022`）设为 `002` 时，同组用户也能修改 Rainy 写入的文件。
 
 常见 NAS 的参考值：
@@ -123,7 +126,7 @@ nginx、Caddy、群晖 DSM 反向代理和 Tailscale 的配置示例见[反向�
 
 ```sh
 docker compose stop rainy
-tar czf rainy-backup-$(date +%F).tar.gz --exclude='./data/cache' --exclude='./data/tmp' ./data
+tar czf rainy-backup-$(date +%F).tar.gz --exclude='./config/cache' --exclude='./config/tmp' ./config
 docker compose start rainy
 ```
 

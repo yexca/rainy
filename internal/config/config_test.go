@@ -24,6 +24,11 @@ func TestLoadDefaults(t *testing.T) {
 	if !filepath.IsAbs(c.DataDir) || !filepath.IsAbs(c.MusicDir) {
 		t.Fatalf("paths must be absolute: %q %q", c.DataDir, c.MusicDir)
 	}
+	configDir, _ := filepath.Abs("./config")
+	musicDir, _ := filepath.Abs("./data")
+	if c.DataDir != configDir || c.MusicDir != musicDir {
+		t.Fatalf("state and music defaults must be separate: %q %q", c.DataDir, c.MusicDir)
+	}
 	if c.ListenAddr() != "0.0.0.0:7650" {
 		t.Fatalf("ListenAddr = %q", c.ListenAddr())
 	}

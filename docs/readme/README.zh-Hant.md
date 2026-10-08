@@ -28,7 +28,7 @@
 Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的音樂資料夾變成隨時隨地可聽的私人串流服務。不同之處在於 Rainy 把**音樂庫管理**視為核心功能：編輯標籤、更換封面、加入歌詞、依規則重新命名、上傳、刪除、找出有問題的檔案，都能在瀏覽器中完成。
 
 > [!IMPORTANT]
-> Rainy 仍在積極開發中。升級前請備份資料目錄（`/data`）；在網頁上編輯標籤或重新命名之前，請先備份音樂檔案。將實例公開到家用網路之外前，請閱讀[部署安全](../operations/security.md)。
+> Rainy 仍在積極開發中。升級前請備份資料目錄（`/config`）；在網頁上編輯標籤或重新命名之前，請先備份音樂檔案。將實例公開到家用網路之外前，請閱讀[部署安全](../operations/security.md)。
 
 ## 功能
 
@@ -61,7 +61,7 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
    docker compose up -d --pull always
    ```
 
-4. 開啟 `http://<NAS 的 IP>:7650`，首次造訪時建立管理員帳號。Rainy 會自動將 `/music` 加入為第一個音樂庫並開始掃描。
+4. 開啟 `http://<NAS 的 IP>:7650`，首次造訪時建立管理員帳號。Rainy 會自動將 `/data` 加入為第一個音樂庫並開始掃描。
 
 `PUID`/`PGID` 須能讀取音樂資料夾；若要在網頁上編輯檔案，還需要寫入權限。各家 NAS 的設定方式請參考 [Docker 與 NAS 指南](../operations/docker.md)，所有選項請參考 [`.env.example`](../../.env.example) 與[設定](../operations/configuration.md)。
 
@@ -69,8 +69,11 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 
 | 主機路徑 | 容器路徑 | 內容 |
 | --- | --- | --- |
-| `RAINY_DATA_PATH`（預設 `./data`） | `/data` | 資料庫、`secret.key`、封面快取、資源回收筒 |
-| `RAINY_MUSIC_PATH` | `/music` | 你的音樂 |
+| `RAINY_DATA_PATH`（預設 `./config`） | `/config` | 資料庫、`secret.key`、封面快取、資源回收筒 |
+| `RAINY_MUSIC_PATH`（預設 `./data`） | `/data` | 你的音樂 |
+
+舊安裝使用 `/data` 儲存應用資料、`/music` 掛載音樂時，請先依
+[掛載路徑升級說明](../operations/docker.md#upgrading-the-mount-layout)保留資料庫和金鑰，並修改現有音樂庫的路徑。
 
 `secret.key` 用於加密儲存的密碼，請與 `rainy.db` 一併備份並妥善保管。請勿將這些目錄提交到版本庫。
 

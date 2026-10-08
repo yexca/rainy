@@ -53,8 +53,8 @@ Browser (web app / PWA)            Subsonic and OpenSubsonic clients
    store (SQLite: reader pool + single writer)   scanner, manage, artwork,
                          |                        transcode (ffmpeg), lyrics
                          |                                |
-                    /data (DB, secret.key,         library roots
-                    cache, trash, tmp)             (for example /music)
+                    /config (DB, secret.key,         library roots
+                    cache, trash, tmp)             (for example /data)
 ```
 
 One process serves the embedded web app, both APIs, and background scans.

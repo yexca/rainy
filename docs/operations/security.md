@@ -70,12 +70,12 @@ revoked in **Settings → Subsonic apps** without changing the password.
 
 ## Filesystem and Container Boundaries
 
-- Mount only your music at `/music` and a dedicated folder at `/data`. Never
+- Mount only your music at `/data` and a dedicated folder at `/config`. Never
   mount a host root, home directory, or the Docker socket.
 - Every file operation is confined to the library roots, and libraries may not
   overlap the data directory.
 - Mount the music read-only (`:ro`) if nobody should edit files through Rainy.
-- The container drops root privileges to `PUID:PGID` after fixing `/data`
+- The container drops root privileges to `PUID:PGID` after fixing `/config`
   ownership. Avoid `PUID=0`.
 - Keep the image up to date; see [Docker](docker.md#upgrade).
 

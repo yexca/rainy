@@ -74,31 +74,31 @@ LABEL org.opencontainers.image.title="Rainy" \
 COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # The entrypoint is normalised to LF in case the repo was checked out with CRLF (Windows).
 # quickjs (qjs, ~2 MiB) is the JavaScript runtime yt-dlp needs for YouTube. yt-dlp itself is not
-# shipped: an administrator installs it into /data/ytdlp from the admin settings (opt-in).
+# shipped: an administrator installs it into /config/ytdlp from the admin settings (opt-in).
 RUN apk add --no-cache ffmpeg ca-certificates tzdata su-exec quickjs \
  && sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
  && addgroup -g 1000 rainy \
- && adduser -D -H -u 1000 -G rainy -h /data -s /sbin/nologin rainy \
- && mkdir -p /data /music \
- && chown rainy:rainy /data
+ && adduser -D -H -u 1000 -G rainy -h /config -s /sbin/nologin rainy \
+ && mkdir -p /config /data \
+ && chown rainy:rainy /config
 
 COPY --from=build /out/rainy /usr/local/bin/rainy
 
-ENV RAINY_DATA_DIR=/data \
-    RAINY_MUSIC_DIR=/music \
+ENV RAINY_DATA_DIR=/config \
+    RAINY_MUSIC_DIR=/data \
     RAINY_LOG_FORMAT=json \
     PUID=1000 \
     PGID=1000 \
     UMASK=022
 
-WORKDIR /data
-VOLUME /data
+WORKDIR /config
+VOLUME /config
 EXPOSE 7650
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -q -T 4 -O /dev/null "127.0.0.1:${RAINY_PORT:-7650}/api/health" || exit 1
 
-# Starts as root only long enough to fix /data ownership, then drops to PUID:PGID (see
+# Starts as root only long enough to fix /config ownership, then drops to PUID:PGID (see
 # docker/entrypoint.sh). To never start as root at all, run with `--user <uid>:<gid>`.
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["rainy", "serve"]

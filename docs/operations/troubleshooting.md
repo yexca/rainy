@@ -16,7 +16,7 @@ its entrypoint explain most permission and configuration problems there.
 
 ## The Library Is Empty
 
-- Open **Admin → Libraries** and check that the library path is `/music` and
+- Open **Admin → Libraries** and check that the library path is `/data` and
   that it exists.
 - Check that `RAINY_MUSIC_PATH` points at the right host folder.
 - Check that `PUID:PGID` can read it. The log reports a folder that is not

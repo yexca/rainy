@@ -23,7 +23,7 @@ docker compose logs -f rainy   # wait for "Rainy is listening"
 ```
 
 Open `http://<host>:7650` and create the administrator account. Rainy adds
-`/music` as the first library and starts a scan.
+`/data` as the first library and starts a scan.
 
 The service restarts automatically (`restart: unless-stopped`). Automatic
 restarts and `docker compose restart` reuse the current image and do not
@@ -33,8 +33,8 @@ The container has two mounts:
 
 | Host (`.env`) | Container | Contents | Access |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH` (default `./data`) | `/data` | Database, `secret.key`, cover cache, trash, upload staging | Read-write; owned by `PUID:PGID` |
-| `RAINY_MUSIC_PATH` | `/music` | Your music | Read for playback; read-write for management features |
+| `RAINY_DATA_PATH` (default `./config`) | `/config` | Database, `secret.key`, cover cache, trash, upload staging | Read-write; owned by `PUID:PGID` |
+| `RAINY_MUSIC_PATH` (default `./data`) | `/data` | Your music | Read for playback; read-write for management features |
 
 All optional variables are listed in [Configuration](configuration.md).
 
@@ -56,8 +56,8 @@ services:
       PGID: "1000"
       TZ: Asia/Shanghai
     volumes:
-      - /path/to/rainy/data:/data
-      - /path/to/music:/music
+      - /path/to/rainy/config:/config
+      - /path/to/music:/data
 ```
 
 To change the host port, change only the left side, for example
@@ -65,8 +65,8 @@ To change the host port, change only the left side, for example
 
 ## Permissions (PUID and PGID)
 
-The container starts as root only long enough to make `/data` owned by
-`PUID:PGID`, applies `UMASK`, and then runs Rainy as that user. **`/music` is
+The container starts as root only long enough to make `/config` owned by
+`PUID:PGID`, applies `UMASK`, and then runs Rainy as that user. **`/data` is
 never changed**; its permissions belong to your NAS.
 
 1. Sign in to the NAS over SSH and run `id <your-user>`. For example,
@@ -76,14 +76,14 @@ never changed**; its permissions belong to your NAS.
 3. For playback only, you can also mount the music read-only. Management
    features then report that files are read-only, and everything else works.
    In the standalone example, append `:ro` to the volume
-   (`/path/to/music:/music:ro`). With the default Compose file, add a
+   (`/path/to/music:/data:ro`). With the default Compose file, add a
    `docker-compose.override.yml` beside it:
 
    ```yaml
    services:
      rainy:
        volumes:
-         - ${RAINY_MUSIC_PATH}:/music:ro
+         - ${RAINY_MUSIC_PATH:-./data}:/data:ro
    ```
 
 Set `UMASK=002` if other members of the group should be able to modify files
@@ -91,7 +91,7 @@ that Rainy writes. Alternatively, run the container with `user: "1026:100"`;
 `PUID` and `PGID` are then ignored and the data folder must already be writable
 by that user.
 
-The startup log explains permission problems, for example that `/music` is
+The startup log explains permission problems, for example that `/data` is
 read-only for `1026:100` and editing is disabled.
 
 ## NAS Guides
@@ -102,7 +102,7 @@ All paths below are examples; replace them with your own.
 
 1. Install **Container Manager** from Package Center.
 2. In File Station, create `docker/rainy` (for example `/volume1/docker/rainy`)
-   with a `data` folder inside it.
+   with a `config` folder inside it.
 3. Find the IDs: enable SSH under **Control Panel → Terminal & SNMP**, sign in,
    and run `id`. The first user you create is usually `uid=1026`, and the
    `users` group is `gid=100`.
@@ -112,7 +112,7 @@ All paths below are examples; replace them with your own.
 5. In **Container Manager → Project → Create**, name the project `rainy`, choose
    `/volume1/docker/rainy` as the path, and paste the
    [standalone Compose example](#standalone-compose-example) with
-   `/volume1/docker/rainy/data:/data`, `/volume1/music:/music`, `PUID: "1026"`,
+   `/volume1/docker/rainy/config:/config`, `/volume1/music:/data`, `PUID: "1026"`,
    and `PGID: "100"`.
 6. Finish the wizard and open `http://<nas-ip>:7650`.
 
@@ -123,7 +123,7 @@ automatically. For HTTPS, use the built-in reverse proxy described in
 ### QNAP (Container Station 3)
 
 1. Install **Container Station** from App Center.
-2. In File Station, create `/share/Container/rainy/data`.
+2. In File Station, create `/share/Container/rainy/config`.
 3. Run `id <user>` over SSH. Regular QNAP users usually start at `uid=500`, and
    the `everyone` group is `gid=100`. Do not use the `admin` account (uid 0).
 4. Under **Control Panel → Privilege → Shared Folders**, give that user
@@ -132,8 +132,8 @@ automatically. For HTTPS, use the built-in reverse proxy described in
    example with these volumes:
 
    ```yaml
-   - /share/Container/rainy/data:/data
-   - /share/Multimedia/Music:/music
+   - /share/Container/rainy/config:/config
+   - /share/Multimedia/Music:/data
    ```
 
 6. Open `http://<nas-ip>:7650`. If port 7650 is taken, change only the host
@@ -145,8 +145,8 @@ automatically. For HTTPS, use the built-in reverse proxy described in
 
 - Repository: `yexca/rainy:latest`
 - Network type: `bridge`; port: container `7650` to host `7650`
-- Path: container `/data` to `/mnt/user/appdata/rainy`
-- Path: container `/music` to `/mnt/user/music` (Read/Write, or Read Only for
+- Path: container `/config` to `/mnt/user/appdata/rainy`
+- Path: container `/data` to `/mnt/user/music` (Read/Write, or Read Only for
   playback only)
 - Variables: `PUID=99`, `PGID=100`, `TZ=Asia/Shanghai`
 
@@ -177,8 +177,8 @@ stack, and paste the standalone example with the paths and IDs above.
          PGID: "568"
          TZ: Asia/Shanghai
        volumes:
-         - /mnt/tank/apps/rainy:/data
-         - /mnt/tank/media/music:/music
+         - /mnt/tank/apps/rainy:/config
+         - /mnt/tank/media/music:/data
    ```
 
 4. Save and open `http://<nas-ip>:7650`.
@@ -196,7 +196,7 @@ wizard with the same image, port, two host paths, and environment variables.
    `users` group is `gid=100`.
 4. Under **Services → Compose → Files**, create a file from the standalone
    example. Use the absolute shared-folder path shown in the shared-folder
-   list, for example `/srv/dev-disk-by-uuid-<id>/music:/music`, then choose
+   list, for example `/srv/dev-disk-by-uuid-<id>/music:/data`, then choose
    **Up**.
 
 ### General Checks
@@ -211,6 +211,39 @@ wizard with the same image, port, two host paths, and environment variables.
 More answers are in [Troubleshooting](troubleshooting.md).
 
 ## Upgrade
+
+### Upgrading the Mount Layout
+
+Older images stored application state at `/data` and music at `/music`.
+New defaults use `/config` for state and `/data` for music. Changing an image
+alone does not relocate an existing database or change stored library roots.
+
+To keep an existing deployment's mounts, add these environment overrides to
+its existing Compose file before updating the image:
+
+```yaml
+environment:
+  RAINY_DATA_DIR: /data
+  RAINY_MUSIC_DIR: /music
+```
+
+To adopt the new layout:
+
+1. Stop Rainy and back up the existing state directory, including `rainy.db`
+   and `secret.key`; see [Database backups](database.md#backups).
+2. Mount that same host state directory at `/config`. Set `RAINY_DATA_PATH`
+   explicitly if it is still named `./data`; it does not need to be renamed.
+   Set `RAINY_MUSIC_PATH` explicitly to the existing music directory and mount
+   it at `/data`. The two host directories must be different.
+3. Recreate the container using the updated Compose file. In **Admin →
+   Libraries**, edit the existing library's path from `/music` to `/data`.
+   Keep the existing library rather than deleting and adding it again, so
+   track IDs, playlists, favorites, and listening history are preserved.
+
+Apply the same path change to any additional libraries whose mounts moved.
+Rainy does not automatically move host files or rewrite configured roots.
+
+### Updating the Image
 
 Back up the data folder first (see [Database](database.md#backups)), then pull
 the configured image and recreate the container:
@@ -247,7 +280,7 @@ The same images are published to the GitHub Container Registry as
 
 The `rainy` binary in the image has maintenance commands. `docker compose exec`
 runs as root by default, so pass your `PUID:PGID` with `-u` to avoid creating
-root-owned files in `/data`:
+root-owned files in `/config`:
 
 ```sh
 # Reset a forgotten password and sign the user out everywhere

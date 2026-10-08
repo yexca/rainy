@@ -19,8 +19,8 @@ precedence.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `RAINY_IMAGE` | `yexca/rainy:latest` | Image to run; pin a release tag or digest for reproducible deployments |
-| `RAINY_MUSIC_PATH` | required | Host music folder, mounted at `/music` |
-| `RAINY_DATA_PATH` | `./data` | Host data folder, mounted at `/data` |
+| `RAINY_MUSIC_PATH` | `./data` | Host music folder, mounted at `/data` |
+| `RAINY_DATA_PATH` | `./config` | Host application-state folder, mounted at `/config` |
 | `RAINY_HOST_PORT` | `7650` | Host port published for the container's port 7650 |
 | `PUID` | `1000` | User ID that runs Rainy inside the container |
 | `PGID` | `1000` | Group ID that runs Rainy inside the container |
@@ -57,8 +57,8 @@ JSON logging; everything else uses the program defaults.
 | --- | --- | --- | --- |
 | `RAINY_ADDRESS` | `0.0.0.0` | same | Listen address |
 | `RAINY_PORT` | `7650` | same | Listen port; the health check uses it too |
-| `RAINY_DATA_DIR` | `./data` | `/data` | Database, `secret.key`, caches, trash, and upload staging |
-| `RAINY_MUSIC_DIR` | `./music` | `/music` | Default library, added automatically on first start when no library exists |
+| `RAINY_DATA_DIR` | `./config` | `/config` | Database, `secret.key`, caches, trash, and upload staging |
+| `RAINY_MUSIC_DIR` | `./data` | `/data` | Default library, added automatically on first start when no library exists |
 | `RAINY_SCAN_INTERVAL` | `1h` | same | Default for the `scanInterval` setting; `0` disables periodic scans |
 | `RAINY_SCAN_ON_START` | `true` | same | Run a quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | same (bundled) | ffmpeg binary used for transcoding and tag fallbacks |
@@ -77,7 +77,7 @@ An invalid value stops startup with an error that names the variable.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `PUID` / `PGID` | `1000` / `1000` | The entrypoint makes `/data` owned by this user and group, then drops privileges to it. `/music` is never changed. |
+| `PUID` / `PGID` | `1000` / `1000` | The entrypoint makes `/config` owned by this user and group, then drops privileges to it. `/data` is never changed. |
 | `UMASK` | `022` | Use `002` to make new files group-writable |
 | `TZ` | `UTC` in the image | Time zone for server logs; the web app always shows times in the browser's time zone |
 
@@ -115,12 +115,12 @@ Once saved in the web app, the scan interval setting takes precedence over
 ## Data Directory Layout
 
 ```text
-/data/rainy.db (+ -wal, -shm)   SQLite database
-/data/secret.key                encryption key for stored passwords (created on first start)
-/data/cache/artwork/            resized cover cache (safe to delete)
-/data/trash/<libraryId>/...     deleted files, restorable from Manage → Trash
-/data/tmp/                      upload staging and running downloads (ytdlp-job-*, online-job-*)
-/data/ytdlp/                    yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies
+/config/rainy.db (+ -wal, -shm)   SQLite database
+/config/secret.key                encryption key for stored passwords (created on first start)
+/config/cache/artwork/            resized cover cache (safe to delete)
+/config/trash/<libraryId>/...     deleted files, restorable from Manage → Trash
+/config/tmp/                      upload staging and running downloads (ytdlp-job-*, online-job-*)
+/config/ytdlp/                    yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies
 ```
 
 See [Database](database.md) for backups.

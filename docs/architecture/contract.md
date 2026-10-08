@@ -118,8 +118,8 @@ Environment variables (all optional):
 |---|---|---|
 | `RAINY_ADDRESS` | `0.0.0.0` | listen address |
 | `RAINY_PORT` | `7650` | listen port |
-| `RAINY_DATA_DIR` | `./data` (docker: `/data`) | DB, secret key, caches, trash |
-| `RAINY_MUSIC_DIR` | `./music` (docker: `/music`) | default library; created as library #1 on first start if no library exists |
+| `RAINY_DATA_DIR` | `./config` (docker: `/config`) | DB, secret key, caches, trash |
+| `RAINY_MUSIC_DIR` | `./data` (docker: `/data`) | default library; created as library #1 on first start if no library exists |
 | `RAINY_SCAN_INTERVAL` | `1h` | periodic quick scan; `0` disables. Default for the DB setting `scanInterval` |
 | `RAINY_SCAN_ON_START` | `true` | quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | ffmpeg binary |
@@ -137,12 +137,12 @@ plus helpers `DBPath()`, `CacheDir()`, `ArtworkCacheDir()`, `TrashDir()`, `TmpDi
 
 Data dir layout:
 ```
-/data/rainy.db (+ -wal, -shm)
-/data/secret.key        32 random bytes, created on first start (AES key + misc HMAC)
-/data/cache/artwork/    resized cover cache
-/data/trash/<libraryId>/<original relative path>   deleted files (restorable)
-/data/tmp/              upload staging; ytdlp-job-<id>/ and online-job-<id>/ work directories of running downloads
-/data/ytdlp/            yt-dlp binary installed by Rainy, cache/, cookies/<site>.enc (0700/0600, encrypted with secret.key)
+/config/rainy.db (+ -wal, -shm)
+/config/secret.key        32 random bytes, created on first start (AES key + misc HMAC)
+/config/cache/artwork/    resized cover cache
+/config/trash/<libraryId>/<original relative path>   deleted files (restorable)
+/config/tmp/              upload staging; ytdlp-job-<id>/ and online-job-<id>/ work directories of running downloads
+/config/ytdlp/            yt-dlp binary installed by Rainy, cache/, cookies/<site>.enc (0700/0600, encrypted with secret.key)
 ```
 
 Runtime-editable settings live in the `settings` table (see `model.Settings`, §5.2).

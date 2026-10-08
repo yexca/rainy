@@ -43,7 +43,8 @@ make docker-down
 The development stack in
 [`deploy/compose/dev.yml`](../../deploy/compose/dev.yml) builds from this
 checkout. It publishes on loopback only (`RAINY_DEV_PORT`, default 7650),
-keeps its data in `testdata/dev-data`, and mounts `testdata/music` (override
+keeps its database and application state in `testdata/dev-data` mounted at
+`/config`, and mounts `testdata/music` at `/data` (override
 with `RAINY_DEV_MUSIC_PATH`). It defaults to debug logs and disabled periodic
 scans; environment overrides still apply. Keep development data separate from
 the real library.
@@ -79,7 +80,7 @@ the Docker stack with `make docker-up` after backend changes.
 `backend-build`, `backend-run`, and `frontend-build` remain available for
 explicit host-build workflows. The binary embeds `web/dist`, so a complete
 host build needs `frontend-build` first. Host runtime reads `RAINY_*` variables
-and defaults to `./music` and `./data`; choose synthetic paths deliberately.
+and defaults to `./data` and `./config`; choose synthetic paths deliberately.
 Agent work uses Docker for running the app unless the user requests a host
 runtime. The host build in `ci-frontend` is validation, not a running instance.
 

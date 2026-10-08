@@ -36,7 +36,7 @@ Rainy is a single Go binary with an embedded React web app, shipped as one
 Docker image for `linux/amd64` and `linux/arm64`.
 
 > [!IMPORTANT]
-> Rainy is under active development. Back up the data directory (`/data`) before
+> Rainy is under active development. Back up the data directory (`/config`) before
 > an upgrade, and back up your music before enabling write access for tag
 > editing. Review the [deployment security guide](docs/operations/security.md)
 > before exposing an instance outside your home network.
@@ -107,7 +107,7 @@ docker compose logs -f rainy
 ```
 
 Open `http://<host>:7650` and create the administrator account on the first
-visit. Rainy adds `/music` as the first library and starts scanning.
+visit. Rainy adds `/data` as the first library and starts scanning.
 
 `docker compose restart` reuses the current image and does not apply `.env`
 changes. For reproducible deployments, set `RAINY_IMAGE` in `.env` to a reviewed
@@ -123,12 +123,16 @@ install the web app as a PWA.
 
 | Host path | Container path | Purpose | Back up? |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH` (default `./data`) | `/data` | SQLite database, `secret.key`, cover cache, trash, upload staging, and yt-dlp with its encrypted cookies | Yes |
-| `RAINY_MUSIC_PATH` | `/music` | Your music library; writable when you use management features | Yes, with your NAS backup tools |
+| `RAINY_DATA_PATH` (default `./config`) | `/config` | SQLite database, `secret.key`, cover cache, trash, upload staging, and yt-dlp with its encrypted cookies | Yes |
+| `RAINY_MUSIC_PATH` (default `./data`) | `/data` | Your music library; writable when you use management features | Yes, with your NAS backup tools |
 
 `secret.key` encrypts stored passwords. Losing it means every user must have
 their password reset. Do not commit either directory: they contain account
 data, listening history, and your media.
+
+Existing installations using `/data` for application state and `/music` for
+music must follow [the mount upgrade guide](docs/operations/docker.md#upgrading-the-mount-layout)
+before switching to these defaults.
 
 ## User documentation
 

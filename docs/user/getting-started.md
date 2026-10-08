@@ -13,7 +13,7 @@ exists.
 
 ## 2. Wait for the First Scan
 
-On first start, Rainy adds the folder mounted at `/music` as the first library
+On first start, Rainy adds the folder mounted at `/data` as the first library
 and starts a quick scan. Follow its progress under **Admin → Libraries**. Albums
 appear on the home page as soon as the scan finishes.
 

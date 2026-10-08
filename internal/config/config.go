@@ -38,8 +38,8 @@ func Default() *Config {
 	return &Config{
 		Address:      "0.0.0.0",
 		Port:         7650,
-		DataDir:      "./data",
-		MusicDir:     "./music",
+		DataDir:      "./config",
+		MusicDir:     "./data",
 		ScanInterval: time.Hour,
 		ScanOnStart:  true,
 		FFmpegPath:   "ffmpeg",

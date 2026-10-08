@@ -7,13 +7,13 @@ driver. There is no separate database server to run; see
 ## Location
 
 ```text
-/data/rainy.db        (plus rainy.db-wal and rainy.db-shm while running)
-/data/secret.key
+/config/rainy.db        (plus rainy.db-wal and rainy.db-shm while running)
+/config/secret.key
 ```
 
 On the host, these live in the folder configured by `RAINY_DATA_PATH`
-(default `./data`). Outside Docker, the data directory is `RAINY_DATA_DIR`
-(default `./data`).
+(default `./config`). Outside Docker, the data directory is `RAINY_DATA_DIR`
+(default `./config`).
 
 ## What Is Stored
 
@@ -62,7 +62,7 @@ consistent snapshot:
 ```sh
 docker compose stop rainy
 tar czf rainy-backup-$(date +%F).tar.gz \
-  --exclude='./data/cache' --exclude='./data/tmp' ./data
+  --exclude='./config/cache' --exclude='./config/tmp' ./config
 docker compose start rainy
 ```
 

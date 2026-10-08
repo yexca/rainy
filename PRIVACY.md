@@ -169,7 +169,7 @@ Each service's own privacy policy applies to the data it receives.
 
 ## Server-Side Data
 
-The data folder (`/data` in Docker) contains:
+The data folder (`/config` in Docker) contains:
 
 | Location | Contents |
 | --- | --- |

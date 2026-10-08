@@ -13,15 +13,15 @@ set -eu
 log() { printf '[entrypoint] %s\n' "$*" >&2; }
 die() { log "error: $*"; exit 1; }
 
-DATA_DIR="${RAINY_DATA_DIR:-/data}"
-MUSIC_DIR="${RAINY_MUSIC_DIR:-/music}"
+DATA_DIR="${RAINY_DATA_DIR:-/config}"
+MUSIC_DIR="${RAINY_MUSIC_DIR:-/data}"
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
 UMASK="${UMASK:-022}"
 
 is_uint() { case "$1" in '' | *[!0-9]*) return 1 ;; *) return 0 ;; esac; }
 
-# True when $1 is itself a read-only mount (e.g. `-v /music:/music:ro`). busybox `test -w`
+# True when $1 is itself a read-only mount (e.g. `-v /path/to/music:/data:ro`). busybox `test -w`
 # only looks at permission bits, so it can't tell.
 is_ro_mount() {
 	awk -v dir="$1" '$2 == dir { split($4, o, ","); ro = (o[1] == "ro") } END { exit !ro }' /proc/mounts 2>/dev/null
@@ -52,7 +52,7 @@ if [ "$(id -u)" = "0" ]; then
 
 	mkdir -p "$DATA_DIR" || die "cannot create data directory $DATA_DIR"
 	# Fix ownership only where it differs (fast on restarts, even with a large artwork cache).
-	# -h never follows symlinks, so a link inside /data can't be used to chown files elsewhere.
+	# -h never follows symlinks, so a link inside /config can't be used to chown files elsewhere.
 	if ! find "$DATA_DIR" \( ! -user "$PUID" -o ! -group "$PGID" \) \
 		-exec chown -h "$PUID:$PGID" {} + 2>/dev/null; then
 		log "warning: could not change ownership of $DATA_DIR to $PUID:$PGID (NFS/SMB share with root squash?)"

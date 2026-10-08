@@ -16,5 +16,5 @@ services:
     ports:
       - "127.0.0.1:${RAINY_DEV_PORT:-7650}:7650"
     volumes:
-      - ./testdata/dev-data:/data
-      - ${RAINY_DEV_MUSIC_PATH:-./testdata/music}:/music
+      - ./testdata/dev-data:/config
+      - ${RAINY_DEV_MUSIC_PATH:-./testdata/music}:/data

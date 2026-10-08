@@ -4,6 +4,7 @@ web/dist/*
 !web/dist/.gitkeep
 
 # Local data and generated test library
+/config/
 /data/
 /testdata/
 *.db
