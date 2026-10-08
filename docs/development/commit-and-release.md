@@ -59,11 +59,13 @@ report it. Image tags drop the leading `v` (`v0.1.0` becomes `0.1.0`).
 
 1. Update `VERSION` and write `docs/history/<tag>.md` in a normal change on
    `main`.
-2. Wait for CI to succeed on that commit.
+2. Run `make release-check` to validate VERSION and its nonempty release note,
+   then wait for CI to succeed on that commit.
 3. Tag the commit with exactly the value of `VERSION` and push the tag.
 
 The tag must equal `VERSION` and point at a commit on `main` whose CI run
-succeeded. The release workflow looks up that run before publishing: it waits
+succeeded. The release workflow verifies main ancestry and looks up that run
+before publishing: it waits
 while the run is in progress and stops if it failed or was cancelled, instead
 of repeating the full validation suite.
 
@@ -85,3 +87,4 @@ reproducible deployments pin `RAINY_IMAGE` to a release tag or digest; see
 - [Testing](testing.md)
 - [Migrations](migrations.md)
 - [History](../history/index.md)
+- [CI and release automation](ci.md)

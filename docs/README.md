@@ -18,9 +18,9 @@ using the product, running it, changing it, and reviewing design decisions.
   and the two HTTP APIs. The precise contract lives in
   [architecture/contract.md](architecture/contract.md).
 - [User guide](user/index.md): user-visible screens and behavior.
-- [Operations](operations/configuration.md): configuration, Docker and NAS
+- [Operations](operations/index.md): configuration, Docker and NAS
   deployment, reverse proxies, the database, security, and troubleshooting.
-- [Development](development/local-dev.md): local setup, testing, design,
+- [Development](development/index.md): local setup, testing, design,
   migrations, and the commit and release workflow.
 - [Security documentation](security/index.md): reporting, deployment,
   development, and privacy guidance.
@@ -42,16 +42,21 @@ Operators should read:
 - [Configuration](operations/configuration.md)
 - [Reverse proxy and HTTPS](operations/reverse-proxy.md)
 - [Database and backups](operations/database.md)
+- [Reliability and recovery limits](operations/reliability.md)
 - [Deployment security](operations/security.md)
 - [Privacy and data handling](../PRIVACY.md)
 
 Developers should read:
 
 - [Repository agent guide](../AGENTS.md)
+- [Core boundaries](architecture/core-boundaries.md)
 - [Architecture contract](architecture/contract.md)
 - [Backend](architecture/backend.md) and [Frontend](architecture/frontend.md)
 - [Design system](development/design.md)
 - [Testing](development/testing.md)
+- [Backend guidelines](development/backend-guidelines.md) and
+  [Frontend guidelines](development/frontend-guidelines.md)
+- [CI and release automation](development/ci.md)
 - [Secure development](development/security.md)
 - [Commit and release](development/commit-and-release.md)
 
@@ -69,8 +74,8 @@ Security reporters should read:
   copying its tables.
 - User-visible behavior belongs in the [User guide](user/index.md).
 - System boundaries belong in [Architecture](architecture/index.md).
-- Runtime instructions belong in [Operations](operations/configuration.md).
-- Local developer workflow belongs in [Development](development/local-dev.md).
+- Runtime instructions belong in [Operations](operations/index.md).
+- Local developer workflow belongs in [Development](development/index.md).
 - Security implementation rules belong in
   [Secure development](development/security.md).
 - Durable design choices belong in [ADRs](decisions/index.md).
@@ -80,3 +85,7 @@ Security reporters should read:
   English README and link back to the English documentation.
 - Use reserved examples in every public document: `example.com` domains,
   `192.0.2.0/24` addresses, `/path/to/music`, and obviously fake credentials.
+- Keep commands in sync with the Makefile and job selection in
+  [CI and release automation](development/ci.md). Run `make docs-check` after
+  changing links. Keep existing document paths and section anchors usable
+  when reorganizing; update navigation rather than duplicating current rules.

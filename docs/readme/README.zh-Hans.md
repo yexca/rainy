@@ -148,7 +148,7 @@ docker compose exec -u 1000:1000 rainy rainy user list
 
 ## 用户文档
 
-[用户指南](../user/index.md)涵盖入门、曲库与扫描、播放与 PWA、收听报表与 Scrobble、曲库管理和 Subsonic 客户端。[运维文档](../operations/configuration.md)涵盖 Docker 与 NAS 部署、配置、反向代理、数据库与备份以及故障排查。
+[用户指南](../user/index.md)涵盖入门、曲库与扫描、播放与 PWA、收听报表与 Scrobble、曲库管理和 Subsonic 客户端。[运维文档](../operations/index.md)涵盖 Docker 与 NAS 部署、配置、反向代理、数据库与备份以及故障排查。
 
 ## 文档
 

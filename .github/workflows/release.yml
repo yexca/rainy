@@ -11,10 +11,15 @@ permissions:
 env:
   IMAGE_NAME: rainy
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify_release:
     name: Verify release source
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     permissions:
       actions: read
       contents: read
@@ -26,24 +31,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
 
-      - name: Verify tag and version
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24.19.0"
+
+      - name: Verify tag, version, and release notes
         id: version
-        shell: bash
-        run: |
-          expected_version="$(tr -d '\r\n' < VERSION)"
-          if [ "$GITHUB_REF_NAME" != "$expected_version" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match VERSION $expected_version." >&2
-            exit 1
-          fi
-          echo "version_name=${expected_version#v}" >> "$GITHUB_OUTPUT"
+        run: make release-check
 
-      - name: Verify release notes
+      - name: Verify release commit belongs to main
         shell: bash
         run: |
-          notes_file="docs/history/${GITHUB_REF_NAME}.md"
-          if [ ! -f "$notes_file" ]; then
-            echo "Missing release notes: $notes_file" >&2
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "Release commit must belong to main." >&2
             exit 1
           fi
 
@@ -102,6 +105,7 @@ jobs:
   build_and_push:
     name: Build and push image
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     permissions:
       contents: read
       packages: write
@@ -171,6 +175,7 @@ jobs:
   publish_release:
     name: Publish GitHub release
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write
     needs:

@@ -14,6 +14,8 @@ affected paths, so the index always follows the disk.
 
 ## Architecture Topics
 
+- [Core boundaries](core-boundaries.md): file ownership, stable identity,
+  user state, filesystem effects, and process boundaries.
 - [Contract](contract.md): the precise, section-numbered contract for the
   schema, Go package APIs, REST and Subsonic endpoints, TypeScript types, and
   the design system. It is the single source of truth.
@@ -26,6 +28,8 @@ affected paths, so the index always follows the disk.
 
 ## When To Read What
 
+- Read [Core boundaries](core-boundaries.md) before changing identity,
+  file effects, scanner decisions, user state, or permissions.
 - Read the [contract](contract.md) before changing a schema, a package API, an
   endpoint, or a shared TypeScript type, and update it in the same change.
 - Read [Data model](data-model.md) and [Migrations](../development/migrations.md)
@@ -71,4 +75,7 @@ ListenBrainz account to that service.
 
 - [Overview](../overview.md)
 - [Migrations](../development/migrations.md)
+- [Backend guidelines](../development/backend-guidelines.md) and
+  [Frontend guidelines](../development/frontend-guidelines.md)
+- [Reliability](../operations/reliability.md)
 - [ADR index](../decisions/index.md)
