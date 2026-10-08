@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { ListMusic, Plus } from 'lucide-react'
+import { ListMusic, Plus, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, useLocation } from 'react-router'
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
@@ -176,9 +177,30 @@ function PlaylistsGroup() {
   )
 }
 
+/** The signed-in user's own settings, pinned below the scrolling groups. */
+function SettingsFooter() {
+  const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const label = t('nav.settings')
+  return (
+    <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild isActive={pathMatches(pathname, '/settings')} tooltip={label} className={ITEM_CLASS}>
+            <NavLink to="/settings">
+              <Settings strokeWidth={1.75} />
+              <span>{label}</span>
+            </NavLink>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
+  )
+}
+
 /**
  * Desktop / tablet navigation (shadcn Sidebar, collapsible to an icon rail). It sits below the
- * app header, which holds the logo, the sidebar toggle and the account menu.
+ * app header, which holds the logo, the sidebar toggle, quick controls and the account menu.
  */
 export function AppSidebar({ className }: { className?: string }) {
   const { t } = useTranslation()
@@ -192,6 +214,7 @@ export function AppSidebar({ className }: { className?: string }) {
         <PlaylistsGroup />
         {isManager ? <ManageGroup isAdmin={isAdmin} /> : null}
       </SidebarContent>
+      <SettingsFooter />
       <SidebarRail aria-label={toggleLabel} title={toggleLabel} />
     </Sidebar>
   )

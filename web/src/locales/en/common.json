@@ -87,7 +87,8 @@
     "label": "Appearance",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "allSettings": "All settings"
   },
   "accent": {
     "label": "Accent colour",

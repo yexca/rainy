@@ -45,7 +45,7 @@ export function AppearanceSection() {
   )
 }
 
-function AccentPicker({ value, onChange }: { value: Accent; onChange: (accent: Accent) => void }) {
+export function AccentPicker({ value, onChange }: { value: Accent; onChange: (accent: Accent) => void }) {
   const { t } = useTranslation()
   const refs = useRef<(HTMLButtonElement | null)[]>([])
 

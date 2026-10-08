@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
-import { UserMenu } from './user-menu'
+import { HeaderActions } from './header-actions'
 
 /**
  * App header (tablet / desktop): a full-width bar above the sidebar and the content, in the
  * sidebar's colours so the two read as one frame. The sidebar toggle and the logo sit on the left,
- * the account menu on the right. Its height is `--app-header-h` (0 on phones, which keep their
- * own iOS nav bars); page top bars stick right below it.
+ * the quick-control tray and the account menu on the right. Its height is `--app-header-h` (0 on
+ * phones, which keep their own iOS nav bars); page top bars stick right below it.
  */
 export function AppHeader({ className }: { className?: string }) {
   const { t } = useTranslation()
@@ -44,9 +44,7 @@ export function AppHeader({ className }: { className?: string }) {
         <Logo size={26} />
         <span className="truncate text-[17px] font-semibold tracking-tight">Rainy</span>
       </Link>
-      <div className="ml-auto flex items-center gap-1">
-        <UserMenu variant="header" />
-      </div>
+      <HeaderActions />
     </header>
   )
 }

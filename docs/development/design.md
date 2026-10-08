@@ -47,11 +47,13 @@ explains the rules every UI change must keep.
 | 768 to 1023 px | App header, collapsed icon sidebar | Bottom player bar |
 | Below 768 px | 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
 
-From tablets up, a full-width app header runs across the top in the sidebar's
-colours: the sidebar toggle and the logo on the left, the account menu
-(avatar, plus the name on desktops) on the right. Page top bars stick right
-below it. Phones have no app header; their account menu is the avatar in the
-Home and Library nav bars.
+From tablets up, a full-width app header runs across the top in the
+sidebar's colours: the sidebar toggle and the logo on the left; on the
+right, a round tray of quick controls (search; appearance with theme, accent
+and language), a divider, and the account menu (avatar, plus the name and
+role on desktops). The user's Settings sit in the sidebar footer. Page top
+bars stick right below it. Phones have no app header; their account menu is
+the avatar in the Home and Library nav bars.
 
 Navigation is tiered so everyday listening stays uncluttered. Managers get
 three sections, each a single sidebar item: **Tracks** (metadata, upload,
