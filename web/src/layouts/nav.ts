@@ -122,7 +122,7 @@ export const TABS: readonly TabItem[] = [
     to: '/library',
     labelKey: 'nav.library',
     icon: LibraryBig,
-    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings'],
+    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings', '/about'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
   // Phones have no sidebar: this tab holds Tracks and links to the library tools and admin pages.

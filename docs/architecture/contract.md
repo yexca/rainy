@@ -1387,6 +1387,7 @@ web/src/
 | `/daily` | Daily mix (today's songs, play / shuffle) | library |
 | `/settings` | User settings | player |
 | `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to Settings → Scrobbling) | player |
+| `/about` | About Rainy: version, overview, AI models used, reference projects, technologies, license (linked from Settings → About and the account menu) | player |
 | `/manage` | Tracks → Metadata (track table + tag editor) | manage |
 | `/manage/upload` | Tracks → Upload (files and folders from this device) | manage |
 | `/manage/links` | Tracks → Links (YouTube / bilibili downloads with yt-dlp) | manage |

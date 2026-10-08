@@ -1,6 +1,6 @@
-import { Download, LogOut, Share, SquarePlus } from 'lucide-react'
+import { ChevronRight, Download, LogOut, Share, SquarePlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
@@ -110,6 +110,16 @@ export function AboutSection() {
         <SettingsRow label={t('about.api')}>
           <span className="text-[13px] text-muted-foreground">Subsonic 1.16.1 · OpenSubsonic</span>
         </SettingsRow>
+        <Link
+          to="/about"
+          className="flex min-h-12 items-center gap-4 px-4 py-3 transition-colors outline-none hover:bg-accent/60 focus-visible:bg-accent/60 active:bg-accent"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-medium md:text-sm">{t('about.more')}</span>
+            <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{t('about.moreHint')}</span>
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" aria-hidden />
+        </Link>
       </SettingsSection>
 
       <Button

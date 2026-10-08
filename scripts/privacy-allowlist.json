@@ -17,9 +17,10 @@
         "Dockerfile",
         "README.md",
         "SECURITY.md",
-        "docs/**"
+        "docs/**",
+        "web/src/features/settings/pages/about-page.tsx"
       ],
-      "reason": "Rainy's public source repository, release pages, and security advisory form."
+      "reason": "Rainy's public source repository, release pages, license, and security advisory form."
     },
     {
       "url": "https://ui.shadcn.com/schema.json",
@@ -73,6 +74,27 @@
         "docs/readme/*.md"
       ],
       "reason": "Public homepage of Navidrome, the project Rainy is compared with."
+    },
+    {
+      "url": "https://github.com/navidrome/navidrome",
+      "files": [
+        "web/src/features/settings/pages/about-page.tsx"
+      ],
+      "reason": "Public repository of Navidrome, credited as a reference project on the About page; a link the user opens, never requested by the server."
+    },
+    {
+      "url": "https://github.com/lyswhut/lx-music-desktop",
+      "files": [
+        "web/src/features/settings/pages/about-page.tsx"
+      ],
+      "reason": "Public repository of lx-music desktop, credited as a reference project on the About page; a link the user opens, never requested by the server."
+    },
+    {
+      "url": "https://www.cnblogs.com/vinlxc/p/11347744.html",
+      "files": [
+        "web/src/features/settings/pages/about-page.tsx"
+      ],
+      "reason": "Public release page of the closed-source Music Tag tagger, credited as a reference on the About page; a link the user opens, never requested by the server."
     },
     {
       "url": "https://wiki.omv-extras.org/",

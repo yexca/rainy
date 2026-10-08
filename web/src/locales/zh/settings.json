@@ -103,7 +103,9 @@
     "title": "关于",
     "tagline": "自托管的私人音乐库",
     "version": "版本",
-    "api": "兼容性"
+    "api": "兼容性",
+    "more": "关于 Rainy",
+    "moreHint": "致谢、参考项目与许可证"
   },
   "scrobbling": {
     "title": "播放记录同步",
@@ -146,5 +148,37 @@
     "artHint": "在空状态、错误页和登录页显示看板娘插画。",
     "companion": "角落陪伴",
     "companionHint": "在平板和电脑的右下角显示看板娘，她会随播放状态变化。"
+  },
+  "aboutPage": {
+    "title": "关于",
+    "label": "关于 Rainy",
+    "sourceCode": "源代码",
+    "releaseNotes": "发布说明",
+    "license": "许可证",
+    "intro": "为 NAS 打造的自托管音乐服务器，内置 Subsonic API、可安装的网页播放器与曲库管理。",
+    "overview": "软件概览",
+    "overviewOne": "Rainy 把 NAS 上的音乐文件夹变成私人流媒体服务。它支持 Subsonic 与 OpenSubsonic API，常用的客户端可以直接连接；自带的网页播放器也能像应用一样安装。",
+    "overviewTwo": "曲库管理是内置功能：编辑标签、封面与歌词，按规则重命名，上传，在线匹配，可恢复的回收站，曲库体检，以及完整的编辑历史，都能在浏览器里完成。只有你要求时才会修改文件，每次修改都有记录。",
+    "builtWithAi": "使用 AI 构建",
+    "aiCredit": "本软件由 yexca 在 AI Agent 的协助下开发。",
+    "modelHistoryTitle": "使用的 AI 模型",
+    "modelHistoryDescription": "各版本区间中协助开发的模型。",
+    "firstRelease": "起始",
+    "present": "至今",
+    "referenceProjects": "参考项目",
+    "closedSource": "闭源",
+    "navidromeReference": "Rainy 沿着 Navidrome 为自托管音乐服务器开辟的道路前进，其 Subsonic / OpenSubsonic 兼容、曲库扫描与多用户设计参考了该项目。",
+    "lxMusicReference": "Rainy 的在线音乐搜索与 lx-music 自定义源脚本支持参考了该项目的搜索实现与脚本 API。",
+    "musicTagReference": "该软件不开源。Rainy 的在线匹配（从在线曲库查找歌曲并填入标签、封面与歌词）是通过分析其行为与处理数据参考实现的，未包含其任何代码。",
+    "technologies": "主要技术栈",
+    "groups": {
+      "frontend": "前端",
+      "backend": "后端",
+      "standards": "协议与标准",
+      "runtime": "运行时与交付"
+    },
+    "usageNotice": "Rainy 不提供任何音乐内容或在线服务，仅用于管理与播放你自己拥有的音乐。",
+    "copyright": "版权所有 (C) 2026 yexca。",
+    "licenseText": "Rainy 是根据 <license>GNU AGPL v3</license> 授权的自由软件，不提供任何保证；完整对应源代码可在项目仓库中找到。"
   }
 }

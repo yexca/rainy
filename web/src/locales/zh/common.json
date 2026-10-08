@@ -36,7 +36,8 @@
     "allPlaylists": "全部歌单",
     "noPlaylists": "还没有歌单",
     "toggleSidebar": "展开/收起侧边栏",
-    "listening": "收听统计"
+    "listening": "收听统计",
+    "about": "关于"
   },
   "actions": {
     "play": "播放",

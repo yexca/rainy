@@ -103,7 +103,9 @@
     "title": "About",
     "tagline": "Your self-hosted music library",
     "version": "Version",
-    "api": "Compatibility"
+    "api": "Compatibility",
+    "more": "About Rainy",
+    "moreHint": "Credits, reference projects and license"
   },
   "scrobbling": {
     "title": "Scrobbling",
@@ -147,5 +149,37 @@
     "artHint": "Show the mascot on empty, error and sign-in screens.",
     "companion": "Corner companion",
     "companionHint": "Show her in the bottom-right corner on tablets and desktops. She reacts to playback."
+  },
+  "aboutPage": {
+    "title": "About",
+    "label": "About Rainy",
+    "sourceCode": "Source code",
+    "releaseNotes": "Release notes",
+    "license": "License",
+    "intro": "A self-hosted music server for your NAS, with a Subsonic API, an installable web player, and library management built in.",
+    "overview": "Overview",
+    "overviewOne": "Rainy turns the music folder on your NAS into a private streaming service. It speaks the Subsonic and OpenSubsonic APIs, so your favourite apps connect directly, and ships its own web player that installs as an app.",
+    "overviewTwo": "Library management is built in: editing tags, covers and lyrics, renaming by pattern, uploads, online lookup, a restorable trash, a library doctor, and a complete edit history, all in the browser. Your files are only changed when you ask, and every change is logged.",
+    "builtWithAi": "Built with AI",
+    "aiCredit": "Rainy is developed by yexca with the help of AI agents.",
+    "modelHistoryTitle": "AI models used",
+    "modelHistoryDescription": "The models that helped build each range of versions.",
+    "firstRelease": "First release",
+    "present": "present",
+    "referenceProjects": "Reference projects",
+    "closedSource": "Closed source",
+    "navidromeReference": "Rainy follows the path Navidrome opened for self-hosted music servers; its Subsonic / OpenSubsonic compatibility, library scanning and multi-user design were modelled on this project.",
+    "lxMusicReference": "Rainy's online music search and its support for lx-music custom source scripts follow this project's search code and script API.",
+    "musicTagReference": "This tagger is not open source. Rainy's online match, which looks up a song in online catalogues and fills in its tags, cover and lyrics, was designed by studying its behaviour and the data it produces; none of its code is included.",
+    "technologies": "Built with",
+    "groups": {
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "standards": "Standards",
+      "runtime": "Runtime & delivery"
+    },
+    "usageNotice": "Rainy provides no music and no online service. It is for managing and playing music you own.",
+    "copyright": "Copyright (C) 2026 yexca.",
+    "licenseText": "Rainy is free software under the <license>GNU AGPL v3</license>, with no warranty; the complete corresponding source code is available in the project repository."
   }
 }
