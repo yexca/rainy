@@ -24,3 +24,5 @@ action.
 - Documentation-only pull requests run lightweight policy checks. Code changes
   select the affected validation phases, and the required Core check rejects
   unplanned skips. Releases also verify main ancestry and nonempty release notes.
+- Update the transitive source-map-js dependency to its patched release so
+  the frontend dependency audit passes.
