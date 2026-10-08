@@ -9,12 +9,12 @@ action.
 - Songs and albums without a cover, artists without a photo, playlists without
   a cover, and radio stations now show the mascot instead of a grey icon, with
   three different covers so a grid of missing art doesn't repeat one picture.
-  The lock screen and notifications show her too. Turn **Settings → Mascot →
-  Illustrations** off to keep the plain placeholders.
+  The lock screen and notifications show her too. Turn **Illustrations** off
+  under **Settings → Appearance → Mascot** to keep the plain placeholders.
 - The player no longer keeps showing the previous song's cover when the next
   song has none.
-- A new **About** page, opened from the sidebar, Settings → About, or the
-  account menu, shows the version, an overview, the AI models Rainy was built
+- A new **About** page, opened from the sidebar or the account menu, shows
+  the version, the Subsonic compatibility, an overview, the AI models Rainy was built
   with, the projects it learned from (Navidrome, lx-music, and Music Tag), the
   main technologies, and the license.
 - On tablets and desktops, the top-right corner of the header has a round tray
@@ -22,6 +22,10 @@ action.
   language, next to an account button that shows your name and role.
   **Settings** is pinned at the bottom of the sidebar. On phones, theme and
   language are in the account menu under **Appearance**.
+- **Settings** is split into tabs: Account, Appearance, Playback, Apps, and
+  Scrobbling. Older links to a settings section open its tab, **Log out** sits
+  at the bottom of Account, and the version and compatibility moved to
+  **About**.
 
 ## Development And Docs
 
