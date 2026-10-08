@@ -48,7 +48,10 @@ Conventions:
 - Use `dbtest.New(t)` for store-backed tests. It creates a migrated SQLite file
   in a temporary directory and closes it through `t.Cleanup`. Never check in a
   database or share a writable database between tests.
-- Tests must not need the network. Tests that need ffmpeg must call `t.Skip`
+- Tests must not contact real external services. Use canned responses through
+  a fake HTTP transport or loopback `httptest` servers; unknown mock requests
+  must fail instead of falling back to the network. Provider domains may appear
+  in protocol fixtures but must never be dialed. Tests that need ffmpeg must call `t.Skip`
   when it is unavailable, so `go test ./...` passes on a clean machine.
 - Build file fixtures in `t.TempDir()`. Scanner, artwork, and manage tests
   that need real audio copy the generated `testdata/music` library into a
@@ -106,7 +109,10 @@ Generate the local test library with `make testdata`
 [Local development](local-dev.md#test-library). Every tracked fixture is
 public repository data:
 
-- Use synthetic names such as `Example Artist` and `Example Album`.
+- Use synthetic names such as `Example Artist` and `Example Album`. Artist,
+  album, song, and media identifiers in canned provider responses must also be
+  obvious placeholders. Encoding tests should keep their accented characters
+  and mixed scripts in synthetic names instead of using real artists or works.
 - Use `example.com` or `.invalid` domains and documentation addresses such as
   `192.0.2.10`.
 - Use obvious placeholders such as `synthetic-user` and `synthetic-password`
