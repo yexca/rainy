@@ -297,7 +297,7 @@ function Overview({
 
       <p className="text-[13px] text-muted-foreground">
         {t('listening.scrobbleHint')}{' '}
-        <Link to="/settings#scrobbling" className="font-medium text-primary hover:underline">
+        <Link to="/settings/scrobbling" className="font-medium text-primary hover:underline">
           {t('listening.scrobbleLink')}
         </Link>
       </p>

@@ -1,12 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LogOut } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/spinner'
 import { PasswordInput } from '@/features/auth/components/password-input'
+import { useLogout } from '@/hooks/use-auth'
 import { isApiError } from '@/lib/api/client'
 import { api, type UpdateMeInput } from '@/lib/api/endpoints'
 import type { AuthStatus, User } from '@/lib/api/types'
@@ -240,5 +243,30 @@ export function PasswordSection({ username }: { username: string }) {
         </div>
       </form>
     </SettingsSection>
+  )
+}
+
+/** Full-width "Log out" button at the end of the Account tab. */
+export function LogoutButton() {
+  const { t } = useTranslation('settings')
+  const logout = useLogout()
+  const navigate = useNavigate()
+
+  const onLogout = () => {
+    logout.mutate(undefined, {
+      onSettled: () => navigate('/login', { replace: true }),
+    })
+  }
+
+  return (
+    <Button
+      variant="outline"
+      onClick={onLogout}
+      disabled={logout.isPending}
+      className="h-11 w-full rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive md:h-10"
+    >
+      {logout.isPending ? <Spinner size="sm" className="text-current" /> : <LogOut />}
+      {t('common:actions.logout')}
+    </Button>
   )
 }

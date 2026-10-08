@@ -12,6 +12,7 @@ const REPOSITORY_URL = 'https://github.com/yexca/rainy'
 const LICENSE_URL = `${REPOSITORY_URL}/blob/main/LICENSE`
 const LICENSE_SPDX_ID = 'AGPL-3.0'
 const AUTHOR = 'yexca'
+const SUBSONIC_COMPATIBILITY = 'Subsonic 1.16.1 · OpenSubsonic'
 
 /** The release page of a tagged build; development builds link to the release list. */
 function releaseURL(version: string): string {
@@ -89,7 +90,7 @@ export default function AboutPage() {
   )
 }
 
-/** The record sleeve: artwork, name, version, and the outbound project links. */
+/** The record sleeve: artwork, name, version, API compatibility, and the outbound project links. */
 function Sleeve() {
   const { t } = useTranslation('settings')
   const { version } = useAuth()
@@ -102,9 +103,17 @@ function Sleeve() {
       <div className="min-w-0">
         <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">{AUTHOR}</p>
         <h2 className="mt-1 text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Rainy</h2>
-        <span className="tnum mt-2.5 inline-flex rounded-md border bg-card px-2 py-0.5 font-mono text-xs text-muted-foreground select-all">
-          {version || '—'}
-        </span>
+        <p className="mt-1 text-sm text-muted-foreground">{t('aboutPage.tagline')}</p>
+        <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1.5 text-xs">
+          <dt className="text-muted-foreground">{t('aboutPage.version')}</dt>
+          <dd>
+            <span className="tnum inline-flex rounded-md border bg-card px-2 py-0.5 font-mono text-muted-foreground select-all">
+              {version || '—'}
+            </span>
+          </dd>
+          <dt className="text-muted-foreground">{t('aboutPage.compatibility')}</dt>
+          <dd>{SUBSONIC_COMPATIBILITY}</dd>
+        </dl>
       </div>
       <ul className="col-span-2 grid grid-cols-3 gap-2 lg:col-span-1 lg:grid-cols-1 lg:gap-0 lg:divide-y lg:border-y">
         <SleeveLink href={REPOSITORY_URL} icon={CodeXml} label={t('aboutPage.sourceCode')} />

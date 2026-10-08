@@ -99,14 +99,6 @@
     "mute": "Mute / unmute",
     "space": "Space"
   },
-  "about": {
-    "title": "About",
-    "tagline": "Your self-hosted music library",
-    "version": "Version",
-    "api": "Compatibility",
-    "more": "About Rainy",
-    "moreHint": "Credits, reference projects and license"
-  },
   "scrobbling": {
     "title": "Scrobbling",
     "description": "Send what you play, in Rainy and in your Subsonic apps, to Last.fm or ListenBrainz.",
@@ -153,6 +145,9 @@
   "aboutPage": {
     "title": "About",
     "label": "About Rainy",
+    "tagline": "Your self-hosted music library",
+    "version": "Version",
+    "compatibility": "Compatibility",
     "sourceCode": "Source code",
     "releaseNotes": "Release notes",
     "license": "License",

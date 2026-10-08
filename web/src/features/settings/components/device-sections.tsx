@@ -1,12 +1,8 @@
-import { ChevronRight, Download, LogOut, Share, SquarePlus } from 'lucide-react'
+import { Download, Share, SquarePlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
 
-import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/spinner'
 import { promptInstall, useInstallPrompt } from '@/features/player/lib/install-prompt'
-import { useAuth, useLogout } from '@/hooks/use-auth'
 import { isIOS, isStandalone } from '@/lib/platform'
 
 import { SettingsRow, SettingsSection } from './settings-ui'
@@ -79,58 +75,5 @@ export function ShortcutsSection() {
         </SettingsRow>
       ))}
     </SettingsSection>
-  )
-}
-
-export function AboutSection() {
-  const { t } = useTranslation('settings')
-  const { version } = useAuth()
-  const logout = useLogout()
-  const navigate = useNavigate()
-
-  const onLogout = () => {
-    logout.mutate(undefined, {
-      onSettled: () => navigate('/login', { replace: true }),
-    })
-  }
-
-  return (
-    <>
-      <SettingsSection id="about" title={t('about.title')}>
-        <div className="flex items-center gap-4 px-4 py-4">
-          <Logo size={48} title="Rainy" />
-          <div className="min-w-0">
-            <p className="text-lg leading-tight font-semibold tracking-tight">Rainy</p>
-            <p className="text-[13px] text-muted-foreground">{t('about.tagline')}</p>
-          </div>
-        </div>
-        <SettingsRow label={t('about.version')}>
-          <span className="tnum font-mono text-[13px] text-muted-foreground select-all">{version || '—'}</span>
-        </SettingsRow>
-        <SettingsRow label={t('about.api')}>
-          <span className="text-[13px] text-muted-foreground">Subsonic 1.16.1 · OpenSubsonic</span>
-        </SettingsRow>
-        <Link
-          to="/about"
-          className="flex min-h-12 items-center gap-4 px-4 py-3 transition-colors outline-none hover:bg-accent/60 focus-visible:bg-accent/60 active:bg-accent"
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block text-[15px] font-medium md:text-sm">{t('about.more')}</span>
-            <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{t('about.moreHint')}</span>
-          </span>
-          <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" aria-hidden />
-        </Link>
-      </SettingsSection>
-
-      <Button
-        variant="outline"
-        onClick={onLogout}
-        disabled={logout.isPending}
-        className="h-11 w-full rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive md:h-10"
-      >
-        {logout.isPending ? <Spinner size="sm" className="text-current" /> : <LogOut />}
-        {t('common:actions.logout')}
-      </Button>
-    </>
   )
 }

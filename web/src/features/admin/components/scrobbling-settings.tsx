@@ -208,7 +208,7 @@ function OwnAccount({ account, enabled }: { account: ScrobbleAccount | undefined
       <div className="flex flex-wrap items-center gap-3 sm:justify-end">
         {state ? <Status ok={linked && account!.enabled} label={state} /> : null}
         <Button variant="outline" size="sm" asChild className="max-md:h-11">
-          <Link to="/settings#scrobbling">{linked || !enabled ? t('scrobbling.own.manage') : t('scrobbling.own.connect')}</Link>
+          <Link to="/settings/scrobbling">{linked || !enabled ? t('scrobbling.own.manage') : t('scrobbling.own.connect')}</Link>
         </Button>
       </div>
     </Row>

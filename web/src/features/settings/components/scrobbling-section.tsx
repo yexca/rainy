@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TriangleAlert } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'react-router'
 import { toast } from 'sonner'
 
 import { Spinner } from '@/components/spinner'
@@ -41,14 +40,6 @@ export function ScrobblingSection() {
     queryFn: ({ signal }) => api.me.scrobbling.get({ signal }),
   })
   const list = accounts.data ?? []
-  const { hash } = useLocation()
-  const loaded = accounts.data !== undefined
-
-  // `/settings#scrobbling` (e.g. from the listening report or after linking Last.fm): the
-  // sections above settle first, so scroll once this section has its content.
-  useEffect(() => {
-    if (loaded && hash === '#scrobbling') document.getElementById('scrobbling')?.scrollIntoView({ block: 'start' })
-  }, [loaded, hash])
 
   return (
     <SettingsSection id="scrobbling" title={t('scrobbling.title')} description={t('scrobbling.description')} footer={t('scrobbling.footer')}>

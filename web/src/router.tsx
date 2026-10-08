@@ -70,6 +70,7 @@ export const routes: RouteObject[] = [
                   { path: 'daily', lazy: page(() => import('@/features/library/pages/daily-page')) },
                   { path: 'settings', lazy: page(() => import('@/features/settings/pages/settings-page')) },
                   { path: 'settings/lastfm', lazy: page(() => import('@/features/settings/pages/lastfm-callback-page')) },
+                  { path: 'settings/:tab', lazy: page(() => import('@/features/settings/pages/settings-page')) },
                   { path: 'about', lazy: page(() => import('@/features/settings/pages/about-page')) },
                   {
                     path: 'manage',

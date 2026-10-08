@@ -99,14 +99,6 @@
     "mute": "静音 / 取消静音",
     "space": "空格"
   },
-  "about": {
-    "title": "关于",
-    "tagline": "自托管的私人音乐库",
-    "version": "版本",
-    "api": "兼容性",
-    "more": "关于 Rainy",
-    "moreHint": "致谢、参考项目与许可证"
-  },
   "scrobbling": {
     "title": "播放记录同步",
     "description": "把你在 Rainy 和 Subsonic 应用中的播放记录同步到 Last.fm 或 ListenBrainz。",
@@ -152,6 +144,9 @@
   "aboutPage": {
     "title": "关于",
     "label": "关于 Rainy",
+    "tagline": "自托管的私人音乐库",
+    "version": "版本",
+    "compatibility": "兼容性",
     "sourceCode": "源代码",
     "releaseNotes": "发布说明",
     "license": "许可证",

@@ -58,7 +58,7 @@ function AppearanceMenu() {
         </div>
         <div className="border-t p-1.5">
           <Link
-            to="/settings#appearance"
+            to="/settings/appearance"
             onClick={() => setOpen(false)}
             className="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           >

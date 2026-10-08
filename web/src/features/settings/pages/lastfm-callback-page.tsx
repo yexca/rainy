@@ -30,7 +30,7 @@ export default function LastfmCallbackPage() {
     onSuccess: (account) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.scrobbling })
       toast.success(t('scrobbling.linked', { service: 'Last.fm', user: account.username }))
-      navigate('/settings#scrobbling', { replace: true })
+      navigate('/settings/scrobbling', { replace: true })
     },
   })
 
@@ -43,7 +43,7 @@ export default function LastfmCallbackPage() {
 
   return (
     <Page>
-      <PageHeader title={t('scrobbling.callbackTitle')} back="/settings" />
+      <PageHeader title={t('scrobbling.callbackTitle')} back="/settings/scrobbling" />
       {!token || link.isError ? (
         <div className="grid justify-items-center gap-4">
           {!token ? (
@@ -52,7 +52,7 @@ export default function LastfmCallbackPage() {
             <ErrorState error={link.error} title={t('scrobbling.callbackFailed')} />
           )}
           <Button variant="outline" asChild>
-            <Link to="/settings#scrobbling" replace>
+            <Link to="/settings/scrobbling" replace>
               {t('scrobbling.backToSettings')}
             </Link>
           </Button>
