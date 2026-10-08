@@ -33,6 +33,9 @@ func (a *API) Routes() http.Handler {
 		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method "+r.Method+" not allowed for "+r.URL.Path)
 	})
 	r.Use(a.app.Auth.Middleware)
+	if a.app.DevUserID != "" {
+		r.Use(a.app.Auth.DevelopmentMiddleware(a.app.DevUserID))
+	}
 
 	// Public.
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

@@ -86,6 +86,9 @@ should use the [Security Policy](../../SECURITY.md).
 - Passwords are stored encrypted with `secret.key` because Subsonic token
   authentication needs them. Never log or return them, and never weaken the
   AES-GCM encryption or the key's file permissions.
+- `RAINY_MODE=development` removes authentication from the native API. It is
+  for the loopback-only development stack; never enable it in the production
+  Compose file, the image defaults, or any example meant for operators.
 - Keep the sign-in and Subsonic rate limits in place. Behind a proxy they
   depend on `RAINY_TRUST_PROXY`, which trusts only `X-Real-IP` or the last
   `X-Forwarded-For` hop.

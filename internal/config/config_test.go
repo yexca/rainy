@@ -18,7 +18,8 @@ func TestLoadDefaults(t *testing.T) {
 	}
 	if c.Port != 7650 || c.Address != "0.0.0.0" || c.ScanInterval != time.Hour || !c.ScanOnStart ||
 		c.FFmpegPath != "ffmpeg" || c.LogLevel != "info" || c.LogFormat != "text" ||
-		c.SessionTTL != 720*time.Hour || c.TrustProxy || c.DevCORS != "" {
+		c.SessionTTL != 720*time.Hour || c.TrustProxy || c.DevCORS != "" || c.Mode != ModeProduction ||
+		c.Development() || c.DevUser != "dev" {
 		t.Fatalf("unexpected defaults: %+v", c)
 	}
 	if !filepath.IsAbs(c.DataDir) || !filepath.IsAbs(c.MusicDir) {
@@ -44,12 +45,14 @@ func TestLoadOverrides(t *testing.T) {
 		"RAINY_SCAN_INTERVAL": "0", "RAINY_SCAN_ON_START": "false", "RAINY_FFMPEG_PATH": "/usr/bin/ffmpeg",
 		"RAINY_LOG_LEVEL": "DEBUG", "RAINY_LOG_FORMAT": "json", "RAINY_SESSION_TTL": "7d",
 		"RAINY_TRUST_PROXY": "1", "RAINY_DEV_CORS": "http://localhost:5173/",
+		"RAINY_MODE": "Development", "RAINY_DEV_USER": "preview",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if c.Port != 8080 || c.ScanInterval != 0 || c.ScanOnStart || c.LogLevel != "debug" || c.LogFormat != "json" ||
-		c.SessionTTL != 7*24*time.Hour || !c.TrustProxy || c.DevCORS != "http://localhost:5173" || c.DataDir != dir {
+		c.SessionTTL != 7*24*time.Hour || !c.TrustProxy || c.DevCORS != "http://localhost:5173" || c.DataDir != dir ||
+		!c.Development() || c.DevUser != "preview" {
 		t.Fatalf("unexpected: %+v", c)
 	}
 	if c.ListenAddr() != "[::1]:8080" {
@@ -60,11 +63,12 @@ func TestLoadOverrides(t *testing.T) {
 func TestLoadErrors(t *testing.T) {
 	_, err := LoadFrom(env(map[string]string{
 		"RAINY_PORT": "99999", "RAINY_SCAN_INTERVAL": "soon", "RAINY_LOG_LEVEL": "loud", "RAINY_TRUST_PROXY": "maybe",
+		"RAINY_MODE": "dev",
 	}))
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	for _, want := range []string{"RAINY_PORT", "RAINY_SCAN_INTERVAL", "RAINY_LOG_LEVEL", "RAINY_TRUST_PROXY"} {
+	for _, want := range []string{"RAINY_PORT", "RAINY_SCAN_INTERVAL", "RAINY_LOG_LEVEL", "RAINY_TRUST_PROXY", "RAINY_MODE"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error %q does not mention %s", err, want)
 		}

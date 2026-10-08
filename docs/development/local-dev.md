@@ -44,10 +44,25 @@ The development stack in
 [`deploy/compose/dev.yml`](../../deploy/compose/dev.yml) builds from this
 checkout. It publishes on loopback only (`RAINY_DEV_PORT`, default 7650),
 keeps its database and application state in `testdata/dev-data` mounted at
-`/config`, and mounts `testdata/music` at `/data` (override
-with `RAINY_DEV_MUSIC_PATH`). It defaults to debug logs and disabled periodic
-scans; environment overrides still apply. Keep development data separate from
-the real library.
+`/config` (override with `RAINY_DEV_DATA_PATH`), and mounts `testdata/music`
+at `/data` (override with `RAINY_DEV_MUSIC_PATH`). It defaults to debug logs,
+disabled periodic scans, and `RAINY_MODE=development`, which signs the web app
+in as `RAINY_DEV_USER` (default `dev`; created as an administrator with a
+random password when missing, an existing account keeps its role) so the
+preview needs no login. Set `RAINY_MODE=production` to test signing in;
+environment overrides still apply. Keep development data separate from the
+real library.
+
+The Compose project is named after the checkout directory, so each Git
+worktree runs its own container. Give every checkout that runs at the same
+time its own port, for example:
+
+```sh
+RAINY_DEV_PORT=7660 make docker-up    # http://127.0.0.1:7660
+```
+
+`make docker-down` in that checkout stops only its own preview.
+`RAINY_DEV_IMAGE` changes the image tag (default `rainy:dev`).
 
 The root [`docker-compose.yml`](../../docker-compose.yml) is for operators and
 pulls published images. To validate an isolated production container instead:

@@ -30,7 +30,21 @@ type Config struct {
 	SessionTTL   time.Duration // sliding web session lifetime (RAINY_SESSION_TTL)
 	TrustProxy   bool          // honour X-Forwarded-For / X-Real-IP (RAINY_TRUST_PROXY)
 	DevCORS      string        // extra allowed origin for /api in development (RAINY_DEV_CORS)
+	Mode         string        // ModeProduction or ModeDevelopment (RAINY_MODE)
+	DevUser      string        // account development mode signs requests in as (RAINY_DEV_USER)
 }
+
+// Runtime modes (RAINY_MODE).
+const (
+	// ModeProduction requires a session or API key for the native API.
+	ModeProduction = "production"
+	// ModeDevelopment signs native API requests without a valid session in as DevUser. It is
+	// meant for a local preview only and must never run on a reachable server.
+	ModeDevelopment = "development"
+)
+
+// Development reports whether the server runs in development mode.
+func (c *Config) Development() bool { return c.Mode == ModeDevelopment }
 
 // Default returns the configuration used when no environment variable is set
 // (paths are still relative; Load makes them absolute).
@@ -46,6 +60,8 @@ func Default() *Config {
 		LogLevel:     "info",
 		LogFormat:    "text",
 		SessionTTL:   720 * time.Hour,
+		Mode:         ModeProduction,
+		DevUser:      "dev",
 	}
 }
 
@@ -142,6 +158,18 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if v, ok := get("RAINY_DEV_CORS"); ok {
 		c.DevCORS = strings.TrimRight(v, "/")
+	}
+	if v, ok := get("RAINY_MODE"); ok {
+		v = strings.ToLower(v)
+		switch v {
+		case ModeProduction, ModeDevelopment:
+			c.Mode = v
+		default:
+			errs = append(errs, fmt.Errorf("RAINY_MODE: invalid mode %q (production|development)", v))
+		}
+	}
+	if v, ok := get("RAINY_DEV_USER"); ok {
+		c.DevUser = v
 	}
 
 	if err := errors.Join(errs...); err != nil {

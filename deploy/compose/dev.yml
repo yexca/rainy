@@ -1,20 +1,26 @@
 # Development stack: builds the image from this checkout and serves the synthetic test
 # library (`make testdata`). Run through the Makefile so paths resolve from the repository
 # root: `make docker-up`, `make docker-logs`, `make docker-down`.
+#
+# The Compose project is named after the checkout directory, so every worktree gets its own
+# container. Give each running checkout its own RAINY_DEV_PORT (and, to share state or music,
+# RAINY_DEV_DATA_PATH / RAINY_DEV_MUSIC_PATH). RAINY_MODE=development signs the web app in as
+# RAINY_DEV_USER without a password; the port is published on 127.0.0.1 only.
 services:
   rainy:
     build:
       context: .
-    image: rainy:dev
-    container_name: rainy-dev
+    image: ${RAINY_DEV_IMAGE:-rainy:dev}
     environment:
       PUID: ${PUID:-0}
       PGID: ${PGID:-0}
       TZ: ${TZ:-Asia/Shanghai}
       RAINY_LOG_LEVEL: ${RAINY_LOG_LEVEL:-debug}
       RAINY_SCAN_INTERVAL: ${RAINY_SCAN_INTERVAL:-0}
+      RAINY_MODE: ${RAINY_MODE:-development}
+      RAINY_DEV_USER: ${RAINY_DEV_USER:-dev}
     ports:
       - "127.0.0.1:${RAINY_DEV_PORT:-7650}:7650"
     volumes:
-      - ./testdata/dev-data:/config
+      - ${RAINY_DEV_DATA_PATH:-./testdata/dev-data}:/config
       - ${RAINY_DEV_MUSIC_PATH:-./testdata/music}:/data

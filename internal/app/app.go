@@ -51,6 +51,9 @@ type App struct {
 	Recommend  *recommend.Service  // infinite-mode mixes and daily mixes from the user's library and plays
 	Scrobble   *scrobble.Service   // plays to Last.fm / ListenBrainz; only when settings.lastfmEnabled / listenBrainzEnabled is on
 	StartedAt  time.Time
+	// DevUserID is the account RAINY_MODE=development signs native API requests in as; "" in
+	// production.
+	DevUserID string
 }
 
 // New creates the data directories, opens and migrates the database, loads (or creates)
@@ -118,6 +121,15 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 	}
 	if err := st.PurgeExpiredSessions(ctx); err != nil {
 		slog.Warn("purging expired sessions", "err", err)
+	}
+	if cfg.Development() {
+		u, err := a.Auth.EnsureDevelopmentUser(ctx, cfg.DevUser)
+		if err != nil {
+			return nil, fmt.Errorf("RAINY_DEV_USER: %w", err)
+		}
+		a.DevUserID = u.ID
+		slog.Warn("development mode: requests without a session are signed in as this user; never expose this server",
+			"user", u.Username, "admin", u.IsAdmin)
 	}
 	return a, nil
 }

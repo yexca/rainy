@@ -68,6 +68,8 @@ JSON logging; everything else uses the program defaults.
 | `RAINY_SESSION_TTL` | `720h` | same | Sliding web session lifetime (minimum `1m`) |
 | `RAINY_TRUST_PROXY` | `false` | same | Honour `X-Real-IP` or the last `X-Forwarded-For` hop; enable only behind your own proxy |
 | `RAINY_DEV_CORS` | empty | empty | Development only: one extra origin allowed to call `/api`, such as `http://localhost:5173` |
+| `RAINY_MODE` | `production` | same | `production` requires signing in. `development` signs every web-app request without a valid session in as `RAINY_DEV_USER`; for a local preview only (the development Compose stack), never on a reachable server. Subsonic clients still authenticate. |
+| `RAINY_DEV_USER` | `dev` | same | Account development mode signs requests in as; created as an administrator with a random password when it does not exist |
 
 Durations accept Go syntax plus a day unit, for example `30m`, `12h`, `7d`, or
 `1d12h`. Booleans accept `true`/`false`, `1`/`0`, `yes`/`no`, and `on`/`off`.

@@ -130,6 +130,16 @@ exists for the required check. `make help` lists the common entry points.
   `pnpm build`) for this unless the user asks; host-side test and lint targets
   are fine. Remove any local build output you create (`bin/`, generated
   `web/dist` files, `coverage.out`).
+- During development, preview the app with the development environment:
+  `make docker-up` builds the current checkout into its own Compose project
+  (named after the checkout directory) and starts it with
+  `RAINY_MODE=development`, which signs the web app in as `RAINY_DEV_USER`
+  (default `dev`, created as an administrator), so no login is needed. Other
+  worktrees run their own previews: give yours a free `RAINY_DEV_PORT` (and,
+  when needed, `RAINY_DEV_DATA_PATH` / `RAINY_DEV_MUSIC_PATH`), never stop,
+  remove, or rebuild another checkout's container, and run `make docker-down`
+  from the same checkout when you are done. Do not start ad-hoc containers or
+  images for previews.
 - Use `make DOCKER_IMAGE=rainy:ci docker-build smoke` (or `make ci-production`)
   for Dockerfile, entrypoint, or runtime changes.
 - `make ci-local` runs the complete GitHub Actions sequence locally.

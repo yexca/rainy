@@ -129,10 +129,13 @@ Environment variables (all optional):
 | `RAINY_SESSION_TTL` | `720h` | web session lifetime (sliding) |
 | `RAINY_TRUST_PROXY` | `false` | honour X-Forwarded-For / X-Real-IP |
 | `RAINY_DEV_CORS` | `` | extra allowed origin for /api during development (e.g. `http://localhost:5173`) |
+| `RAINY_MODE` | `production` | `production` \| `development`; development: `/api` requests without a valid session or API key are signed in as `RAINY_DEV_USER` (`auth.DevelopmentMiddleware` after `auth.Middleware`; a valid session still wins); `/rest` is unchanged. Local preview only (`deploy/compose/dev.yml` defaults to it) |
+| `RAINY_DEV_USER` | `dev` | development-mode account; `app.New` calls `Auth.EnsureDevelopmentUser`, which creates a missing account as an administrator with a random password and uses an existing one unchanged (`App.DevUserID`) |
 
 `config.Load() (*config.Config, error)` reads them; `Config` fields:
 `Address, Port string/int; DataDir, MusicDir string; ScanInterval time.Duration; ScanOnStart bool;
-FFmpegPath, YtdlpPath string; LogLevel, LogFormat string; SessionTTL time.Duration; TrustProxy bool; DevCORS string`
+FFmpegPath, YtdlpPath string; LogLevel, LogFormat string; SessionTTL time.Duration; TrustProxy bool; DevCORS string;
+Mode, DevUser string` (`Development()` reports `Mode == ModeDevelopment`)
 plus helpers `DBPath()`, `CacheDir()`, `ArtworkCacheDir()`, `TrashDir()`, `TmpDir()`, `YtdlpDir()`, `SecretKeyPath()`.
 
 Data dir layout:

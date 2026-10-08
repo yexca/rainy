@@ -64,6 +64,12 @@ action.
   and CI guides. Agent instructions select the relevant reading path.
 - `make help`, `docs-check`, `ci-policy`, and `release-check` provide clear
   local entry points. Existing `frontend-docs` and `smoke` commands remain usable.
+- `RAINY_MODE=development` signs the web app in as `RAINY_DEV_USER` (default
+  `dev`, created as an administrator when missing) so local previews need no
+  login; the default `production` mode is unchanged. The development Compose
+  stack turns it on, publishes on loopback only, and runs one container per
+  checkout, so Git worktrees preview side by side with their own
+  `RAINY_DEV_PORT`, `RAINY_DEV_DATA_PATH`, and `RAINY_DEV_MUSIC_PATH`.
 - Documentation-only pull requests run lightweight policy checks. Code changes
   select the affected validation phases, and the required Core check rejects
   unplanned skips. Releases also verify main ancestry and nonempty release notes.
