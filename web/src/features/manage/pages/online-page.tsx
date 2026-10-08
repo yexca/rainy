@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
-import { Page } from '@/components/page'
+import { Page, PageColumn } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Badge } from '@/components/ui/badge'
@@ -90,10 +90,10 @@ export default function OnlinePage() {
       <PageHeader title={t('title')} subtitle={t('onlineMusic.subtitle')}>
         <TracksTabs />
       </PageHeader>
-      <div className="mx-auto grid max-w-4xl gap-6">
+      <PageColumn>
         {content}
         <DownloadJobs jobs={onlineJobs} />
-      </div>
+      </PageColumn>
     </Page>
   )
 }

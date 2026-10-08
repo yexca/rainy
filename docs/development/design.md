@@ -81,6 +81,23 @@ The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
 `--safe-top`/`--safe-bottom` describe the player chrome. Pages use the
 `.page-pad` utility so content never hides behind it.
 
+### Page Width
+
+Every page uses `<Page>` with `<PageHeader>` first. The title, subtitle, and
+section tabs always run full width and start at the page gutter, so they never
+move when switching tabs. The body takes one of two widths:
+
+| Body | Width | Used by |
+| --- | --- | --- |
+| Full width (default) | The whole content area | Collections and grids, track tables, lists, and dashboards: library pages, Tracks › Metadata, Library tools, Admin › Users and Libraries |
+| Column (`<PageColumn>`) | Up to 768 px (`max-w-3xl`), 32 px between sections | Forms, settings, and single-task tools: Settings, Admin › Server settings, Tracks › Upload, Online, and Links |
+
+A column is left-aligned under the title, never centered, so its left edge
+matches the header and its full-width sibling tabs. Do not add page-level
+`max-w-*` or `mx-auto` wrappers; pick one of the two widths. Full-page empty,
+error, and status states stay centered, and About keeps its own two-column
+reading layout.
+
 ## Typography and Density
 
 - Page titles are large and bold. On mobile, the large title collapses into a

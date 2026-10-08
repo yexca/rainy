@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useParams, useSearchParams } from 'react-router'
 
 import { ErrorState } from '@/components/error-state'
-import { Page } from '@/components/page'
+import { Page, PageColumn } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader } from '@/components/spinner'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -52,7 +52,7 @@ export default function ServerSettingsPage() {
         <SectionTabs section={ADMIN_SECTION} />
       </PageHeader>
 
-      <div className="mx-auto max-w-3xl">
+      <PageColumn>
         {tab === 'general' ? (
           settings.data ? (
             <SettingsForm initial={settings.data} />
@@ -70,7 +70,7 @@ export default function ServerSettingsPage() {
         ) : (
           <SystemInfo />
         )}
-      </div>
+      </PageColumn>
     </Page>
   )
 }

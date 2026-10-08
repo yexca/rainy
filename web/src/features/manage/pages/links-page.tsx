@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { Page } from '@/components/page'
+import { Page, PageColumn } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 
 import { DestinationSection } from '../components/destination-section'
@@ -22,10 +22,10 @@ export default function LinksPage() {
         <TracksTabs />
       </PageHeader>
 
-      <div className="mx-auto grid max-w-3xl gap-6">
+      <PageColumn>
         <DestinationSection />
         <LinkDownload libraryId={target.libraryId} dir={target.dir} organize={target.organize} invalidDir={target.invalidDir} />
-      </div>
+      </PageColumn>
     </Page>
   )
 }

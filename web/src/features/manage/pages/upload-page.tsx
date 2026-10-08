@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 
-import { Page } from '@/components/page'
+import { Page, PageColumn } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -74,7 +74,7 @@ export default function UploadPage() {
         <TracksTabs />
       </PageHeader>
 
-      <div className="mx-auto grid max-w-3xl gap-6">
+      <PageColumn>
         <DestinationSection />
 
         <section
@@ -138,7 +138,7 @@ export default function UploadPage() {
         </section>
 
         <UploadQueue />
-      </div>
+      </PageColumn>
     </Page>
   )
 }

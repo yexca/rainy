@@ -46,6 +46,10 @@ action.
   Scrobbling. Older links to a settings section open its tab, **Log out** sits
   at the bottom of Account, and the version and compatibility moved to
   **About**.
+- Settings, Server settings, and the Upload, Online, and Links tabs now share
+  one left-aligned column under the page title, while lists and tables such as
+  Tracks, Users, and Libraries stay full width. Switching tabs no longer moves
+  the content sideways.
 
 ## Development And Docs
 
