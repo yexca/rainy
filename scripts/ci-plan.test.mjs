@@ -4,9 +4,9 @@ import { createPlan, planKeys, validateResults } from "./ci-plan.mjs";
 
 const pr = (paths) =>
   createPlan({ eventName: "pull_request", ref: "refs/pull/1/merge", paths });
-const jobs = { backend: "backend", frontend: "frontend", smoke: "production" };
+const jobs = { style: "style", backend: "backend", frontend: "frontend", smoke: "production" };
 const resultsFor = (plan) => ({
-  style: { result: "success" },
+  policy: { result: "success" },
   ...Object.fromEntries(
     Object.entries(jobs).map(([job, key]) => [
       job,
@@ -44,26 +44,31 @@ test("documentation-only PRs skip expensive jobs while unknown paths require ful
 
 test("PR plans select the affected areas and always rebuild the image", () => {
   assert.deepEqual(pr(["web/src/features/player/store.ts"]), {
+    style: true,
     backend: false,
     frontend: true,
     production: true,
   });
   assert.deepEqual(pr(["internal/scanner/scanner.go"]), {
+    style: false,
     backend: true,
     frontend: false,
     production: true,
   });
   assert.deepEqual(pr(["web/embed.go"]), {
+    style: false,
     backend: true,
     frontend: false,
     production: true,
   });
   assert.deepEqual(pr(["Dockerfile", "docker/entrypoint.sh"]), {
+    style: false,
     backend: false,
     frontend: false,
     production: true,
   });
   assert.deepEqual(pr(["cmd/rainy/main.go", "web/src/app.tsx"]), {
+    style: true,
     backend: true,
     frontend: true,
     production: true,
@@ -105,8 +110,24 @@ test("results must match the plan: only planned-out jobs may be skipped", () => 
     /smoke/,
   );
   assert.throws(
-    () => validateResults(plan, { ...resultsFor(plan), style: { result: "failure" } }),
-    /Style/,
+    () => validateResults(plan, { ...resultsFor(plan), policy: { result: "failure" } }),
+    /Policy/,
   );
   assert.throws(() => validateResults(null, resultsFor(plan)), /invalid CI plan/);
+});
+
+test("documentation-only results require policy success and permit planned skips", () => {
+  const plan = pr(["docs/README.md"]);
+  assert.doesNotThrow(() => validateResults(plan, resultsFor(plan)));
+  for (const result of ["failure", "cancelled", undefined]) {
+    assert.throws(
+      () => validateResults(plan, { ...resultsFor(plan), style: { result } }),
+      /style/,
+    );
+  }
+  const frontend = pr(["web/src/app.tsx"]);
+  assert.throws(
+    () => validateResults(frontend, { ...resultsFor(frontend), style: { result: "skipped" } }),
+    /style/,
+  );
 });

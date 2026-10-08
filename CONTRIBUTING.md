@@ -67,10 +67,11 @@ The [Makefile](Makefile) is the canonical validation entry point. Use the
 smallest target that covers the files you changed:
 
 ```sh
-make frontend-docs       # public documentation link check
-make ci-style            # Go formatting, frontend lint, doc links, and script tests
+make docs-check          # public documentation links
+make ci-policy           # docs and validation-policy tests
+make ci-style            # frontend lint
 make ci-backend          # backend format, lint, tests, vet, race, and vulnerability checks
-make ci-frontend         # frontend audit, typecheck, and build
+make ci-frontend         # frontend audit, typecheck, helper tests, and build
 make ci-production       # production image build and smoke test
 ```
 
@@ -84,13 +85,11 @@ Before every commit, run the privacy scan:
 make sensitive-check
 ```
 
-Direct commands are useful for focused iteration, but they do not replace the
-Makefile targets:
-
-```sh
-go build ./... && go test ./... && go vet ./...
-cd web && pnpm install && pnpm typecheck && pnpm lint && pnpm build
-```
+Build and run the app with Docker by default; see
+[Local development](docs/development/local-dev.md). Use direct commands only
+when the Makefile has no target for the required check. `make help` lists
+common commands, and [CI and release automation](docs/development/ci.md)
+explains how they map to Actions jobs.
 
 ## Documentation Rules
 

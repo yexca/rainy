@@ -10,6 +10,13 @@ This document is the **single source of truth** for everyone working on the code
 and this document disagree, fix the code (or, if the document is wrong, update the document in
 the same change and say so in your report).
 
+For a reading path, start with [Architecture](index.md) and
+[Core boundaries](core-boundaries.md). This reference owns precise schemas,
+APIs, shared types, and design tokens. Day-to-day commands belong in
+[Development](../development/index.md); job selection and release automation
+belong in [CI](../development/ci.md). Historical agent labels in section
+headings identify the original implementation area, not current ownership.
+
 ---------------------------------------------------------------------------------------------
 
 ## 1. Stack
@@ -1559,45 +1566,21 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ## 10. Build, run, test
 
-```bash
-# backend (dev)
-go run ./cmd/rainy                         # serves embedded web/dist (build web first) on :7650
-go test ./...                               # unit tests
-go vet ./...
-# frontend (dev)
-cd web && pnpm install && pnpm dev          # vite on :5173, proxies /api and /rest to :7650
-pnpm build                                  # outputs web/dist (embedded by web/embed.go)
-pnpm lint && pnpm typecheck
-# test library
-bash scripts/gen-testdata.sh                # → testdata/music (needs ffmpeg)
-RAINY_MUSIC_DIR=./testdata/music RAINY_DATA_DIR=./testdata/data go run ./cmd/rainy
-# full build (Makefile targets: docs/development/local-dev.md)
-make docker-build                           # local image rainy:dev
-make docker-up                              # development compose (deploy/compose/dev.yml)
-```
+The [Makefile](../../Makefile) is the command source. Use `make help`,
+[Local development](../development/local-dev.md), and
+[Testing](../development/testing.md) for the current workflow. Docker is the
+default app runtime; host-side test, lint, and CI frontend build targets remain
+available. [CI and release automation](../development/ci.md) maps the targets
+to Actions, including the lightweight documentation-only plan.
 
 ## 11. Ownership (parallel work rules)
 
-Agents work concurrently in one tree. **Only edit files you own.** If you need something from
-another area that does not exist yet, code against the contract in this document; if the contract
-is insufficient, write a note in your final report instead of editing someone else's file.
-Do not run `go get`, `go mod tidy`, `pnpm add` or change `go.mod`/`package.json` in wave 2 —
-all dependencies are installed by the foundation; report missing ones.
-Build/typecheck only your own packages (`go build ./internal/<pkg>/...`, `go test ./internal/<pkg>/...`;
-for TS filter `pnpm typecheck` output to your paths) because other areas may be mid-edit.
-
-| Area | Owner | Files |
-|---|---|---|
-| Backend foundation | BE0 | `go.mod`, `go.sum`, `cmd/`, `internal/{buildinfo,config,db,model,util,store,auth,events,nowplaying,app,server}/`, `internal/api/{api.go,helpers.go}`, stubs of every other package, `web/embed.go`, `scripts/gen-testdata.sh`, `Makefile`, `.gitignore` |
-| Frontend foundation | FE0 | `web/*` config files, `web/src/{main.tsx,app.tsx,router.tsx,index.css}`, `web/src/components/**`, `web/src/layouts/**`, `web/src/lib/**`, `web/src/stores/**`, `web/src/hooks/**`, `web/src/features/auth/**`, `web/src/locales/*/{common,auth}.json`, stubs of other features' shared modules |
-| Scanner / tags / artwork | A | `internal/{tags,scanner,artwork}/**` |
-| Subsonic | B | `internal/subsonic/**` |
-| Native API + media | C | `internal/api/{auth,library,annotations,playlists,queue,media,radio,events}*.go`, `internal/{transcode,lyrics}/**` |
-| Manage + admin API | D | `internal/manage/**`, `internal/api/{manage,admin}*.go` |
-| Library UI | E | `web/src/features/library/**`, `web/src/locales/*/library.json` |
-| Player + PWA + settings UI | F | `web/src/features/{player,settings}/**`, `web/public/**` (icons), `web/pwa.config.ts` (VitePWA options imported by `vite.config.ts`), `web/index.html`, `web/src/locales/*/{player,settings}.json` |
-| Manage + admin UI | G | `web/src/features/{manage,admin}/**`, `web/src/locales/*/{manage,admin}.json` |
-| Docker + docs | H | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `docker/**`, `README.md`, `docs/readme/**`, `.github/**` |
+The section anchor is retained for existing references. The original wave
+assignments are historical and no longer govern changes. Follow
+[AGENTS.md](../../AGENTS.md) and [CONTRIBUTING.md](../../CONTRIBUTING.md),
+coordinate overlapping edits when work is explicitly delegated, and validate
+the complete affected contract. Do not filter out failures merely because
+they appear in another package.
 
 ## 12. Foundation implementation notes (BE0, wave 1)
 
