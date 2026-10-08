@@ -138,7 +138,7 @@ export default function HistoryPage() {
         <div className="grid gap-6">
           {groups.map((group) => (
             <section key={group.day}>
-              <h2 className="sticky top-[calc(var(--safe-top)+2.75rem)] z-10 -mx-1 mb-2 bg-background/90 px-1 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase backdrop-blur md:top-(--app-header-h)">
+              <h2 className="sticky top-[calc(var(--app-header-h)+2.75rem)] z-10 -mx-1 mb-2 bg-background/90 px-1 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase backdrop-blur md:top-(--app-header-h)">
                 {group.day}
               </h2>
               <ol className="grid gap-2">

@@ -56,7 +56,7 @@ export function PageHeader({
     const bar = barRef.current
     const heading = titleRef.current
     if (!bar || !heading || typeof IntersectionObserver === 'undefined') return
-    // The bar's bottom edge: it sticks below the app header (`--app-header-h`, 0 on phones).
+    // The bar's bottom edge: it sticks below the app header (`--app-header-h`).
     const edge = (Number.parseFloat(getComputedStyle(bar).top) || 0) + bar.offsetHeight
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -93,7 +93,7 @@ export function PageHeader({
       <div
         ref={barRef}
         className={cn(
-          'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 pt-safe md:pt-0 transition-[background-color,border-color] duration-200',
+          'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 transition-[background-color,border-color] duration-200',
           collapsed ? 'glass' : '[--hairline-color:transparent]',
         )}
       >

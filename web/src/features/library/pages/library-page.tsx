@@ -5,8 +5,6 @@ import { Link } from 'react-router'
 
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
-import { useIsMobile } from '@/hooks/use-media-query'
-import { UserMenu } from '@/layouts/user-menu'
 import { cn } from '@/lib/utils'
 
 import { AlbumCard, AlbumCardSkeleton } from '../components/album-card'
@@ -37,12 +35,11 @@ const RECENT_COUNT = 12
 /** Library hub (the "Library" tab on phones): section list + recently added albums. */
 export default function LibraryPage() {
   const { t } = useTranslation('library')
-  const isMobile = useIsMobile()
   const recent = useQuery(albumListQuery({ sort: 'recent', order: 'desc', limit: RECENT_COUNT }))
 
   return (
     <Page>
-      <PageHeader title={t('common:nav.library')} navActions={isMobile ? <UserMenu /> : undefined} />
+      <PageHeader title={t('common:nav.library')} />
       <nav aria-label={t('common:nav.library')}>
         <ul className="bleed-x md:mx-0 md:grid md:grid-cols-2 md:gap-2 lg:grid-cols-4">
           {SECTIONS.map((section) => (

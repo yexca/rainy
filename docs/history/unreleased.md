@@ -20,9 +20,8 @@ action.
   fonts in light and dark mode. The new **Original** accent, now the default,
   uses the style's own colour; the earlier accent colours still override it,
   and an accent you already picked stays as it was. The style is also in the
-  header's Appearance panel and, on phones, in the account menu.
-- **Immersive mode** (Settings → Appearance, the header's Appearance panel, or
-  the account menu's **Appearance** on phones)
+  header's Appearance panel.
+- **Immersive mode** (Settings → Appearance or the header's Appearance panel)
   colours the whole app — sidebar, header, player, and menus — with the album,
   playlist, or artist you are viewing, and with the playing song's cover on
   other pages. It is off by default and needs **Album colours**.
@@ -40,8 +39,9 @@ action.
 - On tablets and desktops, the top-right corner of the header has a round tray
   with Search and an **Appearance** panel for theme, accent colour, and
   language, next to an account button that shows your name and role.
-  **Settings** is pinned at the bottom of the sidebar. On phones, theme and
-  language are in the account menu under **Appearance**.
+  **Settings** is pinned at the bottom of the sidebar. Phones get the header
+  too, as a glass bar with the logo, the **Appearance** button, and your
+  avatar for the account menu; page titles and back buttons sit just below it.
 - **Settings** is split into tabs: Account, Appearance, Playback, Apps, and
   Scrobbling. Older links to a settings section open its tab, **Log out** sits
   at the bottom of Account, and the version and compatibility moved to

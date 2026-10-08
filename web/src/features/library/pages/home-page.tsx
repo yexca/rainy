@@ -11,8 +11,6 @@ import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
-import { useIsMobile } from '@/hooks/use-media-query'
-import { UserMenu } from '@/layouts/user-menu'
 import type { Album } from '@/lib/api/types'
 import { formatNumber } from '@/lib/format'
 
@@ -68,7 +66,6 @@ function ShelfSkeleton() {
 export default function HomePage() {
   const { t } = useTranslation('library')
   const { user, isManager, isAdmin } = useAuth()
-  const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const play = usePlayCollection()
   const home = useQuery(homeQuery())
@@ -102,7 +99,6 @@ export default function HomePage() {
               })
             : undefined
         }
-        navActions={isMobile ? <UserMenu /> : undefined}
         actions={
           empty || !home.data ? undefined : (
             <Button

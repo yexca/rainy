@@ -26,11 +26,12 @@ const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.2
 /**
  * Signed-in layout (docs/architecture/contract.md §9.3).
  *
- * - ≥ 768px: `<AppHeader/>` across the top (sidebar toggle, logo, account menu; `--app-header-h`),
- *   with the sidebar and the content below it.
+ * - Every width: `<AppHeader/>` across the top (logo, quick controls, account menu;
+ *   `--app-header-h`), with the content (and from 768px the sidebar) below it.
  * - ≥ 1024px: expandable sidebar (state persisted) + content + bottom player bar.
  * - 768–1023px: icon sidebar (expandable for the session) + player bar.
- * - < 768px: no sidebar; bottom glass tab bar with a floating mini player above it.
+ * - < 768px: no sidebar (the header drops its toggle); bottom glass tab bar with a floating mini
+ *   player above it.
  *
  * The document is the scroll container (native iOS behaviour; use `useWindowVirtualizer`).
  * Player chrome:
@@ -70,11 +71,9 @@ export function AppShell() {
         onOpenChange={isDesktop ? setSidebarOpen : setTabletOpen}
         style={SIDEBAR_STYLE}
       >
+        <AppHeader />
         {isMobile ? null : (
-          <>
-            <AppHeader />
-            <AppSidebar className="top-(--app-header-h) bottom-(--player-reserve) h-auto transition-[bottom] duration-300 ease-out" />
-          </>
+          <AppSidebar className="top-(--app-header-h) bottom-(--player-reserve) h-auto transition-[bottom] duration-300 ease-out" />
         )}
         <SidebarInset
           id="main"

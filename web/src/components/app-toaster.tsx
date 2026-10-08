@@ -2,7 +2,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { useIsMobile } from '@/hooks/use-media-query'
 
 /**
- * App-wide toast host (sonner): top-centre below the status bar on phones, bottom-right clear of
+ * App-wide toast host (sonner): top-centre below the app header on phones, bottom-right clear of
  * the player chrome elsewhere (`--player-toast-*`, set per player layout in index.css). Use
  * `toast()` from `sonner` anywhere.
  */
@@ -17,7 +17,7 @@ export function AppToaster() {
         bottom: 'var(--player-toast-bottom)',
         left: 16,
       }}
-      mobileOffset={{ top: 'calc(var(--safe-top) + 8px)', left: 12, right: 12 }}
+      mobileOffset={{ top: 'calc(var(--app-header-h) + 8px)', left: 12, right: 12 }}
       visibleToasts={isMobile ? 2 : 4}
     />
   )

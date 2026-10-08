@@ -8,15 +8,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch'
 import { AccentPicker, StylePicker } from '@/features/settings/components/appearance-section'
 import { Segmented } from '@/features/settings/components/settings-ui'
+import { useIsMobile } from '@/hooks/use-media-query'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage } from '@/lib/i18n'
 import type { Theme } from '@/lib/theme'
 
 import { UserMenu } from './user-menu'
 
-/** Icon buttons inside the header tray: round, muted until hovered or open. */
+/** Icon buttons inside the header tray: round, muted until hovered or open; 44px touch targets on phones. */
 const TRAY_BUTTON_CLASS =
-  'size-9 rounded-full text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground'
+  'size-11 md:size-9 rounded-full text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground'
 
 function AppearanceMenu() {
   const { t, i18n } = useTranslation()
@@ -39,7 +40,7 @@ function AppearanceMenu() {
           <Palette strokeWidth={1.75} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-auto rounded-xl p-0">
+      <PopoverContent align="end" sideOffset={8} className="max-h-(--radix-popover-content-available-height) w-auto overflow-y-auto rounded-xl p-0">
         <div className="border-b px-4 py-3 text-sm font-semibold">{label}</div>
         <div className="grid gap-4 p-4">
           <Segmented label={t('theme.label')} value={theme} onChange={setTheme} options={themes} />
@@ -84,11 +85,23 @@ function AppearanceMenu() {
 
 /**
  * Right side of the app header: a bordered tray of quick controls (search; appearance: theme,
- * style, accent, immersive mode and language), a divider, then the account button with the user's name and role.
+ * style, accent, immersive mode and language), a divider, then the account button with the user's
+ * name and role. Phones drop the tray outline, the divider and Search (a tab there) and show the
+ * account as an avatar.
  */
 export function HeaderActions() {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const searchLabel = t('nav.search')
+
+  if (isMobile) {
+    return (
+      <div className="ml-auto flex shrink-0 items-center">
+        <AppearanceMenu />
+        <UserMenu variant="avatar" />
+      </div>
+    )
+  }
 
   return (
     <div className="ml-auto flex shrink-0 items-center gap-2">

@@ -1,4 +1,4 @@
-import { ChevronDown, Info, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { ChevronDown, Info, LogOut, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -7,29 +7,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth, useLogout } from '@/hooks/use-auth'
-import { useTheme } from '@/hooks/use-theme'
 import type { User } from '@/lib/api/types'
-import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
-import { STYLES, isStyle, isTheme } from '@/lib/theme'
 import { cn, initials } from '@/lib/utils'
-
-function isLanguage(value: string): value is Language {
-  return LANGUAGES.some((lang) => lang.code === value)
-}
 
 function displayName(user: User): string {
   return user.displayName.trim() || user.username
@@ -51,14 +38,10 @@ export function UserAvatar({ user, className }: { user: User; className?: string
   )
 }
 
-/** `showAppearance`: phones have no header tray, so theme, style, immersive mode and language live in this menu there. */
-function UserMenuContent({ user, showAppearance }: { user: User; showAppearance: boolean }) {
+function UserMenuContent({ user }: { user: User }) {
   const { t } = useTranslation()
-  const { theme, setTheme, style, setStyle, albumColors, immersive, setImmersive } = useTheme()
   const logout = useLogout()
   const navigate = useNavigate()
-  const language = currentLanguage()
-  const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
 
   const onLogout = () => {
     logout.mutate(undefined, {
@@ -86,52 +69,6 @@ function UserMenuContent({ user, showAppearance }: { user: User; showAppearance:
             {t('nav.settings')}
           </Link>
         </DropdownMenuItem>
-        {showAppearance ? (
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <ThemeIcon className="size-4 text-muted-foreground" />
-              {t('theme.label')}
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="rounded-xl">
-              <DropdownMenuRadioGroup value={theme} onValueChange={(value) => isTheme(value) && setTheme(value)}>
-                <DropdownMenuRadioItem value="light">{t('theme.light')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark">{t('theme.dark')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system">{t('theme.system')}</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{t('style.label')}</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={style} onValueChange={(value) => isStyle(value) && setStyle(value)}>
-                {STYLES.map((s) => (
-                  <DropdownMenuRadioItem key={s} value={s}>
-                    {t(`style.${s}`)}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-              {albumColors ? (
-                <>
-                  <DropdownMenuSeparator />
-                  {/* Stays open so the colour change is visible behind the menu. */}
-                  <DropdownMenuCheckboxItem
-                    checked={immersive}
-                    onSelect={(e) => e.preventDefault()}
-                    onCheckedChange={(checked) => setImmersive(checked === true)}
-                  >
-                    {t('immersive.label')}
-                  </DropdownMenuCheckboxItem>
-                </>
-              ) : null}
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{t('language.label')}</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={language} onValueChange={(value) => isLanguage(value) && void setLanguage(value)}>
-                {LANGUAGES.map((lang) => (
-                  <DropdownMenuRadioItem key={lang.code} value={lang.code} lang={lang.htmlLang}>
-                    {lang.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-        ) : null}
         <DropdownMenuItem asChild>
           <Link to="/about">
             <Info />
@@ -150,14 +87,14 @@ function UserMenuContent({ user, showAppearance }: { user: User; showAppearance:
 
 export interface UserMenuProps {
   /**
-   * `header`: avatar, name and role for the app header (tablet / desktop; theme and language live
-   * in the header tray). `avatar`: round button (phone nav bars).
+   * `header`: avatar, name and role (tablet / desktop app header). `avatar`: round button (phone
+   * app header). Theme and language live in the header's Appearance popover.
    */
   variant?: 'header' | 'avatar'
   className?: string
 }
 
-/** Account menu: profile, settings and logout (plus theme and language on phones). */
+/** Account menu: profile, settings, about and logout. */
 export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -183,7 +120,7 @@ export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
             <ChevronDown className="hidden size-3.5 shrink-0 text-muted-foreground lg:block" aria-hidden />
           </button>
         </DropdownMenuTrigger>
-        <UserMenuContent user={user} showAppearance={false} />
+        <UserMenuContent user={user} />
       </DropdownMenu>
     )
   }
@@ -195,7 +132,7 @@ export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
           <UserAvatar user={user} />
         </Button>
       </DropdownMenuTrigger>
-      <UserMenuContent user={user} showAppearance />
+      <UserMenuContent user={user} />
     </DropdownMenu>
   )
 }
