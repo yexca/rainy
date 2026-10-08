@@ -1,19 +1,36 @@
 # Agent Guide
 
+## Start Here
+
 Read these first:
 
 - `README.md`
 - `docs/overview.md`
 - `docs/architecture/index.md`
-- `docs/architecture/contract.md` (the precise contract: schema, Go package APIs,
-  native and Subsonic endpoints, TypeScript types, design system)
-- `docs/architecture/library-management.md`
-- `docs/development/design.md`
+- `docs/architecture/core-boundaries.md`
 - `SECURITY.md`
 - `docs/development/security.md`
 
-Keep code and `docs/architecture/contract.md` in sync. When they disagree, fix
-the code, or update the contract in the same change and say so.
+Then read the pages for the change:
+
+| Change | Read |
+| --- | --- |
+| Schema, Go API, native/Subsonic endpoints, shared types | Relevant sections of `docs/architecture/contract.md` |
+| File mutations, scanning, media | `docs/architecture/library-management.md`, `docs/operations/reliability.md` |
+| Go services and handlers | `docs/architecture/backend.md`, `docs/development/backend-guidelines.md` |
+| React features and UI | `docs/architecture/frontend.md`, `docs/development/frontend-guidelines.md`, `docs/development/design.md` |
+| Validation or Actions | `docs/development/testing.md`, `docs/development/ci.md` |
+| Migrations or releases | `docs/development/migrations.md`, `docs/development/commit-and-release.md` |
+
+Keep code and the precise contract in `docs/architecture/contract.md` in sync.
+When they disagree, fix the code, or update the contract in the same change
+and say so. Current workflow instructions live here and in development docs;
+early implementation notes do not assign permanent file ownership.
+
+If `.codegraph/` exists, use `codegraph_explore` or `codegraph explore` before
+searching or reading code to locate symbols and understand their callers.
+Use direct reads for docs/configuration or details the index does not cover.
+Do not create an index when the repository has none.
 
 ## Product Boundaries
 
@@ -96,12 +113,14 @@ cmd -> app -> api / subsonic / server -> manage / scanner / artwork / transcode 
 
 The `Makefile` is the canonical entry point for repository validation. Prefer
 its targets over reconstructing CI commands by hand, so local checks and GitHub
-Actions exercise the same commands.
+Actions exercise the same commands. Use a direct command only when no target
+exists for the required check. `make help` lists the common entry points.
 
-- Use the smallest sufficient target: `make frontend-docs` for public
-  documentation, `make ci-style` for formatting, lint, docs, and CI-policy
-  checks, `make ci-backend` for Go behavior, and `make ci-frontend` for the web
-  app.
+- Use the smallest sufficient target: `make docs-check` (or its compatibility
+  alias `frontend-docs`) for public documentation, `make ci-policy` for docs
+  and validation-policy tests, `make ci-style` for web lint, `make ci-backend`
+  for Go behavior, and `make ci-frontend` for web audit, typecheck, tests, and
+  build. Go formatting is part of `ci-backend-static`.
 - Build and run the application with Docker by default. Use
   `make DOCKER_IMAGE=rainy:dev docker-build smoke` to build the image and
   exercise it, and `make docker-up` (`RAINY_DEV_MUSIC_PATH` selects the
@@ -114,10 +133,15 @@ Actions exercise the same commands.
 - Use `make DOCKER_IMAGE=rainy:ci docker-build smoke` (or `make ci-production`)
   for Dockerfile, entrypoint, or runtime changes.
 - `make ci-local` runs the complete GitHub Actions sequence locally.
+- Keep validation proportional. A narrow change does not require all phases;
+  Actions selects affected jobs and keeps the required Core check stable.
 - Before every commit, run `make sensitive-check` against the actual working
   tree diff and review any findings. An approved public endpoint belongs in
   `scripts/privacy-allowlist.json` with its owner files and a reason; review
   every change to that list.
+- Choose tests for observable behavior and use accessible roles and labels in
+  browser checks. Do not make utility classes or incidental DOM ancestry a
+  public test contract.
 
 ## Release and Handoff
 
@@ -136,7 +160,8 @@ Release and migration boundaries are derived from repository state:
 - A release tag must equal `VERSION`, point at a commit on `main` whose CI
   succeeded, and have release notes at `docs/history/<tag>.md`. The release
   workflow publishes multi-arch images to Docker Hub and GHCR, then the GitHub
-  Release. See `docs/development/commit-and-release.md`.
+  Release. Run `make release-check` before tagging; see
+  `docs/development/commit-and-release.md`.
 
 Before handoff, run validation proportional to the change (see above) plus
 `make sensitive-check`.

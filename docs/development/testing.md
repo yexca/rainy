@@ -36,10 +36,10 @@ make backend-test        # go test ./...
 make backend-vet         # go vet ./...
 make backend-race        # go test -race ./...
 make backend-coverage    # coverage profile
-make backend-format      # gofmt check
-make backend-lint        # golangci-lint with the repository policy
-make backend-verify      # go mod verify
-make backend-vuln        # govulncheck
+make backend-format     # gofmt check
+make backend-lint       # golangci-lint with the repository policy
+make backend-verify     # go mod verify
+make backend-vuln       # govulncheck
 ```
 
 Conventions:
@@ -71,7 +71,7 @@ make frontend-lint       # eslint
 make frontend-test       # unit tests for pure helpers (node --test web/tests)
 make frontend-audit      # dependency audit
 make frontend-build      # production build into web/dist
-make frontend-docs       # documentation link check
+make docs-check          # documentation link check (frontend-docs is an alias)
 ```
 
 Pure, framework-free helpers such as the bilingual lyrics analyzer
@@ -93,6 +93,11 @@ Check both light and dark themes and both languages when strings or layout
 change. Confirm that nothing hides behind the player chrome and that
 keyboard focus stays visible. The detailed contract is in
 [Design](design.md).
+
+Assert observable behavior and use accessible roles, labels, focus, and
+visible completion conditions. Do not couple browser checks to incidental DOM
+ancestry, utility classes, or fixed delays. Rainy currently uses manual browser
+checks; the production smoke target checks HTTP/runtime behavior.
 
 ## Test Data
 
@@ -124,17 +129,24 @@ image as `rainy:ci`.
 
 | Target | Scope |
 | --- | --- |
-| `make ci-style` | Go formatting, frontend lint, documentation links, and the privacy-scanner and CI-plan tests |
+| `make ci-policy` | Documentation links and the privacy-scanner, CI-plan, and release-check tests; only Node and Git required |
+| `make ci-style` | Frontend lint |
 | `make ci-backend` | `ci-backend-static` (format, lint, module verification, vulnerabilities, vet), `ci-backend-coverage`, and `ci-backend-race` |
-| `make ci-frontend` | Dependency audit, typecheck, and production build |
+| `make ci-frontend` | Dependency audit, typecheck, helper tests, and production build |
 | `make ci-production` | `docker-build` plus `smoke` |
 | `make ci-local` | Every CI validation phase above, using the image tag `rainy:ci` |
 | `make ci` | Same as `ci-local` |
 
+Actions selects affected phases for PRs and runs all phases on `main`.
+The always-running Core check enforces the plan; see
+[CI and release automation](ci.md). Keep local validation proportional and
+remove generated build/coverage output after checks. The full CI sequence
+does not replace `make sensitive-check` on the actual working-tree diff.
+
 ## Before Committing
 
 - Run the tests that cover your change, or `make ci-local` for broad changes.
-- Run `make frontend-docs` after changing any public documentation.
+- Run `make docs-check` after changing any public documentation.
 - Run `make sensitive-check`. It scans the working tree for secrets, private
   paths, runtime data, and non-reserved URLs before they reach a commit.
 - Check `git status` and review the staged diff for databases, `.env` files,
@@ -147,3 +159,4 @@ image as `rainy:ci`.
 - [Local development](local-dev.md)
 - [Secure development](security.md)
 - [Commit and release](commit-and-release.md)
+- [CI and release automation](ci.md)

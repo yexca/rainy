@@ -1,106 +1,116 @@
 # Local Development
 
 The [Makefile](../../Makefile) is the canonical entry point for building,
-running, and validating Rainy. Direct commands are shown for focused
-iteration.
+running, and validating Rainy. Run `make help` for common targets. Build and
+run the application with Docker by default; host tools support focused tests
+and lint.
 
 ## Prerequisites
 
-- Go 1.26 or newer.
-- Node.js (the version in [`.nvmrc`](../../.nvmrc)) with Corepack enabled, so
-  the pnpm version pinned in `web/package.json` is used.
-- ffmpeg, for transcoding and for generating the test library.
-- Docker with the Compose plugin, for container builds and the smoke test.
+- Docker with the Compose plugin.
+- GNU Make; a Bash-compatible shell and ffmpeg for synthetic media generation.
+- Node.js from [`.nvmrc`](../../.nvmrc) with Corepack enabled; use the pnpm
+  version pinned in `web/package.json`.
+- Go 1.26 or newer for host-side backend tests and static checks.
 
-Development works on Windows (Git Bash or PowerShell), macOS, and Linux.
-Production runs on Linux in Docker, so never hard-code `/` or `\` for OS paths;
-see [contract §3](../architecture/contract.md#3-conventions).
+Documentation and policy checks need only Node, Git, and Make. Development
+works on Windows (PowerShell or Git Bash), macOS, and Linux. Production runs
+on Linux in Docker; use platform-aware filesystem paths as required by
+[contract §3](../architecture/contract.md#3-conventions).
 
 ## Test Library
 
-Generate a small, fully tagged library in `testdata/music` (ignored by Git):
-
 ```sh
 make testdata
-# or: bash scripts/gen-testdata.sh
 ```
 
-It covers MP3, FLAC, M4A, Ogg Vorbis, Opus, and WAV; Chinese, Japanese, and
-English metadata; a multi-disc album; a compilation; embedded and folder
-covers; synced and embedded lyrics; an untagged file; and hidden and `@eaDir`
-folders that the scanner must ignore. Re-running it recreates the directory.
-
-## Backend
-
-```sh
-make backend-run
-```
-
-This runs `go run ./cmd/rainy` with the version from `VERSION` and serves on
-port 7650. Like the binary, it reads `RAINY_*` variables from your environment
-and otherwise uses `./music` and `./data`. To use the test library with the
-Vite dev server:
-
-```sh
-RAINY_MUSIC_DIR=./testdata/music RAINY_DATA_DIR=./testdata/data \
-RAINY_DEV_CORS=http://localhost:5173 make backend-run
-```
-
-The server embeds `web/dist`, so build the frontend once (`make frontend-build`)
-if you want to use the app on port 7650 directly.
-
-## Frontend
-
-```sh
-make frontend-install
-make frontend-dev
-# or: cd web && pnpm install && pnpm dev
-```
-
-The Vite dev server listens on <http://localhost:5173> and proxies `/api` and
-`/rest` to `http://localhost:7650`. Set `RAINY_BACKEND` to proxy elsewhere.
+This generates synthetic media in `testdata/music` (ignored by Git). It covers
+MP3, FLAC, M4A, Ogg Vorbis, Opus, and WAV; CJK and English tags; multi-disc
+albums and compilations; covers and lyrics; and ignored NAS folders.
+Re-running it recreates the generated library. Never point generation at a
+real collection.
 
 ## Docker
 
-Build a local image (tagged `rainy:dev`) and run the development Compose stack,
-which builds from source and mounts the generated test library:
-
 ```sh
-make docker-build
+make testdata
 make docker-up        # http://127.0.0.1:7650
 make docker-status
 make docker-logs
 make docker-down
 ```
 
-The development stack is defined in
-[`deploy/compose/dev.yml`](../../deploy/compose/dev.yml). It publishes the
-port on loopback only (`RAINY_DEV_PORT`, default 7650), keeps its data in
-`testdata/dev-data`, mounts `testdata/music` (or `RAINY_DEV_MUSIC_PATH`), logs
-at debug level, and disables periodic scans. The root
-[`docker-compose.yml`](../../docker-compose.yml) is the production file for
-operators and only pulls published images.
+The development stack in
+[`deploy/compose/dev.yml`](../../deploy/compose/dev.yml) builds from this
+checkout. It publishes on loopback only (`RAINY_DEV_PORT`, default 7650),
+keeps its data in `testdata/dev-data`, and mounts `testdata/music` (override
+with `RAINY_DEV_MUSIC_PATH`). It defaults to debug logs and disabled periodic
+scans; environment overrides still apply. Keep development data separate from
+the real library.
+
+The root [`docker-compose.yml`](../../docker-compose.yml) is for operators and
+pulls published images. To validate an isolated production container instead:
+
+```sh
+make DOCKER_IMAGE=rainy:dev docker-build smoke
+```
+
+Smoke runs an already-built image with temporary media and data and cleans up
+its container afterwards. It does not use development mounts.
+
+## Frontend
+
+For Vite iteration against the Docker backend:
+
+```sh
+make frontend-dev
+```
+
+This installs the locked dependencies and serves on <http://localhost:5173>,
+proxying `/api` and `/rest` to `http://localhost:7650`. Set `RAINY_BACKEND` if
+the Docker backend uses another host port. The container serves the embedded
+production UI; Vite reflects frontend edits directly.
+
+## Backend
+
+Run host-side checks with `make backend-test` or `make ci-backend`. Rebuild
+the Docker stack with `make docker-up` after backend changes.
+
+`backend-build`, `backend-run`, and `frontend-build` remain available for
+explicit host-build workflows. The binary embeds `web/dist`, so a complete
+host build needs `frontend-build` first. Host runtime reads `RAINY_*` variables
+and defaults to `./music` and `./data`; choose synthetic paths deliberately.
+Agent work uses Docker for running the app unless the user requests a host
+runtime. The host build in `ci-frontend` is validation, not a running instance.
+
+Remove build output created during a check (`bin/`, generated `web/dist`
+files, and `coverage.out`); keep the tracked `web/dist/.gitkeep`.
 
 ## Common Checks
 
-- Tests and pre-commit checks: [Testing](testing.md)
-- Database changes: [Migrations](migrations.md)
-- UI changes: [Design](design.md)
-- Security-sensitive changes: [Secure development](security.md)
-- Commit format and releases: [Commit and release](commit-and-release.md)
+- [Testing](testing.md): target selection, fixtures, and browser checks.
+- [CI and release automation](ci.md): job planning and local equivalents.
+- [Backend guidelines](backend-guidelines.md) and
+  [Frontend guidelines](frontend-guidelines.md): responsibilities.
+- [Migrations](migrations.md), [Design](design.md), and
+  [Secure development](security.md): change-specific rules.
+- [Commit and release](commit-and-release.md): signed commits and publication.
 
 ## Useful Paths
 
-- Entry point and CLI: `cmd/rainy`
-- Backend packages: `internal/`
-- Native API handlers: `internal/api`
-- Subsonic handlers: `internal/subsonic`
-- Migrations: `internal/db/migrations`
-- Frontend source: `web/src`
-- Public docs: `docs`
+| Path | Responsibility |
+| --- | --- |
+| `cmd/rainy` | Entry point and CLI |
+| `internal/` | Backend packages |
+| `internal/api`, `internal/subsonic` | Native and compatibility handlers |
+| `internal/db/migrations` | Immutable released migration chain |
+| `web/src` | Frontend source |
+| `scripts/` | Validation policy and synthetic media tools |
+| `docs/` | Public documentation |
 
 ## Related Docs
 
+- [Development](index.md)
 - [Architecture](../architecture/index.md)
 - [Architecture contract](../architecture/contract.md)
 - [Agent guide](../../AGENTS.md)

@@ -76,7 +76,7 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 
 ## 使用者文件
 
-[使用者指南](../user/index.md)涵蓋入門、音樂庫與掃描、播放與 PWA、收聽報表與 Scrobble、音樂庫管理以及 Subsonic 用戶端。[維運文件](../operations/configuration.md)涵蓋 Docker 與 NAS 部署、設定、反向代理、資料庫與備份以及疑難排解（目前為英文）。
+[使用者指南](../user/index.md)涵蓋入門、音樂庫與掃描、播放與 PWA、收聽報表與 Scrobble、音樂庫管理以及 Subsonic 用戶端。[維運文件](../operations/index.md)涵蓋 Docker 與 NAS 部署、設定、反向代理、資料庫與備份以及疑難排解（目前為英文）。
 
 ## 文件
 

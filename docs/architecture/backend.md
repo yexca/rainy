@@ -106,4 +106,5 @@ the scan scheduler, and closes the database last so the WAL is checkpointed.
 - [Frontend](frontend.md)
 - [Data model](data-model.md)
 - [Testing](../development/testing.md)
+- [Backend guidelines](../development/backend-guidelines.md)
 - [Secure development](../development/security.md)
