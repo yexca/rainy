@@ -1,21 +1,8 @@
-> [!IMPORTANT]
-> The default mounts are now `./config:/config` for application state and
-> `./data:/data` for music. Existing installations must preserve their database
-> and `secret.key` and update the existing library path when changing mounts;
-> see [Upgrading the mount layout](../operations/docker.md#upgrading-the-mount-layout).
-
 Changes through v0.1.0 are summarized in [v0.1.0](v0.1.0.md).
 
 Add user-facing changes for the next release here, grouped by area. Start with
 an `[!IMPORTANT]` upgrade note when a change adds a migration or needs operator
 action.
-
-## Operations And Deployment
-
-- Database, encryption key, caches, trash, uploads, and yt-dlp now default to
-  `/config`; user music defaults to `/data`. The entrypoint fixes ownership
-  only in the application-state directory. Existing path environment variables
-  remain available for custom and legacy mounts.
 
 ## Look And Feel
 
