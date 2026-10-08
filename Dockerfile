@@ -87,8 +87,8 @@ COPY --from=build /out/rainy /usr/local/bin/rainy
 ENV RAINY_DATA_DIR=/config \
     RAINY_MUSIC_DIR=/data \
     RAINY_LOG_FORMAT=json \
-    PUID=1000 \
-    PGID=1000 \
+    PUID=0 \
+    PGID=0 \
     UMASK=022
 
 WORKDIR /config
@@ -98,7 +98,7 @@ EXPOSE 7650
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -q -T 4 -O /dev/null "127.0.0.1:${RAINY_PORT:-7650}/api/health" || exit 1
 
-# Starts as root only long enough to fix /config ownership, then drops to PUID:PGID (see
-# docker/entrypoint.sh). To never start as root at all, run with `--user <uid>:<gid>`.
+# Runs as root by default. Nonzero PUID/PGID opt into privilege dropping (see
+# docker/entrypoint.sh). An explicit `--user <uid>:<gid>` is also supported.
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["rainy", "serve"]

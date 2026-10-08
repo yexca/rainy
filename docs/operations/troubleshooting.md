@@ -86,10 +86,11 @@ browser's time zone.
 
 ## A Forgotten Password
 
-Reset it from the host:
+Reset it from the host. For a non-root deployment, add `-u <PUID>:<PGID>`
+to match the configured runtime user:
 
 ```sh
-docker compose exec -u 1000:1000 rainy rainy user reset-password <username> '<new-password>'
+docker compose exec rainy rainy user reset-password <username> '<new-password>'
 ```
 
 ## Related Docs

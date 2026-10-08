@@ -12,8 +12,8 @@ need that file and a `.env` beside it:
 
 ```dotenv
 RAINY_MUSIC_PATH=/path/to/music
-PUID=1000
-PGID=1000
+PUID=0
+PGID=0
 TZ=Asia/Shanghai
 ```
 
@@ -52,8 +52,8 @@ services:
     ports:
       - "7650:7650"
     environment:
-      PUID: "1000"
-      PGID: "1000"
+      PUID: "0"
+      PGID: "0"
       TZ: Asia/Shanghai
     volumes:
       - /path/to/rainy/config:/config
@@ -65,9 +65,18 @@ To change the host port, change only the left side, for example
 
 ## Permissions (PUID and PGID)
 
-The container starts as root only long enough to make `/config` owned by
-`PUID:PGID`, applies `UMASK`, and then runs Rainy as that user. **`/data` is
-never changed**; its permissions belong to your NAS.
+The container runs as root by default (`PUID=0`, `PGID=0`). `UMASK` applies
+in root mode as well. A nonzero `PUID` opts into making `/config` owned by
+`PUID:PGID` and running Rainy as that user. **Music ownership is never changed**;
+its permissions belong to your NAS. Root cannot write a volume mounted `:ro`
+and may still be restricted by NAS share ACLs or root squash.
+
+The web app requires two confirmation stages for saving edits, renaming files,
+repairing/rebuilding tags, moving music to trash, and permanently deleting trash.
+These are web interaction checks; manager authorization and filesystem checks
+remain enforced by the API.
+
+To opt into a non-root user:
 
 1. Sign in to the NAS over SSH and run `id <your-user>`. For example,
    `uid=1026(example) gid=100(users)` means `PUID=1026` and `PGID=100`.
@@ -279,15 +288,15 @@ The same images are published to the GitHub Container Registry as
 ## Command-Line Tools
 
 The `rainy` binary in the image has maintenance commands. `docker compose exec`
-runs as root by default, so pass your `PUID:PGID` with `-u` to avoid creating
-root-owned files in `/config`:
+runs as root by default, matching the default server user. For a non-root
+deployment, add `-u <PUID>:<PGID>` to these commands to match its configured user:
 
 ```sh
 # Reset a forgotten password and sign the user out everywhere
-docker compose exec -u 1000:1000 rainy rainy user reset-password admin 'new-password'
+docker compose exec rainy rainy user reset-password admin 'new-password'
 
 # List users
-docker compose exec -u 1000:1000 rainy rainy user list
+docker compose exec rainy rainy user list
 
 # Show the version
 docker compose exec rainy rainy version

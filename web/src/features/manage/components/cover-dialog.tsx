@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 
 import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary } from '../queries'
+import { ConfirmDialog } from './confirm-dialog'
 import { ResponsiveDialog } from './responsive-dialog'
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -44,6 +45,7 @@ export function CoverDialog({ open, onOpenChange, trackIds, onDone }: CoverDialo
 function CoverBody({ trackIds, onClose, onDone }: { trackIds: readonly string[]; onClose: () => void; onDone?: () => void }) {
   const { t } = useTranslation('manage')
   const queryClient = useQueryClient()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<'set' | 'remove'>('set')
   const [file, setFile] = useState<File | null>(null)
@@ -165,11 +167,23 @@ function CoverBody({ trackIds, onClose, onDone }: { trackIds: readonly string[];
         <Button variant="outline" onClick={onClose} disabled={run.isPending}>
           {t('common:actions.cancel')}
         </Button>
-        <Button variant={mode === 'remove' ? 'destructive' : 'default'} onClick={() => run.mutate()} disabled={!canRun || run.isPending}>
+        <Button variant={mode === 'remove' ? 'destructive' : 'default'} onClick={() => setConfirmOpen(true)} disabled={!canRun || run.isPending}>
           {run.isPending ? <Spinner size="sm" className="text-current" /> : null}
           {mode === 'set' ? t('coverDialog.apply', { count: trackIds.length }) : t('coverDialog.removeApply', { count: trackIds.length })}
         </Button>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('confirmation.editTitle', { count: trackIds.length })}
+        description={mode === 'remove' ? t('coverDialog.removeHint') : t('confirmation.editDescription')}
+        confirmLabel={mode === 'remove' ? t('coverDialog.remove') : t('common:actions.save')}
+        twoStep
+        onConfirm={() => {
+          if (!canRun || run.isPending) return
+          return run.mutateAsync()
+        }}
+      />
     </div>
   )
 }

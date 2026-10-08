@@ -22,8 +22,8 @@ precedence.
 | `RAINY_MUSIC_PATH` | `./data` | Host music folder, mounted at `/data` |
 | `RAINY_DATA_PATH` | `./config` | Host application-state folder, mounted at `/config` |
 | `RAINY_HOST_PORT` | `7650` | Host port published for the container's port 7650 |
-| `PUID` | `1000` | User ID that runs Rainy inside the container |
-| `PGID` | `1000` | Group ID that runs Rainy inside the container |
+| `PUID` | `0` | User ID that runs Rainy inside the container |
+| `PGID` | `0` | Group ID that runs Rainy inside the container |
 | `UMASK` | `022` | Permission mask for files Rainy creates |
 | `TZ` | `Asia/Shanghai` | Time zone for logs |
 | `RAINY_SCAN_INTERVAL` | `1h` | Default periodic scan interval |
@@ -36,8 +36,8 @@ A minimal `.env`:
 
 ```dotenv
 RAINY_MUSIC_PATH=/path/to/music
-PUID=1000
-PGID=1000
+PUID=0
+PGID=0
 ```
 
 After editing `.env`, validate and apply it. `docker compose restart` does not
@@ -77,14 +77,14 @@ An invalid value stops startup with an error that names the variable.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `PUID` / `PGID` | `1000` / `1000` | The entrypoint makes `/config` owned by this user and group, then drops privileges to it. `/data` is never changed. |
+| `PUID` / `PGID` | `0` / `0` | Root by default. A nonzero PUID fixes `/config` ownership and drops privileges to this user/group. Music ownership is never changed. |
 | `UMASK` | `022` | Use `002` to make new files group-writable |
 | `TZ` | `UTC` in the image | Time zone for server logs; the web app always shows times in the browser's time zone |
 
 If the container is started with an explicit `user:` (Compose) or `--user`,
 the entrypoint runs Rainy as that user and ignores `PUID` and `PGID`; the data
-folder must then already be writable by that user. `PUID=0` runs as root and is
-not recommended. See [Docker](docker.md#permissions-puid-and-pgid).
+folder must then already be writable by that user. Existing `.env` files with
+nonzero IDs keep using that user until the operator changes them. See [Docker](docker.md#permissions-puid-and-pgid).
 
 ## Server Settings
 

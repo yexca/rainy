@@ -25,6 +25,14 @@ Every operation in `internal/manage`:
 Read-only mounts fail gracefully with the `readonly` error and a helpful
 message instead of partial writes.
 
+The web app requires two explicit confirmation stages before saving tags, covers,
+lyrics, renaming files, repairing/rebuilding tags, deleting music to trash, or
+permanently deleting trash. The first stage reviews the operation; the second
+requires an acknowledgement and the final action. Canceling either stage sends
+no mutation request. Save keyboard shortcuts use the same flow. These confirmations
+are a web interaction contract; direct API clients still use manager authorization
+and the usual filesystem guards.
+
 ## Tags
 
 Tags are read and written through TagLib compiled to WebAssembly

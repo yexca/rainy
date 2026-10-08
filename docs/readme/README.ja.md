@@ -50,8 +50,8 @@ Web インターフェースは現在、英語と簡体字中国語に対応し�
 
    ```dotenv
    RAINY_MUSIC_PATH=/path/to/music
-   PUID=1000
-   PGID=1000
+   PUID=0
+   PGID=0
    TZ=Asia/Tokyo
    ```
 
@@ -63,7 +63,7 @@ Web インターフェースは現在、英語と簡体字中国語に対応し�
 
 4. `http://<NAS の IP>:7650` を開き、初回アクセス時に管理者アカウントを作成します。Rainy は `/data` を最初のライブラリとして追加し、スキャンを開始します。
 
-`PUID`/`PGID` には音楽フォルダを読み取れるユーザーを指定してください。Web 上でファイルを編集する場合は書き込み権限も必要です。NAS ごとの設定は [Docker と NAS ガイド](../operations/docker.md)、すべての設定項目は [`.env.example`](../../.env.example) と[設定](../operations/configuration.md)を参照してください。
+コンテナは既定で root（`PUID=0`、`PGID=0`）として実行します。非ゼロの `PUID`/`PGID` を指定する場合、そのユーザーには音楽フォルダの読み取り権限と、編集時の書き込み権限が必要です。音楽ファイルの編集保存と削除には 2 段階の確認が必要です。NAS ごとの設定は [Docker と NAS ガイド](../operations/docker.md)、すべての設定項目は [`.env.example`](../../.env.example) と[設定](../operations/configuration.md)を参照してください。
 
 ## ランタイムデータ
 

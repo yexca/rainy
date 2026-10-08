@@ -52,8 +52,8 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 
    ```dotenv
    RAINY_MUSIC_PATH=/path/to/music
-   PUID=1000
-   PGID=1000
+   PUID=0
+   PGID=0
    TZ=Asia/Shanghai
    ```
 
@@ -72,15 +72,15 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 
 | 主机路径 | 容器路径 | 内容 | 权限 |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；启动时自动改为 `PUID:PGID` 所有 |
+| `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；默认 root；非零 PUID 时调整所有权 |
 | `RAINY_MUSIC_PATH`（默认 `./data`） | `/data` | 你的音乐 | 播放只需可读；**要在网页里改标签、换封面、重命名、上传、删除，就必须可写** |
 
 旧安装将应用数据挂载到 `/data`、音乐挂载到 `/music` 时，请先按
 [挂载路径升级说明](../operations/docker.md#upgrading-the-mount-layout)保留数据库和密钥，并修改已有音乐库的路径。
 
-容器以 root 启动，只是为了把 `/config` 的所有者改为 `PUID:PGID`，随后立即降权运行。**`/data` 不会被 chown**，它的权限由你的 NAS 决定。
+容器默认以 root 运行（`PUID=0`、`PGID=0`）。设置非零 `PUID` 时，会把 `/config` 的所有者改为指定用户并降权运行。**`/data` 不会被 chown**，它的权限由你的 NAS 决定。编辑保存和删除音乐文件在网页中都需要两步确认。
 
-- SSH 登录 NAS 执行 `id 你的用户名`，例如得到 `uid=1026 gid=100`，就填 `PUID=1026`、`PGID=100`，并在共享文件夹权限里给该用户读写权限。
+- 如果要使用非 root 用户，SSH 登录 NAS 执行 `id 你的用户名`，例如得到 `uid=1026 gid=100`，就填 `PUID=1026`、`PGID=100`，并在共享文件夹权限里给该用户读写权限。
 - 只想播放、不想让 Rainy 改动文件时，可以把音乐目录挂载为只读（给 `/data` 卷加上 `:ro`，写法见 [Docker 指南](../operations/docker.md#permissions-puid-and-pgid)）。
 - `UMASK`（默认 `022`）设为 `002` 时，同组用户也能修改 Rainy 写入的文件。
 
@@ -140,13 +140,13 @@ docker compose up -d --pull always
 
 ## 命令行工具
 
-`docker compose exec` 默认以 root 执行，请用 `-u` 指定你的 PUID:PGID：
+`docker compose exec` 默认以 root 执行，与默认服务用户一致。如果配置了非 root 用户，请在下面的命令中加上 `-u <PUID>:<PGID>`：
 
 ```sh
 # 忘记密码：重置并登出该用户的所有会话
-docker compose exec -u 1000:1000 rainy rainy user reset-password admin '新密码'
+docker compose exec rainy rainy user reset-password admin '新密码'
 # 列出用户
-docker compose exec -u 1000:1000 rainy rainy user list
+docker compose exec rainy rainy user list
 ```
 
 ## 用户文档

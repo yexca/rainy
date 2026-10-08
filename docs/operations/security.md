@@ -75,8 +75,9 @@ revoked in **Settings → Subsonic apps** without changing the password.
 - Every file operation is confined to the library roots, and libraries may not
   overlap the data directory.
 - Mount the music read-only (`:ro`) if nobody should edit files through Rainy.
-- The container drops root privileges to `PUID:PGID` after fixing `/config`
-  ownership. Avoid `PUID=0`.
+- The container runs as root by default. Set a nonzero `PUID:PGID` or explicit
+  `user:` to run as an unprivileged user. Web file edits and deletion require
+  two confirmation stages; these do not replace API authorization or mount permissions.
 - Keep the image up to date; see [Docker](docker.md#upgrade).
 
 ## Known Limitations

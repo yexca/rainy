@@ -1,4 +1,15 @@
 {
+  "confirmation": {
+    "step": "Confirmation {{step}} of 2",
+    "continue": "Continue to final confirmation",
+    "finalTitle": "Confirm file changes",
+    "acknowledge": "I understand this will change, move, or permanently delete the music files as described above.",
+    "saveTitle": "Save changes to music files?",
+    "saveDescription": "Save the pending tags, artwork, and lyrics to the selected music files. Album artwork may also affect other tracks in that album.",
+    "editTitle_one": "Apply changes to {{count}} track?",
+    "editTitle_other": "Apply changes to {{count}} tracks?",
+    "editDescription": "This operation will modify the original music files. Review the selected tracks and the changes before continuing."
+  },
   "title": "Tracks",
   "library": {
     "default": "Music library"

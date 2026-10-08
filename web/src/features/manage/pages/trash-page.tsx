@@ -141,6 +141,7 @@ export default function TrashPage() {
         description={confirm === 'all' ? t('trash.emptyConfirmDescription', { count: entries.length }) : t('trash.deleteConfirmDescription')}
         confirmLabel={confirm === 'all' ? t('trash.empty') : t('trash.deleteForever')}
         destructive
+        twoStep
         onConfirm={() => purge(confirm === 'all' ? undefined : selectedIds)}
       />
     </Page>

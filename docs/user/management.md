@@ -17,6 +17,14 @@ writes to your files, so:
 - Keep a backup of your music. Rainy's trash and edit history help undo
   mistakes, but they do not replace a backup.
 
+The web app requires two explicit confirmation stages before saving tags, covers,
+lyrics, renaming files, repairing/rebuilding tags, deleting music to trash, or
+permanently deleting trash. The first stage reviews the operation; the second
+requires an acknowledgement and the final action. Canceling either stage sends
+no mutation request. Save keyboard shortcuts use the same flow. These confirmations
+are a web interaction contract; direct API clients still use manager authorization
+and the usual filesystem guards.
+
 ## Metadata
 
 **Metadata** is a table of every track with sortable, configurable

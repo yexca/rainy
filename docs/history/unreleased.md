@@ -1,3 +1,11 @@
+## File Editing And Deployment
+
+- Run Docker as root by default (`PUID=0`, `PGID=0`), with nonzero IDs and explicit
+  container users still supported. Existing environment overrides keep their user.
+- Require two confirmation stages for music-file edits and deletion, including
+  tag/cover/lyric saves, rename, encoding repair, tag rebuild, delete-to-trash, and
+  permanent trash purge. Save shortcuts use the same flow; canceling preserves files.
+
 Changes through v0.1.0 are summarized in [v0.1.0](v0.1.0.md).
 
 Add user-facing changes for the next release here, grouped by area. Start with

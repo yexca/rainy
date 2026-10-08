@@ -70,6 +70,7 @@ export function BatchDialogs({ dialog, onClose, onDone }: BatchDialogsProps) {
         title={t('rebuild.title', { count: ids.length })}
         description={t('rebuild.description')}
         confirmLabel={t('rebuild.confirm')}
+        twoStep
         onConfirm={rebuild}
       />
       <ConfirmDialog
@@ -79,6 +80,7 @@ export function BatchDialogs({ dialog, onClose, onDone }: BatchDialogsProps) {
         description={t('delete.description', { count: ids.length })}
         confirmLabel={t('delete.confirm')}
         destructive
+        twoStep
         onConfirm={remove}
       />
     </>

@@ -50,8 +50,8 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 
    ```dotenv
    RAINY_MUSIC_PATH=/path/to/music
-   PUID=1000
-   PGID=1000
+   PUID=0
+   PGID=0
    TZ=Asia/Taipei
    ```
 
@@ -63,7 +63,7 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 
 4. 開啟 `http://<NAS 的 IP>:7650`，首次造訪時建立管理員帳號。Rainy 會自動將 `/data` 加入為第一個音樂庫並開始掃描。
 
-`PUID`/`PGID` 須能讀取音樂資料夾；若要在網頁上編輯檔案，還需要寫入權限。各家 NAS 的設定方式請參考 [Docker 與 NAS 指南](../operations/docker.md)，所有選項請參考 [`.env.example`](../../.env.example) 與[設定](../operations/configuration.md)。
+容器預設以 root 執行（`PUID=0`、`PGID=0`）。若設定非零 `PUID`/`PGID`，該使用者須能讀取音樂資料夾；若要在網頁上編輯檔案，還需要寫入權限。編輯儲存及刪除音樂檔案都需要兩步確認。各家 NAS 的設定方式請參考 [Docker 與 NAS 指南](../operations/docker.md)，所有選項請參考 [`.env.example`](../../.env.example) 與[設定](../operations/configuration.md)。
 
 ## 執行期資料
 

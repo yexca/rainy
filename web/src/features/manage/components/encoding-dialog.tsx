@@ -14,6 +14,7 @@ import type { EncodingFix } from '@/lib/api/types'
 
 import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary } from '../queries'
+import { ConfirmDialog } from './confirm-dialog'
 import { ResponsiveDialog } from './responsive-dialog'
 
 export interface EncodingDialogProps {
@@ -43,6 +44,7 @@ export function EncodingDialog({ open, onOpenChange, trackIds, onDone }: Encodin
 function EncodingBody({ trackIds, onClose, onDone }: { trackIds: readonly string[]; onClose: () => void; onDone?: () => void }) {
   const { t } = useTranslation('manage')
   const queryClient = useQueryClient()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const session = useId()
   const [excluded, setExcluded] = useState<ReadonlySet<string>>(new Set())
 
@@ -103,12 +105,24 @@ function EncodingBody({ trackIds, onClose, onDone }: { trackIds: readonly string
           {fixes.length === 0 ? t('common:actions.close') : t('common:actions.cancel')}
         </Button>
         {fixes.length > 0 ? (
-          <Button onClick={() => apply.mutate()} disabled={chosen.length === 0 || apply.isPending}>
+          <Button onClick={() => setConfirmOpen(true)} disabled={chosen.length === 0 || apply.isPending}>
             {apply.isPending ? <Spinner size="sm" className="text-current" /> : null}
             {t('encoding.apply', { count: chosen.length })}
           </Button>
         ) : null}
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('confirmation.editTitle', { count: chosen.length })}
+        description={t('encoding.hint')}
+        confirmLabel={t('encoding.apply', { count: chosen.length })}
+        twoStep
+        onConfirm={() => {
+          if (chosen.length === 0 || apply.isPending) return
+          return apply.mutateAsync()
+        }}
+      />
     </div>
   )
 }

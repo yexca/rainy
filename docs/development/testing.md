@@ -128,7 +128,9 @@ make docker-build smoke      # or: make ci-production
 
 `make smoke` runs `DOCKER_IMAGE` (default `rainy:dev`) in a disposable
 container and checks the health endpoint, the SPA shell, the Subsonic `ping`,
-and first-run setup and sign-in. `make ci-local` and CI build and test the
+and first-run setup and sign-in. It tests both default root and an explicit
+non-root user, persistence across restarts, and rejects tag edits and deletion
+on a read-only music mount without changing a generated synthetic WAV. `make ci-local` and CI build and test the
 image as `rainy:ci`.
 
 ## CI Targets

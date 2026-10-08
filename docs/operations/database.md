@@ -66,7 +66,8 @@ tar czf rainy-backup-$(date +%F).tar.gz \
 docker compose start rainy
 ```
 
-Files in the data folder belong to `PUID:PGID`, and `secret.key` is readable
+New files in the data folder belong to the configured runtime user (root by
+default); nonzero PUID also adjusts existing state ownership. `secret.key` is readable
 only by its owner. If `tar` reports permission errors, run it with `sudo`.
 
 Treat backups as sensitive: together, `rainy.db` and `secret.key` reveal every

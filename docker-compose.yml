@@ -4,9 +4,9 @@ services:
     container_name: rainy
     restart: unless-stopped
     environment:
-      # The container starts as root only to fix /config ownership, then runs as PUID:PGID.
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
+      # Runs as root by default; set PUID/PGID to opt into a non-root user.
+      PUID: ${PUID:-0}
+      PGID: ${PGID:-0}
       UMASK: ${UMASK:-022}
       TZ: ${TZ:-Asia/Shanghai}
       RAINY_SCAN_INTERVAL: ${RAINY_SCAN_INTERVAL:-1h}

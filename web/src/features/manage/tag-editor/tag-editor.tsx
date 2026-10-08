@@ -35,6 +35,7 @@ import { api } from '@/lib/api/endpoints'
 import type { BatchResult, ItemError, TrackTags } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 
+import { ConfirmDialog } from '../components/confirm-dialog'
 import { isReadonlyMessage, toastError } from '../lib/batch'
 import { FIELDS } from '../lib/tag-fields'
 import { buildTagEdits, keepEdits, setFieldValues, type Edits } from '../lib/tag-state'
@@ -88,6 +89,7 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
   const [tool, setTool] = useState<ToolId | null>(null)
   const [onlineOpen, setOnlineOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [confirmSave, setConfirmSave] = useState(false)
   const [saveErrors, setSaveErrors] = useState<ItemError[]>([])
 
   const single = items.length === 1 ? items[0] : undefined
@@ -127,7 +129,7 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
   }
 
   const save = async () => {
-    if (!dirty || busy || coverInvalid) return
+    if (!dirty || busy || coverInvalid || allReadonly) return
     setSaving(true)
     setSaveErrors([])
     const errors: ItemError[] = []
@@ -183,10 +185,14 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
     if (errors.length > 0) toast.error(t('batch.failed', { count: errors.length, ok: ids.length - failedIds.size }))
   }
 
+  const requestSave = () => {
+    if (dirty && !busy && !coverInvalid && !allReadonly && !confirmSave) setConfirmSave(true)
+  }
+
   const onKeyDown = (e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
       e.preventDefault()
-      void save()
+      requestSave()
     }
   }
 
@@ -275,12 +281,21 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
             {t('editor.revertAll')}
           </Button>
         ) : null}
-        <Button className="min-w-24 max-sm:h-11" onClick={() => void save()} disabled={!dirty || busy || coverInvalid || allReadonly}>
+        <Button className="min-w-24 max-sm:h-11" onClick={requestSave} disabled={!dirty || busy || coverInvalid || allReadonly}>
           {saving ? <Spinner size="sm" className="text-current" /> : null}
           {t('common:actions.save')}
         </Button>
       </footer>
 
+      <ConfirmDialog
+        open={confirmSave}
+        onOpenChange={setConfirmSave}
+        title={t('confirmation.saveTitle')}
+        description={t('confirmation.saveDescription')}
+        confirmLabel={t('common:actions.save')}
+        twoStep
+        onConfirm={save}
+      />
       <ToolsDialog tool={tool} items={items} edits={edits} onApply={applyTool} onClose={() => setTool(null)} />
       <OnlineDialog
         open={onlineOpen}

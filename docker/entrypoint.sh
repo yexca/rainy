@@ -1,9 +1,9 @@
 #!/bin/sh
 # Rainy container entrypoint.
 #
-# - Started as root (the image default): makes sure the data directory belongs to PUID:PGID
-#   (default 1000:1000), applies UMASK and drops privileges with su-exec, so the server never
-#   runs as root. The music directory is NEVER chowned — its ownership belongs to your NAS.
+# - Runs as root by default (PUID/PGID 0:0). Nonzero PUID opts into fixing the data
+#   directory ownership and dropping privileges with su-exec. UMASK applies in both modes.
+#   The music directory is NEVER chowned — its ownership belongs to your NAS.
 # - Started as another user (`docker run --user 1026:100`, compose `user:`): runs as that
 #   user unchanged (PUID/PGID are ignored; the data directory must already be writable).
 # - Arguments that are not a command are passed to rainy, so `docker run <image> version`
@@ -15,8 +15,8 @@ die() { log "error: $*"; exit 1; }
 
 DATA_DIR="${RAINY_DATA_DIR:-/config}"
 MUSIC_DIR="${RAINY_MUSIC_DIR:-/data}"
-PUID="${PUID:-1000}"
-PGID="${PGID:-1000}"
+PUID="${PUID:-0}"
+PGID="${PGID:-0}"
 UMASK="${UMASK:-022}"
 
 is_uint() { case "$1" in '' | *[!0-9]*) return 1 ;; *) return 0 ;; esac; }
@@ -39,14 +39,14 @@ case "$UMASK" in
 esac
 umask "$UMASK"
 
-# Only the long-running server needs the ownership fix-up; one-off commands (version, user …)
-# still drop privileges so they never create root-owned files in the data directory.
+# Nonzero PUID applies to server and one-off commands alike. Root mode preserves
+# existing directory ownership; music ownership is never changed.
 if [ "$(id -u)" = "0" ]; then
 	is_uint "$PUID" || die "PUID must be a numeric user id (got '$PUID')"
 	is_uint "$PGID" || die "PGID must be a numeric group id (got '$PGID')"
 
 	if [ "$PUID" = "0" ]; then
-		log "warning: PUID=0 — running Rainy as root is not recommended"
+		log "running Rainy as root (PUID=0)"
 		exec "$@"
 	fi
 

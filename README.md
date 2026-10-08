@@ -85,12 +85,13 @@ Place [`docker-compose.yml`](docker-compose.yml) in an empty directory. Create a
 
 ```dotenv
 RAINY_MUSIC_PATH=/path/to/music
-PUID=1000
-PGID=1000
+PUID=0
+PGID=0
 TZ=Asia/Shanghai
 ```
 
-Set `PUID` and `PGID` to a user that can read your music folder, and write to it
+The container runs as root by default (`PUID=0`, `PGID=0`). To use a non-root
+user, set `PUID` and `PGID` to a user that can read your music folder, and write to it
 if you want to edit tags, covers, or file names in Rainy. See
 [Docker](docs/operations/docker.md#permissions-puid-and-pgid) for how to find
 these values on Synology, QNAP, Unraid, TrueNAS SCALE, and OpenMediaVault.

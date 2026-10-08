@@ -123,6 +123,7 @@ docker-logs:
 # Runs DOCKER_IMAGE in a disposable container and exercises the public contract.
 production-smoke:
 	$(NODE) scripts/production-smoke.mjs $(DOCKER_IMAGE)
+	$(NODE) scripts/production-smoke.mjs $(DOCKER_IMAGE) nonroot
 
 smoke: production-smoke
 

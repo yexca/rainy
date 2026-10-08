@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { reportBatch, toastError } from '../lib/batch'
 import { RENAME_TOKENS } from '../lib/rename-tokens'
 import { invalidateLibrary } from '../queries'
+import { ConfirmDialog } from './confirm-dialog'
 import { ResponsiveDialog } from './responsive-dialog'
 
 const PATTERN_KEY = 'rainy.manage.renamePattern'
@@ -64,6 +65,7 @@ export function RenameDialog({ open, onOpenChange, trackIds, onDone }: RenameDia
 function RenameBody({ trackIds, onClose, onDone }: { trackIds: readonly string[]; onClose: () => void; onDone?: () => void }) {
   const { t } = useTranslation('manage')
   const queryClient = useQueryClient()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const session = useId()
   const defaultPattern = useDefaultRenamePattern()
   const [pattern, setPattern] = useState(() => storedPattern() || defaultPattern)
@@ -185,11 +187,23 @@ function RenameBody({ trackIds, onClose, onDone }: { trackIds: readonly string[]
         <Button variant="outline" onClick={onClose} disabled={apply.isPending}>
           {t('common:actions.cancel')}
         </Button>
-        <Button onClick={() => apply.mutate()} disabled={okIds.length === 0 || stale || apply.isPending}>
+        <Button onClick={() => setConfirmOpen(true)} disabled={okIds.length === 0 || stale || apply.isPending}>
           {apply.isPending ? <Spinner size="sm" className="text-current" /> : null}
           {t('rename.apply', { count: okIds.length })}
         </Button>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('confirmation.editTitle', { count: okIds.length })}
+        description={t('rename.description', { count: okIds.length })}
+        confirmLabel={t('rename.apply', { count: okIds.length })}
+        twoStep
+        onConfirm={() => {
+          if (okIds.length === 0 || stale || apply.isPending) return
+          return apply.mutateAsync()
+        }}
+      />
     </div>
   )
 }

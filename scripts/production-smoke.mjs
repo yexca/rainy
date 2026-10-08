@@ -1,7 +1,7 @@
-// Production image smoke test: runs the image in a disposable container with empty
-// /config and /data mounts and exercises the public contract end to end.
+// Production image smoke test: runs the image with temporary application state
+// and generated music mounts, exercising the public contract end to end.
 //
-//   node scripts/production-smoke.mjs <image>
+//   node scripts/production-smoke.mjs <image> [root|nonroot]
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -9,6 +9,7 @@ import path from "node:path";
 import process from "node:process";
 
 const image = process.argv[2];
+const nonroot = process.argv[3] === "nonroot";
 if (!image) {
   console.error("usage: node scripts/production-smoke.mjs <image>");
   process.exit(2);
@@ -21,6 +22,22 @@ const configDir = path.join(workDir, "config");
 const musicDir = path.join(workDir, "data");
 fs.mkdirSync(configDir);
 fs.mkdirSync(musicDir);
+// A small generated PCM WAV lets the smoke test verify real file-write rejection.
+const audio = Buffer.alloc(44 + 4000);
+audio.write("RIFF", 0);
+audio.writeUInt32LE(audio.length - 8, 4);
+audio.write("WAVEfmt ", 8);
+audio.writeUInt32LE(16, 16);
+audio.writeUInt16LE(1, 20);
+audio.writeUInt16LE(1, 22);
+audio.writeUInt32LE(8000, 24);
+audio.writeUInt32LE(16000, 28);
+audio.writeUInt16LE(2, 32);
+audio.writeUInt16LE(16, 34);
+audio.write("data", 36);
+audio.writeUInt32LE(4000, 40);
+const audioPath = path.join(musicDir, "Synthetic Smoke Track.wav");
+fs.writeFileSync(audioPath, audio);
 
 function run(args, { allowFailure = false } = {}) {
   const result = spawnSync(docker, args, { encoding: "utf8" });
@@ -60,10 +77,7 @@ async function waitForHealth(base) {
 }
 
 async function main() {
-  const ids =
-    typeof process.getuid === "function"
-      ? ["-e", `PUID=${process.getuid()}`, "-e", `PGID=${process.getgid()}`]
-      : [];
+  const ids = nonroot ? ["-e", "PUID=1000", "-e", "PGID=1000"] : [];
   run([
     "run", "-d", "--name", name,
     "-p", "127.0.0.1::7650",
@@ -88,8 +102,8 @@ async function main() {
     .map(([pid, user, ...args]) => ({ pid, user, command: args.join(" ") }));
   const server = processes.find((p) => /(^|\/)rainy( serve)?$/.test(p.command));
   check(
-    server !== undefined && server.user !== "root" && server.user !== "0",
-    `server process runs as non-root (user ${server?.user ?? "?"})`,
+    server !== undefined && (nonroot ? server.user === "1000" || server.user === "rainy" : server.user === "root" || server.user === "0"),
+    `server process uses ${nonroot ? "explicit PUID=1000" : "root by default"} (user ${server?.user ?? "?"})`,
   );
 
   const html = await fetch(`${base}/`).then((r) => r.text());
@@ -122,7 +136,33 @@ async function main() {
     fs.existsSync(path.join(configDir, "rainy.db")) && fs.existsSync(path.join(configDir, "secret.key")),
     "database and encryption key persist in the config bind mount",
   );
-  check(fs.readdirSync(musicDir).length === 0, "read-only music mount receives no application state");
+  check(fs.readdirSync(musicDir).length === 1, "read-only music mount receives no application state");
+
+  let track;
+  const scanDeadline = Date.now() + 30000;
+  while (Date.now() < scanDeadline && !track) {
+    const page = await fetch(`${base}/api/tracks`, { headers: { Cookie: cookie } }).then((r) => r.json());
+    track = page.items?.find((item) => item.path === "Synthetic Smoke Track.wav");
+    if (!track) await sleep(250);
+  }
+  check(!!track, "synthetic WAV is scanned from the read-only music mount");
+  const tags = await fetch(`${base}/api/manage/tracks/${track.id}/tags`, { headers: { Cookie: cookie } }).then((r) => r.json());
+  check(tags.writable === false, "read-only music is reported as unwritable by the runtime user");
+  const edit = await fetch(`${base}/api/manage/tags`, {
+    method: "POST",
+    headers: { Cookie: cookie, "Content-Type": "application/json" },
+    body: JSON.stringify({ edits: [{ trackId: track.id, tags: { TITLE: ["Synthetic Edited Smoke Track"] } }] }),
+  });
+  const rejected = await edit.json();
+  check(edit.status === 409 && rejected.error?.code === "readonly", "tag writes to a read-only mount fail with readonly");
+  const deletion = await fetch(`${base}/api/manage/delete`, {
+    method: "POST",
+    headers: { Cookie: cookie, "Content-Type": "application/json" },
+    body: JSON.stringify({ trackIds: [track.id] }),
+  });
+  const deleteRejected = await deletion.json();
+  check(deletion.status === 409 && deleteRejected.error?.code === "readonly", "deletion from a read-only mount fails with readonly");
+  check(fs.readFileSync(audioPath).equals(audio), "rejected file mutations leave the original synthetic file unchanged");
 
   run(["restart", name]);
   // Docker may assign a new ephemeral host port after a restart.

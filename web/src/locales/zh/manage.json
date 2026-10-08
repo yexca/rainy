@@ -1,4 +1,14 @@
 {
+  "confirmation": {
+    "step": "第 {{step}} 步确认，共 2 步",
+    "continue": "继续到最终确认",
+    "finalTitle": "确认更改音乐文件",
+    "acknowledge": "我已核对上述操作，理解它会按说明修改、移动或永久删除音乐文件。",
+    "saveTitle": "保存音乐文件的修改？",
+    "saveDescription": "将待保存的标签、封面和歌词写入所选音乐文件。整张专辑的封面操作还可能影响该专辑的其他曲目。",
+    "editTitle": "应用对 {{count}} 首曲目的修改？",
+    "editDescription": "此操作会修改原始音乐文件。请先核对所选曲目和待应用的修改。"
+  },
   "title": "曲目",
   "library": {
     "default": "音乐库"
