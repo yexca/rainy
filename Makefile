@@ -1,5 +1,11 @@
-.PHONY: backend-format backend-lint backend-verify backend-vuln backend-test backend-coverage backend-vet backend-race backend-build backend-run frontend-install frontend-dev frontend-typecheck frontend-lint frontend-test frontend-audit frontend-build frontend-docs testdata docker-build docker-up docker-down docker-status docker-logs smoke sensitive-check sensitive-check-test privacy-check ci-style ci-backend ci-frontend ci-production ci-local ci
-.PHONY: ci-plan ci-plan-test ci-results ci-backend-static ci-backend-coverage ci-backend-race
+.PHONY: help docs-check frontend-docs
+.PHONY: backend-format backend-lint backend-verify backend-vuln backend-test backend-coverage backend-vet backend-race backend-build backend-run
+.PHONY: frontend-install frontend-dev frontend-typecheck frontend-lint frontend-test frontend-audit frontend-build
+.PHONY: testdata docker-build docker-up docker-down docker-status docker-logs smoke production-smoke
+.PHONY: sensitive-check sensitive-check-test privacy-check release-check release-check-test
+.PHONY: ci-plan ci-plan-test ci-results ci-policy ci-style ci-backend-static ci-backend-coverage ci-backend-race ci-backend ci-frontend ci-production ci-local ci
+
+.DEFAULT_GOAL := help
 
 GO ?= go
 PNPM ?= pnpm
@@ -25,6 +31,9 @@ APP_VERSION := $(shell tr -d '\r\n' < VERSION)
 BINARY := bin/rainy
 endif
 LDFLAGS := -s -w -X $(BUILDINFO).Version=$(APP_VERSION)
+
+help:
+	@$(NODE) scripts/make-help.mjs
 
 # ---------------------------------------------------------------------------- backend
 
@@ -83,9 +92,12 @@ frontend-audit: frontend-install
 frontend-build: frontend-install
 	cd web && $(PNPM) build
 
-frontend-docs:
+docs-check:
 	$(NODE) --test scripts/check-doc-links.test.mjs
 	$(NODE) scripts/check-doc-links.mjs
+
+# Compatibility with existing contributor commands.
+frontend-docs: docs-check
 
 # ----------------------------------------------------------------------- data, docker
 
@@ -109,8 +121,10 @@ docker-logs:
 	$(DOCKER_COMPOSE_DEV) logs --no-color rainy
 
 # Runs DOCKER_IMAGE in a disposable container and exercises the public contract.
-smoke:
+production-smoke:
 	$(NODE) scripts/production-smoke.mjs $(DOCKER_IMAGE)
+
+smoke: production-smoke
 
 # ---------------------------------------------------------------------------- privacy
 
@@ -133,7 +147,10 @@ ci-results:
 ci-plan-test:
 	$(NODE) --test scripts/ci-plan.test.mjs
 
-ci-style: backend-format frontend-lint frontend-docs sensitive-check-test ci-plan-test
+# Policy needs only Node and Git; documentation-only PRs avoid Go/pnpm setup.
+ci-policy: docs-check sensitive-check-test ci-plan-test release-check-test
+
+ci-style: frontend-lint
 
 ci-backend-static: backend-format backend-lint backend-verify backend-vuln backend-vet
 
@@ -148,8 +165,14 @@ ci-frontend: frontend-audit frontend-typecheck frontend-test frontend-build
 
 ci-production: docker-build smoke
 
+release-check:
+	$(NODE) scripts/check-release.mjs
+
+release-check-test:
+	$(NODE) --test scripts/check-release.test.mjs
+
 # ci-local follows every GitHub Actions validation phase.
 ci-local: DOCKER_IMAGE := rainy:ci
-ci-local: ci-style ci-backend ci-frontend ci-production
+ci-local: ci-policy ci-style ci-backend ci-frontend ci-production
 
 ci: ci-local

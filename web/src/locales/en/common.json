@@ -36,7 +36,8 @@
     "allPlaylists": "All playlists",
     "noPlaylists": "No playlists yet",
     "toggleSidebar": "Toggle sidebar",
-    "listening": "Listening"
+    "listening": "Listening",
+    "about": "About"
   },
   "actions": {
     "play": "Play",

@@ -21,11 +21,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  style:
-    name: Style
+  policy:
+    name: Policy
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       plan: ${{ steps.plan.outputs.plan }}
+      style: ${{ steps.plan.outputs.style }}
       backend: ${{ steps.plan.outputs.backend }}
       frontend: ${{ steps.plan.outputs.frontend }}
       production: ${{ steps.plan.outputs.production }}
@@ -35,19 +37,12 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version: "1.26.6"
-          cache: false
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "24.19.0"
-      - name: Enable pnpm
-        run: corepack enable
-      - name: Run style and CI policy checks
-        run: make ci-style
+      - name: Run documentation and CI policy checks
+        run: make ci-policy
       - name: Select required validation
         id: plan
         env:
@@ -55,11 +50,32 @@ jobs:
           CI_RUN_BUILDS: ${{ inputs.run_builds || false }}
         run: make ci-plan
 
+  style:
+    name: Style
+    needs: policy
+    if: needs.policy.outputs.style == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24.19.0"
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Run frontend style checks
+        run: make ci-style
+
   backend:
     name: Backend (${{ matrix.check }})
-    needs: style
-    if: needs.style.outputs.backend == 'true'
+    needs: policy
+    if: needs.policy.outputs.backend == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -110,9 +126,10 @@ jobs:
 
   frontend:
     name: Frontend
-    needs: style
-    if: needs.style.outputs.frontend == 'true'
+    needs: policy
+    if: needs.policy.outputs.frontend == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -135,9 +152,10 @@ jobs:
 
   smoke:
     name: Smoke
-    needs: style
-    if: needs.style.outputs.production == 'true'
+    needs: policy
+    if: needs.policy.outputs.production == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -171,8 +189,9 @@ jobs:
   core:
     name: Core
     if: always()
-    needs: [style, backend, frontend, smoke]
+    needs: [policy, style, backend, frontend, smoke]
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -184,6 +203,6 @@ jobs:
           node-version: "24.19.0"
       - name: Verify all required validation results
         env:
-          CI_PLAN: ${{ needs.style.outputs.plan }}
+          CI_PLAN: ${{ needs.policy.outputs.plan }}
           CI_RESULTS: ${{ toJSON(needs) }}
         run: make ci-results

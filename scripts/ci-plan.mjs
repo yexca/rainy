@@ -2,7 +2,7 @@ import { appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
-export const planKeys = ["backend", "frontend", "production"];
+export const planKeys = ["style", "backend", "frontend", "production"];
 
 const docsPattern =
   /^(README(?:\.[\w-]+)?\.md|AGENTS\.md|CONTRIBUTING\.md|SECURITY\.md|PRIVACY\.md|LICENSE)$/;
@@ -35,7 +35,7 @@ export function createPlan({
     ) {
       Object.assign(plan, { backend: true, production: true });
     } else if (path.startsWith("web/")) {
-      Object.assign(plan, { frontend: true, production: true });
+      Object.assign(plan, { style: true, frontend: true, production: true });
     } else {
       return full;
     }
@@ -46,9 +46,10 @@ export function createPlan({
 export function validateResults(plan, results) {
   if (!plan || planKeys.some((key) => typeof plan[key] !== "boolean"))
     throw new Error("Missing or invalid CI plan");
-  if (results.style?.result !== "success")
-    throw new Error("Style and CI planning must succeed");
+  if (results.policy?.result !== "success")
+    throw new Error("Policy checks and CI planning must succeed");
   for (const [job, key] of Object.entries({
+    style: "style",
     backend: "backend",
     frontend: "frontend",
     smoke: "production",

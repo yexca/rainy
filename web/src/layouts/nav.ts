@@ -17,6 +17,7 @@ import {
   Music,
   Radio,
   Search,
+  Settings,
   Shapes,
   ShieldCheck,
   SlidersHorizontal,
@@ -49,6 +50,12 @@ export const LIBRARY_NAV: readonly NavItem[] = [
   { to: '/favorites', labelKey: 'nav.favorites', icon: Star },
   { to: '/listening', labelKey: 'nav.listening', icon: ChartColumn },
   { to: '/radio', labelKey: 'nav.radio', icon: Radio },
+]
+
+/** Pinned below the scrolling sidebar groups. */
+export const FOOTER_NAV: readonly NavItem[] = [
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
+  { to: '/about', labelKey: 'nav.about', icon: Info },
 ]
 
 /**
@@ -122,7 +129,7 @@ export const TABS: readonly TabItem[] = [
     to: '/library',
     labelKey: 'nav.library',
     icon: LibraryBig,
-    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings'],
+    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings', '/about'],
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
   // Phones have no sidebar: this tab holds Tracks and links to the library tools and admin pages.

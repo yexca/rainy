@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ListMusic, Plus, Settings } from 'lucide-react'
+import { ListMusic, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, useLocation } from 'react-router'
 
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 
 import {
   ADMIN_SECTION,
+  FOOTER_NAV,
   LIBRARY_NAV,
   TOOLS_SECTION,
   TRACKS_SECTION,
@@ -177,22 +178,26 @@ function PlaylistsGroup() {
   )
 }
 
-/** The signed-in user's own settings, pinned below the scrolling groups. */
-function SettingsFooter() {
+/** Entries pinned below the scrolling groups (Settings, About). */
+function FooterNav() {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const label = t('nav.settings')
   return (
     <SidebarFooter className="border-t border-sidebar-border">
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={pathMatches(pathname, '/settings')} tooltip={label} className={ITEM_CLASS}>
-            <NavLink to="/settings">
-              <Settings strokeWidth={1.75} />
-              <span>{label}</span>
-            </NavLink>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        {FOOTER_NAV.map((item) => {
+          const label = t(item.labelKey)
+          return (
+            <SidebarMenuItem key={item.to}>
+              <SidebarMenuButton asChild isActive={pathMatches(pathname, item.to, item.end)} tooltip={label} className={ITEM_CLASS}>
+                <NavLink to={item.to} end={item.end}>
+                  <item.icon strokeWidth={1.75} />
+                  <span>{label}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )
+        })}
       </SidebarMenu>
     </SidebarFooter>
   )
@@ -214,7 +219,7 @@ export function AppSidebar({ className }: { className?: string }) {
         <PlaylistsGroup />
         {isManager ? <ManageGroup isAdmin={isAdmin} /> : null}
       </SidebarContent>
-      <SettingsFooter />
+      <FooterNav />
       <SidebarRail aria-label={toggleLabel} title={toggleLabel} />
     </Sidebar>
   )

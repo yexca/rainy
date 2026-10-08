@@ -65,4 +65,6 @@ Rainy currently includes:
 
 - [User guide](user/index.md)
 - [Architecture](architecture/index.md)
-- [Docker](operations/docker.md)
+- [Core boundaries](architecture/core-boundaries.md)
+- [Operations](operations/index.md)
+- [Development](development/index.md)

@@ -13,3 +13,25 @@ action.
   Illustrations** off to keep the plain placeholders.
 - The player no longer keeps showing the previous song's cover when the next
   song has none.
+- A new **About** page, opened from the sidebar, Settings → About, or the
+  account menu, shows the version, an overview, the AI models Rainy was built
+  with, the projects it learned from (Navidrome, lx-music, and Music Tag), the
+  main technologies, and the license.
+- On tablets and desktops, the top-right corner of the header has a round tray
+  with Search and an **Appearance** panel for theme, accent colour, and
+  language, next to an account button that shows your name and role.
+  **Settings** is pinned at the bottom of the sidebar. On phones, theme and
+  language are in the account menu under **Appearance**.
+
+## Development And Docs
+
+- Documentation now has dedicated development and operations entry points,
+  core-boundary guidance, backend/frontend contribution rules, and reliability
+  and CI guides. Agent instructions select the relevant reading path.
+- `make help`, `docs-check`, `ci-policy`, and `release-check` provide clear
+  local entry points. Existing `frontend-docs` and `smoke` commands remain usable.
+- Documentation-only pull requests run lightweight policy checks. Code changes
+  select the affected validation phases, and the required Core check rejects
+  unplanned skips. Releases also verify main ancestry and nonempty release notes.
+- Update the transitive source-map-js dependency to its patched release so
+  the frontend dependency audit passes.

@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
+import { ChevronDown, Info, LogOut, Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -109,6 +109,12 @@ function UserMenuContent({ user, showAppearance }: { user: User; showAppearance:
             </DropdownMenuSubContent>
           </DropdownMenuSub>
         ) : null}
+        <DropdownMenuItem asChild>
+          <Link to="/about">
+            <Info />
+            {t('nav.about')}
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onLogout} disabled={logout.isPending}>

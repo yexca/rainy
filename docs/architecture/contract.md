@@ -10,6 +10,13 @@ This document is the **single source of truth** for everyone working on the code
 and this document disagree, fix the code (or, if the document is wrong, update the document in
 the same change and say so in your report).
 
+For a reading path, start with [Architecture](index.md) and
+[Core boundaries](core-boundaries.md). This reference owns precise schemas,
+APIs, shared types, and design tokens. Day-to-day commands belong in
+[Development](../development/index.md); job selection and release automation
+belong in [CI](../development/ci.md). Historical agent labels in section
+headings identify the original implementation area, not current ownership.
+
 ---------------------------------------------------------------------------------------------
 
 ## 1. Stack
@@ -1387,6 +1394,7 @@ web/src/
 | `/daily` | Daily mix (today's songs, play / shuffle) | library |
 | `/settings` | User settings | player |
 | `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to Settings → Scrobbling) | player |
+| `/about` | About Rainy: version, overview, AI models used, reference projects, technologies, license (linked from Settings → About and the account menu) | player |
 | `/manage` | Tracks → Metadata (track table + tag editor) | manage |
 | `/manage/upload` | Tracks → Upload (files and folders from this device) | manage |
 | `/manage/links` | Tracks → Links (YouTube / bilibili downloads with yt-dlp) | manage |
@@ -1449,9 +1457,9 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - Type scale: page title `text-3xl font-bold tracking-tight` (mobile large title 34px/41px bold, collapsing into a 17px semibold centered nav title on scroll — `PageHeader` handles it), section title `text-xl font-semibold`, body `text-sm`, secondary `text-muted-foreground`.
 - Artwork: `rounded-lg` (≥ 160px) / `rounded-md` (thumbnails), subtle `shadow-sm` and 1px `ring-black/5 dark:ring-white/10`; artists are circles. Always square (`aspect-square object-cover`), lazy loaded, fade-in. Missing or failed art (`CoverArt`) shows `placeholderArt(kind, alt)` from `@/lib/placeholder-art` (384 px WebP mascot art; `kind` = `placeholder` prop, else `artist` for circles, `playlist`/`radio` for the `ListMusic`/`Radio` icons, else `cover`, one of three variants hashed from `alt`) while `useUI.mascotArt` is on, otherwise a gradient with the `icon` glyph; a cover still loading sits on the plain gradient, and `keepPrevious` keeps the previous cover only while a new one loads. Media Session uses the same placeholder (`cover` seeded by album or title, `radio` for stations) for tracks without a cover.
 - Glass surfaces (tab bar, mini player, top bar on scroll): opaque `bg-background` with subtle borders on phones (including landscape viewports up to 540px high); larger screens use 75% translucent backgrounds with 24px backdrop blur and 150% saturation. Never animate backdrop filters.
-- Layout: ≥ 768px → a full-width app header (`layouts/app-header.tsx`, `--app-header-h` = 48px + safe area, sidebar colours, bottom border) with the sidebar toggle and logo on the left and, on the right (`layouts/header-actions.tsx`), a bordered round tray of quick controls (Search link, Appearance popover with theme, accent, language and a link to `/settings#appearance`), a divider, and the account menu (`UserMenu variant="header"`: avatar, plus the display name and role from 1024px; its menu holds Settings and Log out, while the phone `avatar` variant adds an Appearance submenu with theme and language); the sidebar and content sit below it, with the user's Settings pinned in the sidebar footer (an icon on the rail), and page top bars (`PageHeader`, `DetailNavBar`) and the player side panel stick at `top: var(--app-header-h)`. Desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → no app header (`--app-header-h: 0`); bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it; the account menu is the avatar button in the Home and Library nav bars.
+- Layout: ≥ 768px → a full-width app header (`layouts/app-header.tsx`, `--app-header-h` = 48px + safe area, sidebar colours, bottom border) with the sidebar toggle and logo on the left and, on the right (`layouts/header-actions.tsx`), a bordered round tray of quick controls (Search link, Appearance popover with theme, accent, language and a link to `/settings#appearance`), a divider, and the account menu (`UserMenu variant="header"`: avatar, plus the display name and role from 1024px; its menu holds Settings, About and Log out, while the phone `avatar` variant adds an Appearance submenu with theme and language); the sidebar and content sit below it, with Settings and About pinned in the sidebar footer (`FOOTER_NAV`; icons on the rail), and page top bars (`PageHeader`, `DetailNavBar`) and the player side panel stick at `top: var(--app-header-h)`. Desktop ≥ 1024px → left sidebar (240px, shadcn Sidebar, collapsible to icons) + content + 80px bottom player bar. 768–1023px → collapsed icon sidebar. < 768px → no app header (`--app-header-h: 0`); bottom tab bar (Home, Library, Search, and Manage for managers) 49px + safe area, floating mini player (56px, `rounded-xl`, 8px side margins) above it; the account menu is the avatar button in the Home and Library nav bars.
 - Navigation tiers (`layouts/nav.ts`): `LIBRARY_NAV` for listening (including the listening report `/listening`, which the
-  phones' Library hub lists too); managers get three sections (`NavSection`: label, icon, route `tabs`) — `TRACKS_SECTION` ("Tracks": Metadata `/manage`, Upload `/manage/upload`, Links `/manage/links`, Online `/manage/online`), `TOOLS_SECTION` ("Library tools": folders, doctor, trash, history) and, for admins, `ADMIN_SECTION` ("Admin": users, libraries, and the server settings pages — Settings, yt-dlp, Sources, Scrobbling, System — as tabs of their own). Each is one sidebar item that links to its first tab and is active on every tab (`isSectionPath`); its pages are horizontal route tabs (`SectionTabs` in `layouts/section-tabs.tsx`, links with `aria-current`, scrolling sideways on phones) in each page header. On phones the "Manage" tab (which also covers `/admin`) opens Tracks, whose tabs are followed by links to Library tools and Admin (`ManageSections`); their pages keep a back button to `/manage`.
+  phones' Library hub lists too); `FOOTER_NAV` (Settings `/settings`, About `/about`) is pinned in the sidebar footer below the scrolling groups; managers get three sections (`NavSection`: label, icon, route `tabs`) — `TRACKS_SECTION` ("Tracks": Metadata `/manage`, Upload `/manage/upload`, Links `/manage/links`, Online `/manage/online`), `TOOLS_SECTION` ("Library tools": folders, doctor, trash, history) and, for admins, `ADMIN_SECTION` ("Admin": users, libraries, and the server settings pages — Settings, yt-dlp, Sources, Scrobbling, System — as tabs of their own). Each is one sidebar item that links to its first tab and is active on every tab (`isSectionPath`); its pages are horizontal route tabs (`SectionTabs` in `layouts/section-tabs.tsx`, links with `aria-current`, scrolling sideways on phones) in each page header. On phones the "Manage" tab (which also covers `/admin`) opens Tracks, whose tabs are followed by links to Library tools and Admin (`ManageSections`); their pages keep a back button to `/manage`.
 - CSS vars in `index.css`: `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, `--player-window-w` (400px), `--compact-player-h` (68px), `--player-reserve`, `--player-clearance`, `--mascot-right` (companion right offset; beside the floating window in `window` mode), `--app-header-h` (app header height, 0 on phones), `--safe-top/bottom` (env(safe-area-inset-*)); pages use `.page-pad` bottom padding utility so content never hides behind player chrome. Never hard-code `--playerbar-h` for spacing: the bar may be hidden or replaced by a floating player.
 - Motion: `motion/react` springs (`type:'spring', stiffness: 400, damping: 36`), `MotionConfig reducedMotion="user"`. Press feedback on mobile: `active:scale-[0.97]` transitions.
 - Icons: lucide-react, `size-4`/`size-5`, `strokeWidth={1.75}`; transport controls use filled glyphs (`fill="currentColor"`).
@@ -1558,45 +1566,21 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ## 10. Build, run, test
 
-```bash
-# backend (dev)
-go run ./cmd/rainy                         # serves embedded web/dist (build web first) on :7650
-go test ./...                               # unit tests
-go vet ./...
-# frontend (dev)
-cd web && pnpm install && pnpm dev          # vite on :5173, proxies /api and /rest to :7650
-pnpm build                                  # outputs web/dist (embedded by web/embed.go)
-pnpm lint && pnpm typecheck
-# test library
-bash scripts/gen-testdata.sh                # → testdata/music (needs ffmpeg)
-RAINY_MUSIC_DIR=./testdata/music RAINY_DATA_DIR=./testdata/data go run ./cmd/rainy
-# full build (Makefile targets: docs/development/local-dev.md)
-make docker-build                           # local image rainy:dev
-make docker-up                              # development compose (deploy/compose/dev.yml)
-```
+The [Makefile](../../Makefile) is the command source. Use `make help`,
+[Local development](../development/local-dev.md), and
+[Testing](../development/testing.md) for the current workflow. Docker is the
+default app runtime; host-side test, lint, and CI frontend build targets remain
+available. [CI and release automation](../development/ci.md) maps the targets
+to Actions, including the lightweight documentation-only plan.
 
 ## 11. Ownership (parallel work rules)
 
-Agents work concurrently in one tree. **Only edit files you own.** If you need something from
-another area that does not exist yet, code against the contract in this document; if the contract
-is insufficient, write a note in your final report instead of editing someone else's file.
-Do not run `go get`, `go mod tidy`, `pnpm add` or change `go.mod`/`package.json` in wave 2 —
-all dependencies are installed by the foundation; report missing ones.
-Build/typecheck only your own packages (`go build ./internal/<pkg>/...`, `go test ./internal/<pkg>/...`;
-for TS filter `pnpm typecheck` output to your paths) because other areas may be mid-edit.
-
-| Area | Owner | Files |
-|---|---|---|
-| Backend foundation | BE0 | `go.mod`, `go.sum`, `cmd/`, `internal/{buildinfo,config,db,model,util,store,auth,events,nowplaying,app,server}/`, `internal/api/{api.go,helpers.go}`, stubs of every other package, `web/embed.go`, `scripts/gen-testdata.sh`, `Makefile`, `.gitignore` |
-| Frontend foundation | FE0 | `web/*` config files, `web/src/{main.tsx,app.tsx,router.tsx,index.css}`, `web/src/components/**`, `web/src/layouts/**`, `web/src/lib/**`, `web/src/stores/**`, `web/src/hooks/**`, `web/src/features/auth/**`, `web/src/locales/*/{common,auth}.json`, stubs of other features' shared modules |
-| Scanner / tags / artwork | A | `internal/{tags,scanner,artwork}/**` |
-| Subsonic | B | `internal/subsonic/**` |
-| Native API + media | C | `internal/api/{auth,library,annotations,playlists,queue,media,radio,events}*.go`, `internal/{transcode,lyrics}/**` |
-| Manage + admin API | D | `internal/manage/**`, `internal/api/{manage,admin}*.go` |
-| Library UI | E | `web/src/features/library/**`, `web/src/locales/*/library.json` |
-| Player + PWA + settings UI | F | `web/src/features/{player,settings}/**`, `web/public/**` (icons), `web/pwa.config.ts` (VitePWA options imported by `vite.config.ts`), `web/index.html`, `web/src/locales/*/{player,settings}.json` |
-| Manage + admin UI | G | `web/src/features/{manage,admin}/**`, `web/src/locales/*/{manage,admin}.json` |
-| Docker + docs | H | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `docker/**`, `README.md`, `docs/readme/**`, `.github/**` |
+The section anchor is retained for existing references. The original wave
+assignments are historical and no longer govern changes. Follow
+[AGENTS.md](../../AGENTS.md) and [CONTRIBUTING.md](../../CONTRIBUTING.md),
+coordinate overlapping edits when work is explicitly delegated, and validate
+the complete affected contract. Do not filter out failures merely because
+they appear in another package.
 
 ## 12. Foundation implementation notes (BE0, wave 1)
 
