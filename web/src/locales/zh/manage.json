@@ -68,7 +68,7 @@
   "rebuild": {
     "title_one": "重构 {{count}} 首歌曲的标签？",
     "title_other": "重构 {{count}} 首歌曲的标签？",
-    "description": "Rainy 会先读取现有标签，再通过 TagLib 重构文件并重新扫描。对于旧 INFO 标签导致无法解析的 WAV，原始字节会作为不生效的数据块保留。修改文件前请确认曲库备份可用。",
+    "description": "Rainy 会先读取现有标签，在副本上重构并验证后替换原文件、重新扫描。无法可靠读取的字段需要正常的索引值，否则该文件不会被修改。修改文件前请确认曲库备份可用。",
     "confirm": "重构标签",
     "done_one": "已重构 {{count}} 首歌曲的标签",
     "done_other": "已重构 {{count}} 首歌曲的标签"

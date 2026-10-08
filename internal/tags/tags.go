@@ -194,25 +194,31 @@ func ReadProperties(path string) (*Properties, error) {
 	if err := checkFile(path); err != nil {
 		return nil, err
 	}
-	p, err := taglib.ReadProperties(path)
+	f, err := taglib.OpenReadOnly(path)
 	if err != nil {
 		if _, props, perr := probe(path); perr == nil {
 			return props, nil
 		}
 		return nil, wrapTaglib("reading properties of", path, err)
 	}
+	defer func() { _ = f.Close() }()
+	p := f.Properties()
 	// TagLib happily "opens" arbitrary bytes with an audio extension but finds no stream.
 	if p.SampleRate == 0 && p.Channels == 0 && p.Length == 0 {
 		return nil, fmt.Errorf("reading properties of %s: no audio stream: %w", filepath.Base(path), ErrUnsupported)
 	}
+	format, inner := taglibFormatCodec(f.Format(), p.Codec)
+	if f.Format() == taglib.FormatWAV || f.Format() == taglib.FormatAIFF {
+		inner = pcmContainerCodec(path, f.Format())
+	}
 	out := &Properties{
-		Format:     p.Format,
-		InnerCodec: p.InnerCodec,
-		Codec:      codecName(p.Format, p.InnerCodec),
+		Format:     format,
+		InnerCodec: inner,
+		Codec:      codecName(format, inner),
 		Duration:   p.Length.Seconds(),
-		Bitrate:    int(p.BitRate),
+		Bitrate:    int(p.Bitrate),
 		SampleRate: int(p.SampleRate),
-		BitDepth:   int(p.BitDepth),
+		BitDepth:   int(p.BitsPerSample),
 		Channels:   int(p.Channels),
 		Pictures:   make([]Picture, 0, len(p.Images)),
 	}

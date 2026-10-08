@@ -4,7 +4,11 @@ go 1.26.0
 
 toolchain go1.26.6
 
+// Navidrome's fork includes non-throwing UTF-8 conversion for the TagLib WASM build.
+replace go.senan.xyz/taglib => github.com/deluan/go-taglib v0.0.0-20260913142955-d55e0c9353cb
+
 require (
+	github.com/dop251/goja v0.0.0-20260926152631-39ec2650adc9
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/mozillazg/go-pinyin v0.21.0
@@ -17,7 +21,6 @@ require (
 
 require (
 	github.com/dlclark/regexp2/v2 v2.5.2 // indirect
-	github.com/dop251/goja v0.0.0-20260926152631-39ec2650adc9 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
@@ -25,7 +28,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/tetratelabs/wazero v1.11.1-0.20260428013916-2bbd517b7633 // indirect
+	github.com/tetratelabs/wazero v1.12.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

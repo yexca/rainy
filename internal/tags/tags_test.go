@@ -173,6 +173,12 @@ func TestReadWriteRoundTrip(t *testing.T) {
 			if m.Duration < 1.5 || m.Duration > 2.5 || m.SampleRate == 0 || m.Channels == 0 || m.Codec == "" {
 				t.Fatalf("Read properties: dur=%v sr=%d ch=%d codec=%q", m.Duration, m.SampleRate, m.Channels, m.Codec)
 			}
+			wantCodec := map[string]string{
+				"a.mp3": "mp3", "b.flac": "flac", "c.m4a": "mp4/aac", "d.ogg": "ogg/vorbis", "e.opus": "ogg/opus",
+			}[name]
+			if m.Codec != wantCodec {
+				t.Fatalf("codec = %q, want %q", m.Codec, wantCodec)
+			}
 			if m.HasPicture != (pic != nil) {
 				t.Fatalf("HasPicture = %v", m.HasPicture)
 			}

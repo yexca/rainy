@@ -69,12 +69,15 @@ Saving writes only the fields that changed for each track and reports any
 per-track errors.
 
 **Rebuild tags** reads the file's existing tags first and writes them again
-through TagLib. Use it when ordinary tag editing fails on a WAV with legacy
-INFO metadata; those old metadata bytes stay in the file as an inert chunk.
-If Rainy cannot read an old field, it uses the track's indexed title, artist,
-or album where available. The action also works on files whose tags are
-already readable. Select the tracks in **Metadata** and choose
-**Rebuild tags**; each file is checked before replacing the original.
+through TagLib. WAV INFO stays active alongside ID3; rewritten INFO text may
+be normalized to UTF-8. Rebuilding does not archive old metadata in padding
+chunks. If Rainy cannot read an old field, it uses the track's readable indexed
+title, artist, or album where available. A field containing replacement
+characters with no usable indexed value causes the file to fail without
+replacing the original. Select the tracks in **Metadata** and choose
+**Rebuild tags**; each copy is verified before replacing the original.
+For a WAV whose tags are displayed incorrectly by an older reader, first
+update Rainy and run a full scan to refresh the index without changing files.
 
 ## Covers
 

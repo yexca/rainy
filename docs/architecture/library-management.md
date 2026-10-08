@@ -37,12 +37,23 @@ field the user did not change.
 When TagLib cannot parse a file, reading falls back to ffprobe/ffmpeg. Writing
 such a file still requires TagLib and reports a per-track error.
 
+The TagLib WASM build tolerates invalid UTF-8 in a WAV's legacy LIST/INFO
+container, so it can still read correctly declared ID3 tags, audio properties
+and embedded covers. Files are untouched during reading. Old ffprobe versions
+can overwrite good ID3 fields with undecodable INFO fields, so these WAV files
+are read through TagLib directly. A full scan refreshes tags indexed by an
+older reader without editing the music files.
+
 Managers can explicitly rebuild tags for selected tracks. Rainy first reads the
 existing tags, copies the file in its library folder, writes tags to the copy
 through TagLib, verifies it, and then replaces the original. If the old tags
-cannot be read, indexed fields provide a fallback. For WAV, legacy LIST/INFO
-chunks that TagLib cannot parse become inert JUNK chunks; their bytes, the
-audio, and any ID3 chunk stay in the file. The operation is logged and rescanned.
+cannot be read or contain replacement characters from lossy decoding, readable
+indexed fields provide a fallback. A lossy field without a usable fallback causes
+that file to fail without replacing the original; lossy indexed values are never
+written as fallbacks. WAV INFO remains an active tag container saved normally by
+TagLib alongside ID3, and is never converted to JUNK during rebuilding. TagLib may
+normalize rewritten INFO text to UTF-8, so rebuilding preserves tags rather than
+their original serialized bytes. The operation is logged and rescanned.
 
 ## Online Lookup
 

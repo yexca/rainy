@@ -352,8 +352,8 @@ func (s *Service) SaveTags(ctx context.Context, u *model.User, edits []TagEdit) 
 	return res, nil
 }
 
-// RebuildTags reconstructs selected files' tags on verified copies. It can also repair
-// WAV files whose legacy LIST/INFO chunk prevents TagLib from opening them.
+// RebuildTags reconstructs selected files' tags through TagLib on verified copies.
+// Missing or lossy fields use readable indexed values when available.
 func (s *Service) RebuildTags(ctx context.Context, u *model.User, ids []string) (*BatchResult, error) {
 	if err := checkBatch(len(ids), "tracks"); err != nil {
 		return nil, err

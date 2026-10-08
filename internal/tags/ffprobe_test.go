@@ -7,9 +7,8 @@ import (
 	"testing"
 )
 
-// Synthetic metadata for a WAV with an "id3 " chunk and a GBK LIST/INFO chunk.
-// Every key appears twice and the INFO copies are undecodable (U+FFFD).
-// The clean copies must win.
+// A WAV with an "id3 " chunk (UTF-8) and a GBK LIST/INFO chunk: ffprobe reports every key
+// twice and the INFO copies are undecodable (U+FFFD). The clean copies must win.
 const dualContainerProbe = `{
   "streams": [
     {"codec_type": "audio", "codec_name": "pcm_s16le", "sample_rate": "44100", "channels": 2, "bits_per_sample": 16, "disposition": {"attached_pic": 0}},
@@ -18,11 +17,11 @@ const dualContainerProbe = `{
   "format": {
     "format_name": "wav", "duration": "165.000000", "bit_rate": "1429568",
     "tags": {
-      "title": "测试歌曲甲", "artist": "示例歌手甲DemoA/示例歌手乙DemoB", "album": "测试歌曲甲",
-      "lyrics-XXX": "[00:00.00]作词 : 示例歌手甲DemoA\n[00:09.41]这是虚构的测试歌词",
-      "album_artist": "示例歌手甲DemoA", "track": "1", "disc": "2", "date": "2022",
-      "artist": "����DemoA", "title": "����",
-      "IPRO": "��DemoA", "encoder": "Lavf59.6.100"
+      "title": "测试歌曲", "artist": "Example Artist", "album": "Example Album",
+      "lyrics-XXX": "[00:00.00]Synthetic lyrics\n[00:09.41]Another test line",
+      "album_artist": "Example Album Artist", "track": "1", "disc": "2", "date": "2022",
+      "artist": "����Artist", "title": "����",
+      "IPRO": "��Artist", "encoder": "Lavf59.6.100"
     }
   }
 }`
@@ -33,8 +32,8 @@ func TestParseProbePrefersCleanDuplicates(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]string{
-		"TITLE": "测试歌曲甲", "ARTIST": "示例歌手甲DemoA/示例歌手乙DemoB", "ALBUM": "测试歌曲甲",
-		"ALBUMARTIST": "示例歌手甲DemoA", "TRACKNUMBER": "1", "DISCNUMBER": "2", "DATE": "2022",
+		"TITLE": "测试歌曲", "ARTIST": "Example Artist", "ALBUM": "Example Album",
+		"ALBUMARTIST": "Example Album Artist", "TRACKNUMBER": "1", "DISCNUMBER": "2", "DATE": "2022",
 	}
 	for k, v := range want {
 		if got := raw[k]; len(got) != 1 || got[0] != v {

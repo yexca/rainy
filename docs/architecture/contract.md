@@ -26,7 +26,7 @@ headings identify the original implementation area, not current ownership.
 | Language | Go 1.26 | module name `rainy` |
 | HTTP | `github.com/go-chi/chi/v5` | net/http compatible |
 | DB | SQLite via `modernc.org/sqlite` (pure Go, no CGO) + `github.com/jmoiron/sqlx` | WAL mode; separate reader pool + single-connection writer |
-| Tags | `go.senan.xyz/taglib` (TagLib 2 compiled to WASM, pure Go) | read + write tags, properties, embedded pictures |
+| Tags | `go.senan.xyz/taglib` (TagLib 2 compiled to WASM, pure Go; pinned Navidrome fork in `go.mod`) | read + write tags, properties, embedded pictures; non-throwing UTF-8 conversion |
 | Images | `image/jpeg`, `image/png`, `golang.org/x/image/{draw,webp}` | cover resizing, JPEG output |
 | Text | `golang.org/x/text` (normalization, GBK/Big5/Shift-JIS decoders), `github.com/mozillazg/go-pinyin` | search normalization, CJK index letters, mojibake repair |
 | Transcoding | external `ffmpeg` binary | shipped in the docker image |
@@ -532,6 +532,17 @@ func FixMojibake(s string) (fixed string, encoding string, changed bool) // stri
 Parsing rules: `TRACKNUMBER "3/12"` → 3,12 (also `TRACKTOTAL`/`TOTALTRACKS`); same for discs;
 `DATE`/`YEAR` → first 4-digit year; `ORIGINALDATE`/`ORIGINALYEAR`; `COMPILATION` "1"/"true";
 ReplayGain `"-6.50 dB"`; lyrics from `LYRICS` then `UNSYNCEDLYRICS`.
+TagLib uses non-throwing UTF-8 conversion: a WAV with invalid-UTF-8 LIST/INFO tags still
+reads its correctly declared UTF-16/UTF-8 ID3 tags, properties and cover without ffprobe.
+Reading never rewrites the file. Invalid bytes in an INFO-only file can still become
+U+FFFD; these lossy values cannot be repaired by `FixMojibake`. Rebuild uses readable
+indexed fallbacks for lossy fields and fails without changing the original if such a
+field cannot be reconstructed. Indexed values containing U+FFFD or invalid UTF-8 are
+never used as fallbacks. WAV INFO remains an active tag container saved normally through
+TagLib; it is not converted to JUNK. Rewritten INFO text may be normalized to UTF-8,
+so rebuilding does not promise byte-for-byte preservation of tag containers.
+Codec labels remain independent of the TagLib bridge; WAV and AIFF-C
+compression headers are checked before labelling a container as PCM.
 
 ### 5.8 scanner (owner: scanner agent)
 ```go
@@ -1694,10 +1705,13 @@ contracts above (nothing above was removed or renamed); read the package doc com
   fetch its mosaic (ids are random 22-char strings and the mosaic only shows album covers). The service worker's
   `rainy-covers` cache survives logout on a shared device.
 - `/api/me/password` answers 403 (not 401) for a wrong current password so the client stays logged in.
-- **tags ffprobe fallback and rebuild**: TagLib's WASM build aborts on some real files (e.g. WAV with both an `id3 ` chunk and a
-  legacy-encoded LIST/INFO chunk). `tags.SetFFmpeg(cfg.FFmpegPath)` (called in `app.New`) enables a fallback:
+- **tags ffprobe fallback and rebuild**: the pinned TagLib WASM build reads normal ID3 tags alongside legacy-encoded
+  WAV LIST/INFO without aborting. INFO-only files with incorrectly declared encodings can still contain lossy U+FFFD
+  values. `tags.SetFFmpeg(cfg.FFmpegPath)` (called in `app.New`) enables a fallback for unsupported files:
   `ReadRaw`/`ReadProperties`/`ReadPicture` use ffprobe/ffmpeg when TagLib fails; duplicate keys prefer values that
   decoded cleanly (no U+FFFD). `POST /api/manage/tags/rebuild` first reads the current tags, then writes a verified
-  same-directory copy through TagLib. For WAV, it makes LIST/INFO chunks inert as JUNK while retaining their bytes,
-  audio and ID3 chunks; unreadable or absent fields fall back to the indexed title/artist/album fields. The original is replaced
-  only after the copy is readable. Other formats still require TagLib support and return per-track errors if it fails.
+  same-directory copy through TagLib. WAV INFO stays active and is saved normally alongside ID3; Rainy does not
+  convert it to JUNK or accumulate archived INFO blocks. TagLib can normalize rewritten INFO text to UTF-8.
+  Unreadable, lossy or absent fields use readable indexed title/artist/album fields; a lossy field without a usable
+  fallback fails without replacing the original. The original is replaced only after the copy is verified.
+  Other formats still require TagLib support and return per-track errors if it fails.

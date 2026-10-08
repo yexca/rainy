@@ -16,11 +16,10 @@ import (
 	"unicode/utf8"
 )
 
-// FFmpeg fallback: TagLib (compiled to WASM) aborts on some real-world files — e.g. WAV
-// files carrying both an "id3 " chunk and a LIST/INFO chunk in a legacy encoding make it
-// throw a C++ exception that the WASM build cannot handle. When that happens the file's
-// tags, properties and embedded picture are read with ffprobe / ffmpeg instead, so the
-// track is still indexed with its real metadata. Writing still requires TagLib.
+// FFmpeg fallback for files TagLib cannot parse. The TagLib WASM build handles invalid
+// UTF-8 without throwing, so a legacy WAV INFO chunk does not prevent reading its clean
+// ID3 tags. Other unsupported files can still be read with ffprobe / ffmpeg instead.
+// Writing always requires TagLib.
 
 var (
 	ffprobePath atomic.Value // string; "" disables the fallback
