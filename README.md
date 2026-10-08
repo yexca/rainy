@@ -135,7 +135,7 @@ data, listening history, and your media.
 The [User Guide](docs/user/index.md) covers getting started, the library and
 scanning, playback and the PWA, the listening report and scrobbling, library
 management, and Subsonic clients. The [Operations
-docs](docs/operations/configuration.md) cover Docker and NAS deployment,
+docs](docs/operations/index.md) cover Docker and NAS deployment,
 configuration, reverse proxies, the database and backups, and troubleshooting.
 
 ## Documentation
@@ -146,7 +146,7 @@ configuration, reverse proxies, the database and backups, and troubleshooting.
 | Install and scan a first library | [Getting Started](docs/user/getting-started.md) |
 | Connect a Subsonic app | [Clients](docs/user/clients.md) |
 | Deploy on a NAS | [Docker](docs/operations/docker.md) |
-| Configure and operate an instance | [Configuration](docs/operations/configuration.md) · [Reverse proxy](docs/operations/reverse-proxy.md) · [Database](docs/operations/database.md) |
+| Configure and operate an instance | [Operations](docs/operations/index.md) · [Reliability](docs/operations/reliability.md) |
 | Understand the system | [Architecture](docs/architecture/index.md) |
 | Review design and security contracts | [Design](docs/development/design.md) · [Security](SECURITY.md) · [Privacy](PRIVACY.md) |
 | Find every public document | [Documentation Index](docs/README.md) |
@@ -158,6 +158,8 @@ under `docs/development/` so this README can stay focused on installation and
 use.
 
 - [Local Development](docs/development/local-dev.md)
+- [Development Guide](docs/development/index.md)
+- [CI and Release Automation](docs/development/ci.md)
 - [Testing](docs/development/testing.md)
 - [Contributing](CONTRIBUTING.md)
 - [Agent Guide](AGENTS.md)

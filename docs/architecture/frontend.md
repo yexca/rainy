@@ -74,5 +74,6 @@ See [Local development](../development/local-dev.md).
 ## Related Docs
 
 - [Design](../development/design.md)
+- [Frontend guidelines](../development/frontend-guidelines.md)
 - [Native API](native-api.md)
 - [Testing](../development/testing.md)

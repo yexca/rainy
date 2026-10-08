@@ -13,3 +13,14 @@ action.
   Illustrations** off to keep the plain placeholders.
 - The player no longer keeps showing the previous song's cover when the next
   song has none.
+
+## Development And Docs
+
+- Documentation now has dedicated development and operations entry points,
+  core-boundary guidance, backend/frontend contribution rules, and reliability
+  and CI guides. Agent instructions select the relevant reading path.
+- `make help`, `docs-check`, `ci-policy`, and `release-check` provide clear
+  local entry points. Existing `frontend-docs` and `smoke` commands remain usable.
+- Documentation-only pull requests run lightweight policy checks. Code changes
+  select the affected validation phases, and the required Core check rejects
+  unplanned skips. Releases also verify main ancestry and nonempty release notes.

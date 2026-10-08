@@ -39,6 +39,7 @@ Thumbs.db
 /rainy.exe
 
 # Local agent/runtime state
+.codegraph/
 .claude/*
 !.claude/settings.json
 .agents/

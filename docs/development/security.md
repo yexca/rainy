@@ -111,6 +111,10 @@ should use the [Security Policy](../../SECURITY.md).
 - After changing the web lockfile, run `make frontend-audit`.
 - Pin third-party GitHub Actions to full commit SHAs and give workflows the
   least permissions they need.
+- Keep CI commands in Makefile targets and follow the fail-closed result plan
+  in [CI and release automation](ci.md). Only planned-out jobs may be skipped;
+  release publication requires VERSION, release notes, main ancestry, and
+  successful main CI for the exact commit.
 
 ## Secrets and Public Data
 
