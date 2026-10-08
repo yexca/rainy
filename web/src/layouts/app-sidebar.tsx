@@ -6,6 +6,7 @@ import { Link, NavLink, useLocation } from 'react-router'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
@@ -23,6 +24,7 @@ import { cn } from '@/lib/utils'
 
 import {
   ADMIN_SECTION,
+  FOOTER_NAV,
   LIBRARY_NAV,
   TOOLS_SECTION,
   TRACKS_SECTION,
@@ -176,6 +178,31 @@ function PlaylistsGroup() {
   )
 }
 
+/** Entries pinned below the scrolling groups (About). */
+function FooterNav() {
+  const { t } = useTranslation()
+  const { pathname } = useLocation()
+  return (
+    <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarMenu>
+        {FOOTER_NAV.map((item) => {
+          const label = t(item.labelKey)
+          return (
+            <SidebarMenuItem key={item.to}>
+              <SidebarMenuButton asChild isActive={pathMatches(pathname, item.to, item.end)} tooltip={label} className={ITEM_CLASS}>
+                <NavLink to={item.to} end={item.end}>
+                  <item.icon strokeWidth={1.75} />
+                  <span>{label}</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )
+        })}
+      </SidebarMenu>
+    </SidebarFooter>
+  )
+}
+
 /**
  * Desktop / tablet navigation (shadcn Sidebar, collapsible to an icon rail). It sits below the
  * app header, which holds the logo, the sidebar toggle and the account menu.
@@ -192,6 +219,7 @@ export function AppSidebar({ className }: { className?: string }) {
         <PlaylistsGroup />
         {isManager ? <ManageGroup isAdmin={isAdmin} /> : null}
       </SidebarContent>
+      <FooterNav />
       <SidebarRail aria-label={toggleLabel} title={toggleLabel} />
     </Sidebar>
   )

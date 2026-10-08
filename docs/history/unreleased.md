@@ -13,7 +13,7 @@ action.
   Illustrations** off to keep the plain placeholders.
 - The player no longer keeps showing the previous song's cover when the next
   song has none.
-- A new **About** page, opened from Settings → About or the account menu,
-  shows the version, an overview, the AI models Rainy was built with, the
-  projects it learned from (Navidrome, lx-music, and Music Tag), the main
-  technologies, and the license.
+- A new **About** page, opened from the sidebar, Settings → About, or the
+  account menu, shows the version, an overview, the AI models Rainy was built
+  with, the projects it learned from (Navidrome, lx-music, and Music Tag), the
+  main technologies, and the license.

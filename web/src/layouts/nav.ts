@@ -51,6 +51,9 @@ export const LIBRARY_NAV: readonly NavItem[] = [
   { to: '/radio', labelKey: 'nav.radio', icon: Radio },
 ]
 
+/** Pinned below the scrolling sidebar groups. */
+export const FOOTER_NAV: readonly NavItem[] = [{ to: '/about', labelKey: 'nav.about', icon: Info }]
+
 /**
  * A manager entry: one sidebar item whose pages are route tabs in each page header
  * (`SectionTabs`). The item links to the first tab and stays active on every tab.
