@@ -7,31 +7,41 @@
 @custom-variant standalone (@media (display-mode: standalone));
 
 /* ------------------------------------------------------------------------------------------ */
-/* Design tokens (shadcn new-york / neutral), light                                           */
+/* Design tokens, light. The base is the default "anthropic" style; <html data-style> picks   */
+/* another one below (lib/theme.ts STYLES).                                                   */
 /* ------------------------------------------------------------------------------------------ */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Latin faces per style; CJK fallbacks follow in --app-font. Titles use --app-font-heading. */
+  --app-font-latin: "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text";
+  --app-font:
+    var(--app-font-latin), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui,
+    sans-serif;
+  --app-font-heading:
+    ui-serif, Georgia, Cambria, "Times New Roman", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", serif;
+
+  --background: hsl(36 38% 95%);
+  --foreground: hsl(24 12% 17%);
+  --card: hsl(40 33% 98%);
+  --card-foreground: hsl(24 12% 17%);
+  --popover: hsl(36 28% 98%);
+  --popover-foreground: hsl(24 12% 17%);
+  --secondary: hsl(34 24% 90%);
+  --secondary-foreground: hsl(24 18% 23%);
+  --muted: hsl(34 26% 92%);
+  --muted-foreground: hsl(24 8% 43%);
+  --accent: hsl(34 24% 86%);
+  --accent-foreground: hsl(24 18% 21%);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: hsl(32 22% 84%);
+  --input: hsl(30 18% 77%);
 
-  /* Accent ("rain" preset — overridden by [data-accent] below). */
-  --primary: oklch(0.62 0.17 255);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.62 0.17 255);
+  /* The style's own accent ("original"; overridden by [data-accent] below). */
+  --primary: hsl(15 57% 43%);
+  --primary-foreground: hsl(30 33% 98%);
+  --ring: hsl(15 62% 52%);
 
   --chart-1: var(--primary);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -39,13 +49,14 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
 
-  --sidebar: oklch(0.975 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  /* The sidebar and app header sit on the card surface in every style. */
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--card-foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.93 0 0);
-  --sidebar-accent-foreground: oklch(0.145 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
   /* Player chrome + safe areas (docs/architecture/contract.md §9.3). */
@@ -89,41 +100,168 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Dark                                                                                       */
+/* Dark (default "anthropic" style)                                                           */
 /* ------------------------------------------------------------------------------------------ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.195 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: hsl(24 11% 9%);
+  --foreground: hsl(35 19% 90%);
+  --card: hsl(24 10% 12%);
+  --card-foreground: hsl(35 19% 90%);
+  --popover: hsl(24 10% 15%);
+  --popover-foreground: hsl(35 19% 90%);
+  --secondary: hsl(24 9% 19%);
+  --secondary-foreground: hsl(34 18% 88%);
+  --muted: hsl(24 7% 17%);
+  --muted-foreground: hsl(30 8% 64%);
+  --accent: hsl(24 10% 23%);
+  --accent-foreground: hsl(34 18% 91%);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --border: hsl(24 7% 21%);
+  --input: hsl(24 8% 28%);
 
-  --primary: oklch(0.67 0.16 255);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.67 0.16 255);
+  --primary: hsl(19 76% 70%);
+  --primary-foreground: hsl(20 42% 12%);
+  --ring: hsl(19 76% 70%);
 
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
 
-  --sidebar: oklch(0.175 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.26 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-
   color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* Styles: <html data-style="anthropic|openai|apple|google-md">. "anthropic" is the default   */
+/* defined above. Every colour a light block sets is set again by its dark block.             */
+/* ------------------------------------------------------------------------------------------ */
+:root[data-style="openai"] {
+  --radius: 0.5rem;
+  --app-font-latin: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI";
+  --app-font-heading: var(--app-font);
+
+  --background: hsl(0 0% 98%);
+  --foreground: hsl(0 0% 12%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 12%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 12%);
+  --secondary: hsl(0 0% 92%);
+  --secondary-foreground: hsl(0 0% 20%);
+  --muted: hsl(0 0% 95%);
+  --muted-foreground: hsl(0 0% 40%);
+  --accent: hsl(0 0% 90%);
+  --accent-foreground: hsl(0 0% 16%);
+  --border: hsl(0 0% 83%);
+  --input: hsl(0 0% 78%);
+  --primary: hsl(160 84% 28%);
+  --primary-foreground: hsl(0 0% 100%);
+  --ring: hsl(160 76% 36%);
+}
+:root.dark[data-style="openai"] {
+  --background: hsl(0 0% 8%);
+  --foreground: hsl(0 0% 92%);
+  --card: hsl(0 0% 11%);
+  --card-foreground: hsl(0 0% 92%);
+  --popover: hsl(0 0% 14%);
+  --popover-foreground: hsl(0 0% 92%);
+  --secondary: hsl(0 0% 18%);
+  --secondary-foreground: hsl(0 0% 88%);
+  --muted: hsl(0 0% 16%);
+  --muted-foreground: hsl(0 0% 65%);
+  --accent: hsl(0 0% 23%);
+  --accent-foreground: hsl(0 0% 94%);
+  --border: hsl(0 0% 25%);
+  --input: hsl(0 0% 29%);
+  --primary: hsl(160 55% 60%);
+  --primary-foreground: hsl(160 70% 8%);
+  --ring: hsl(160 55% 60%);
+}
+
+:root[data-style="apple"] {
+  --radius: 0.875rem;
+  --app-font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI";
+  --app-font-heading: var(--app-font);
+
+  --background: hsl(240 20% 96%);
+  --foreground: hsl(240 4% 11%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 4% 11%);
+  --popover: hsl(240 20% 99%);
+  --popover-foreground: hsl(240 4% 11%);
+  --secondary: hsl(240 8% 92%);
+  --secondary-foreground: hsl(240 4% 20%);
+  --muted: hsl(240 10% 94%);
+  --muted-foreground: hsl(240 3% 40%);
+  --accent: hsl(240 9% 89%);
+  --accent-foreground: hsl(240 4% 16%);
+  --border: hsl(240 6% 82%);
+  --input: hsl(240 5% 77%);
+  --primary: hsl(211 100% 43%);
+  --primary-foreground: hsl(0 0% 100%);
+  --ring: hsl(211 100% 50%);
+}
+:root.dark[data-style="apple"] {
+  --background: hsl(240 5% 7%);
+  --foreground: hsl(240 5% 93%);
+  --card: hsl(240 4% 11%);
+  --card-foreground: hsl(240 5% 93%);
+  --popover: hsl(240 4% 15%);
+  --popover-foreground: hsl(240 5% 93%);
+  --secondary: hsl(240 4% 19%);
+  --secondary-foreground: hsl(240 5% 89%);
+  --muted: hsl(240 4% 17%);
+  --muted-foreground: hsl(240 3% 65%);
+  --accent: hsl(240 4% 24%);
+  --accent-foreground: hsl(240 5% 94%);
+  --border: hsl(240 4% 27%);
+  --input: hsl(240 4% 31%);
+  --primary: hsl(211 100% 66%);
+  --primary-foreground: hsl(211 65% 10%);
+  --ring: hsl(211 100% 66%);
+}
+
+:root[data-style="google-md"] {
+  --radius: 0.875rem;
+  --app-font-latin: Roboto, "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text";
+  --app-font-heading: var(--app-font);
+
+  --background: hsl(210 33% 98%);
+  --foreground: hsl(220 6% 13%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(220 6% 13%);
+  --popover: hsl(210 25% 99%);
+  --popover-foreground: hsl(220 6% 13%);
+  --secondary: hsl(214 55% 92%);
+  --secondary-foreground: hsl(216 35% 22%);
+  --muted: hsl(210 12% 94%);
+  --muted-foreground: hsl(220 5% 41%);
+  --accent: hsl(214 60% 88%);
+  --accent-foreground: hsl(216 42% 20%);
+  --border: hsl(214 15% 80%);
+  --input: hsl(214 16% 75%);
+  --primary: hsl(217 82% 48%);
+  --primary-foreground: hsl(0 0% 100%);
+  --ring: hsl(217 82% 55%);
+}
+:root.dark[data-style="google-md"] {
+  --background: hsl(220 10% 8%);
+  --foreground: hsl(210 14% 91%);
+  --card: hsl(220 9% 12%);
+  --card-foreground: hsl(210 14% 91%);
+  --popover: hsl(220 9% 15%);
+  --popover-foreground: hsl(210 14% 91%);
+  --secondary: hsl(216 22% 20%);
+  --secondary-foreground: hsl(214 42% 89%);
+  --muted: hsl(220 8% 17%);
+  --muted-foreground: hsl(216 7% 65%);
+  --accent: hsl(216 28% 25%);
+  --accent-foreground: hsl(214 42% 92%);
+  --border: hsl(216 10% 27%);
+  --input: hsl(216 11% 31%);
+  --primary: hsl(216 86% 76%);
+  --primary-foreground: hsl(216 55% 12%);
+  --ring: hsl(216 86% 76%);
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -150,9 +288,21 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Accent presets: <html data-accent="rain|rose|violet|emerald|amber|graphite">              */
-/* "rain" is the default defined above.                                                       */
+/* Accent presets: <html data-accent="original|rain|rose|violet|emerald|amber|graphite">     */
+/* "original" keeps the style's --primary. The presets come after the styles and set all      */
+/* three tokens in light and dark, so they win over every style.                              */
 /* ------------------------------------------------------------------------------------------ */
+:root[data-accent="rain"] {
+  --primary: oklch(0.62 0.17 255);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.62 0.17 255);
+}
+:root.dark[data-accent="rain"] {
+  --primary: oklch(0.67 0.16 255);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.67 0.16 255);
+}
+
 :root[data-accent="rose"] {
   --primary: oklch(0.62 0.22 12);
   --primary-foreground: oklch(0.985 0 0);
@@ -160,6 +310,7 @@
 }
 :root.dark[data-accent="rose"] {
   --primary: oklch(0.68 0.2 12);
+  --primary-foreground: oklch(0.985 0 0);
   --ring: oklch(0.68 0.2 12);
 }
 
@@ -170,6 +321,7 @@
 }
 :root.dark[data-accent="violet"] {
   --primary: oklch(0.66 0.2 293);
+  --primary-foreground: oklch(0.985 0 0);
   --ring: oklch(0.66 0.2 293);
 }
 
@@ -210,9 +362,7 @@
 /* Tailwind theme mapping                                                                     */
 /* ------------------------------------------------------------------------------------------ */
 @theme inline {
-  --font-sans:
-    "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-sans: var(--app-font);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -315,13 +465,18 @@
      text uses matching CJK glyphs instead of the Simplified Chinese fallback. */
   [lang|="ja"] {
     font-family:
-      "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans",
+      var(--app-font-latin), "Hiragino Sans",
       "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", sans-serif;
   }
   [lang|="ko"] {
     font-family:
-      "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo",
+      var(--app-font-latin), "Apple SD Gothic Neo",
       "Malgun Gothic", "Noto Sans CJK KR", sans-serif;
+  }
+
+  /* Page and hero titles: a serif in the "anthropic" style, the body face in the others. */
+  h1 {
+    font-family: var(--app-font-heading);
   }
 
   body {

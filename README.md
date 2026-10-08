@@ -51,7 +51,8 @@ Docker image for `linux/amd64` and `linux/arm64`.
   connect directly. Password, token, and API-key authentication are supported.
 - **A player worth installing.** The web app installs as a PWA and offers an
   iOS-style Now Playing screen, synced lyrics, a draggable queue, lock-screen
-  controls through Media Session, AirPlay on iOS, light and dark themes, and
+  controls through Media Session, AirPlay on iOS, light and dark themes in four
+  styles, and
   English and Simplified Chinese.
 - **Library management in the browser.** Single and batch tag editing with
   preview-before-apply tools, cover art, embedded or `.lrc` lyrics,

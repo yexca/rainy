@@ -23,11 +23,19 @@ explains the rules every UI change must keep.
 
 ## Theme
 
-- shadcn/ui `new-york` style, `neutral` base color, CSS variables, and a
-  `0.75rem` radius.
+- shadcn/ui `new-york` components themed by CSS variables.
 - Light and dark themes follow the system unless the user overrides them.
-- Accent presets set `--primary`: `rain` (default periwinkle blue), `rose`,
-  `violet`, `emerald`, `amber`, and `graphite`.
+- **Styles.** Four presets set the surfaces, borders, radius, fonts, and their
+  own accent for both themes: `anthropic` (default: warm paper tones, a
+  terracotta accent, serif page titles), `openai` (neutral greys, a green
+  accent, Inter), `apple` (cool greys, a blue accent, the system font, larger
+  radius), and `google-md` (blue-tinted surfaces, a Material blue accent,
+  Roboto). Styles only bundle what Rainy already ships (Inter); other faces
+  are used when the system has them. Keep each style's light and dark blocks
+  complete so no token leaks from another style.
+- Accent presets set `--primary`: `original` (default, the style's own
+  accent), `rain` (periwinkle blue), `rose`, `violet`, `emerald`, `amber`, and
+  `graphite`. A preset wins over every style.
 - **Album colours.** Album, playlist, and artist pages take on their
   artwork's colours, like the Apple Music album view: the dominant colour becomes the page background
   (a deep tone in the dark theme or for dark covers, a pale tint otherwise)
@@ -36,8 +44,13 @@ explains the rules every UI change must keep.
   every text colour keeps WCAG AA contrast. Greyscale covers keep the user's
   accent; pages without artwork keep the plain theme. Users can turn this
   off under Settings → Appearance.
-- The font stack starts with Inter Variable and falls back to system and CJK
-  fonts. Times and durations use tabular numbers.
+- **Immersive mode** (off by default, needs album colours) applies the same
+  cover colours to the whole app — sidebar, header, player, menus — using the
+  cover page on screen, or else the playing song. Without a cover the user's
+  theme returns.
+- Each style picks its Latin faces and falls back to system and CJK fonts;
+  `h1` titles use the style's heading face. Times and durations use tabular
+  numbers.
 
 ## Layout
 
@@ -49,8 +62,8 @@ explains the rules every UI change must keep.
 
 From tablets up, a full-width app header runs across the top in the
 sidebar's colours: the sidebar toggle and the logo on the left; on the
-right, a round tray of quick controls (search; appearance with theme, accent
-and language), a divider, and the account menu (avatar, plus the name and
+right, a round tray of quick controls (search; appearance with theme, style,
+accent and language), a divider, and the account menu (avatar, plus the name and
 role on desktops). Settings and About sit in the sidebar footer. Page top
 bars stick right below it. Phones have no app header; their account menu is
 the avatar in the Home and Library nav bars.

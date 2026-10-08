@@ -95,14 +95,25 @@
     "system": "跟随系统",
     "allSettings": "全部设置"
   },
+  "style": {
+    "label": "样式",
+    "anthropic": "Anthropic",
+    "openai": "OpenAI",
+    "apple": "Apple",
+    "google-md": "Google MD"
+  },
   "accent": {
     "label": "强调色",
+    "original": "原色",
     "rain": "雨蓝",
     "rose": "玫红",
     "violet": "紫罗兰",
     "emerald": "翡翠绿",
     "amber": "琥珀",
     "graphite": "石墨"
+  },
+  "immersive": {
+    "label": "沉浸模式"
   },
   "language": {
     "label": "语言"

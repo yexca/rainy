@@ -54,8 +54,12 @@
   "appearance": {
     "title": "外观",
     "theme": "主题",
+    "styleHint": "整体风格：底色、圆角和字体。“原色”强调色随样式变化。",
     "accentHint": "用于按钮、高亮和进度条。",
     "albumColors": "专辑配色",
+    "immersive": "沉浸模式",
+    "immersiveHint": "整个应用（侧边栏、播放器和菜单）跟随当前专辑、歌单或艺人的封面颜色，其他页面跟随正在播放的歌曲。",
+    "immersiveNeedsAlbumColors": "需要先打开专辑配色。",
     "albumColorsHint": "进入专辑、歌单或艺人页面时，背景和强调色跟随封面。"
   },
   "playback": {

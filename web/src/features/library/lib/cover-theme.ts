@@ -280,6 +280,8 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
     '--foreground': toHex(fg),
     '--card': toHex(card),
     '--card-foreground': toHex(fg),
+    '--popover': toHex(card),
+    '--popover-foreground': toHex(fg),
     '--secondary': toHex(fill),
     '--secondary-foreground': toHex(fg),
     '--muted': toHex(fill),

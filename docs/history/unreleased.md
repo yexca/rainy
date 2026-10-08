@@ -14,6 +14,18 @@ action.
 
 ## Look And Feel
 
+- **Settings → Appearance** has four styles: **Anthropic** (the new default:
+  warm paper tones, a terracotta accent, and serif titles), **OpenAI**,
+  **Apple**, and **Google MD**. Each changes the colours, corner radius, and
+  fonts in light and dark mode. The new **Original** accent, now the default,
+  uses the style's own colour; the earlier accent colours still override it,
+  and an accent you already picked stays as it was. The style is also in the
+  header's Appearance panel and, on phones, in the account menu.
+- **Immersive mode** (Settings → Appearance, the header's Appearance panel, or
+  the account menu's **Appearance** on phones)
+  colours the whole app — sidebar, header, player, and menus — with the album,
+  playlist, or artist you are viewing, and with the playing song's cover on
+  other pages. It is off by default and needs **Album colours**.
 - Songs and albums without a cover, artists without a photo, playlists without
   a cover, and radio stations now show the mascot instead of a grey icon, with
   three different covers so a grid of missing art doesn't repeat one picture.

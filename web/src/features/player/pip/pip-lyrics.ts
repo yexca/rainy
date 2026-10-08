@@ -137,16 +137,17 @@ function copyStyles(from: Document, to: Document): void {
   }
 }
 
-/** Keeps the window's <html> theme (dark class, accent, colour scheme, language) in step. */
+/** Keeps the window's <html> theme (dark class, style, accent, colour scheme, language) in step. */
 function syncRoot(from: HTMLElement, to: HTMLElement): () => void {
   const copy = () => {
     to.className = from.className
     to.lang = from.lang
-    to.style.colorScheme = from.style.colorScheme
+    // Colour scheme, plus the cover's tokens in immersive mode.
+    to.style.cssText = from.style.cssText
     for (const [key, value] of Object.entries(from.dataset)) to.dataset[key] = value
   }
   copy()
   const observer = new MutationObserver(copy)
-  observer.observe(from, { attributes: true, attributeFilter: ['class', 'lang', 'style', 'data-accent'] })
+  observer.observe(from, { attributes: true, attributeFilter: ['class', 'lang', 'style', 'data-style', 'data-accent'] })
   return () => observer.disconnect()
 }

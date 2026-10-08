@@ -7,8 +7,8 @@
     <meta name="description" content="Rainy — your self-hosted music library. 自托管的私人音乐库。" />
     <meta name="application-name" content="Rainy" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f3ed" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#191614" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/pwa-64x64.png" sizes="64x64" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
@@ -19,25 +19,41 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
     <style>
-      /* Page colour before the stylesheet loads (no white flash in dark mode / PWA launch). */
-      html { background-color: #ffffff; }
-      html.dark { background-color: #0a0a0a; }
+      /* Page colour before the stylesheet loads (no white flash in dark mode / PWA launch).
+         Keep in sync with STYLE_PREVIEWS in lib/theme.ts. */
+      html { background-color: #f7f3ed; }
+      html.dark { background-color: #191614; }
+      html[data-style="openai"] { background-color: #fafafa; }
+      html.dark[data-style="openai"] { background-color: #141414; }
+      html[data-style="apple"] { background-color: #f3f3f7; }
+      html.dark[data-style="apple"] { background-color: #111113; }
+      html[data-style="google-md"] { background-color: #f8fafc; }
+      html.dark[data-style="google-md"] { background-color: #121416; }
     </style>
     <script>
-      // Apply the saved theme + accent before first paint (no flash). Mirrors components/theme-provider.tsx.
+      // Apply the saved theme, style + accent before first paint (no flash). Mirrors components/theme-provider.tsx.
       ;(function () {
         try {
           var root = document.documentElement
+          var colors = {
+            anthropic: ['#f7f3ed', '#191614'],
+            openai: ['#fafafa', '#141414'],
+            apple: ['#f3f3f7', '#111113'],
+            'google-md': ['#f8fafc', '#121416'],
+          }
           var theme = localStorage.getItem('rainy.theme') || 'system'
-          var accent = localStorage.getItem('rainy.accent') || 'rain'
+          var style = localStorage.getItem('rainy.style')
+          if (!Object.prototype.hasOwnProperty.call(colors, style)) style = 'anthropic'
+          var accent = localStorage.getItem('rainy.accent') || 'original'
           var dark =
             theme === 'dark' ||
             (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
           root.classList.toggle('dark', dark)
           root.style.colorScheme = dark ? 'dark' : 'light'
+          root.setAttribute('data-style', style)
           root.setAttribute('data-accent', accent)
           var metas = document.querySelectorAll('meta[name="theme-color"]')
-          for (var i = 0; i < metas.length; i++) metas[i].content = dark ? '#0a0a0a' : '#ffffff'
+          for (var i = 0; i < metas.length; i++) metas[i].content = colors[style][dark ? 1 : 0]
         } catch (e) {
           /* storage unavailable: defaults apply */
         }

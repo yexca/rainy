@@ -5,6 +5,7 @@ import { Outlet } from 'react-router'
 import { AppToaster } from '@/components/app-toaster'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AddToPlaylistHost } from '@/features/library/components/add-to-playlist-host'
+import { ImmersiveTheme } from '@/features/library/components/immersive-theme'
 import { TagEditorHost } from '@/features/manage/tag-editor-host'
 import { AudioEngine } from '@/features/player/components/audio-engine'
 import { MascotCompanion } from '@/features/player/components/mascot-companion'
@@ -42,6 +43,7 @@ const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.2
  * - `<MiniPlayer/>` renders inside a `fixed` slot 8px above the tab bar with 8px side margins
  *   and owns its height (`h-(--miniplayer-h)`); it may render nothing when idle.
  * Slots have no transform/filter, so `position: fixed` descendants stay viewport-relative.
+ * `<ImmersiveTheme/>` colours the whole app with the current cover while immersive mode is on.
  */
 export function AppShell() {
   useServerEvents()
@@ -98,6 +100,7 @@ export function AppShell() {
       )}
 
       <AudioEngine />
+      <ImmersiveTheme />
       <NowPlayingSheet />
       <TagEditorHost />
       <AddToPlaylistHost />

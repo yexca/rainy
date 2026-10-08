@@ -123,7 +123,7 @@ describe('coverTheme', () => {
 
   it('emits valid hex colours', () => {
     const theme = coverTheme(seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 }), false)
-    for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--card', '--secondary']) {
+    for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--card', '--popover', '--secondary']) {
       assert.match(theme.vars[key], /^#[0-9a-f]{6}$/, key)
     }
   })

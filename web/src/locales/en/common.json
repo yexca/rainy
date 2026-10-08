@@ -95,14 +95,25 @@
     "system": "System",
     "allSettings": "All settings"
   },
+  "style": {
+    "label": "Style",
+    "anthropic": "Anthropic",
+    "openai": "OpenAI",
+    "apple": "Apple",
+    "google-md": "Google MD"
+  },
   "accent": {
     "label": "Accent colour",
+    "original": "Original",
     "rain": "Rain",
     "rose": "Rose",
     "violet": "Violet",
     "emerald": "Emerald",
     "amber": "Amber",
     "graphite": "Graphite"
+  },
+  "immersive": {
+    "label": "Immersive mode"
   },
   "language": {
     "label": "Language"

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -23,7 +24,7 @@ import { useAuth, useLogout } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
 import type { User } from '@/lib/api/types'
 import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
-import { isTheme } from '@/lib/theme'
+import { STYLES, isStyle, isTheme } from '@/lib/theme'
 import { cn, initials } from '@/lib/utils'
 
 function isLanguage(value: string): value is Language {
@@ -50,10 +51,10 @@ export function UserAvatar({ user, className }: { user: User; className?: string
   )
 }
 
-/** `showAppearance`: phones have no header tray, so theme and language live in this menu there. */
+/** `showAppearance`: phones have no header tray, so theme, style, immersive mode and language live in this menu there. */
 function UserMenuContent({ user, showAppearance }: { user: User; showAppearance: boolean }) {
   const { t } = useTranslation()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, style, setStyle, albumColors, immersive, setImmersive } = useTheme()
   const logout = useLogout()
   const navigate = useNavigate()
   const language = currentLanguage()
@@ -97,6 +98,28 @@ function UserMenuContent({ user, showAppearance }: { user: User; showAppearance:
                 <DropdownMenuRadioItem value="dark">{t('theme.dark')}</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="system">{t('theme.system')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{t('style.label')}</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={style} onValueChange={(value) => isStyle(value) && setStyle(value)}>
+                {STYLES.map((s) => (
+                  <DropdownMenuRadioItem key={s} value={s}>
+                    {t(`style.${s}`)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              {albumColors ? (
+                <>
+                  <DropdownMenuSeparator />
+                  {/* Stays open so the colour change is visible behind the menu. */}
+                  <DropdownMenuCheckboxItem
+                    checked={immersive}
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(checked) => setImmersive(checked === true)}
+                  >
+                    {t('immersive.label')}
+                  </DropdownMenuCheckboxItem>
+                </>
+              ) : null}
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{t('language.label')}</DropdownMenuLabel>
               <DropdownMenuRadioGroup value={language} onValueChange={(value) => isLanguage(value) && void setLanguage(value)}>

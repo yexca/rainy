@@ -5,7 +5,8 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { AccentPicker } from '@/features/settings/components/appearance-section'
+import { Switch } from '@/components/ui/switch'
+import { AccentPicker, StylePicker } from '@/features/settings/components/appearance-section'
 import { Segmented } from '@/features/settings/components/settings-ui'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage } from '@/lib/i18n'
@@ -19,7 +20,7 @@ const TRAY_BUTTON_CLASS =
 
 function AppearanceMenu() {
   const { t, i18n } = useTranslation()
-  const { theme, setTheme, accent, setAccent } = useTheme()
+  const { theme, setTheme, style, setStyle, accent, setAccent, albumColors, immersive, setImmersive } = useTheme()
   // Reading i18n.language re-renders the picker when the language changes.
   const language = i18n.language ? currentLanguage() : 'en'
   const [open, setOpen] = useState(false)
@@ -43,9 +44,19 @@ function AppearanceMenu() {
         <div className="grid gap-4 p-4">
           <Segmented label={t('theme.label')} value={theme} onChange={setTheme} options={themes} />
           <div className="grid gap-1.5">
-            <span className="text-xs font-medium text-muted-foreground">{t('accent.label')}</span>
-            <AccentPicker value={accent} onChange={setAccent} />
+            <span className="text-xs font-medium text-muted-foreground">{t('style.label')}</span>
+            <StylePicker value={style} accent={accent} onChange={setStyle} />
           </div>
+          <div className="grid gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">{t('accent.label')}</span>
+            <AccentPicker value={accent} style={style} onChange={setAccent} />
+          </div>
+          {albumColors ? (
+            <label className="flex min-h-9 items-center justify-between gap-3 text-sm font-medium">
+              {t('immersive.label')}
+              <Switch checked={immersive} onCheckedChange={setImmersive} />
+            </label>
+          ) : null}
           <div className="grid gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">{t('language.label')}</span>
             <Segmented
@@ -73,7 +84,7 @@ function AppearanceMenu() {
 
 /**
  * Right side of the app header: a bordered tray of quick controls (search; appearance: theme,
- * accent and language), a divider, then the account button with the user's name and role.
+ * style, accent, immersive mode and language), a divider, then the account button with the user's name and role.
  */
 export function HeaderActions() {
   const { t } = useTranslation()

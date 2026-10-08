@@ -54,8 +54,12 @@
   "appearance": {
     "title": "Appearance",
     "theme": "Theme",
+    "styleHint": "The overall look: surfaces, corners and fonts. The \"Original\" accent follows it.",
     "accentHint": "Used for buttons, highlights and progress.",
     "albumColors": "Album colours",
+    "immersive": "Immersive mode",
+    "immersiveHint": "The whole app — sidebar, player and menus — takes on the colours of the album, playlist or artist on screen, and elsewhere of the song playing.",
+    "immersiveNeedsAlbumColors": "Turn on album colours first.",
     "albumColorsHint": "Album, playlist and artist pages take on the colours of their artwork."
   },
   "playback": {

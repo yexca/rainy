@@ -1,43 +1,35 @@
 /**
- * Theme + accent model shared by the ThemeProvider, the pre-paint script in `index.html`
+ * Theme, style + accent model shared by the ThemeProvider, the pre-paint script in `index.html`
  * (keep the storage keys in sync) and the settings UI.
  */
 
+import { DEFAULT_ACCENT, DEFAULT_STYLE, isAccent, isStyle, themeColor, type Accent, type ResolvedTheme, type Style } from '@/lib/theme-styles'
+
+export * from '@/lib/theme-styles'
+
 export const THEMES = ['light', 'dark', 'system'] as const
 export type Theme = (typeof THEMES)[number]
-export type ResolvedTheme = 'light' | 'dark'
-
-export const ACCENTS = ['rain', 'rose', 'violet', 'emerald', 'amber', 'graphite'] as const
-export type Accent = (typeof ACCENTS)[number]
-export const DEFAULT_ACCENT: Accent = 'rain'
 
 export const THEME_STORAGE_KEY = 'rainy.theme'
+export const STYLE_STORAGE_KEY = 'rainy.style'
 export const ACCENT_STORAGE_KEY = 'rainy.accent'
 /** Album pages take on the cover's colours (`'0'` turns it off). */
 export const ALBUM_COLORS_STORAGE_KEY = 'rainy.album-colors'
+/** Immersive mode: the whole app takes on the current cover's colours (`'1'` turns it on). */
+export const IMMERSIVE_STORAGE_KEY = 'rainy.immersive'
 
-/** Swatch colours for accent pickers (the light-theme `--primary` of each preset in index.css). */
-export const ACCENT_SWATCHES: Readonly<Record<Accent, string>> = {
-  rain: 'oklch(0.62 0.17 255)',
-  rose: 'oklch(0.62 0.22 12)',
-  violet: 'oklch(0.57 0.23 293)',
-  emerald: 'oklch(0.58 0.14 163)',
-  amber: 'oklch(0.7 0.16 62)',
-  graphite: 'oklch(0.3 0.008 270)',
-}
-
-/** Browser chrome colour (`<meta name="theme-color">`) = the page background. */
-export const THEME_COLORS: Readonly<Record<ResolvedTheme, string>> = {
-  light: '#ffffff',
-  dark: '#0a0a0a',
+/** Tokens that replace the theme on `<html>` (immersive mode; a `CoverTheme` from the library). */
+export interface ThemeOverride {
+  /** Render dark (`.dark` on `<html>`) whatever the user's theme. */
+  dark: boolean
+  /** Custom properties set inline on `<html>`. */
+  vars: Readonly<Record<string, string>>
+  /** Browser chrome colour (`<meta name="theme-color">`). */
+  themeColor: string
 }
 
 export function isTheme(value: unknown): value is Theme {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value)
-}
-
-export function isAccent(value: unknown): value is Accent {
-  return typeof value === 'string' && (ACCENTS as readonly string[]).includes(value)
 }
 
 function readStorage(key: string): string | null {
@@ -61,6 +53,11 @@ export function readTheme(): Theme {
   return isTheme(value) ? value : 'system'
 }
 
+export function readStyle(): Style {
+  const value = readStorage(STYLE_STORAGE_KEY)
+  return isStyle(value) ? value : DEFAULT_STYLE
+}
+
 export function readAccent(): Accent {
   const value = readStorage(ACCENT_STORAGE_KEY)
   return isAccent(value) ? value : DEFAULT_ACCENT
@@ -70,8 +67,16 @@ export function readAlbumColors(): boolean {
   return readStorage(ALBUM_COLORS_STORAGE_KEY) !== '0'
 }
 
+export function readImmersive(): boolean {
+  return readStorage(IMMERSIVE_STORAGE_KEY) === '1'
+}
+
 export function storeTheme(theme: Theme): void {
   writeStorage(THEME_STORAGE_KEY, theme)
+}
+
+export function storeStyle(style: Style): void {
+  writeStorage(STYLE_STORAGE_KEY, style)
 }
 
 export function storeAccent(accent: Accent): void {
@@ -80,6 +85,10 @@ export function storeAccent(accent: Accent): void {
 
 export function storeAlbumColors(enabled: boolean): void {
   writeStorage(ALBUM_COLORS_STORAGE_KEY, enabled ? '1' : '0')
+}
+
+export function storeImmersive(enabled: boolean): void {
+  writeStorage(IMMERSIVE_STORAGE_KEY, enabled ? '1' : '0')
 }
 
 /** Run `fn` with CSS transitions disabled so a theme switch doesn't animate every surface. */
@@ -93,16 +102,41 @@ function withoutTransitions(fn: () => void): void {
   requestAnimationFrame(() => style.remove())
 }
 
-/** Apply the resolved theme + accent to `<html>` and the browser chrome colour. */
-export function applyTheme(resolved: ResolvedTheme, accent: Accent): void {
+/** The override applied to `<html>` by the last applyTheme() (its inline properties to remove later). */
+let applied: ThemeOverride | null = null
+
+/** The theme colour for what `<html>` shows right now (after applyTheme or the pre-paint script). */
+export function currentThemeColor(): string {
+  if (applied) return applied.themeColor
   const root = document.documentElement
-  const changed = root.classList.contains('dark') !== (resolved === 'dark') || root.dataset.accent !== accent
+  const style = isStyle(root.dataset.style) ? root.dataset.style : DEFAULT_STYLE
+  return themeColor(style, root.classList.contains('dark') ? 'dark' : 'light')
+}
+
+/**
+ * Apply the resolved theme, style and accent to `<html>` and the browser chrome colour. An
+ * `override` (immersive mode) replaces the colour tokens and the light / dark choice.
+ */
+export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
+  const root = document.documentElement
+  const dark = override ? override.dark : resolved === 'dark'
+  const changed =
+    root.classList.contains('dark') !== dark ||
+    root.dataset.style !== style ||
+    root.dataset.accent !== accent ||
+    applied !== override
   const apply = () => {
-    root.classList.toggle('dark', resolved === 'dark')
-    root.style.colorScheme = resolved
+    if (applied) for (const key of Object.keys(applied.vars)) root.style.removeProperty(key)
+    if (override) for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
+    // The pre-paint <style> in index.html paints <html> in the style's colour; follow the cover.
+    root.style.backgroundColor = override?.vars['--background'] ?? ''
+    applied = override
+    root.classList.toggle('dark', dark)
+    root.style.colorScheme = dark ? 'dark' : 'light'
+    root.dataset.style = style
     root.dataset.accent = accent
     for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
-      meta.content = THEME_COLORS[resolved]
+      meta.content = override ? override.themeColor : themeColor(style, resolved)
     }
   }
   if (changed) withoutTransitions(apply)
