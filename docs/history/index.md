@@ -10,10 +10,12 @@ docs; release notes are never its only description.
 
 ## What Belongs Here
 
-- Release notes grouped by user-facing area.
+- Release notes grouped by user-facing area, with each area's changes
+  collapsed under its title.
 - Upgrade notes for operators, such as migrations that call for a backup.
 - [Unreleased changes](unreleased.md) collected for the next release.
 
 ## Releases
 
+- [v0.1.1](v0.1.1.md)
 - [v0.1.0](v0.1.0.md)

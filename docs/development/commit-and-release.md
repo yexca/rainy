@@ -42,9 +42,27 @@ repeat the tag as a level-one heading; the file name and the GitHub Release
 title already identify the version. Start with an `[!IMPORTANT]` note when an
 upgrade needs operator attention, such as a backup before a migration.
 
+A tagged release note shows only its area titles; the changes in each area are
+collapsed. Write every area as a `<details>` block whose `<summary>` is the
+area title, with a blank line after the summary and before the closing tag so
+the list inside renders as Markdown:
+
+```markdown
+<details>
+<summary><strong>Playback And The Web Player</strong></summary>
+
+- Describe one user-facing change.
+
+</details>
+```
+
+Keep upgrade notes and any short introduction outside the blocks so they stay
+visible.
+
 Collect changes for the next release in
-[`docs/history/unreleased.md`](../history/unreleased.md), then move them into
-the tagged file when releasing and add it to the
+[`docs/history/unreleased.md`](../history/unreleased.md) under plain `##` area
+headings, then move them into the tagged file when releasing, turn each area
+into a collapsed block, and add the file to the
 [history index](../history/index.md).
 
 ## Version Source
