@@ -106,3 +106,7 @@ action.
   unplanned skips. Releases also verify main ancestry and nonempty release notes.
 - Update the transitive source-map-js dependency to its patched release so
   the frontend dependency audit passes.
+- Check and test with Go 1.26.9, whose standard library fixes the `net/http`,
+  `net/textproto`, and `crypto/tls` vulnerabilities the vulnerability scan
+  reports for 1.26.6. The production smoke test now removes the state its
+  root container wrote, so it no longer fails while cleaning up.

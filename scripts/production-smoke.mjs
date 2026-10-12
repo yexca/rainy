@@ -200,6 +200,12 @@ try {
   console.error(run(["logs", "--tail", "80", name], { allowFailure: true }));
 } finally {
   run(["rm", "-f", name], { allowFailure: true });
+  // The container wrote its state as its own user (root by default), which the host user may
+  // not be allowed to delete: empty the mounts as root from a container first.
+  run(
+    ["run", "--rm", "--user", "0", "--entrypoint", "rm", "-v", `${workDir}:/work`, image, "-rf", "/work/config", "/work/data"],
+    { allowFailure: true },
+  );
   fs.rmSync(workDir, { recursive: true, force: true });
 }
 process.exit(exitCode);
