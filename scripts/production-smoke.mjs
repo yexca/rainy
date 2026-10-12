@@ -95,7 +95,9 @@ async function main() {
   const version = run(["exec", name, "rainy", "version"]);
   check(/rainy/i.test(version), `rainy version reports "${version.split("\n")[0]}"`);
 
-  const processes = run(["top", name, "-o", "pid,user,args"])
+  // Listed from inside the container: `docker top` names users from the host's accounts, where
+  // uid 1000 may belong to someone else.
+  const processes = run(["exec", name, "ps", "-o", "pid,user,args"])
     .split("\n")
     .slice(1)
     .map((line) => line.trim().split(/\s+/))
