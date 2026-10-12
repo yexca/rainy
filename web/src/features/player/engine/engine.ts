@@ -29,6 +29,7 @@ import { replayGainFactor, sliderToGain } from '../lib/replay-gain'
 import { planStream, type StreamPlan } from '../lib/stream'
 import { usePlaybackPrefs, type PlaybackPrefsState } from '../prefs'
 import { entryKey, usePlayback, usePlayer, type PlayerState } from '../store'
+import { useStopTimer } from '../stop-timer'
 import type { PlayableTrack } from '../types'
 import { installKeyboardShortcuts } from './keyboard'
 import {
@@ -91,6 +92,11 @@ function bufferedEnd(el: HTMLAudioElement): number {
   return buffered.length > 0 ? buffered.end(buffered.length - 1) : 0
 }
 
+/** Lock screen and media key presses count as activity for the auto-stop timer. */
+function touch(): void {
+  useStopTimer.getState().touch()
+}
+
 function currentUserId(): string {
   return queryClient.getQueryData<AuthStatus>(authQueryKey)?.user?.id ?? ''
 }
@@ -122,10 +128,20 @@ export class PlayerEngine {
       usePlayer.getState().pause()
       usePlayback.getState().seek(0)
     },
-    previous: () => usePlayer.getState().prev(),
-    next: () => usePlayer.getState().next(),
-    seekTo: (time) => usePlayback.getState().seek(time),
+    previous: () => {
+      touch()
+      usePlayer.getState().prev()
+    },
+    next: () => {
+      touch()
+      usePlayer.getState().next()
+    },
+    seekTo: (time) => {
+      touch()
+      usePlayback.getState().seek(time)
+    },
     seekBy: (delta) => {
+      touch()
       const playback = usePlayback.getState()
       playback.seek(playback.currentTime + delta)
     },

@@ -120,7 +120,7 @@ export function BarVolume({ className }: { className?: string }) {
       >
         <VolumeIcon level={muted ? 0 : volume} className="size-[18px]" />
       </button>
-      <VolumeSlider tone="bar" className="hidden w-24 flex-none lg:flex" />
+      <VolumeSlider tone="bar" className="hidden w-16 flex-none lg:flex xl:w-24" />
     </div>
   )
 }

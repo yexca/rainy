@@ -12,6 +12,16 @@ Add user-facing changes for the next release here, grouped by area. Start with
 an `[!IMPORTANT]` upgrade note when a change adds a migration or needs operator
 action.
 
+## Playback
+
+- A new **Auto-stop timer** (the timer button in Now Playing, the floating
+  window, and the player bar on wider windows) stops the music for you. Pick
+  **Sleep** to stop once after a set time, or **Inactivity** to stop when you
+  haven't used Rainy for that long; anything you do starts the count again,
+  and it stays on until you turn it off. Choose 15 minutes to 2 hours, or type
+  any number of minutes up to a day. A message says when a timer stopped the
+  music.
+
 ## Look And Feel
 
 - **Settings → Appearance** has four styles: **Anthropic** (the new default:

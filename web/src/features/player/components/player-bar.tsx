@@ -14,6 +14,7 @@ import { LiveProgress } from './live-badge'
 import { PipLyricsButton } from './pip-lyrics-button'
 import { Scrubber } from './scrubber'
 import { StarButton } from './star-button'
+import { StopTimerButton } from './stop-timer-button'
 import { ModeToggle, NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } from './transport'
 import { BarVolume } from './volume-control'
 
@@ -21,7 +22,7 @@ import { BarVolume } from './volume-control'
  * Desktop / tablet bottom bar (the `bar` dock mode). Rendered by `<PlayerDock/>` inside a
  * `fixed inset-x-0 bottom-0` slot; owns its height (`--playerbar-h` + safe area) and always
  * renders (idle state when empty). `onMenuOpenChange` lets the auto-hiding slot stay up while
- * the layout menu is open.
+ * the layout menu or the auto-stop timer panel is open.
  */
 export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: boolean) => void }) {
   const { t } = useTranslation('player')
@@ -63,6 +64,8 @@ export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: bool
         <BarToggle label={t('queue.title')} active={panel === 'queue'} onClick={() => togglePanel('queue')}>
           <ListMusic className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>
+        {/* From `lg`: the narrower bar has no room for it (full-screen Now Playing has one). */}
+        <StopTimerButton tone="bar" className="hidden lg:grid" onOpenChange={onMenuOpenChange} />
         <BarVolume className="ml-1" />
         <DockModeMenu tone="bar" onOpenChange={onMenuOpenChange} />
         <BarToggle label={t('expand')} active={false} disabled={!track} onClick={() => setNowPlayingOpen(true)}>

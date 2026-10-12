@@ -12,6 +12,7 @@ import { showAirPlayPicker, useAirPlay } from '../engine/engine'
 import { usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
 import { StarButton } from './star-button'
+import { StopTimerButton } from './stop-timer-button'
 import { PipLyricsButton } from './pip-lyrics-button'
 import { TranslationToggle } from './translation-toggle'
 import { ModeToggle } from './transport'
@@ -153,7 +154,7 @@ export function AirPlayButton({ className }: { className?: string }) {
   )
 }
 
-/** Lyrics (+ translation while lyrics show) + picture-in-picture lyrics · AirPlay · Queue toggles under the transport. */
+/** Lyrics (+ translation while lyrics show) + picture-in-picture lyrics · AirPlay · auto-stop timer + queue under the transport. */
 export function NowPlayingActions({
   track,
   className,
@@ -179,9 +180,12 @@ export function NowPlayingActions({
         <PipLyricsButton tone="sheet" />
       </div>
       {showAirPlay && airPlay ? <AirPlayButton /> : null}
-      <ModeToggle tone="sheet" active={panel === 'queue'} onClick={() => toggle('queue')} aria-label={t('queue.title')} className="size-11">
-        <ListMusic className="size-[22px]" strokeWidth={1.9} />
-      </ModeToggle>
+      <div className="flex items-center gap-2">
+        <StopTimerButton tone="sheet" />
+        <ModeToggle tone="sheet" active={panel === 'queue'} onClick={() => toggle('queue')} aria-label={t('queue.title')} className="size-11">
+          <ListMusic className="size-[22px]" strokeWidth={1.9} />
+        </ModeToggle>
+      </div>
     </div>
   )
 }

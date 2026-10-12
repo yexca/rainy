@@ -52,6 +52,25 @@ queue** play before them, and turning infinite mode off removes the
 suggestions that haven't played yet. Infinite mode waits while repeat is on,
 and the choice is saved on the device.
 
+## Auto-Stop Timer
+
+The timer button (in Now Playing, the floating window, and the player bar on
+wider windows) stops the music for you. Pick a mode at the top, then a time
+from 15 minutes to 2 hours, or type your own number of minutes (up to 1440,
+a full day) and choose **Start**:
+
+- **Sleep** stops playback once, that long after you set it. The panel shows
+  the time left.
+- **Inactivity** stops playback when you haven't used Rainy for that long.
+  Moving the pointer, tapping, typing, scrolling, or using the lock screen and
+  media keys to skip or seek starts the count again. It stays on until you
+  turn it off and is remembered on the device.
+
+The button is highlighted while a timer is on; open it and choose **Turn off**
+to cancel. When a timer stops the music, a message says so until you close it
+or start playback again. Only what you do in Rainy counts as activity, so with
+Inactivity on, music stops while you work in other apps.
+
 ## Lyrics
 
 Open lyrics from Now Playing or the player bar. Synced lyrics (from `.lrc`

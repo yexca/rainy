@@ -17,6 +17,7 @@ import { NowPlayingBackground } from './now-playing-background'
 import { AirPlayButton, NowPlayingActions, NowPlayingArtwork, NowPlayingTitle } from './now-playing-parts'
 import { QueueView } from './queue-view'
 import { Scrubber } from './scrubber'
+import { StopTimerButton } from './stop-timer-button'
 import { PipLyricsButton } from './pip-lyrics-button'
 import { TranslationToggle } from './translation-toggle'
 import { NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } from './transport'
@@ -309,6 +310,7 @@ function StageNowPlaying({ track }: { track: PlayableTrack }) {
           <ChevronDown className="size-5" />
         </button>
         <div className="flex items-center gap-1">
+          <StopTimerButton tone="stage" />
           <PipLyricsButton tone="stage" />
           {panel === 'lyrics' ? <TranslationToggle track={track} tone="stage" /> : null}
           <StageToggle active={panel === 'lyrics'} onClick={() => toggle('lyrics')} label={t('lyrics.title')}>

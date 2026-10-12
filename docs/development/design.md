@@ -235,8 +235,16 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 - **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
   clear.
 - **Desktop player bar.** Artwork, title and artist links, and a star on the
-  left; transport and scrubber in the center; lyrics, queue, volume, the layout
-  menu, and expand on the right. Queue and lyrics open in a 360 px side panel.
+  left; transport and scrubber in the center; lyrics, queue, the auto-stop
+  timer, volume, the layout menu, and expand on the right. Queue and lyrics
+  open in a 360 px side panel.
+- **Auto-stop timer.** One timer button (player bar from 1024 px, Now
+  Playing, floating window) opens a small panel: a tab per mode, a line saying what the mode
+  does, the times to pick from, and a field for any number of minutes. Sleep stops playback once after the time;
+  Inactivity stops it when nothing was operated for that long and stays on
+  until turned off. The button is tinted while a mode is on, and the panel
+  shows what is running with a way to turn it off. When the timer stops the
+  music, a message stays on screen until it is closed or playback resumes.
 - **Player layouts (tablet and desktop).** The layout menu lists four options,
   top to bottom: full screen, a floating window, a floating mini bar (both in
   the bottom-right corner), and the bottom bar; full screen covers any of the

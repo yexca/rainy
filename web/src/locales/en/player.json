@@ -24,6 +24,20 @@
     "off": "Infinite mode: off"
   },
   "airplay": "AirPlay",
+  "timer": {
+    "title": "Auto-stop timer",
+    "sleep": "Sleep",
+    "idle": "Inactivity",
+    "sleepHint": "Stops playback after the time you pick.",
+    "idleHint": "Stops playback when you haven't used Rainy for the time you pick. Anything you do restarts the count.",
+    "sleepStatus": "Stops in {{time}}",
+    "idleStatus": "Stops after {{time}} without activity",
+    "custom": "Custom minutes",
+    "start": "Start",
+    "off": "Turn off",
+    "stoppedSleep": "The sleep timer stopped playback",
+    "stoppedIdle": "Playback stopped after {{time}} without activity"
+  },
   "layout": {
     "title": "Player layout",
     "bar": "Bottom bar",

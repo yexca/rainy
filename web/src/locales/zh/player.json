@@ -24,6 +24,20 @@
     "off": "无限模式：关闭"
   },
   "airplay": "隔空播放",
+  "timer": {
+    "title": "定时停止",
+    "sleep": "睡眠模式",
+    "idle": "计时模式",
+    "sleepHint": "到设定的时间后停止播放。",
+    "idleHint": "在设定的时间内没有任何操作就停止播放，有操作则重新计时。",
+    "sleepStatus": "{{time}} 后停止播放",
+    "idleStatus": "{{time}}无操作后停止播放",
+    "custom": "自定义分钟数",
+    "start": "开始",
+    "off": "关闭",
+    "stoppedSleep": "睡眠定时已到，已停止播放",
+    "stoppedIdle": "{{time}}无操作，已停止播放"
+  },
   "layout": {
     "title": "播放器布局",
     "bar": "底部播放栏",
