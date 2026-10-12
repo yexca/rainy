@@ -7,8 +7,9 @@
 export type ResolvedTheme = 'light' | 'dark'
 
 /**
- * Style presets: surfaces, radius, fonts, the original accent (`<html data-style>`), where the app
- * chrome sits (`STYLE_CHROME`) and whether the style starts in immersive mode (`STYLE_IMMERSIVE`).
+ * Style presets: surfaces, radius, fonts, the original accent (`<html data-style>`), the layout
+ * of the app chrome (`STYLE_CHROME`, `STYLE_QUICK_ACTIONS`, `STYLE_RAIL`) and whether the style
+ * starts in immersive mode (`STYLE_IMMERSIVE`).
  */
 export const STYLES = ['anthropic', 'openai', 'apple', 'google-md'] as const
 export type Style = (typeof STYLES)[number]
@@ -40,9 +41,36 @@ export type Chrome = (typeof CHROMES)[number]
 
 export const STYLE_CHROME: Readonly<Record<Style, Chrome>> = {
   anthropic: 'header',
-  openai: 'header',
+  openai: 'sidebar',
   apple: 'sidebar',
   'google-md': 'header',
+}
+
+/**
+ * How Quick actions shows in the chrome from 768px up: the lightning `icon` among the quick
+ * controls, or a search-like `field` — centred in the app header, or under the logo in the
+ * sidebar. Both open the same palette; phones always get the icon.
+ */
+export type QuickActionsEntry = 'icon' | 'field'
+
+export const STYLE_QUICK_ACTIONS: Readonly<Record<Style, QuickActionsEntry>> = {
+  anthropic: 'icon',
+  openai: 'field',
+  apple: 'icon',
+  'google-md': 'field',
+}
+
+/**
+ * The collapsed sidebar: `icons` only, or a wider navigation rail with a `labels` line under each
+ * icon and a pill behind the active one (Material).
+ */
+export type Rail = 'icons' | 'labels'
+
+export const STYLE_RAIL: Readonly<Record<Style, Rail>> = {
+  anthropic: 'icons',
+  openai: 'icons',
+  apple: 'icons',
+  'google-md': 'labels',
 }
 
 /** Swatch colours for accent pickers (the light-theme `--primary` of each preset in index.css). */
@@ -64,7 +92,7 @@ export interface StylePreview {
 
 export const STYLE_PREVIEWS: Readonly<Record<Style, StylePreview>> = {
   anthropic: { primary: '#ac4e2f', background: { light: '#f7f3ed', dark: '#191614' } },
-  openai: { primary: '#0b835b', background: { light: '#fafafa', dark: '#141414' } },
+  openai: { primary: '#171717', background: { light: '#fafafa', dark: '#141414' } },
   apple: { primary: '#006adb', background: { light: '#f3f3f7', dark: '#111113' } },
   'google-md': { primary: '#1663df', background: { light: '#f8fafc', dark: '#121416' } },
 }

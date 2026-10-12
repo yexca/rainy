@@ -153,9 +153,9 @@
   --accent-foreground: hsl(0 0% 16%);
   --border: hsl(0 0% 83%);
   --input: hsl(0 0% 78%);
-  --primary: hsl(160 84% 28%);
+  --primary: hsl(0 0% 9%);
   --primary-foreground: hsl(0 0% 100%);
-  --ring: hsl(160 76% 36%);
+  --ring: hsl(0 0% 45%);
 }
 :root.dark[data-style="openai"] {
   --background: hsl(0 0% 8%);
@@ -172,9 +172,14 @@
   --accent-foreground: hsl(0 0% 94%);
   --border: hsl(0 0% 25%);
   --input: hsl(0 0% 29%);
-  --primary: hsl(160 55% 60%);
-  --primary-foreground: hsl(160 70% 8%);
-  --ring: hsl(160 55% 60%);
+  --primary: hsl(0 0% 95%);
+  --primary-foreground: hsl(0 0% 9%);
+  --ring: hsl(0 0% 62%);
+}
+
+/* OpenAI: buttons are pills (unlayered, so it wins over the `rounded-*` utilities). */
+:root[data-style="openai"] [data-slot="button"] {
+  border-radius: 9999px;
 }
 
 :root[data-style="apple"] {
@@ -288,7 +293,7 @@
 
 /* ------------------------------------------------------------------------------------------ */
 /* Chrome layout: <html data-chrome="header|sidebar"> (STYLE_CHROME in lib/theme-styles.ts).  */
-/* "sidebar" (the apple style) has no app header from 768px: the sidebar holds the logo, the  */
+/* "sidebar" (apple, openai) has no app header from 768px: the sidebar holds the logo, the    */
 /* quick controls and the account menu, and everything measured from --app-header-h moves up. */
 /* Phones keep the header.                                                                    */
 /* ------------------------------------------------------------------------------------------ */

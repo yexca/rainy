@@ -13,6 +13,8 @@ import {
   STYLE_CHROME,
   STYLE_IMMERSIVE,
   STYLE_PREVIEWS,
+  STYLE_QUICK_ACTIONS,
+  STYLE_RAIL,
   accentFill,
   accentSwatch,
   immersiveForStyle,
@@ -39,13 +41,16 @@ describe('style preference', () => {
 })
 
 describe('style presets', () => {
-  it('gives the apple style the sidebar chrome and immersive mode', () => {
-    assert.equal(STYLE_CHROME.apple, 'sidebar')
-    assert.equal(STYLE_IMMERSIVE.apple, true)
-    for (const style of ['anthropic', 'openai', 'google-md'] as const) {
-      assert.equal(STYLE_CHROME[style], 'header')
-      assert.equal(STYLE_IMMERSIVE[style], false)
-    }
+  it('gives every style its own layout', () => {
+    const layout = (style: (typeof STYLES)[number]) => [STYLE_CHROME[style], STYLE_QUICK_ACTIONS[style], STYLE_RAIL[style]]
+    assert.deepEqual(layout('anthropic'), ['header', 'icon', 'icons'])
+    assert.deepEqual(layout('openai'), ['sidebar', 'field', 'icons'])
+    assert.deepEqual(layout('apple'), ['sidebar', 'icon', 'icons'])
+    assert.deepEqual(layout('google-md'), ['header', 'field', 'labels'])
+  })
+
+  it('starts only the apple style in immersive mode', () => {
+    for (const style of STYLES) assert.equal(STYLE_IMMERSIVE[style], style === 'apple')
   })
 
   it('turns immersive mode on entering the apple style and off leaving it', () => {
@@ -55,7 +60,7 @@ describe('style presets', () => {
   })
 
   it('keeps immersive mode as the user set it against the style', () => {
-    assert.equal(immersiveForStyle(true, 'anthropic', 'openai'), true)
+    assert.equal(immersiveForStyle(true, 'anthropic', 'google-md'), true)
     assert.equal(immersiveForStyle(true, 'anthropic', 'apple'), true)
     assert.equal(immersiveForStyle(false, 'apple', 'anthropic'), false)
   })

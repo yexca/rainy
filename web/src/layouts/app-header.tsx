@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 import { HeaderActions } from './header-actions'
+import { QuickActionsField } from './quick-actions'
 
 /** The sidebar toggle (tablets and desktops), before the logo. */
 export function SidebarToggle() {
@@ -55,8 +56,10 @@ export function Brand({ className }: { className?: string }) {
  *
  * `hidden` (styles with the `sidebar` chrome, tablets and desktops): the bar slides up out of
  * view and the sidebar shows the same controls; only a strip over the safe area stays.
+ * `field` (styles whose Quick actions entry is a field, tablets and desktops): Quick actions is a
+ * search-like field in the middle of the bar instead of the lightning icon in the tray.
  */
-export function AppHeader({ hidden = false, className }: { hidden?: boolean; className?: string }) {
+export function AppHeader({ hidden = false, field = false, className }: { hidden?: boolean; field?: boolean; className?: string }) {
   const isMobile = useIsMobile()
 
   return (
@@ -81,7 +84,12 @@ export function AppHeader({ hidden = false, className }: { hidden?: boolean; cla
       >
         {isMobile ? null : <SidebarToggle />}
         <Brand className="-ml-1.5 md:ml-0" />
-        <HeaderActions />
+        {field ? (
+          <div className="flex min-w-0 flex-1 justify-center px-4">
+            <QuickActionsField className="w-full max-w-md" />
+          </div>
+        ) : null}
+        <HeaderActions active={!hidden} field={field} />
       </div>
     </header>
   )

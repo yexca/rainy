@@ -15,7 +15,7 @@ import { PlayerDock } from '@/features/player/components/player-dock'
 import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query'
 import { useServerEvents } from '@/hooks/use-server-events'
 import { useTheme } from '@/hooks/use-theme'
-import { STYLE_CHROME } from '@/lib/theme'
+import { STYLE_CHROME, STYLE_QUICK_ACTIONS, STYLE_RAIL } from '@/lib/theme'
 import { useUI } from '@/stores/ui'
 
 import { AppHeader } from './app-header'
@@ -25,16 +25,22 @@ import { NavigationProgress } from './navigation-progress'
 import { QuickActionsHost } from './quick-actions'
 
 const SIDEBAR_STYLE = { '--sidebar-width': '15rem', '--sidebar-width-icon': '3.25rem' } as CSSProperties
+/** A rail with labels under its icons (`STYLE_RAIL`) is 80px wide. */
+const LABEL_RAIL_STYLE = { ...SIDEBAR_STYLE, '--sidebar-width-icon': '5rem' } as CSSProperties
 
 /**
  * Signed-in layout (docs/architecture/contract.md §9.3).
  *
  * - Every width: `<AppHeader/>` across the top (logo, quick controls, account menu;
  *   `--app-header-h`), with the content (and from 768px the sidebar) below it.
- * - Styles with the `sidebar` chrome (`STYLE_CHROME`, the apple style), ≥ 768px: no header; the
+ * - Styles with the `sidebar` chrome (`STYLE_CHROME`: apple, openai), ≥ 768px: no header; the
  *   sidebar reaches the top and holds the logo, the quick controls and, at its bottom, the
  *   account menu. `--app-header-h` shrinks to the safe area, and switching styles slides the
  *   header out and folds those blocks in (elements marked `data-chrome-motion`).
+ * - `STYLE_QUICK_ACTIONS` `field` (openai, google-md), ≥ 768px: Quick actions is a search-like
+ *   field (middle of the header, or under the logo in the sidebar) instead of the lightning icon.
+ * - `STYLE_RAIL` `labels` (google-md): the collapsed sidebar is an 80px rail with a label under
+ *   each icon.
  * - ≥ 1024px: expandable sidebar (state persisted) + content + bottom player bar.
  * - 768–1023px: icon sidebar (expandable for the session) + player bar.
  * - < 768px: no sidebar (the header drops its toggle); bottom glass tab bar with a floating mini
@@ -66,6 +72,8 @@ export function AppShell() {
   // Phones have no sidebar, so they keep the header whatever the style.
   const { style } = useTheme()
   const sidebarChrome = !isMobile && STYLE_CHROME[style] === 'sidebar'
+  const field = !isMobile && STYLE_QUICK_ACTIONS[style] === 'field'
+  const labelRail = STYLE_RAIL[style] === 'labels'
 
   return (
     <>
@@ -80,12 +88,14 @@ export function AppShell() {
       <SidebarProvider
         open={isDesktop ? sidebarOpen : tabletOpen}
         onOpenChange={isDesktop ? setSidebarOpen : setTabletOpen}
-        style={SIDEBAR_STYLE}
+        style={labelRail ? LABEL_RAIL_STYLE : SIDEBAR_STYLE}
       >
-        <AppHeader hidden={sidebarChrome} />
+        <AppHeader hidden={sidebarChrome} field={field} />
         {isMobile ? null : (
           <AppSidebar
             standalone={sidebarChrome}
+            field={field}
+            labelRail={labelRail}
             className="top-(--app-header-h) bottom-(--player-reserve) h-auto transition-[top,bottom] duration-300 ease-out"
           />
         )}

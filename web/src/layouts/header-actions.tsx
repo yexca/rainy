@@ -1,7 +1,8 @@
 import { Monitor, Moon, Palette, Settings, Sun } from 'lucide-react'
-import { useId, useState, type ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { create } from 'zustand'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -19,8 +20,21 @@ import { UserMenu } from './user-menu'
 const TRAY_BUTTON_CLASS =
   'size-11 md:size-9 rounded-full text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground'
 
+/**
+ * Whether the Appearance panel is open. The header and the sidebar each have a button for it;
+ * the one in the current chrome layout (`active`) shows the panel.
+ */
+const usePanel = create<{ open: boolean }>()(() => ({ open: false }))
+
+function setPanel(open: boolean) {
+  usePanel.setState({ open })
+}
+
+/** How long the chrome takes to settle after a style moved it (its 300ms transitions and a frame). */
+const CHROME_MOTION_MS = 340
+
 /** `beside`: the panel opens to the right of the sidebar instead of below the header. */
-function AppearanceMenu({ beside = false }: { beside?: boolean }) {
+function AppearanceMenu({ active, beside = false }: { active: boolean; beside?: boolean }) {
   const { t, i18n } = useTranslation()
   const isMobile = useIsMobile()
   const { theme, setTheme, style, setStyle, accent, setAccent, immersive, setImmersive } = useTheme()
@@ -28,7 +42,7 @@ function AppearanceMenu({ beside = false }: { beside?: boolean }) {
   const immersiveId = useId()
   // Reading i18n.language re-renders the picker when the language changes.
   const language = i18n.language ? currentLanguage() : 'en'
-  const [open, setOpen] = useState(false)
+  const open = usePanel((s) => s.open) && active
   const label = t('theme.label')
 
   const themes: { value: Theme; label: string; icon: ReactNode }[] = [
@@ -39,13 +53,17 @@ function AppearanceMenu({ beside = false }: { beside?: boolean }) {
 
   const onStyle = (next: Style) => {
     // A style with another chrome layout moves this button away (tablets and desktops): close the
-    // panel rather than leave it hanging off a control that is sliding out.
-    if (!isMobile && STYLE_CHROME[next] !== STYLE_CHROME[style]) setOpen(false)
+    // panel while the chrome slides, then show it again from the button in the new layout, so it
+    // stays open across every style like it does when the layout is unchanged.
+    if (!isMobile && STYLE_CHROME[next] !== STYLE_CHROME[style]) {
+      setPanel(false)
+      window.setTimeout(() => setPanel(true), CHROME_MOTION_MS)
+    }
     setStyle(next)
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setPanel}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" aria-label={label} title={label} className={TRAY_BUTTON_CLASS}>
           <Palette strokeWidth={1.75} />
@@ -84,7 +102,7 @@ function AppearanceMenu({ beside = false }: { beside?: boolean }) {
         <div className="border-t p-1.5">
           <Link
             to="/settings/appearance"
-            onClick={() => setOpen(false)}
+            onClick={() => setPanel(false)}
             className="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Settings className="size-4 text-muted-foreground" aria-hidden />
@@ -101,15 +119,18 @@ function AppearanceMenu({ beside = false }: { beside?: boolean }) {
  * command palette; appearance: theme, style, accent, immersive mode and language), a divider, then the account
  * button with the user's name and role. Phones keep both controls as 44px targets but drop the
  * tray outline and the divider, and show the account as an avatar.
+ *
+ * `field`: Quick actions is the field in the middle of the header, so the tray holds only the
+ * appearance button. `active`: the header is the chrome in use (its Appearance panel may show).
  */
-export function HeaderActions() {
+export function HeaderActions({ active, field = false }: { active: boolean; field?: boolean }) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
     return (
       <div className="ml-auto flex shrink-0 items-center">
         <QuickActions className={TRAY_BUTTON_CLASS} />
-        <AppearanceMenu />
+        <AppearanceMenu active={active} />
         <UserMenu variant="avatar" />
       </div>
     )
@@ -118,8 +139,8 @@ export function HeaderActions() {
   return (
     <div className="ml-auto flex shrink-0 items-center gap-2">
       <div className="flex items-center gap-0.5 rounded-full border border-sidebar-border bg-background/60 p-0.5">
-        <QuickActions className={TRAY_BUTTON_CLASS} />
-        <AppearanceMenu />
+        {field ? null : <QuickActions className={TRAY_BUTTON_CLASS} />}
+        <AppearanceMenu active={active} />
       </div>
       <span aria-hidden className="h-5 w-px bg-sidebar-border" />
       <UserMenu variant="header" />
@@ -131,14 +152,17 @@ export function HeaderActions() {
  * The same controls at the bottom of the sidebar, for styles without an app header (`sidebar`
  * chrome): the account row (avatar, name and role; its menu opens upwards) with Quick actions and
  * the appearance button beside it. On the icon rail they stack, the avatar at the bottom.
+ *
+ * `field`: Quick actions is the field under the logo instead. `active`: the sidebar is the
+ * chrome in use (its Appearance panel may show).
  */
-export function SidebarActions() {
+export function SidebarActions({ active, field = false }: { active: boolean; field?: boolean }) {
   return (
     <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col-reverse">
       <UserMenu variant="sidebar" className="flex-1 group-data-[collapsible=icon]:flex-none" />
       <div className="flex shrink-0 items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
-        <QuickActions className={TRAY_BUTTON_CLASS} />
-        <AppearanceMenu beside />
+        {field ? null : <QuickActions className={TRAY_BUTTON_CLASS} />}
+        <AppearanceMenu active={active} beside />
       </div>
     </div>
   )

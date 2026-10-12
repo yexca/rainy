@@ -21,12 +21,17 @@ action.
   uses the style's own colour; the earlier accent colours still override it,
   and an accent you already picked stays as it was. The style is also in the
   header's Appearance panel.
-- A style also sets the layout. On tablets and desktops **Apple** drops the bar
-  across the top: the logo moves to the top of the sidebar, and your account
-  (with Settings, About, and Log out), **Quick actions**, and the
+- A style also sets the layout. On tablets and desktops **Apple** and
+  **OpenAI** drop the bar across the top: the logo moves to the top of the
+  sidebar, and your account (with Settings, About, and Log out) and the
   **Appearance** button sit in its bottom-left corner. Switching styles slides
-  the bar away and brings the account up, and back again. Phones keep the
-  header in every style.
+  the bar away and brings the account up, and back again, and the Appearance
+  panel stays open while you try them. Phones keep the header in every style.
+- **OpenAI** and **Google MD** show **Quick actions** as a search-like field —
+  under the logo in the sidebar, or in the middle of the header — instead of
+  the lightning icon. **OpenAI** is now black and white with pill buttons
+  (pick an accent colour if you want one back), and **Google MD** turns the
+  collapsed sidebar into a navigation rail with a label under each icon.
 - **Immersive** (the switch beside the accent colour, in Settings → Appearance
   and the Appearance panel) colours the whole app — sidebar, header, player,
   and menus — with the album, playlist, or artist you are viewing, and with

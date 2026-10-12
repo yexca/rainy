@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { api } from '@/lib/api/endpoints'
 import { queryKeys } from '@/lib/query-keys'
+import { cn } from '@/lib/utils'
 
 import { ADMIN_SECTION, FOOTER_NAV, LIBRARY_NAV, TOOLS_SECTION, TRACKS_SECTION, type NavItem } from './nav'
 
@@ -238,8 +239,8 @@ function close() {
 }
 
 /**
- * Quick actions trigger: a lightning icon in the app chrome (an icon, never a search field, so it
- * is not mistaken for library search) that opens the palette of `<QuickActionsHost/>`.
+ * Quick actions trigger: a lightning icon in the app chrome that opens the palette of
+ * `<QuickActionsHost/>`. Styles with the `field` entry show `<QuickActionsField/>` instead.
  */
 export function QuickActions({ className }: { className?: string }) {
   const { t } = useTranslation()
@@ -260,6 +261,41 @@ export function QuickActions({ className }: { className?: string }) {
     >
       <Zap strokeWidth={1.75} />
     </Button>
+  )
+}
+
+/**
+ * Quick actions as a search-like field (styles whose `STYLE_QUICK_ACTIONS` is `field`): the same
+ * trigger, showing the palette's placeholder and the shortcut. On the sidebar's icon rail only
+ * the icon stays.
+ */
+export function QuickActionsField({ className }: { className?: string }) {
+  const { t } = useTranslation()
+  const open = usePalette((s) => s.open)
+  const label = t('quickActions.label')
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-keyshortcuts={SHORTCUT_KEYS}
+      aria-haspopup="dialog"
+      title={`${label} (${SHORTCUT_LABEL})`}
+      data-state={open ? 'open' : 'closed'}
+      onClick={() => setOpen(true)}
+      className={cn(
+        'flex h-9 min-w-0 items-center gap-2 rounded-full border border-sidebar-border bg-background/60 px-3 text-left text-[13px] text-sidebar-foreground/70 outline-none transition-colors',
+        'hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[state=open]:bg-sidebar-accent',
+        'group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+        className,
+      )}
+    >
+      <Search className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+      <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">{t('quickActions.placeholder')}</span>
+      <kbd className="shrink-0 rounded-md border border-sidebar-border px-1.5 font-sans text-[11px] leading-5 font-medium group-data-[collapsible=icon]:hidden">
+        {SHORTCUT_LABEL}
+      </kbd>
+    </button>
   )
 }
 

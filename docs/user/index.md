@@ -21,9 +21,10 @@ The web app is available in English and Simplified Chinese. Change the language
 from the user menu or under **Settings → Appearance**.
 The same page picks the theme, one of four styles (Anthropic, the default;
 OpenAI; Apple; Google MD), and the accent colour; the **Original** accent follows
-the style. A style also sets the layout: on tablets and desktops Apple has no bar across the top
-and keeps your account, Quick actions, and the appearance button in the bottom-left corner of
-the sidebar. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
+the style. A style also sets the layout: on tablets and desktops Apple and OpenAI have no bar
+across the top and keep your account and the appearance button in the bottom-left corner of
+the sidebar, OpenAI and Google MD show Quick actions as a search-like field, and Google MD
+labels the icons of the collapsed sidebar. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
 there if you prefer the plain theme. The **Immersive** switch next to the accent colour, on by
 default in Apple, goes further and colours the whole app — sidebar, player, and menus — with the
 album, playlist, or artist on screen, or with the song playing on other pages. While it is on,

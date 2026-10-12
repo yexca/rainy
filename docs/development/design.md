@@ -27,14 +27,16 @@ explains the rules every UI change must keep.
 - Light and dark themes follow the system unless the user overrides them.
 - **Styles.** Four presets set the surfaces, borders, radius, fonts, and their
   own accent for both themes: `anthropic` (default: warm paper tones, a
-  terracotta accent, serif page titles), `openai` (neutral greys, a green
-  accent, Inter), `apple` (cool greys, a blue accent, the system font, larger
+  terracotta accent, serif page titles), `openai` (neutral greys, an ink
+  accent that is near-black in light and near-white in dark, pill buttons,
+  Inter), `apple` (cool greys, a blue accent, the system font, larger
   radius), and `google-md` (blue-tinted surfaces, a Material blue accent,
   Roboto). Styles only bundle what Rainy already ships (Inter); other faces
   are used when the system has them. Keep each style's light and dark blocks
   complete so no token leaks from another style.
-- **A style is more than colours.** Each one also picks where the app chrome
-  sits (see [Layout](#layout): `apple` has no app header from tablets up) and
+- **A style is more than colours.** Each one also picks its layout (see
+  [Layout](#layout): where the chrome sits, how Quick actions shows, and what
+  the collapsed sidebar looks like) and
   whether it starts in immersive mode (only `apple` does). Entering `apple`
   turns immersive mode on and leaving it turns it off; between the other
   styles it stays as the user set it.
@@ -78,20 +80,40 @@ get a glass bar matching the tab bar: the logo on the left, and Quick actions,
 the appearance button and the account avatar on the right (44 px targets).
 Page top bars stick right below the header.
 
-The `apple` style uses the sidebar chrome instead: from tablets up there is no
-app header. The sidebar reaches the top of the window with the toggle and the
-logo above its groups, and its bottom-left corner holds the account row
-(avatar, name and role; the menu opens upwards) with Quick actions and the
-appearance button beside it, in place of Settings and About (both are in the
-account menu). On the icon rail the three stack, the avatar at the bottom.
-Page top bars stick to the top of the window. Phones keep the glass header.
+That is the `anthropic` layout. From tablets up each style arranges the same
+controls its own way; phones always get the glass header above.
+
+| Style | Chrome | Quick actions | Collapsed sidebar |
+| --- | --- | --- | --- |
+| `anthropic` | App header | Lightning icon in the tray | Icons |
+| `openai` | Sidebar | Field under the logo | Icons |
+| `apple` | Sidebar | Lightning icon beside the account | Icons |
+| `google-md` | App header | Field in the middle of the header | 80 px rail with labels |
+
+- **Sidebar chrome** has no app header. The sidebar reaches the top of the
+  window with the toggle and the logo above its groups, and its bottom-left
+  corner holds the account row (avatar, name and role; the menu opens upwards)
+  with the appearance button, and Quick actions when it is an icon, beside it,
+  in place of Settings and About (both are in the account menu). On the icon
+  rail they stack, the avatar at the bottom. Page top bars stick to the top of
+  the window.
+- **The Quick actions field** is a rounded, search-like button showing the
+  palette's placeholder and the shortcut. It opens the same palette as the
+  icon; on a collapsed sidebar only its icon stays.
+- **The rail with labels** (Material) shows each item as its icon on a pill,
+  filled while active or hovered, with the label on a line below; it scrolls
+  when the items do not fit.
+
 Switching between a header style and a sidebar style animates: the header
 slides up while the account row rises in the corner, and back again. Mark
 elements that take part with `data-chrome-motion`; they may transition
-position and size but never colours.
+position and size but never colours. The Appearance panel stays open across
+every style: when its button moves to the other chrome, the panel closes while
+the chrome slides and opens again from the new button.
 
-Quick actions is a lightning icon, never a search field, so it is not mistaken
-for library search; its tooltip names the shortcut, Ctrl+K (⌘K on Apple
+The Quick actions icon is a lightning bolt so it is not mistaken for library
+search, and the field names pages and actions rather than songs; the tooltip
+names the shortcut, Ctrl+K (⌘K on Apple
 devices), which opens it from anywhere. It opens a command palette — a centered
 dialog from tablets up, a bottom sheet on phones — that filters playback
 controls (while something is queued), library pages and playlists, the manager
