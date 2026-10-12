@@ -3,7 +3,18 @@
  * (keep the storage keys in sync) and the settings UI.
  */
 
-import { DEFAULT_ACCENT, DEFAULT_STYLE, isAccent, isStyle, themeColor, type Accent, type ResolvedTheme, type Style } from '@/lib/theme-styles'
+import {
+  DEFAULT_ACCENT,
+  DEFAULT_STYLE,
+  STYLE_CHROME,
+  STYLE_IMMERSIVE,
+  isAccent,
+  isStyle,
+  themeColor,
+  type Accent,
+  type ResolvedTheme,
+  type Style,
+} from '@/lib/theme-styles'
 
 export * from '@/lib/theme-styles'
 
@@ -15,7 +26,7 @@ export const STYLE_STORAGE_KEY = 'rainy.style'
 export const ACCENT_STORAGE_KEY = 'rainy.accent'
 /** Album pages take on the cover's colours (`'0'` turns it off). */
 export const ALBUM_COLORS_STORAGE_KEY = 'rainy.album-colors'
-/** Immersive mode: the whole app takes on the current cover's colours (`'1'` turns it on). */
+/** Immersive mode: the whole app takes on the current cover's colours (`'1'` on, `'0'` off, unset: the style decides). */
 export const IMMERSIVE_STORAGE_KEY = 'rainy.immersive'
 
 /** Tokens that replace the theme on `<html>` (immersive mode; a `CoverTheme` from the library). */
@@ -67,8 +78,10 @@ export function readAlbumColors(): boolean {
   return readStorage(ALBUM_COLORS_STORAGE_KEY) !== '0'
 }
 
-export function readImmersive(): boolean {
-  return readStorage(IMMERSIVE_STORAGE_KEY) === '1'
+/** The saved choice, or what the style starts with. */
+export function readImmersive(style: Style = readStyle()): boolean {
+  const value = readStorage(IMMERSIVE_STORAGE_KEY)
+  return value === '1' || value === '0' ? value === '1' : STYLE_IMMERSIVE[style]
 }
 
 export function storeTheme(theme: Theme): void {
@@ -91,10 +104,14 @@ export function storeImmersive(enabled: boolean): void {
   writeStorage(IMMERSIVE_STORAGE_KEY, enabled ? '1' : '0')
 }
 
-/** Run `fn` with CSS transitions disabled so a theme switch doesn't animate every surface. */
+/**
+ * Run `fn` with CSS transitions disabled so a theme switch doesn't animate every surface. Elements
+ * marked `data-chrome-motion` keep theirs, so the app chrome slides to its new place when a style
+ * moves it; they must not transition colours.
+ */
 function withoutTransitions(fn: () => void): void {
   const style = document.createElement('style')
-  style.textContent = '*,*::before,*::after{transition:none!important}'
+  style.textContent = '*:not([data-chrome-motion]),*::before,*::after{transition:none!important}'
   document.head.appendChild(style)
   fn()
   // Force a style flush before re-enabling transitions.
@@ -114,8 +131,9 @@ export function currentThemeColor(): string {
 }
 
 /**
- * Apply the resolved theme, style and accent to `<html>` and the browser chrome colour. An
- * `override` (immersive mode) replaces the colour tokens and the light / dark choice.
+ * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser
+ * chrome colour. An `override` (immersive mode) replaces the colour tokens and the light / dark
+ * choice.
  */
 export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
   const root = document.documentElement
@@ -134,6 +152,7 @@ export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent
     root.classList.toggle('dark', dark)
     root.style.colorScheme = dark ? 'dark' : 'light'
     root.dataset.style = style
+    root.dataset.chrome = STYLE_CHROME[style]
     root.dataset.accent = accent
     for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
       meta.content = override ? override.themeColor : themeColor(style, resolved)

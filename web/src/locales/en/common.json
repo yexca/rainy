@@ -126,6 +126,7 @@
   "accent": {
     "label": "Accent colour",
     "original": "Original",
+    "cover": "From the cover",
     "rain": "Rain",
     "rose": "Rose",
     "violet": "Violet",
@@ -134,7 +135,7 @@
     "graphite": "Graphite"
   },
   "immersive": {
-    "label": "Immersive mode"
+    "label": "Immersive"
   },
   "language": {
     "label": "Language"

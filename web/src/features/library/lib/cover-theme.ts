@@ -308,3 +308,12 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
 
   return { dark, vars, themeColor: toHex(bg) }
 }
+
+/** The cover's highlight tokens: left out when the user's accent preset keeps the highlight. */
+const ACCENT_VARS = ['--primary', '--primary-foreground', '--ring']
+
+/** `theme` with the cover's surfaces and text but the user's own accent. */
+export function withoutAccent(theme: CoverTheme): CoverTheme {
+  const vars = Object.fromEntries(Object.entries(theme.vars).filter(([key]) => !ACCENT_VARS.includes(key)))
+  return { ...theme, vars }
+}

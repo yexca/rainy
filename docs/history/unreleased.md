@@ -21,10 +21,19 @@ action.
   uses the style's own colour; the earlier accent colours still override it,
   and an accent you already picked stays as it was. The style is also in the
   header's Appearance panel.
-- **Immersive mode** (Settings → Appearance or the header's Appearance panel)
-  colours the whole app — sidebar, header, player, and menus — with the album,
-  playlist, or artist you are viewing, and with the playing song's cover on
-  other pages. It is off by default and needs **Album colours**.
+- A style also sets the layout. On tablets and desktops **Apple** drops the bar
+  across the top: the logo moves to the top of the sidebar, and your account
+  (with Settings, About, and Log out), **Quick actions**, and the
+  **Appearance** button sit in its bottom-left corner. Switching styles slides
+  the bar away and brings the account up, and back again. Phones keep the
+  header in every style.
+- **Immersive** (the switch beside the accent colour, in Settings → Appearance
+  and the Appearance panel) colours the whole app — sidebar, header, player,
+  and menus — with the album, playlist, or artist you are viewing, and with
+  the playing song's cover on other pages. While it is on, the first accent
+  swatch takes the highlight from the cover as well, and the other swatches
+  keep a highlight colour you choose. It is on by default in **Apple** and
+  off in the other styles.
 - Songs and albums without a cover, artists without a photo, playlists without
   a cover, and radio stations now show the mascot instead of a grey icon, with
   three different covers so a grid of missing art doesn't repeat one picture.

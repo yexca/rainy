@@ -1,4 +1,4 @@
-import { ChevronDown, Info, LogOut, Settings } from 'lucide-react'
+import { ChevronDown, ChevronsUpDown, Info, LogOut, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -38,7 +38,8 @@ export function UserAvatar({ user, className }: { user: User; className?: string
   )
 }
 
-function UserMenuContent({ user }: { user: User }) {
+/** `above`: the menu opens upwards from the sidebar's bottom-left corner instead of below the header. */
+function UserMenuContent({ user, above = false }: { user: User; above?: boolean }) {
   const { t } = useTranslation()
   const logout = useLogout()
   const navigate = useNavigate()
@@ -50,7 +51,7 @@ function UserMenuContent({ user }: { user: User }) {
   }
 
   return (
-    <DropdownMenuContent side="bottom" align="end" sideOffset={8} className="w-64 rounded-xl">
+    <DropdownMenuContent side={above ? 'top' : 'bottom'} align={above ? 'start' : 'end'} sideOffset={8} className="w-64 rounded-xl">
       <DropdownMenuLabel className="flex items-center gap-3 px-2 py-2.5 font-normal">
         <UserAvatar user={user} className="size-11 [&>span]:text-base" />
         <div className="grid min-w-0 flex-1 gap-1 leading-tight">
@@ -88,9 +89,11 @@ function UserMenuContent({ user }: { user: User }) {
 export interface UserMenuProps {
   /**
    * `header`: avatar, name and role (tablet / desktop app header). `avatar`: round button (phone
-   * app header). Theme and language live in the header's Appearance popover.
+   * app header). `sidebar`: a row at the bottom of the sidebar (avatar, name and role; the avatar
+   * alone on the icon rail) whose menu opens upwards. Theme and language live in the Appearance
+   * popover next to it.
    */
-  variant?: 'header' | 'avatar'
+  variant?: 'header' | 'avatar' | 'sidebar'
   className?: string
 }
 
@@ -99,6 +102,32 @@ export function UserMenu({ variant = 'avatar', className }: UserMenuProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
   if (!user) return null
+
+  if (variant === 'sidebar') {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={t('user.menu')}
+            className={cn(
+              'flex h-10 min-w-0 items-center gap-2 rounded-lg p-1 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[state=open]:bg-sidebar-accent',
+              'group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0',
+              className,
+            )}
+          >
+            <UserAvatar user={user} />
+            <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+              <span className="block truncate text-xs leading-4 font-medium">{displayName(user)}</span>
+              <span className="block truncate text-[11px] leading-3.5 text-muted-foreground">{t(roleKey(user))}</span>
+            </span>
+            <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" aria-hidden />
+          </button>
+        </DropdownMenuTrigger>
+        <UserMenuContent user={user} above />
+      </DropdownMenu>
+    )
+  }
 
   if (variant === 'header') {
     return (

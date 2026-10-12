@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Switch } from '@/components/ui/switch'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
-import { ACCENTS, STYLES, STYLE_PREVIEWS, accentSwatch, type Accent, type Style, type Theme } from '@/lib/theme'
+import { ACCENTS, STYLES, STYLE_PREVIEWS, accentFill, accentSwatch, immersiveForStyle, type Accent, type Style, type Theme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
@@ -28,20 +28,28 @@ export function AppearanceSection() {
         <Segmented label={t('appearance.theme')} value={theme} onChange={setTheme} options={themes} />
       </SettingsRow>
       <SettingsRow label={t('common:style.label')} description={t('appearance.styleHint')} stacked>
-        <StylePicker value={style} accent={accent} onChange={setStyle} className="w-full sm:w-80" />
+        <StylePicker value={style} accent={accent} immersive={immersive} onChange={setStyle} className="w-full sm:w-80" />
       </SettingsRow>
-      <SettingsRow label={t('common:accent.label')} description={t('appearance.accentHint')} stacked>
-        <AccentPicker value={accent} style={style} onChange={setAccent} />
-      </SettingsRow>
-      <SettingsRow label={t('appearance.albumColors')} description={t('appearance.albumColorsHint')} htmlFor="settings-album-colors">
-        <Switch id="settings-album-colors" checked={albumColors} onCheckedChange={setAlbumColors} />
-      </SettingsRow>
+      {/* The immersive switch sits beside the label; the swatches below follow it. */}
+      <div>
+        <SettingsRow
+          label={t('common:accent.label')}
+          description={immersive ? t('appearance.immersiveHint') : t('appearance.accentHint')}
+          className="pb-1"
+        >
+          <ImmersiveSwitch id="settings-immersive" checked={immersive} onChange={setImmersive} />
+        </SettingsRow>
+        <div className="px-4 pb-2">
+          <AccentPicker value={accent} style={style} immersive={immersive} onChange={setAccent} />
+        </div>
+      </div>
+      {/* Immersive mode already colours every page, cover pages included. */}
       <SettingsRow
-        label={t('appearance.immersive')}
-        description={albumColors ? t('appearance.immersiveHint') : t('appearance.immersiveNeedsAlbumColors')}
-        htmlFor="settings-immersive"
+        label={t('appearance.albumColors')}
+        description={immersive ? t('appearance.albumColorsImmersive') : t('appearance.albumColorsHint')}
+        htmlFor="settings-album-colors"
       >
-        <Switch id="settings-immersive" checked={albumColors && immersive} onCheckedChange={setImmersive} disabled={!albumColors} />
+        <Switch id="settings-album-colors" checked={immersive || albumColors} onCheckedChange={setAlbumColors} disabled={immersive} />
       </SettingsRow>
       <SettingsRow label={t('common:language.label')} stacked>
         <Segmented
@@ -76,15 +84,20 @@ function useRadioKeys<T>(values: readonly T[], onChange: (value: T) => void) {
   return { refs, onKeyDown }
 }
 
-/** Style presets as cards: icon, name, and the accent / light / dark colours it gives. */
+/**
+ * Style presets as cards: icon, name, and the accent / light / dark colours it gives (the accent
+ * is a colour wheel where choosing the card leaves you immersive, see `immersiveForStyle`).
+ */
 export function StylePicker({
   value,
   accent,
+  immersive,
   onChange,
   className,
 }: {
   value: Style
   accent: Accent
+  immersive: boolean
   onChange: (style: Style) => void
   className?: string
 }) {
@@ -121,8 +134,8 @@ export function StylePicker({
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">{t(`style.${style}`)}</span>
               <span className="mt-1.5 flex gap-1" aria-hidden>
-                {[accentSwatch(accent, style), background.light, background.dark].map((color, i) => (
-                  <span key={i} className="h-1.5 flex-1 rounded-full ring-1 ring-black/10 dark:ring-white/15" style={{ backgroundColor: color }} />
+                {[accentFill(accent, style, immersiveForStyle(immersive, value, style)), background.light, background.dark].map((fill, i) => (
+                  <span key={i} className="h-1.5 flex-1 rounded-full ring-1 ring-black/10 dark:ring-white/15" style={{ background: fill }} />
                 ))}
               </span>
             </span>
@@ -133,7 +146,44 @@ export function StylePicker({
   )
 }
 
-export function AccentPicker({ value, style, onChange }: { value: Accent; style: Style; onChange: (accent: Accent) => void }) {
+/** The immersive mode switch with its name, shown beside the accent label. */
+export function ImmersiveSwitch({
+  id,
+  checked,
+  onChange,
+  className,
+}: {
+  id: string
+  checked: boolean
+  onChange: (enabled: boolean) => void
+  className?: string
+}) {
+  const { t } = useTranslation()
+  return (
+    <span className={cn('flex shrink-0 items-center gap-2', className)}>
+      <label htmlFor={id} className="text-[13px] font-medium text-muted-foreground">
+        {t('immersive.label')}
+      </label>
+      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+    </span>
+  )
+}
+
+/**
+ * The highlight colours. In immersive mode the first swatch (`original`) is a colour wheel: the
+ * highlight follows the cover like everything else; the presets after it stay fixed highlights.
+ */
+export function AccentPicker({
+  value,
+  style,
+  immersive,
+  onChange,
+}: {
+  value: Accent
+  style: Style
+  immersive: boolean
+  onChange: (accent: Accent) => void
+}) {
   const { t } = useTranslation()
   const { refs, onKeyDown } = useRadioKeys(ACCENTS, onChange)
 
@@ -142,6 +192,7 @@ export function AccentPicker({ value, style, onChange }: { value: Accent; style:
       {ACCENTS.map((accent, index) => {
         const selected = accent === value
         const swatch = accentSwatch(accent, style)
+        const label = immersive && accent === 'original' ? t('accent.cover') : t(`accent.${accent}`)
         return (
           <button
             key={accent}
@@ -151,8 +202,8 @@ export function AccentPicker({ value, style, onChange }: { value: Accent; style:
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-label={t(`accent.${accent}`)}
-            title={t(`accent.${accent}`)}
+            aria-label={label}
+            title={label}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(accent)}
             onKeyDown={(event) => onKeyDown(event, index)}
@@ -164,7 +215,7 @@ export function AccentPicker({ value, style, onChange }: { value: Accent; style:
                 'group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background',
                 selected && 'ring-2 ring-offset-2 ring-offset-card',
               )}
-              style={{ backgroundColor: swatch, ...(selected ? { ['--tw-ring-color' as string]: swatch } : {}) }}
+              style={{ background: accentFill(accent, style, immersive), ...(selected ? { ['--tw-ring-color' as string]: swatch } : {}) }}
             >
               {selected ? <Check className={cn('size-4', accent === 'amber' ? 'text-black/75' : 'text-white drop-shadow-sm')} strokeWidth={3} aria-hidden /> : null}
             </span>

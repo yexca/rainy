@@ -55,8 +55,7 @@ export const usePageCover = create<{ coverArt: string | null }>()(() => ({ cover
 
 /** Immersive mode is on: the whole app follows the cover, so pages need no scoped tokens. */
 export function useImmersive(): boolean {
-  const { albumColors, immersive } = useTheme()
-  return albumColors && immersive
+  return useTheme().immersive
 }
 
 export interface CoverThemeScope {
@@ -71,14 +70,14 @@ export interface CoverThemeScope {
  * browser chrome (`<meta name="theme-color">`) while mounted. Returns an empty scope while the
  * cover is loading, for covers without art, and when the user turned album colours off. In
  * immersive mode the page instead publishes its cover (`usePageCover`) and `<ImmersiveTheme/>`
- * colours the whole app with it.
+ * colours the whole app with it, whatever the album colours setting.
  *
  *   <Page {...useCoverTheme(album?.coverArt)}>
  */
 export function useCoverTheme(coverArt: string | undefined): CoverThemeScope {
   const { resolvedTheme, albumColors } = useTheme()
   const immersive = useImmersive()
-  const seeds = useCoverSeeds(coverArt, albumColors)
+  const seeds = useCoverSeeds(coverArt, albumColors && !immersive)
 
   useEffect(() => {
     if (!immersive || !coverArt) return

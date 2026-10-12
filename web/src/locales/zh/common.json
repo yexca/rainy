@@ -126,6 +126,7 @@
   "accent": {
     "label": "强调色",
     "original": "原色",
+    "cover": "跟随封面",
     "rain": "雨蓝",
     "rose": "玫红",
     "violet": "紫罗兰",
@@ -134,7 +135,7 @@
     "graphite": "石墨"
   },
   "immersive": {
-    "label": "沉浸模式"
+    "label": "沉浸"
   },
   "language": {
     "label": "语言"

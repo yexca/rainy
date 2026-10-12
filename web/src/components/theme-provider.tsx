@@ -9,6 +9,7 @@ import {
   STYLE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   applyTheme,
+  immersiveForStyle,
   readAccent,
   readAlbumColors,
   readImmersive,
@@ -27,18 +28,20 @@ import {
 } from '@/lib/theme'
 
 /**
- * Light / dark / system theme, style preset, accent preset, album colours and immersive mode. Persists the
- * choice (localStorage), keeps `<html class="dark" data-style="…" data-accent="…">` and
- * `<meta name="theme-color">` in sync, follows OS changes while on `system`, and syncs across tabs. In
- * immersive mode `<ImmersiveTheme/>` hands the cover's tokens over through `setOverride`; they replace
- * the theme on `<html>`. Read it with `useTheme()`.
+ * Light / dark / system theme, style preset, accent preset, album colours and immersive mode.
+ * Persists the choice (localStorage), keeps `<html class="dark" data-style="…" data-chrome="…"
+ * data-accent="…">` and `<meta name="theme-color">` in sync, follows OS changes while on `system`,
+ * and syncs across tabs. A style brings its layout and decides whether it starts immersive:
+ * switching styles moves immersive mode along unless the user set it otherwise. In immersive
+ * mode `<ImmersiveTheme/>` hands the cover's tokens over through `setOverride`; they replace the
+ * theme on `<html>`. Read it with `useTheme()`.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readTheme)
   const [style, setStyleState] = useState<Style>(readStyle)
   const [accent, setAccentState] = useState<Accent>(readAccent)
   const [albumColors, setAlbumColorsState] = useState<boolean>(readAlbumColors)
-  const [immersive, setImmersiveState] = useState<boolean>(readImmersive)
+  const [immersive, setImmersiveState] = useState<boolean>(() => readImmersive())
   const [override, setOverride] = useState<ThemeOverride | null>(null)
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const resolvedTheme: ResolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
@@ -54,7 +57,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (event.key === STYLE_STORAGE_KEY) setStyleState(readStyle())
       if (event.key === ACCENT_STORAGE_KEY) setAccentState(readAccent())
       if (event.key === ALBUM_COLORS_STORAGE_KEY) setAlbumColorsState(readAlbumColors())
-      if (event.key === IMMERSIVE_STORAGE_KEY) setImmersiveState(readImmersive())
+      if (event.key === STYLE_STORAGE_KEY || event.key === IMMERSIVE_STORAGE_KEY) setImmersiveState(readImmersive())
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
@@ -63,11 +66,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((next: Theme) => {
     storeTheme(next)
     setThemeState(next)
-  }, [])
-
-  const setStyle = useCallback((next: Style) => {
-    storeStyle(next)
-    setStyleState(next)
   }, [])
 
   const setAccent = useCallback((next: Accent) => {
@@ -84,6 +82,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     storeImmersive(next)
     setImmersiveState(next)
   }, [])
+
+  const setStyle = useCallback(
+    (next: Style) => {
+      storeStyle(next)
+      setStyleState(next)
+      setImmersive(immersiveForStyle(immersive, style, next))
+    },
+    [immersive, style, setImmersive],
+  )
 
   const value = useMemo<ThemeContextValue>(
     () => ({

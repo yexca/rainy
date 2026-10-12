@@ -21,10 +21,14 @@ The web app is available in English and Simplified Chinese. Change the language
 from the user menu or under **Settings → Appearance**.
 The same page picks the theme, one of four styles (Anthropic, the default;
 OpenAI; Apple; Google MD), and the accent colour; the **Original** accent follows
-the style. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
-there if you prefer the plain theme. **Immersive mode** goes further and colours the whole app —
-sidebar, player, and menus — with the album, playlist, or artist on screen, or with the song
-playing on other pages.
+the style. A style also sets the layout: on tablets and desktops Apple has no bar across the top
+and keeps your account, Quick actions, and the appearance button in the bottom-left corner of
+the sidebar. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
+there if you prefer the plain theme. The **Immersive** switch next to the accent colour, on by
+default in Apple, goes further and colours the whole app — sidebar, player, and menus — with the
+album, playlist, or artist on screen, or with the song playing on other pages. While it is on,
+the first accent swatch takes the highlight from the cover too, and the other swatches keep a
+highlight colour of your choice.
 Rainy's mascot appears on empty and error pages and keeps you company in the
 bottom-right corner on tablets and desktops; **Settings → Mascot** turns the
 illustrations and the corner companion off separately.

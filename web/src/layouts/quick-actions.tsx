@@ -16,9 +16,10 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { create } from 'zustand'
 
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -225,29 +226,27 @@ function QuickActionsPalette({ onClose }: { onClose: () => void }) {
   )
 }
 
+/** Whether the palette is open: the app chrome may render several triggers for the one palette. */
+const usePalette = create<{ open: boolean }>()(() => ({ open: false }))
+
+function setOpen(open: boolean) {
+  usePalette.setState({ open })
+}
+
+function close() {
+  setOpen(false)
+}
+
 /**
- * Quick actions: a lightning icon in the app header (an icon, never a search field, so it is not
- * mistaken for library search) and Ctrl/⌘K anywhere open a searchable command palette — a
- * centered dialog on tablets and desktops, a bottom sheet on phones.
+ * Quick actions trigger: a lightning icon in the app chrome (an icon, never a search field, so it
+ * is not mistaken for library search) that opens the palette of `<QuickActionsHost/>`.
  */
 export function QuickActions({ className }: { className?: string }) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const [open, setOpen] = useState(false)
-  const close = useCallback(() => setOpen(false), [])
+  const open = usePalette((s) => s.open)
   const label = t('quickActions.label')
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return
-      event.preventDefault()
-      setOpen((wasOpen) => !wasOpen)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
-
-  const trigger = (
+  return (
     <Button
       variant="ghost"
       size="icon"
@@ -262,35 +261,54 @@ export function QuickActions({ className }: { className?: string }) {
       <Zap strokeWidth={1.75} />
     </Button>
   )
+}
+
+/**
+ * The quick actions palette, mounted once in the app shell: `<QuickActions/>` and Ctrl/⌘K
+ * anywhere open a searchable command palette — a centered dialog on tablets and desktops, a
+ * bottom sheet on phones.
+ */
+export function QuickActionsHost() {
+  const { t } = useTranslation()
+  const isMobile = useIsMobile()
+  const open = usePalette((s) => s.open)
+  const label = t('quickActions.label')
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return
+      event.preventDefault()
+      setOpen(!usePalette.getState().open)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      close()
+    }
+  }, [])
 
   if (isMobile) {
     return (
-      <>
-        {trigger}
-        <Drawer open={open} onOpenChange={setOpen} repositionInputs={false}>
-          <DrawerContent className="h-[85dvh] max-h-[85dvh] rounded-t-2xl border-none pb-safe data-[vaul-drawer-direction=bottom]:max-h-[85dvh]">
-            <DrawerTitle className="sr-only">{label}</DrawerTitle>
-            <DrawerDescription className="sr-only">{t('quickActions.description')}</DrawerDescription>
-            <div className="flex min-h-0 flex-1 flex-col pt-2">{open ? <QuickActionsPalette onClose={close} /> : null}</div>
-          </DrawerContent>
-        </Drawer>
-      </>
+      <Drawer open={open} onOpenChange={setOpen} repositionInputs={false}>
+        <DrawerContent className="h-[85dvh] max-h-[85dvh] rounded-t-2xl border-none pb-safe data-[vaul-drawer-direction=bottom]:max-h-[85dvh]">
+          <DrawerTitle className="sr-only">{label}</DrawerTitle>
+          <DrawerDescription className="sr-only">{t('quickActions.description')}</DrawerDescription>
+          <div className="flex min-h-0 flex-1 flex-col pt-2">{open ? <QuickActionsPalette onClose={close} /> : null}</div>
+        </DrawerContent>
+      </Drawer>
     )
   }
 
   return (
-    <>
-      {trigger}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="top-[12vh] translate-y-0 gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl"
-        >
-          <DialogTitle className="sr-only">{label}</DialogTitle>
-          <DialogDescription className="sr-only">{t('quickActions.description')}</DialogDescription>
-          <QuickActionsPalette onClose={close} />
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        showCloseButton={false}
+        className="top-[12vh] translate-y-0 gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl"
+      >
+        <DialogTitle className="sr-only">{label}</DialogTitle>
+        <DialogDescription className="sr-only">{t('quickActions.description')}</DialogDescription>
+        <QuickActionsPalette onClose={close} />
+      </DialogContent>
+    </Dialog>
   )
 }

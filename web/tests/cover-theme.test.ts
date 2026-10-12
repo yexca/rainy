@@ -8,6 +8,7 @@ import {
   coverTheme,
   extractCoverSeeds,
   rgbToOklch,
+  withoutAccent,
   type CoverSeeds,
   type Oklch,
 } from '../src/features/library/lib/cover-theme.ts'
@@ -126,5 +127,18 @@ describe('coverTheme', () => {
     for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--card', '--popover', '--secondary']) {
       assert.match(theme.vars[key], /^#[0-9a-f]{6}$/, key)
     }
+  })
+
+  it("can keep the user's accent: the cover's surfaces without its highlight tokens", () => {
+    const theme = coverTheme(seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 }), false)
+    const plain = withoutAccent(theme)
+    for (const key of ['--primary', '--primary-foreground', '--ring']) {
+      assert.ok(key in theme.vars, `${key} from the cover`)
+      assert.equal(key in plain.vars, false, `${key} left to the accent preset`)
+    }
+    assert.equal(plain.vars['--background'], theme.vars['--background'])
+    assert.equal(plain.vars['--muted-foreground'], theme.vars['--muted-foreground'])
+    assert.equal(plain.dark, theme.dark)
+    assert.equal(plain.themeColor, theme.themeColor)
   })
 })

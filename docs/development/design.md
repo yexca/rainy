@@ -33,6 +33,11 @@ explains the rules every UI change must keep.
   Roboto). Styles only bundle what Rainy already ships (Inter); other faces
   are used when the system has them. Keep each style's light and dark blocks
   complete so no token leaks from another style.
+- **A style is more than colours.** Each one also picks where the app chrome
+  sits (see [Layout](#layout): `apple` has no app header from tablets up) and
+  whether it starts in immersive mode (only `apple` does). Entering `apple`
+  turns immersive mode on and leaving it turns it off; between the other
+  styles it stays as the user set it.
 - Accent presets set `--primary`: `original` (default, the style's own
   accent), `rain` (periwinkle blue), `rose`, `violet`, `emerald`, `amber`, and
   `graphite`. A preset wins over every style.
@@ -44,10 +49,14 @@ explains the rules every UI change must keep.
   every text colour keeps WCAG AA contrast. Greyscale covers keep the user's
   accent; pages without artwork keep the plain theme. Users can turn this
   off under Settings → Appearance.
-- **Immersive mode** (off by default, needs album colours) applies the same
-  cover colours to the whole app — sidebar, header, player, menus — using the
-  cover page on screen, or else the playing song. Without a cover the user's
-  theme returns.
+- **Immersive mode** applies the same cover colours to the whole app —
+  sidebar, header, player, menus — using the cover page on screen, or else the
+  playing song. Its switch sits beside the accent label, and the swatches
+  below pick the highlight: the first becomes a colour wheel, meaning the
+  highlight follows the cover too (the style's own colour when there is no
+  cover or it is greyscale), and the presets stay fixed highlights over the
+  cover's surfaces. Without a cover the user's theme returns. It works
+  whatever the album colours setting, which only governs the mode when off.
 - Each style picks its Latin faces and falls back to system and CJK fonts;
   `h1` titles use the style's heading face. Times and durations use tabular
   numbers.
@@ -68,6 +77,18 @@ name and role on desktops). Settings and About sit in the sidebar footer. Phones
 get a glass bar matching the tab bar: the logo on the left, and Quick actions,
 the appearance button and the account avatar on the right (44 px targets).
 Page top bars stick right below the header.
+
+The `apple` style uses the sidebar chrome instead: from tablets up there is no
+app header. The sidebar reaches the top of the window with the toggle and the
+logo above its groups, and its bottom-left corner holds the account row
+(avatar, name and role; the menu opens upwards) with Quick actions and the
+appearance button beside it, in place of Settings and About (both are in the
+account menu). On the icon rail the three stack, the avatar at the bottom.
+Page top bars stick to the top of the window. Phones keep the glass header.
+Switching between a header style and a sidebar style animates: the header
+slides up while the account row rises in the corner, and back again. Mark
+elements that take part with `data-chrome-motion`; they may transition
+position and size but never colours.
 
 Quick actions is a lightning icon, never a search field, so it is not mistaken
 for library search; its tooltip names the shortcut, Ctrl+K (⌘K on Apple

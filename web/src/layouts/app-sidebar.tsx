@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ListMusic, Plus } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, useLocation } from 'react-router'
 
@@ -22,6 +23,8 @@ import { api } from '@/lib/api/endpoints'
 import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 
+import { Brand, SidebarToggle } from './app-header'
+import { SidebarActions } from './header-actions'
 import {
   ADMIN_SECTION,
   FOOTER_NAV,
@@ -178,7 +181,7 @@ function PlaylistsGroup() {
   )
 }
 
-/** Entries pinned below the scrolling groups (Settings, About). */
+/** Entries pinned below the scrolling groups (Settings, About) while the app header holds the account menu. */
 function FooterNav() {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -204,22 +207,60 @@ function FooterNav() {
 }
 
 /**
+ * A sidebar block that folds away (its height animates) when the chrome layout has no use for it;
+ * while folded it is out of the tab order and the accessibility tree.
+ */
+function Fold({ open, children }: { open: boolean; children: ReactNode }) {
+  return (
+    <div
+      data-chrome-motion
+      inert={!open}
+      aria-hidden={!open || undefined}
+      className={cn(
+        'grid shrink-0 transition-[grid-template-rows,visibility] duration-300 ease-out',
+        open ? 'grid-rows-[1fr]' : 'invisible grid-rows-[0fr]',
+      )}
+    >
+      <div className="min-h-0 overflow-hidden">{children}</div>
+    </div>
+  )
+}
+
+/**
  * Desktop / tablet navigation (shadcn Sidebar, collapsible to an icon rail). It sits below the
  * app header, which holds the logo, the sidebar toggle, quick controls and the account menu.
+ *
+ * `standalone` (styles with the `sidebar` chrome): there is no app header, so the sidebar reaches
+ * the top with the toggle and logo above the groups, and the account row with the quick controls
+ * replaces Settings and About at the bottom (both are in the account menu). The blocks fold in
+ * and out when the style changes.
  */
-export function AppSidebar({ className }: { className?: string }) {
+export function AppSidebar({ standalone = false, className }: { standalone?: boolean; className?: string }) {
   const { t } = useTranslation()
   const { isManager, isAdmin } = useAuth()
   const toggleLabel = t('nav.toggleSidebar')
 
   return (
-    <Sidebar collapsible="icon" className={cn('ui-chrome', className)}>
+    <Sidebar collapsible="icon" data-chrome-motion className={cn('ui-chrome', className)}>
+      <Fold open={standalone}>
+        <div className="flex h-12 items-center gap-1 px-2">
+          <SidebarToggle />
+          <Brand className="group-data-[collapsible=icon]:hidden" />
+        </div>
+      </Fold>
       <SidebarContent className="scrollbar-thin pt-1">
         <NavGroup label={t('nav.library')} items={LIBRARY_NAV} />
         <PlaylistsGroup />
         {isManager ? <ManageGroup isAdmin={isAdmin} /> : null}
       </SidebarContent>
-      <FooterNav />
+      <Fold open={!standalone}>
+        <FooterNav />
+      </Fold>
+      <Fold open={standalone}>
+        <SidebarFooter className="border-t border-sidebar-border">
+          <SidebarActions />
+        </SidebarFooter>
+      </Fold>
       <SidebarRail aria-label={toggleLabel} title={toggleLabel} />
     </Sidebar>
   )

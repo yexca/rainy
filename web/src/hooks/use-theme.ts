@@ -7,14 +7,16 @@ export interface ThemeContextValue {
   theme: Theme
   /** What is actually shown. */
   resolvedTheme: ResolvedTheme
-  /** Style preset (surfaces, radius, fonts and the `original` accent). */
+  /** Style preset (surfaces, radius, fonts, the `original` accent and the chrome layout). */
   style: Style
+  /** The highlight; in immersive mode `original` takes it from the cover and a preset keeps its own. */
   accent: Accent
-  /** Album pages take on the cover's colours. */
+  /** Album pages take on the cover's colours (immersive mode does so everywhere). */
   albumColors: boolean
-  /** The user turned immersive mode on (it takes effect only with `albumColors`). */
+  /** Immersive mode: the whole app takes its colours from the cover on screen or playing. */
   immersive: boolean
   setTheme: (theme: Theme) => void
+  /** Also moves immersive mode to what the new style starts with, unless the user set it otherwise. */
   setStyle: (style: Style) => void
   setAccent: (accent: Accent) => void
   setAlbumColors: (enabled: boolean) => void

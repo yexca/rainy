@@ -287,6 +287,18 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
+/* Chrome layout: <html data-chrome="header|sidebar"> (STYLE_CHROME in lib/theme-styles.ts).  */
+/* "sidebar" (the apple style) has no app header from 768px: the sidebar holds the logo, the  */
+/* quick controls and the account menu, and everything measured from --app-header-h moves up. */
+/* Phones keep the header.                                                                    */
+/* ------------------------------------------------------------------------------------------ */
+@media (width >= 48rem) {
+  :root[data-chrome="sidebar"] {
+    --app-header-h: var(--safe-top);
+  }
+}
+
+/* ------------------------------------------------------------------------------------------ */
 /* Accent presets: <html data-accent="original|rain|rose|violet|emerald|amber|graphite">     */
 /* "original" keeps the style's --primary. The presets come after the styles and set all      */
 /* three tokens in light and dark, so they win over every style.                              */
