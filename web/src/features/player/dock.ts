@@ -2,7 +2,7 @@
  * Tablet / desktop player layout preference (docs/architecture/contract.md §9.4), persisted per
  * browser. Read by `<PlayerDock/>` and the side panel; edited from the layout menu.
  *
- *   const mode = usePlayerDock((s) => s.mode)   // 'bar' | 'window' | 'compact'
+ *   const mode = usePlayerDock((s) => s.mode)   // 'window' | 'compact' | 'bar'
  */
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'

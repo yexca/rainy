@@ -65,6 +65,13 @@ action.
   one left-aligned column under the page title, while lists and tables such as
   Tracks, Users, and Libraries stay full width. Switching tabs no longer moves
   the content sideways.
+- The **Player layout** menu on tablets and desktops now lists four options,
+  top to bottom: **Full-screen player**, **Floating window**, **Floating mini
+  bar**, and **Bottom bar**. **Auto-hide bottom bar** moved out of the menu to
+  the handle above the bottom bar, which has an arrow and a pin: the arrow
+  hides or shows the bar right away, and the pin keeps it open or lets it hide
+  itself until you point at the bottom edge. On touch screens the handle is
+  always visible.
 
 ## Development And Docs
 

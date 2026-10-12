@@ -28,12 +28,13 @@
     "title": "Player layout",
     "bar": "Bottom bar",
     "window": "Floating window",
-    "compact": "Floating mini bar",
-    "autoHide": "Auto-hide bottom bar"
+    "compact": "Floating mini bar"
   },
   "dock": {
     "hideBar": "Hide player bar",
+    "showBar": "Show player bar",
     "pinBar": "Keep player bar open",
+    "unpinBar": "Auto-hide player bar",
     "shrink": "Shrink to mini bar",
     "openWindow": "Open player window"
   },

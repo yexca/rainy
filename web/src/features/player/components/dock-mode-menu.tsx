@@ -4,13 +4,10 @@ import { useTranslation } from 'react-i18next'
 
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -26,14 +23,17 @@ import { ModeToggle } from './transport'
 const TOOLTIP_QUIET = 400
 
 const MODE_ICONS: Record<DockMode, typeof PanelBottom> = {
-  bar: PanelBottom,
   window: AppWindow,
   compact: RectangleHorizontal,
+  bar: PanelBottom,
 }
 
+/** Menu value for full-screen Now Playing, which is an overlay rather than a dock mode. */
+const FULL_SCREEN = 'fullscreen'
+
 /**
- * "Player layout" menu (tablet / desktop): bottom bar, floating window or floating mini bar,
- * the bottom bar's auto-hide switch, and full screen.
+ * "Player layout" menu (tablet / desktop): full screen, floating window, floating mini bar or
+ * bottom bar. Full screen opens over the current layout and returns to it on close.
  */
 export function DockModeMenu({
   tone,
@@ -46,9 +46,9 @@ export function DockModeMenu({
 }) {
   const { t } = useTranslation('player')
   const mode = usePlayerDock((s) => s.mode)
-  const barAutoHide = usePlayerDock((s) => s.barAutoHide)
   const setMode = usePlayerDock((s) => s.setMode)
-  const setBarAutoHide = usePlayerDock((s) => s.setBarAutoHide)
+  const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen)
+  const setNowPlayingOpen = usePlayer((s) => s.setNowPlayingOpen)
   const hasTrack = !!useCurrentTrack()
   const label = t('layout.title')
   const [tooltip, setTooltip] = useState(false)
@@ -58,6 +58,15 @@ export function DockModeMenu({
     setTooltip(false)
     if (!open) quietUntil.current = Date.now() + TOOLTIP_QUIET
     onOpenChange?.(open)
+  }
+
+  const onLayoutChange = (value: string) => {
+    if (value === FULL_SCREEN) {
+      setNowPlayingOpen(true)
+      return
+    }
+    setMode(value as DockMode)
+    setNowPlayingOpen(false)
   }
 
   const trigger = (
@@ -86,7 +95,11 @@ export function DockModeMenu({
       )}
       <DropdownMenuContent side="top" align="end" className="min-w-52">
         <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{label}</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={mode} onValueChange={(value) => setMode(value as DockMode)}>
+        <DropdownMenuRadioGroup value={nowPlayingOpen ? FULL_SCREEN : mode} onValueChange={onLayoutChange}>
+          <DropdownMenuRadioItem value={FULL_SCREEN} disabled={!hasTrack}>
+            <Maximize2 className="text-muted-foreground" strokeWidth={1.75} />
+            {t('expand')}
+          </DropdownMenuRadioItem>
           {DOCK_MODES.map((m) => {
             const Icon = MODE_ICONS[m]
             return (
@@ -97,18 +110,6 @@ export function DockModeMenu({
             )
           })}
         </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuCheckboxItem
-          checked={barAutoHide}
-          disabled={mode !== 'bar'}
-          onCheckedChange={(checked) => setBarAutoHide(checked === true)}
-        >
-          {t('layout.autoHide')}
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuItem disabled={!hasTrack} onSelect={() => usePlayer.getState().setNowPlayingOpen(true)}>
-          <Maximize2 strokeWidth={1.75} />
-          {t('expand')}
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

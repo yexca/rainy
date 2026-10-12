@@ -2,7 +2,13 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { compactScrubTarget, dockAttribute, sanitizeDockPrefs } from '../src/features/player/lib/dock.ts'
+import { compactScrubTarget, DOCK_MODES, dockAttribute, sanitizeDockPrefs } from '../src/features/player/lib/dock.ts'
+
+describe('DOCK_MODES', () => {
+  it('lists the layouts in menu order, below full screen', () => {
+    assert.deepEqual([...DOCK_MODES], ['window', 'compact', 'bar'])
+  })
+})
 
 describe('sanitizeDockPrefs', () => {
   it('keeps valid layouts and falls back to the bottom bar otherwise', () => {

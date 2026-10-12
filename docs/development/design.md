@@ -215,11 +215,13 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 - **Desktop player bar.** Artwork, title and artist links, and a star on the
   left; transport and scrubber in the center; lyrics, queue, volume, the layout
   menu, and expand on the right. Queue and lyrics open in a 360 px side panel.
-- **Player layouts (tablet and desktop).** The layout menu switches between the
-  bottom bar, a floating window, and a floating mini bar, both in the
-  bottom-right corner; full screen covers any of them. The bottom bar can
-  auto-hide like NetEase Cloud Music: it slides away, leaving a small handle
-  that brings it back on hover and pins it on click. The floating window is a
+- **Player layouts (tablet and desktop).** The layout menu lists four options,
+  top to bottom: full screen, a floating window, a floating mini bar (both in
+  the bottom-right corner), and the bottom bar; full screen covers any of the
+  others and returns to it on close. The bottom bar's handle holds a chevron
+  and a pin. Unpinned, the bar auto-hides like NetEase Cloud Music: it slides
+  away, leaving the handle, and comes back on hover. The chevron hides or shows
+  it right away; the pin keeps it open. The floating window is a
   compact Now Playing (artwork backdrop, transport, volume, lyrics and queue
   inside it). The mini bar shows artwork, title, play/pause, and next, opens
   the window on tap, and scrubs when dragged sideways. Layout-dependent spacing

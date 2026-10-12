@@ -2,20 +2,21 @@
  * Tablet / desktop player layouts (docs/architecture/contract.md §9.4). Pure helpers so they can
  * be unit tested without a DOM; the persisted store lives in `../dock.ts`.
  *
- * - `bar`: the full-width bottom player bar; `barAutoHide` slides it away (NetEase style) and
- *   leaves a handle that peeks it back on hover or pins it on click.
  * - `window`: a floating Now Playing window in the bottom-right corner.
  * - `compact`: a floating mini bar in the bottom-right corner.
+ * - `bar`: the full-width bottom player bar; `barAutoHide` (its handle's pin, off = pinned)
+ *   slides it away (NetEase style) and leaves the handle, which peeks it back on hover.
  *
- * Full-screen Now Playing is an overlay on top of any of them (`usePlayer().nowPlayingOpen`).
+ * Full-screen Now Playing is an overlay on top of any of them (`usePlayer().nowPlayingOpen`); the
+ * layout menu lists it first, then these in this order.
  */
 
-export const DOCK_MODES = ['bar', 'window', 'compact'] as const
+export const DOCK_MODES = ['window', 'compact', 'bar'] as const
 export type DockMode = (typeof DOCK_MODES)[number]
 
 export interface DockPrefs {
   mode: DockMode
-  /** Bottom bar hides itself until hovered (only meaningful in `bar` mode). */
+  /** Bottom bar is unpinned: it hides itself until hovered (only meaningful in `bar` mode). */
   barAutoHide: boolean
 }
 
