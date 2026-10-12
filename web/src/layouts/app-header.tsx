@@ -49,7 +49,8 @@ export function Brand({ className }: { className?: string }) {
 
 /**
  * App header: a full-width bar across the top of every layout. Tablets and desktops paint it in
- * the sidebar's colours so the two read as one frame, with the sidebar toggle before the logo;
+ * the sidebar's colours so the two read as one frame (`.chrome-bar`: glass over the backdrop in
+ * immersive mode), with the sidebar toggle before the logo;
  * phones (no sidebar) get a glass bar matching the tab bar, with just the logo. The quick-control
  * tray and the account menu sit on the right. Its height is `--app-header-h` (safe area
  * included); page top bars stick right below it.
@@ -69,7 +70,7 @@ export function AppHeader({ hidden = false, field = false, className }: { hidden
       aria-hidden={hidden || undefined}
       className={cn(
         'ui-chrome fixed inset-x-0 top-0 z-40 h-[calc(3rem+var(--safe-top))] pt-safe transition-transform duration-300 ease-out',
-        isMobile ? 'glass hairline-b' : 'border-b border-sidebar-border bg-sidebar text-sidebar-foreground',
+        isMobile ? 'glass hairline-b' : 'chrome-bar border-b border-sidebar-border text-sidebar-foreground',
         hidden && '-translate-y-12',
         className,
       )}

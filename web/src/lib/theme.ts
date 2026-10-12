@@ -133,7 +133,7 @@ export function currentThemeColor(): string {
 /**
  * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser
  * chrome colour. An `override` (immersive mode) replaces the colour tokens and the light / dark
- * choice.
+ * choice, and marks `<html data-immersive>`.
  */
 export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
   const root = document.documentElement
@@ -148,6 +148,8 @@ export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent
     if (override) for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
     // The pre-paint <style> in index.html paints <html> in the style's colour; follow the cover.
     root.style.backgroundColor = override?.vars['--background'] ?? ''
+    // The chrome and the page turn see-through over the cover's backdrop (index.css).
+    root.toggleAttribute('data-immersive', !!override)
     applied = override
     root.classList.toggle('dark', dark)
     root.style.colorScheme = dark ? 'dark' : 'light'

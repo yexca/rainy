@@ -27,7 +27,8 @@ the sidebar, OpenAI and Google MD show Quick actions as a search-like field, and
 labels the icons of the collapsed sidebar. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
 there if you prefer the plain theme. The **Immersive** switch next to the accent colour, on by
 default in Apple, goes further and colours the whole app — sidebar, player, and menus — with the
-album, playlist, or artist on screen, or with the song playing on other pages. While it is on,
+album, playlist, or artist on screen, or with the song playing on other pages; the cover's
+colours glow softly behind the sidebar, the header, and the page. While it is on,
 the first accent swatch takes the highlight from the cover too, and the other swatches keep a
 highlight colour of your choice.
 Rainy's mascot appears on empty and error pages and keeps you company in the

@@ -28,6 +28,8 @@ export interface CoverTheme {
   vars: Record<string, string>
   /** Page background as hex, for `<meta name="theme-color">`. */
   themeColor: string
+  /** With `backdrop`: the hex colours of the fields drawn behind the app (`<ImmersiveTheme/>`). */
+  backdrop?: string[]
 }
 
 type Rgb = [number, number, number]
@@ -248,12 +250,36 @@ function withContrast(color: Oklch, bg: Oklch, ratio: number, direction: 1 | -1)
 const DARK_COVER_LIGHTNESS = 0.6
 
 /**
+ * The colour fields behind an immersive app: the cover's own hue, its accent's (a neighbouring
+ * hue for a greyscale accent) and one on the other side, each a step away from the page `bg`
+ * in lightness.
+ */
+function backdropFields(seeds: CoverSeeds, bg: Oklch, dark: boolean): Oklch[] {
+  const seed = seeds.background
+  const accent = seeds.accent ?? { ...seed, h: seed.h + 40 }
+  return dark
+    ? [
+        { l: bg.l + 0.16, c: Math.min(seed.c * 1.4, 0.15), h: seed.h },
+        { l: bg.l + 0.14, c: Math.min(accent.c, 0.14), h: accent.h },
+        { l: bg.l + 0.08, c: Math.min(seed.c * 1.4, 0.13), h: seed.h - 40 },
+      ]
+    : [
+        { l: bg.l - 0.08, c: Math.min(seed.c, 0.1), h: seed.h },
+        { l: bg.l - 0.07, c: Math.min(accent.c * 0.7, 0.1), h: accent.h },
+        { l: bg.l - 0.04, c: Math.min(seed.c, 0.08), h: seed.h - 40 },
+      ]
+}
+
+/**
  * Theme tokens for a page coloured by `seeds`. `siteDark` is the resolved app theme: a dark
  * app always gets a deep version of the cover colour; a light app gets a pale tint, or a deep
  * page when the cover itself is dark. The accent becomes `--primary` (kept readable against the
  * page); a greyscale cover keeps the user's accent.
+ *
+ * `backdrop` (immersive mode) also returns the colour fields drawn behind the app: text stays
+ * readable on each of them, and cards and fills turn translucent so the fields show through.
  */
-export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
+export function coverTheme(seeds: CoverSeeds, siteDark: boolean, backdrop = false): CoverTheme {
   const seed = seeds.background
   const hue = seed.h
   const dark = siteDark || seed.l < DARK_COVER_LIGHTNESS
@@ -265,10 +291,15 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
     ? { l: clamp(deep, 0.18, 0.28), c: Math.min(seed.c * 0.85, 0.1), h: hue }
     : { l: clamp(seed.l + 0.25, 0.92, 0.965), c: Math.min(seed.c * 0.35, 0.045), h: hue }
 
+  // Text is checked against the hardest surface it sits on: the page, or the colour field
+  // closest to the text in lightness.
+  const fields = backdrop ? backdropFields(seeds, bg, dark) : []
+  const surface = fields.reduce((hardest, field) => (luminance(field) > luminance(hardest) === dark ? field : hardest), bg)
+
   const fg: Oklch = dark ? { l: 0.98, c: Math.min(bg.c, 0.015), h: hue } : { l: 0.2, c: Math.min(bg.c, 0.02), h: hue }
   const muted = withContrast(
     dark ? { l: 0.8, c: Math.min(bg.c * 0.5, 0.03), h: hue } : { l: 0.48, c: Math.min(bg.c, 0.04), h: hue },
-    bg,
+    surface,
     TEXT_CONTRAST,
     dark ? 1 : -1,
   )
@@ -291,13 +322,21 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
     '--border': dark ? 'rgb(255 255 255 / 12%)' : 'rgb(0 0 0 / 10%)',
     '--input': dark ? 'rgb(255 255 255 / 16%)' : 'rgb(0 0 0 / 12%)',
   }
+  if (backdrop) {
+    // Menus (`--popover`) stay opaque; cards and fills only veil what is behind them.
+    const veil = dark ? 'rgb(255 255 255 / 9%)' : 'rgb(0 0 0 / 6%)'
+    vars['--card'] = dark ? 'rgb(255 255 255 / 5%)' : 'rgb(255 255 255 / 45%)'
+    vars['--secondary'] = veil
+    vars['--muted'] = veil
+    vars['--accent'] = veil
+  }
 
   const accentSeed = seeds.accent
   if (accentSeed) {
     const start: Oklch = dark
       ? { l: Math.max(accentSeed.l, 0.72), c: clamp(accentSeed.c, 0.08, 0.17), h: accentSeed.h }
       : { l: Math.min(accentSeed.l, 0.56), c: clamp(accentSeed.c, 0.08, 0.19), h: accentSeed.h }
-    const primary = withContrast(start, bg, TEXT_CONTRAST, dark ? 1 : -1)
+    const primary = withContrast(start, surface, TEXT_CONTRAST, dark ? 1 : -1)
     const white: Oklch = { l: 1, c: 0, h: 0 }
     const ink: Oklch = { l: 0.2, c: 0.02, h: accentSeed.h }
     const onPrimary = contrast(white, primary) >= contrast(ink, primary) ? white : ink
@@ -306,7 +345,7 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
     vars['--ring'] = toHex(primary)
   }
 
-  return { dark, vars, themeColor: toHex(bg) }
+  return backdrop ? { dark, vars, themeColor: toHex(bg), backdrop: fields.map(toHex) } : { dark, vars, themeColor: toHex(bg) }
 }
 
 /** The cover's highlight tokens: left out when the user's accent preset keeps the highlight. */

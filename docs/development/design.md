@@ -59,6 +59,14 @@ explains the rules every UI change must keep.
   cover or it is greyscale), and the presets stay fixed highlights over the
   cover's surfaces. Without a cover the user's theme returns. It works
   whatever the album colours setting, which only governs the mode when off.
+  The cover's colours also fill the window as three soft colour fields (its
+  own hue, the accent's, and a neighbouring one; radial gradients, no blur
+  filters) behind the app, and the chrome is see-through over them: the
+  sidebar and the page are transparent, the app header is glass because pages
+  scroll under it, and cards and fills are translucent veils. Menus and
+  dialogs stay opaque. Every text colour keeps WCAG AA contrast on each
+  field. From tablets up the fields drift while music plays and reduced
+  motion is off; phones keep them still and keep their opaque bars.
 - Each style picks its Latin faces and falls back to system and CJK fonts;
   `h1` titles use the style's heading face. Times and durations use tabular
   numbers.
@@ -67,7 +75,7 @@ explains the rules every UI change must keep.
 
 | Width | Navigation | Player |
 | --- | --- | --- |
-| 1024 px and wider | App header, left sidebar (240 px) below it, collapsible to icons | 80 px bottom player bar |
+| 1024 px and wider | App header, left sidebar (208 px) below it, collapsible to icons | 80 px bottom player bar |
 | 768 to 1023 px | App header, collapsed icon sidebar | Bottom player bar |
 | Below 768 px | Glass app header, 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
 

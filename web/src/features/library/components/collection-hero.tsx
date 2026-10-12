@@ -27,12 +27,21 @@ export interface CollectionHeroProps {
   className?: string
 }
 
-/** Blurred, saturated artwork glow behind a hero (fades into the page background). */
+/**
+ * Blurred, saturated artwork glow behind a hero. It fades out through a mask rather than into
+ * the page colour, so it also sits on a see-through page (immersive mode).
+ */
 export function ArtworkBackdrop({ coverArt, className }: { coverArt: string; className?: string }) {
   const [loaded, setLoaded] = useState(false)
   if (!coverArt) return null
   return (
-    <div aria-hidden className={cn('pointer-events-none absolute inset-x-0 top-0 -z-10 overflow-hidden', className)}>
+    <div
+      aria-hidden
+      className={cn(
+        'pointer-events-none absolute inset-x-0 top-0 -z-10 overflow-hidden [mask-image:linear-gradient(to_bottom,rgb(0_0_0/0.9),rgb(0_0_0/0.45),transparent)]',
+        className,
+      )}
+    >
       <img
         src={coverUrlForPixels(coverArt, 64)}
         alt=""
@@ -43,7 +52,6 @@ export function ArtworkBackdrop({ coverArt, className }: { coverArt: string; cla
           loaded ? 'opacity-45 dark:opacity-40' : 'opacity-0',
         )}
       />
-      <div className="absolute inset-0 bg-linear-to-b from-background/10 via-background/55 to-background" />
     </div>
   )
 }

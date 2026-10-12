@@ -122,6 +122,40 @@ describe('coverTheme', () => {
     }
   })
 
+  it('keeps text and accent readable on every colour field of the immersive backdrop', () => {
+    for (const siteDark of [false, true]) {
+      for (let l = 0.05; l <= 1; l += 0.15) {
+        for (let c = 0; c <= 0.3; c += 0.1) {
+          for (let h = 0; h < 360; h += 30) {
+            const color = { l, c, h }
+            const accent = c > 0 ? { l: 1 - l, c, h: h + 150 } : null
+            const theme = coverTheme(seeds(color, accent), siteDark, true)
+            const label = `l=${l.toFixed(2)} c=${c.toFixed(1)} h=${h} dark=${siteDark}`
+            assert.equal(theme.backdrop?.length, 3, `fields ${label}`)
+            for (const hex of [theme.vars['--background'], ...(theme.backdrop ?? [])]) {
+              const surface = fromHex(hex)
+              assert.ok(contrast(fromHex(theme.vars['--foreground']), surface) >= 7, `foreground on ${hex} ${label}`)
+              assert.ok(contrast(fromHex(theme.vars['--muted-foreground']), surface) >= TEXT_CONTRAST - 0.1, `muted on ${hex} ${label}`)
+              if (theme.vars['--primary']) {
+                assert.ok(contrast(fromHex(theme.vars['--primary']), surface) >= TEXT_CONTRAST - 0.1, `primary on ${hex} ${label}`)
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  it('draws a backdrop only when asked, with see-through cards and fills and opaque menus', () => {
+    const cover = seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 })
+    assert.equal(coverTheme(cover, true).backdrop, undefined)
+    const theme = coverTheme(cover, true, true)
+    for (const hex of theme.backdrop ?? []) assert.match(hex, /^#[0-9a-f]{6}$/)
+    for (const key of ['--card', '--secondary', '--muted', '--accent']) assert.match(theme.vars[key], /^rgb\(.+ \/ \d+%\)$/, key)
+    for (const key of ['--background', '--popover']) assert.match(theme.vars[key], /^#[0-9a-f]{6}$/, key)
+    assert.deepEqual(withoutAccent(theme).backdrop, theme.backdrop)
+  })
+
   it('emits valid hex colours', () => {
     const theme = coverTheme(seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 }), false)
     for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--card', '--popover', '--secondary']) {

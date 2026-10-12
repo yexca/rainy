@@ -304,6 +304,19 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
+/* Immersive mode with a cover: <html data-immersive> (applyTheme in lib/theme.ts). The       */
+/* cover's colour fields fill the window behind the app (<ImmersiveTheme/>), and the sidebar, */
+/* the app header (.chrome-bar) and the page let them show through.                           */
+/* ------------------------------------------------------------------------------------------ */
+:root[data-immersive] {
+  --sidebar: transparent;
+}
+:root[data-immersive] body,
+:root[data-immersive] [data-slot="sidebar-inset"] {
+  background-color: transparent;
+}
+
+/* ------------------------------------------------------------------------------------------ */
 /* Accent presets: <html data-accent="original|rain|rose|violet|emerald|amber|graphite">     */
 /* "original" keeps the style's --primary. The presets come after the styles and set all      */
 /* three tokens in light and dark, so they win over every style.                              */
@@ -578,6 +591,18 @@
 
   @media (width >= 48rem) and (height > 540px) {
     background-color: color-mix(in oklab, var(--background) 75%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+  }
+}
+
+/* The app header from tablets up: the sidebar's surface. In immersive mode it is glass, so the
+   backdrop shows through and pages blur as they scroll under it. */
+@utility chrome-bar {
+  background-color: var(--sidebar);
+
+  :root[data-immersive] & {
+    background-color: color-mix(in oklab, var(--background) 45%, transparent);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
     backdrop-filter: blur(24px) saturate(150%);
   }

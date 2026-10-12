@@ -11,6 +11,8 @@ import { coverTheme, extractCoverSeeds, type CoverSeeds } from './cover-theme'
 
 /** The page paints its own (possibly scoped) background and text colour, down to the bottom. */
 const PAGE_CLASS = 'grow bg-background text-foreground'
+/** In immersive mode the page stays see-through over the app's backdrop. */
+const IMMERSIVE_PAGE_CLASS = 'grow text-foreground'
 
 /** Side of the square the cover is sampled at. */
 const SAMPLE_SIZE = 48
@@ -70,7 +72,8 @@ export interface CoverThemeScope {
  * browser chrome (`<meta name="theme-color">`) while mounted. Returns an empty scope while the
  * cover is loading, for covers without art, and when the user turned album colours off. In
  * immersive mode the page instead publishes its cover (`usePageCover`) and `<ImmersiveTheme/>`
- * colours the whole app with it, whatever the album colours setting.
+ * colours the whole app with it, whatever the album colours setting; the page paints no
+ * background of its own then.
  *
  *   <Page {...useCoverTheme(album?.coverArt)}>
  */
@@ -110,7 +113,7 @@ export function useCoverTheme(coverArt: string | undefined): CoverThemeScope {
             className: cn(PAGE_CLASS, theme.dark && 'dark'),
             style: { ...theme.vars, colorScheme: theme.dark ? 'dark' : 'light' } as CSSProperties,
           }
-        : { className: PAGE_CLASS },
-    [theme],
+        : { className: immersive ? IMMERSIVE_PAGE_CLASS : PAGE_CLASS },
+    [theme, immersive],
   )
 }
