@@ -67,9 +67,26 @@ func TestWithRealScanner(t *testing.T) {
 
 	// Upload → scanned immediately with real metadata.
 	up := multipartBody(t, []upFile{{"x.flac", mustRead(t, e.abs("Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac"))}},
-		map[string]string{"libraryId": "1", "dir": "Incoming"})
+		map[string]string{"libraryId": "1", "dir": "Incoming", "organize": "false"})
 	res, err = e.svc.Upload(ctx, e.user, up)
 	if err != nil || len(res.Updated) != 1 || res.Updated[0].Title != "Polar Night" || res.Updated[0].Path != "Incoming/x.flac" {
 		t.Fatalf("upload %+v %v", res, err)
+	}
+	if len(res.Untagged) != 0 {
+		t.Errorf("a tagged upload was reported as untagged: %v", res.Untagged)
+	}
+
+	// A file without artist and album tags is still imported (organized by default, under
+	// the fallback names) and reported, so the web app can ask for the missing tags.
+	up = multipartBody(t, []upFile{{"bare.wav", silentWAV()}}, map[string]string{"libraryId": "1"})
+	res, err = e.svc.Upload(ctx, e.user, up)
+	if err != nil || len(res.Errors) != 0 || len(res.Updated) != 1 {
+		t.Fatalf("untagged upload %+v %v", res, err)
+	}
+	if got := res.Updated[0].Path; got != "[Unknown Artist]/[Unknown Album]/bare.wav" {
+		t.Errorf("untagged upload placed at %q", got)
+	}
+	if len(res.Untagged) != 1 || res.Untagged[0] != res.Updated[0].ID {
+		t.Errorf("untagged %v, want the uploaded track", res.Untagged)
 	}
 }

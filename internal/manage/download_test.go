@@ -120,7 +120,7 @@ func TestDownloadImportsLikeAnUpload(t *testing.T) {
 	}}}
 	e.svc.SetDownloader(dl)
 
-	job, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: " " + testLink + " ", LibraryID: e.lib.ID, Dir: "Downloads"})
+	job, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: " " + testLink + " ", LibraryID: e.lib.ID, Dir: "Downloads", Organize: keepNames})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +168,7 @@ func TestDownloadImportsLikeAnUpload(t *testing.T) {
 	}
 
 	// Downloading again never overwrites the first file.
-	job2, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID, Dir: "Downloads"})
+	job2, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID, Dir: "Downloads", Organize: keepNames})
 	if err != nil {
 		t.Fatal(err)
 	}

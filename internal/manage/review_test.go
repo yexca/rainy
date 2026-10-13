@@ -283,7 +283,7 @@ func TestUploadHiddenNames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fields := map[string]string{"libraryId": fmt.Sprint(e.lib.ID)}
+	fields := map[string]string{"libraryId": fmt.Sprint(e.lib.ID), "organize": "false"}
 	res, err := e.svc.Upload(e.ctx, e.user, multipartBody(t, []upFile{{"Album/._01.mp3", mp3}, {".git/01.mp3", mp3}}, fields))
 	if err != nil {
 		t.Fatal(err)

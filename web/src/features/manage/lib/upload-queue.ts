@@ -12,16 +12,17 @@ import i18n from '@/lib/i18n'
 import { queryClient } from '@/lib/query-client'
 
 import { invalidateLibrary } from '../queries'
+import { promptUntagged } from './untagged'
 import { isUploadable, type PickedFile } from './upload-files'
 
 const CONCURRENCY = 2
 
 export type UploadStatus = 'queued' | 'uploading' | 'done' | 'error' | 'canceled'
 
+/** Where a file goes; the server decides whether it is organized by tags (`settings.organizeByTags`). */
 export interface UploadTarget {
   libraryId: number
   dir: string
-  organize: boolean
 }
 
 export interface UploadEntry {
@@ -35,6 +36,8 @@ export interface UploadEntry {
   error?: string
   /** Tracks created/updated by this upload (audio files). */
   trackIds: string[]
+  /** Those of `trackIds` that arrived without an artist or album tag. */
+  untagged: string[]
 }
 
 interface UploadQueueState {
@@ -75,7 +78,6 @@ async function upload(entry: UploadEntry): Promise<void> {
         files: [{ file: entry.file, path: entry.path }],
         libraryId: entry.target.libraryId,
         dir: entry.target.dir || undefined,
-        organize: entry.target.organize,
       },
       {
         signal: controller.signal,
@@ -86,7 +88,12 @@ async function upload(entry: UploadEntry): Promise<void> {
     if (errors.length > 0) {
       patch(entry.id, { status: 'error', error: errors.map((e) => e.error).join('; ') })
     } else {
-      patch(entry.id, { status: 'done', loaded: entry.size, trackIds: (result.updated ?? []).map((t) => t.id) })
+      patch(entry.id, {
+        status: 'done',
+        loaded: entry.size,
+        trackIds: (result.updated ?? []).map((t) => t.id),
+        untagged: result.untagged ?? [],
+      })
     }
   } catch (error) {
     if (isAbortError(error)) patch(entry.id, { status: 'canceled' })
@@ -97,13 +104,14 @@ async function upload(entry: UploadEntry): Promise<void> {
 }
 
 /** Outcome counters of the current batch (reset after it is announced). */
-let batch = { done: 0, failed: 0 }
+let batch: { done: number; failed: number; untagged: string[] } = { done: 0, failed: 0, untagged: [] }
 
 function announce(): void {
   const t = i18n.t.bind(i18n)
   if (batch.failed > 0) toast.error(t('manage:upload.finishedWithErrors', { count: batch.done, failed: batch.failed }))
   else if (batch.done > 0) toast.success(t('manage:upload.finished', { count: batch.done }))
-  batch = { done: 0, failed: 0 }
+  promptUntagged(batch.untagged)
+  batch = { done: 0, failed: 0, untagged: [] }
 }
 
 function pump(): void {
@@ -116,9 +124,11 @@ function pump(): void {
     syncUnloadGuard()
     void upload(next).finally(() => {
       active--
-      const status = useUploadQueue.getState().entries.find((e) => e.id === next.id)?.status
-      if (status === 'done') batch.done++
-      else if (status === 'error') batch.failed++
+      const finished = useUploadQueue.getState().entries.find((e) => e.id === next.id)
+      if (finished?.status === 'done') {
+        batch.done++
+        batch.untagged.push(...finished.untagged)
+      } else if (finished?.status === 'error') batch.failed++
       syncUnloadGuard()
       pump()
       if (active === 0) {
@@ -141,6 +151,7 @@ export const useUploadQueue = create<UploadQueueState>()((set, get) => ({
       status: 'queued',
       loaded: 0,
       trackIds: [],
+      untagged: [],
     }))
     set((s) => ({ entries: [...s.entries, ...added] }))
     pump()

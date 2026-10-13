@@ -449,8 +449,11 @@
     "folderOrganizeHint": "Organized files are placed under this folder.",
     "organize": "Organize by tags",
     "organizeHint": "Place files automatically using the rename pattern:",
+    "organizeOff": "Files keep their names",
+    "organizeOffHint": "Added files go into the folder above as they are; folder uploads keep their structure.",
+    "organizeSettings": "Change in settings",
     "dropTitle": "Drop files or folders here",
-    "dropHint": "Audio files only (covers and lyrics are edited in the tag editor). Folder structure is kept.",
+    "dropHint": "Audio files only (covers and lyrics are edited in the tag editor).",
     "chooseFiles": "Choose files",
     "chooseFolder": "Choose folder",
     "queued_one": "Uploading {{count}} file",
@@ -477,6 +480,15 @@
     "finished_other": "Uploaded {{count}} files",
     "finishedWithErrors_one": "Uploaded {{count}} file, {{failed}} failed",
     "finishedWithErrors_other": "Uploaded {{count}} files, {{failed}} failed"
+  },
+  "untagged": {
+    "title_one": "{{count}} added track has no artist or album tag",
+    "title_other": "{{count}} added tracks have no artist or album tag",
+    "description": "Fill them in so the music shows up under the right artist and album.",
+    "fill": "Fill in tags",
+    "uploaded": "Uploaded without an artist or album tag",
+    "imported_one": "{{count}} without an artist or album tag",
+    "imported_other": "{{count}} without an artist or album tag"
   },
   "download": {
     "pageSubtitle": "Download the audio of YouTube and bilibili videos into the library.",

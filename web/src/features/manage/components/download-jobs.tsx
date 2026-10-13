@@ -73,6 +73,7 @@ function DownloadRow({ job, onRemove }: { job: DownloadJob; onRemove: () => void
     onError: toastError,
   })
   const name = jobName(job)
+  const untagged = job.untagged ?? []
 
   return (
     <li className="flex items-center gap-3 px-3 py-2.5">
@@ -94,7 +95,12 @@ function DownloadRow({ job, onRemove }: { job: DownloadJob; onRemove: () => void
           </a>
         </Button>
       ) : null}
-      {job.status === 'done' && job.trackIds.length > 0 ? (
+      {job.status === 'done' && untagged.length > 0 ? (
+        <Button variant="outline" size="sm" className="shrink-0 max-sm:h-10" onClick={() => openTagEditor(untagged)}>
+          <Tags />
+          {t('untagged.fill')}
+        </Button>
+      ) : job.status === 'done' && job.trackIds.length > 0 ? (
         <Button variant="ghost" size="icon-sm" className="max-sm:size-10" aria-label={t('actions.editTags')} title={t('actions.editTags')} onClick={() => openTagEditor(job.trackIds)}>
           <Tags />
         </Button>
@@ -150,6 +156,7 @@ function JobDetail({ job }: { job: DownloadJob }) {
     if (eta) parts.push(t('download.eta', { time: eta }))
   } else if (job.status === 'done') {
     parts.push(t('download.imported', { count: job.trackIds.length }))
+    if (job.untagged?.length) parts.push(t('untagged.imported', { count: job.untagged.length }))
     if (via) parts.push(via)
     if (job.error) parts.push(job.error)
   } else if (job.status === 'error' || job.status === 'canceled') {

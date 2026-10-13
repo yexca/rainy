@@ -56,9 +56,9 @@ type OnlineDownloadRequest struct {
 	Quality   string         `json:"quality"` // the best quality wanted: 128k | 320k | flac (default) | flac24bit
 	LibraryID int64          `json:"libraryId"`
 	Dir       string         `json:"dir"`
-	Organize  bool           `json:"organize"`
-	Lyrics    bool           `json:"lyrics"` // embed the catalogue's lyrics (and translation)
-	Cover     bool           `json:"cover"`  // embed the catalogue's cover
+	Organize  *bool          `json:"organize"` // omitted: settings.OrganizeByTags decides
+	Lyrics    bool           `json:"lyrics"`   // embed the catalogue's lyrics (and translation)
+	Cover     bool           `json:"cover"`    // embed the catalogue's cover
 }
 
 // OnlineJob describes what an online download job fetches.
@@ -109,6 +109,8 @@ func (s *Service) StartOnlineDownload(ctx context.Context, u *model.User, req On
 		return nil, err
 	}
 
+	organize := s.organize(ctx, req.Organize)
+
 	s.dls.mu.Lock()
 	if pending := s.pendingLocked(JobKindOnline); pending+len(req.Songs) > maxPendingOnline {
 		s.dls.mu.Unlock()
@@ -121,7 +123,7 @@ func (s *Service) StartOnlineDownload(ctx context.Context, u *model.User, req On
 		j := &downloadJob{
 			DownloadJob: DownloadJob{
 				ID: util.NewID(), Kind: JobKindOnline, URL: song.PageURL, Title: song.Title, Status: JobQueued, ETA: -1,
-				LibraryID: lib.ID, Dir: baseDir, Organize: req.Organize, TrackIDs: []string{}, Errors: []ItemError{},
+				LibraryID: lib.ID, Dir: baseDir, Organize: organize, TrackIDs: []string{}, Untagged: []string{}, Errors: []ItemError{},
 				CreatedBy: u.Username, CreatedAt: util.NowMs(),
 				Online: &OnlineJob{Song: song, Quality: req.Quality, Lyrics: req.Lyrics, Cover: req.Cover},
 			},
@@ -228,7 +230,9 @@ func (s *Service) runOnline(j *downloadJob) {
 			msg = "the file could not be imported"
 		}
 	}
-	s.updateJob(j, func(d *DownloadJob) { d.TrackIDs, d.Errors = ids, res.Errors })
+	s.updateJob(j, func(d *DownloadJob) {
+		d.TrackIDs, d.Untagged, d.Errors = ids, append([]string{}, res.Untagged...), res.Errors
+	})
 	s.finishJob(j, status, msg)
 }
 

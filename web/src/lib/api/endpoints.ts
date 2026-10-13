@@ -47,6 +47,7 @@ import type {
   OnlineSong,
   OnlineStatus,
   Page,
+  Placement,
   Play,
   PlayQueue,
   Playlist,
@@ -210,7 +211,7 @@ export interface UploadInput {
   libraryId: number
   /** Target directory (library-relative). */
   dir?: string
-  /** Place files by the rename pattern instead of `dir`. */
+  /** Place files by the rename pattern (under `dir`). Omit to follow `settings.organizeByTags`. */
   organize?: boolean
 }
 export interface UploadCallOptions {
@@ -435,6 +436,8 @@ export const api = {
         request<{ items: RenamePlan[] }>('/manage/rename/preview', { ...opts, method: 'POST', body }),
       apply: (body: RenameInput) => request<BatchResult>('/manage/rename', { method: 'POST', body }),
     },
+    /** Whether uploads and downloads are organized by tags, and the pattern used. */
+    placement: (opts?: CallOptions) => request<Placement>('/manage/placement', opts),
     upload: (input: UploadInput, opts: UploadCallOptions = {}) => {
       const form = new FormData()
       for (const item of input.files) {

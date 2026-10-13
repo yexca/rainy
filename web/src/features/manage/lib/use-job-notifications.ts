@@ -7,8 +7,12 @@ import type { DownloadJob } from '@/lib/api/types'
 
 import { invalidateLibrary } from '../queries'
 import { isActiveJob } from './downloads'
+import { promptUntagged } from './untagged'
 
-/** Toasts when a download job this page saw running finishes, and refreshes the library. */
+/**
+ * Toasts when a download job this page saw running finishes, asks for the tags of tracks that
+ * arrived without an artist or album, and refreshes the library.
+ */
 export function useJobNotifications(jobs: DownloadJob[] | undefined) {
   const { t } = useTranslation('manage')
   const queryClient = useQueryClient()
@@ -16,6 +20,7 @@ export function useJobNotifications(jobs: DownloadJob[] | undefined) {
   useEffect(() => {
     if (!jobs) return
     let changed = false
+    const untagged: string[] = []
     for (const job of jobs) {
       const before = seen.current.get(job.id)
       seen.current.set(job.id, job.status)
@@ -23,12 +28,14 @@ export function useJobNotifications(jobs: DownloadJob[] | undefined) {
       const name = job.online ? job.online.song.title : job.title || job.url
       if (job.status === 'done') {
         changed = true
+        untagged.push(...(job.untagged ?? []))
         if (job.error) toast.warning(t('download.finishedPartly', { name, count: job.trackIds.length }), { description: job.error })
         else toast.success(t('download.finished', { name, count: job.trackIds.length }))
       } else if (job.status === 'error') {
         toast.error(t('download.failed', { name }), { description: job.error })
       }
     }
+    promptUntagged(untagged)
     if (changed) void invalidateLibrary(queryClient)
   }, [jobs, queryClient, t])
 }

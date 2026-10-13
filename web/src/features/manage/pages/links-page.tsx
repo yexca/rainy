@@ -24,7 +24,7 @@ export default function LinksPage() {
 
       <PageColumn>
         <DestinationSection />
-        <LinkDownload libraryId={target.libraryId} dir={target.dir} organize={target.organize} invalidDir={target.invalidDir} />
+        <LinkDownload libraryId={target.libraryId} dir={target.dir} invalidDir={target.invalidDir} />
       </PageColumn>
     </Page>
   )

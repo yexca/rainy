@@ -1,29 +1,30 @@
-import { FolderOpen } from 'lucide-react'
+import { FolderOpen, FolderTree, Settings2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { useDefaultRenamePattern, useLibraries } from '@/features/admin/queries'
+import { useLibraries } from '@/features/admin/queries'
+import { useAuth } from '@/hooks/use-auth'
 
 import { useDestination, useDestinationTarget } from '../lib/destination'
 import { FolderPicker } from './folder-picker'
 
 /**
- * Destination of added music (library, folder, organize by tags), shared by the Upload and
- * Online tabs. `children` are extra options shown under the destination.
+ * Destination of added music (library and folder; whether files are organized by tags is a
+ * server setting, shown here), shared by the Upload, Links and Online tabs. `children` are
+ * extra options shown under the destination.
  */
 export function DestinationSection({ children }: { children?: ReactNode }) {
   const { t } = useTranslation('manage')
   const { libraries, limited } = useLibraries()
-  const renamePattern = useDefaultRenamePattern()
+  const { isAdmin } = useAuth()
   const dir = useDestination((s) => s.dir)
   const setDir = useDestination((s) => s.setDir)
   const setLibraryId = useDestination((s) => s.setLibraryId)
-  const setOrganize = useDestination((s) => s.setOrganize)
   const target = useDestinationTarget()
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -73,15 +74,29 @@ export function DestinationSection({ children }: { children?: ReactNode }) {
           <p className="text-xs text-muted-foreground">{t('upload.folderOrganizeHint')}</p>
         ) : null}
       </div>
-      <Label className="flex items-start gap-3 font-normal">
-        <Switch className="mt-0.5" checked={target.organize} onCheckedChange={setOrganize} />
-        <span className="grid gap-1">
-          <span className="text-sm font-medium">{t('upload.organize')}</span>
+      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-muted/50 px-3 py-2.5">
+        <FolderTree className="size-[18px] shrink-0 text-muted-foreground" strokeWidth={1.75} aria-hidden />
+        <p className="grid min-w-48 flex-1 gap-0.5">
+          <span className="text-sm font-medium">{target.organize ? t('upload.organize') : t('upload.organizeOff')}</span>
           <span className="text-xs text-muted-foreground">
-            {t('upload.organizeHint')} <code className="font-mono break-all">{renamePattern}</code>
+            {target.organize ? (
+              <>
+                {t('upload.organizeHint')} <code className="font-mono break-all">{target.renamePattern}</code>
+              </>
+            ) : (
+              t('upload.organizeOffHint')
+            )}
           </span>
-        </span>
-      </Label>
+        </p>
+        {isAdmin ? (
+          <Button asChild variant="outline" size="sm" className="max-sm:h-11 max-sm:w-full">
+            <Link to="/admin/settings">
+              <Settings2 />
+              {t('upload.organizeSettings')}
+            </Link>
+          </Button>
+        ) : null}
+      </div>
       {children}
 
       <FolderPicker

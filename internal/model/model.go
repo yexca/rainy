@@ -360,6 +360,7 @@ type Settings struct {
 	TranscodeFormat       string `json:"transcodeFormat"`   // mp3|opus|aac
 	TranscodeBitrate      int    `json:"transcodeBitrate"`  // kbps
 	RenamePattern         string `json:"renamePattern"`     // see docs/architecture/contract.md §7.6
+	OrganizeByTags        bool   `json:"organizeByTags"`    // place uploads and downloads by RenamePattern unless the request says otherwise
 	FixEncodingOnScan     bool   `json:"fixEncodingOnScan"` // repair GBK/Big5/SJIS mojibake when reading
 	EnableDownloads       bool   `json:"enableDownloads"`
 	OnlineMetadata        bool   `json:"onlineMetadata"`        // allow managers to search online catalogues (outbound requests)
@@ -477,6 +478,7 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		TranscodeFormat:       "mp3",
 		TranscodeBitrate:      192,
 		RenamePattern:         "{albumartist}/{album}/[{disc}-]{track:2} {title}",
+		OrganizeByTags:        true,
 		FixEncodingOnScan:     true,
 		EnableDownloads:       true,
 		OnlineMetadata:        false,

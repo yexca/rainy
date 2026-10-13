@@ -29,6 +29,7 @@ func (a *API) routesManage(r chi.Router) {
 	r.Put("/tracks/{id}/lyrics", a.manageSetLyrics)
 	r.Post("/rename/preview", a.manageRenamePreview)
 	r.Post("/rename", a.manageRename)
+	r.Get("/placement", a.managePlacement)
 	r.Post("/upload", a.manageUpload)
 	r.Post("/delete", a.manageDelete)
 	r.Get("/trash", a.manageTrash)
@@ -295,6 +296,17 @@ func (a *API) manageRename(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := a.app.Manage.Rename(r.Context(), userFrom(r), body.TrackIDs, body.Pattern)
 	writeBatch(w, r, res, err)
+}
+
+// placement tells managers (who cannot read the settings) where uploads and downloads go.
+type placement struct {
+	Organize      bool   `json:"organize"`
+	RenamePattern string `json:"renamePattern"`
+}
+
+func (a *API) managePlacement(w http.ResponseWriter, r *http.Request) {
+	set := a.app.Settings(r.Context())
+	writeJSON(w, http.StatusOK, placement{Organize: set.OrganizeByTags, RenamePattern: set.RenamePattern})
 }
 
 func (a *API) manageUpload(w http.ResponseWriter, r *http.Request) {

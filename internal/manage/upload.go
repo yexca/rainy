@@ -40,14 +40,15 @@ type staged struct {
 type uploadForm struct {
 	libraryID int64
 	dir       string
-	organize  bool
+	organize  *bool // nil: settings.OrganizeByTags decides
 	files     []staged
 }
 
 // Upload streams the multipart parts "files" (repeated), "libraryId", "dir" and
 // "organize" to the staging directory, then places each file under dir (keeping the
-// client's relative sub-directories) or, with organize, where settings.RenamePattern puts
-// it (see place). New files are scanned immediately.
+// client's relative sub-directories) or, with organize (settings.OrganizeByTags when the
+// request does not say), where settings.RenamePattern puts it (see place). New files are
+// scanned immediately.
 func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reader) (*BatchResult, error) {
 	res := newBatch()
 	form, err := s.readUpload(mr, res)
@@ -82,7 +83,7 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 		return res, nil
 	}
 
-	if err := s.place(ctx, u, lib, baseDir, form.organize, form.files, res, "upload", func(f *staged) map[string]any {
+	if err := s.place(ctx, u, lib, baseDir, s.organize(ctx, form.organize), form.files, res, "upload", func(f *staged) map[string]any {
 		return map[string]any{"name": f.name, "size": f.size}
 	}); err != nil {
 		return nil, err
@@ -97,7 +98,8 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 // organize, where settings.RenamePattern puts them. Existing files are never overwritten
 // (" (1)" is appended). It holds the library lock across the moves and the rescan, writes
 // one edit_log row per placed file (action, with details(f)), adds the new tracks to
-// res.Updated and publishes a library event. Placed files get f.tmp = "". Only a failure
+// res.Updated (and those without an artist or album tag to res.Untagged) and publishes a
+// library event. Placed files get f.tmp = "". Only a failure
 // to decide the targets or to take the lock is returned; per-file failures go to res.
 func (s *Service) place(ctx context.Context, u *model.User, lib *model.Library, baseDir string, organize bool,
 	files []staged, res *BatchResult, action string, details func(f *staged) map[string]any) error {
@@ -161,7 +163,12 @@ func (s *Service) place(ctx context.Context, u *model.User, lib *model.Library, 
 		}
 		s.logEdit(ctx, u, action, trackID, d.rel, details(d.f))
 	}
-	res.Updated = append(res.Updated, s.tracksByID(ctx, ids, u.ID)...)
+	for _, t := range s.tracksByID(ctx, ids, u.ID) {
+		res.Updated = append(res.Updated, t)
+		if t.Artist == unknownArtist || t.Album == unknownAlbum {
+			res.Untagged = append(res.Untagged, t.ID)
+		}
+	}
 	if len(done) > 0 {
 		s.publish(action)
 	}
@@ -224,7 +231,7 @@ func (s *Service) readUpload(mr *multipart.Reader, res *BatchResult) (uploadForm
 				if err != nil {
 					return form, fmt.Errorf("%w: invalid organize flag", store.ErrInvalid)
 				}
-				form.organize = b
+				form.organize = &b
 			}
 		default:
 			_ = part.Close() // unknown parts are skipped

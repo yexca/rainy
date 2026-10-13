@@ -19,6 +19,7 @@ export const manageKeys = {
   log: (trackId: string) => ['manage', 'log', trackId] as const,
   downloads: ['manage', 'downloads'] as const,
   online: ['manage', 'online'] as const,
+  placement: ['manage', 'placement'] as const,
   /** Online search results: not a library root, so library events don't refetch them. */
   onlineSearch: (platform: string, q: string) => ['online-search', platform, q] as const,
   /** Paged track table of the library manager (`tracks` root). */
@@ -44,4 +45,10 @@ export const downloadsQuery = queryOptions({
 export const onlineStatusQuery = queryOptions({
   queryKey: manageKeys.online,
   queryFn: ({ signal }) => api.manage.online.status({ signal }),
+})
+
+/** Where uploads and downloads go (the server settings, readable by managers). */
+export const placementQuery = queryOptions({
+  queryKey: manageKeys.placement,
+  queryFn: ({ signal }) => api.manage.placement({ signal }),
 })

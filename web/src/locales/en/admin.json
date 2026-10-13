@@ -135,6 +135,7 @@
       "transcodeFormat": "Transcoding format",
       "transcodeBitrate": "Transcoding bitrate",
       "enableDownloads": "Allow downloads",
+      "organizeByTags": "Organize added music by tags",
       "renamePattern": "Default rename pattern"
     },
     "help": {
@@ -148,7 +149,8 @@
       "transcodeFormat": "Used when a client asks for a lower bitrate.",
       "transcodeBitrate": "Default bitrate for transcoded streams.",
       "enableDownloads": "Users with the download permission can save original files.",
-      "renamePattern": "Used by Rename / organize and uploads with “Organize by tags”."
+      "organizeByTags": "Uploads, link downloads and online music are placed by the pattern below, under the folder chosen when adding them. When off, files keep their names in that folder.",
+      "renamePattern": "Used by Rename / organize and when added music is organized by tags."
     },
     "intervals": {
       "0": "Off",

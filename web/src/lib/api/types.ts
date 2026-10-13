@@ -78,7 +78,12 @@ export interface TrackTags {
 }
 export interface TagEdit { trackId: string; tags: TagMap }
 export interface ItemError { trackId: string; path: string; error: string }
-export interface BatchResult { updated: Track[]; errors: ItemError[] }
+export interface BatchResult {
+  updated: Track[]; errors: ItemError[]
+  untagged?: string[]               // imports only: ids of the new tracks without an artist or album tag
+}
+/** Where uploads and downloads go (readable by managers, unlike `Settings`). */
+export interface Placement { organize: boolean; renamePattern: string }
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
 export interface FolderEntry { name: string; path: string }
 export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
@@ -112,7 +117,9 @@ export interface DownloadJob {
   error: string                     // failure, or what failed for some entries of a finished job
   libraryId: number; dir: string; organize: boolean
   format: '' | DownloadFormat; playlist: boolean   // link jobs only
-  trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+  trackIds: string[]
+  untagged: string[]                // the trackIds imported without an artist or album tag
+  errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
   online: OnlineJob | null                         // online jobs only
 }
 
@@ -157,6 +164,7 @@ export interface ScanStatus {
 export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
+  organizeByTags: boolean           // place uploads and downloads by renamePattern (a request's `organize` overrides it)
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean
   lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string

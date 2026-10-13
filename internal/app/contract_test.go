@@ -45,7 +45,7 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 		{"MetadataLyrics", metasearch.Lyrics{}, `text translation`},
 		{"MetadataProvider", metasearch.ProviderInfo{}, `id lyrics regions`},
 		{"DownloadJob", manage.DownloadJob{}, `id kind url site title status phase progress item items speed eta error
-			libraryId dir organize format playlist trackIds errors createdBy createdAt startedAt finishedAt online`},
+			libraryId dir organize format playlist trackIds untagged errors createdBy createdAt startedAt finishedAt online`},
 		{"OnlineJob", manage.OnlineJob{}, `song quality got source lyrics cover`},
 		{"OnlineSong", lxmusic.Song{}, `platform id title artists album albumId duration coverUrl qualities extra pageUrl`},
 		{"OnlineQuality", lxmusic.Quality{Hash: "x"}, `type size hash`},

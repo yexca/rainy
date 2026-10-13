@@ -112,7 +112,7 @@ func TestOnlineDownloadFallsBackAndImports(t *testing.T) {
 	e.svc.SetOnlineSource(online)
 
 	jobs, err := e.svc.StartOnlineDownload(e.ctx, e.user, OnlineDownloadRequest{
-		Songs: []lxmusic.Song{onlineSong}, Quality: "flac", LibraryID: e.lib.ID, Dir: "Online", Lyrics: true, Cover: true,
+		Songs: []lxmusic.Song{onlineSong}, Quality: "flac", LibraryID: e.lib.ID, Dir: "Online", Organize: keepNames, Lyrics: true, Cover: true,
 	})
 	if err != nil {
 		t.Fatal(err)

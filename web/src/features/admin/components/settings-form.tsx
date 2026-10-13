@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { RENAME_TOKENS } from '@/features/manage/lib/rename-tokens'
+import { manageKeys } from '@/features/manage/queries'
 import { api } from '@/lib/api/endpoints'
 import type { Settings } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -33,6 +34,7 @@ const schema = z.object({
   transcodeFormat: z.enum(['mp3', 'opus', 'aac']),
   transcodeBitrate: z.number().int().min(32).max(512),
   renamePattern: z.string().trim().min(1, 'settings.validation.required').regex(/\{[a-z]+(:\d+)?\}/, 'settings.validation.pattern'),
+  organizeByTags: z.boolean(),
   fixEncodingOnScan: z.boolean(),
   enableDownloads: z.boolean(),
   onlineMetadata: z.boolean(),
@@ -72,6 +74,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
     },
     onSuccess: (saved) => {
       queryClient.setQueryData(adminKeys.settings, saved)
+      void queryClient.invalidateQueries({ queryKey: manageKeys.placement })
       reset(saved)
       toast.success(t('settings.saved'))
     },
@@ -181,6 +184,9 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       </Section>
 
       <Section title={t('settings.sections.organize')}>
+        <Row label={t('settings.fields.organizeByTags')} description={t('settings.help.organizeByTags')} inline>
+          <Controller control={control} name="organizeByTags" render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
+        </Row>
         <Row label={t('settings.fields.renamePattern')} description={t('settings.help.renamePattern')} error={err(errors.renamePattern?.message)} stacked>
           <div className="grid gap-2">
             <div className="flex gap-2">

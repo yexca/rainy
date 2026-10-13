@@ -6,6 +6,19 @@ migration or needs operator action. Each area becomes a collapsed block in the
 tagged release note; see
 [Commit and release](../development/commit-and-release.md#release-notes).
 
+## Library Management
+
+- **Organize by tags** is now a server setting instead of a switch on the
+  Upload tab, and it is on by default: files you pick or drag in, link
+  downloads, and online music are all placed with the rename pattern, under the
+  folder you chose. Administrators can turn it off with **Organize added music
+  by tags** in **Admin → Settings**. The old per-browser switch is gone, so
+  uploads that used to keep their names are now organized unless the setting is
+  turned off.
+- When added music has no artist or album tag, Rainy says so and offers **Fill
+  in tags**, which opens the tag editor on those tracks. This covers uploads,
+  link downloads, and online music.
+
 ## Look And Feel
 
 - **Immersive** goes deeper: the cover's colours now fill the whole window as

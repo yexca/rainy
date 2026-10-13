@@ -448,8 +448,11 @@
     "folderOrganizeHint": "整理后的文件会放在这个文件夹下。",
     "organize": "按标签自动整理",
     "organizeHint": "使用命名格式自动放置文件：",
+    "organizeOff": "保留原文件名",
+    "organizeOffHint": "新增的文件会原样放入上方文件夹；上传文件夹时保留其结构。",
+    "organizeSettings": "在设置中修改",
     "dropTitle": "把文件或文件夹拖到这里",
-    "dropHint": "仅支持音频文件（封面和歌词请在标签编辑器中修改），会保留文件夹结构。",
+    "dropHint": "仅支持音频文件（封面和歌词请在标签编辑器中修改）。",
     "chooseFiles": "选择文件",
     "chooseFolder": "选择文件夹",
     "queued_one": "开始上传 {{count}} 个文件",
@@ -476,6 +479,13 @@
     "finished_other": "已上传 {{count}} 个文件",
     "finishedWithErrors_one": "已上传 {{count}} 个文件，{{failed}} 个失败",
     "finishedWithErrors_other": "已上传 {{count}} 个文件，{{failed}} 个失败"
+  },
+  "untagged": {
+    "title_other": "新添加的 {{count}} 首歌曲缺少艺人或专辑标签",
+    "description": "补全标签后，它们才会出现在正确的艺人和专辑下。",
+    "fill": "补全标签",
+    "uploaded": "已上传，缺少艺人或专辑标签",
+    "imported_other": "{{count}} 首缺少艺人或专辑标签"
   },
   "download": {
     "pageSubtitle": "把 YouTube、哔哩哔哩视频中的音频下载到音乐库。",

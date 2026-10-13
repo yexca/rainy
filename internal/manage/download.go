@@ -61,7 +61,7 @@ type DownloadRequest struct {
 	URL       string `json:"url"`
 	LibraryID int64  `json:"libraryId"`
 	Dir       string `json:"dir"`
-	Organize  bool   `json:"organize"`
+	Organize  *bool  `json:"organize"` // omitted: settings.OrganizeByTags decides
 	Format    string `json:"format"`   // best (default) | m4a | mp3 | opus
 	Playlist  bool   `json:"playlist"` // download the whole playlist the link belongs to
 }
@@ -93,6 +93,7 @@ type DownloadJob struct {
 	Format     string      `json:"format"`
 	Playlist   bool        `json:"playlist"`
 	TrackIDs   []string    `json:"trackIds"`
+	Untagged   []string    `json:"untagged"` // the TrackIDs imported without an artist or album tag
 	Errors     []ItemError `json:"errors"`
 	CreatedBy  string      `json:"createdBy"`
 	CreatedAt  int64       `json:"createdAt"`
@@ -177,8 +178,8 @@ func (s *Service) StartDownload(ctx context.Context, u *model.User, req Download
 	j := &downloadJob{
 		DownloadJob: DownloadJob{
 			ID: util.NewID(), Kind: JobKindLink, URL: target.URL, Site: target.Site, Status: JobQueued, Progress: 0, ETA: -1,
-			LibraryID: lib.ID, Dir: baseDir, Organize: req.Organize, Format: req.Format, Playlist: req.Playlist,
-			TrackIDs: []string{}, Errors: []ItemError{}, CreatedBy: u.Username, CreatedAt: util.NowMs(),
+			LibraryID: lib.ID, Dir: baseDir, Organize: s.organize(ctx, req.Organize), Format: req.Format, Playlist: req.Playlist,
+			TrackIDs: []string{}, Untagged: []string{}, Errors: []ItemError{}, CreatedBy: u.Username, CreatedAt: util.NowMs(),
 		},
 		target: target, user: u, lib: lib, ctx: jctx, cancel: cancel,
 	}
@@ -236,6 +237,7 @@ func (s *Service) DownloadJobs() []DownloadJob {
 	for i := len(s.dls.jobs) - 1; i >= 0; i-- {
 		d := s.dls.jobs[i].DownloadJob
 		d.TrackIDs = append([]string{}, d.TrackIDs...)
+		d.Untagged = append([]string{}, d.Untagged...)
 		d.Errors = append([]ItemError{}, d.Errors...)
 		if d.Online != nil {
 			o := *d.Online
@@ -396,7 +398,9 @@ func (s *Service) runDownload(j *downloadJob) {
 			msgs = append(msgs, res.Errors[0].Error)
 		}
 	}
-	s.updateJob(j, func(d *DownloadJob) { d.TrackIDs, d.Errors = ids, res.Errors })
+	s.updateJob(j, func(d *DownloadJob) {
+		d.TrackIDs, d.Untagged, d.Errors = ids, append([]string{}, res.Untagged...), res.Errors
+	})
 	s.finishJob(j, status, strings.Join(msgs, "; "))
 }
 

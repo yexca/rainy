@@ -1,47 +1,29 @@
 /**
- * Where added music goes (Tracks → Upload and Tracks → Online share it, so switching tabs keeps
- * the chosen library and folder). Only "organize by tags" is remembered across visits.
+ * Where added music goes (Tracks → Upload, Links and Online share it, so switching tabs keeps
+ * the chosen library and folder). Whether files are organized by tags is a server setting.
  */
+import { useQuery } from '@tanstack/react-query'
 import { create } from 'zustand'
 
-import { useLibraries } from '@/features/admin/queries'
+import { DEFAULT_RENAME_PATTERN, useLibraries } from '@/features/admin/queries'
 import type { LibraryInfo } from '@/lib/api/types'
 
-const ORGANIZE_KEY = 'rainy.manage.uploadOrganize'
-
-function loadOrganize(): boolean {
-  try {
-    return localStorage.getItem(ORGANIZE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+import { placementQuery } from '../queries'
 
 interface DestinationState {
   /** `null` = the first library. */
   libraryId: number | null
   /** Folder as typed (see `cleanDir`). */
   dir: string
-  organize: boolean
   setLibraryId: (id: number | null) => void
   setDir: (dir: string) => void
-  setOrganize: (organize: boolean) => void
 }
 
 export const useDestination = create<DestinationState>((set) => ({
   libraryId: null,
   dir: '',
-  organize: loadOrganize(),
   setLibraryId: (libraryId) => set({ libraryId }),
   setDir: (dir) => set({ dir }),
-  setOrganize: (organize) => {
-    try {
-      localStorage.setItem(ORGANIZE_KEY, organize ? '1' : '0')
-    } catch {
-      // not remembered
-    }
-    set({ organize })
-  },
 }))
 
 /** Library-relative folder without surrounding slashes (backslashes become slashes). */
@@ -56,7 +38,13 @@ export interface DestinationTarget {
   dir: string
   /** The folder has "." or ".." segments. */
   invalidDir: boolean
+  /**
+   * The server organizes added files by tags (`settings.organizeByTags`; assumed on until it
+   * answers). Shown only: requests leave `organize` out, so the server decides.
+   */
   organize: boolean
+  /** The pattern organized files are placed by. */
+  renamePattern: string
 }
 
 /** The destination as the API wants it. */
@@ -64,7 +52,7 @@ export function useDestinationTarget(): DestinationTarget {
   const { libraries } = useLibraries()
   const libraryId = useDestination((s) => s.libraryId)
   const dir = useDestination((s) => s.dir)
-  const organize = useDestination((s) => s.organize)
+  const placement = useQuery({ ...placementQuery, staleTime: 60_000 }).data
   const effective = libraryId ?? libraries[0]?.id ?? 1
   const clean = cleanDir(dir)
   return {
@@ -72,6 +60,7 @@ export function useDestinationTarget(): DestinationTarget {
     library: libraries.find((l) => l.id === effective),
     dir: clean,
     invalidDir: clean.split('/').some((p) => p === '..' || p === '.'),
-    organize,
+    organize: placement?.organize ?? true,
+    renamePattern: placement?.renamePattern || DEFAULT_RENAME_PATTERN,
   }
 }

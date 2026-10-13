@@ -163,7 +163,7 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"POST", "/manage/encoding"}, {"GET", "/manage/log"}, {"GET", "/manage/unknown"},
 		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
 		{"GET", "/manage/metadata/cover"}, {"GET", "/manage/downloads"}, {"POST", "/manage/downloads"},
-		{"DELETE", "/manage/downloads/x"},
+		{"DELETE", "/manage/downloads/x"}, {"GET", "/manage/placement"},
 	}
 	for _, rt := range manageRoutes {
 		if rec := e.do(rt[0], rt[1], "", nil); rec.Code != http.StatusUnauthorized {
@@ -275,6 +275,7 @@ func TestManageEndpoints(t *testing.T) {
 	_, _ = fw.Write([]byte("ID3 not really audio"))
 	_ = mw.WriteField("libraryId", "1")
 	_ = mw.WriteField("dir", "Artist/Album")
+	_ = mw.WriteField("organize", "false")
 	_ = mw.Close()
 	req := httptest.NewRequest("POST", "/manage/upload", &buf)
 	req.Header.Set("Content-Type", mw.FormDataContentType())
@@ -434,6 +435,18 @@ func TestAdminSettingsAndSystem(t *testing.T) {
 	}
 	if got := mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"scanInterval": "0"}), 200); got.ScanInterval != "0" {
 		t.Fatalf("disable scans: %+v", got)
+	}
+
+	// Managers cannot read the settings, but see where uploads and downloads go.
+	if !got.OrganizeByTags {
+		t.Fatalf("organizeByTags should be on by default: %+v", got)
+	}
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); !p.Organize || p.RenamePattern != got.RenamePattern {
+		t.Fatalf("placement %+v", p)
+	}
+	mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"organizeByTags": false, "renamePattern": "{artist}/{title}"}), 200)
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); p.Organize || p.RenamePattern != "{artist}/{title}" {
+		t.Fatalf("placement after the change %+v", p)
 	}
 
 	sys := mgDecode[SystemInfo](t, e.do("GET", "/admin/system", tok, nil), 200)

@@ -51,7 +51,7 @@ export default function UploadPage() {
       toast.error(t('upload.nothingToUpload'), { description: t('upload.audioOnly') })
       return
     }
-    add(files, { libraryId: target.libraryId, dir: target.dir, organize: target.organize })
+    add(files, { libraryId: target.libraryId, dir: target.dir })
     toast(t('upload.queued', { count: files.length - skipped }), {
       description: skipped > 0 ? t('upload.skippedCount', { count: skipped }) : undefined,
     })
@@ -209,6 +209,7 @@ function UploadRow({ entry, style }: { entry: UploadEntry; style: CSSProperties 
   const openTagEditor = useUI((s) => s.openTagEditor)
   const { cancel, retry, remove } = useUploadQueue.getState()
   const fraction = entry.size > 0 ? entry.loaded / entry.size : 0
+  const untagged = entry.status === 'done' && entry.untagged.length > 0
 
   return (
     <li className="absolute inset-x-0 top-0 flex items-center gap-3 border-b px-3 last:border-b-0" style={style}>
@@ -223,17 +224,27 @@ function UploadRow({ entry, style }: { entry: UploadEntry; style: CSSProperties 
           <p
             className={cn(
               'truncate text-xs',
-              entry.status === 'error' ? 'text-destructive' : 'text-muted-foreground',
+              entry.status === 'error' ? 'text-destructive' : untagged ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground',
             )}
             title={entry.error}
           >
-            {formatBytes(entry.size)} · {entry.status === 'error' ? entry.error || t('upload.status.error') : t(`upload.status.${entry.status}`)}
+            {formatBytes(entry.size)} ·{' '}
+            {entry.status === 'error'
+              ? entry.error || t('upload.status.error')
+              : untagged
+                ? t('untagged.uploaded')
+                : t(`upload.status.${entry.status}`)}
           </p>
         )}
       </div>
       {entry.status === 'done' ? (
         <>
-          {entry.trackIds.length > 0 ? (
+          {untagged ? (
+            <Button variant="outline" size="sm" className="shrink-0 max-sm:h-10" onClick={() => openTagEditor(entry.untagged)}>
+              <Tags />
+              {t('untagged.fill')}
+            </Button>
+          ) : entry.trackIds.length > 0 ? (
             <Button variant="ghost" size="icon-sm" aria-label={t('actions.editTags')} onClick={() => openTagEditor(entry.trackIds)}>
               <Tags />
             </Button>

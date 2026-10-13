@@ -135,6 +135,7 @@
       "transcodeFormat": "转码格式",
       "transcodeBitrate": "转码码率",
       "enableDownloads": "允许下载",
+      "organizeByTags": "按标签自动整理新增音乐",
       "renamePattern": "默认命名格式"
     },
     "help": {
@@ -148,7 +149,8 @@
       "transcodeFormat": "客户端请求较低码率时使用。",
       "transcodeBitrate": "转码串流的默认码率。",
       "enableDownloads": "拥有下载权限的用户可以保存原始文件。",
-      "renamePattern": "用于“重命名 / 整理”以及开启“按标签自动整理”的上传。"
+      "organizeByTags": "上传、链接下载和在线音乐会按下方的命名格式，放入添加时所选的文件夹；关闭后文件按原名放入该文件夹。",
+      "renamePattern": "用于“重命名 / 整理”，以及按标签自动整理新增的音乐。"
     },
     "intervals": {
       "0": "关闭",

@@ -253,6 +253,7 @@ type Settings struct {
     TranscodeFormat   string `json:"transcodeFormat"`   // default "mp3" (mp3|opus|aac)
     TranscodeBitrate  int    `json:"transcodeBitrate"`  // default 192
     RenamePattern     string `json:"renamePattern"`     // default "{albumartist}/{album}/[{disc}-]{track:2} {title}"
+    OrganizeByTags    bool   `json:"organizeByTags"`    // default true: uploads and downloads are placed by RenamePattern unless the request's `organize` says otherwise (§7.6)
     FixEncodingOnScan bool   `json:"fixEncodingOnScan"` // default true: repair GBK/Big5/SJIS mojibake when *reading* (files untouched)
     EnableDownloads   bool   `json:"enableDownloads"`   // default true
     OnlineMetadata    bool   `json:"onlineMetadata"`    // default false: allow managers to search online catalogues (§5.13)
@@ -1055,7 +1056,8 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 | PUT | `/api/manage/tracks/{id}/lyrics` | `{text, target:'embedded'|'lrc'}` (empty text removes) | `Track` |
 | POST | `/api/manage/rename/preview` | `{trackIds, pattern}` | `{items: RenamePlan[]}` |
 | POST | `/api/manage/rename` | `{trackIds, pattern}` | `BatchResult` |
-| POST | `/api/manage/upload` | multipart: `files` (repeated), `libraryId`, `dir?`, `organize?` | `BatchResult` |
+| GET | `/api/manage/placement` | | `Placement` (`settings.organizeByTags` and `settings.renamePattern`, for managers who cannot read the settings) |
+| POST | `/api/manage/upload` | multipart: `files` (repeated), `libraryId`, `dir?`, `organize?` | `BatchResult` (with `untagged`) |
 | POST | `/api/manage/delete` | `{trackIds}` | `BatchResult` (files moved to trash) |
 | GET | `/api/manage/trash` | | `TrashEntry[]` |
 | POST | `/api/manage/trash/restore` | `{ids}` | `BatchResult` |
@@ -1078,6 +1080,15 @@ Only the owner (or an admin) may modify a playlist; others get 403.
 | GET | `/api/manage/online/search` | `platform, q, page? (≥1), limit? (≤50, default 30)` | `OnlineSearchResult` |
 | GET | `/api/manage/online/cover` | `url` (a result's `coverUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
 | POST | `/api/manage/online/downloads` | `{songs: OnlineSong[] (1–50), quality?: '128k'|'320k'|'flac'|'flac24bit' (default flac), libraryId, dir?, organize?, lyrics?, cover?}` | 202 `{jobs: DownloadJob[]}` |
+
+**Imports** (`/upload`, `/downloads`, `/online/downloads`) share one placement rule. `organize` is optional: when a
+request leaves it out, `settings.organizeByTags` (default on) decides, so every way of adding music files it the same
+way; an explicit `true` / `false` overrides the setting for that request (a job keeps the value it started with, and a
+retry sends it again). Organized files go where `settings.renamePattern` puts them, under `dir`; otherwise they keep
+their names in `dir`. A file without tags is still imported — organized, under the scanner's fallback names
+(`[Unknown Artist]/[Unknown Album]/…`, §5.8). Tracks imported without an artist or album tag are listed by id in
+`BatchResult.untagged` (uploads; omitted when empty) and `DownloadJob.untagged` so the web app can ask for the missing
+tags.
 
 The `/metadata/search`, `/lyrics`, and `/cover` endpoints answer `403 forbidden` while
 `settings.onlineMetadata` is off (the default) and send nothing outside the server; invalid input
@@ -1247,7 +1258,8 @@ export interface TrackTags {
 }
 export interface TagEdit { trackId: string; tags: TagMap }
 export interface ItemError { trackId: string; path: string; error: string }
-export interface BatchResult { updated: Track[]; errors: ItemError[] }
+export interface BatchResult { updated: Track[]; errors: ItemError[]; untagged?: string[] /*imports: new tracks without an artist or album tag*/ }
+export interface Placement { organize: boolean; renamePattern: string }
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
 export interface FolderEntry { name: string; path: string }
 export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
@@ -1273,7 +1285,8 @@ export interface DownloadJob {
   id: string; kind: DownloadJobKind; url: string /*online: the song's catalogue page*/; site: '' | DownloadSite; title: string; status: DownloadJobStatus
   phase: '' | 'downloading' | 'processing'; progress: number /*0…1, -1 unknown*/; item: number; items: number
   speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; format: '' | DownloadFormat
-  playlist: boolean; trackIds: string[]; errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
+  playlist: boolean; trackIds: string[]; untagged: string[] /*the trackIds without an artist or album tag*/; errors: ItemError[]
+  createdBy: string; createdAt: number; startedAt: number; finishedAt: number
   online: OnlineJob | null
 }
 export type OnlinePlatform = 'kw' | 'kg' | 'tx' | 'wy' | 'mg'
@@ -1300,7 +1313,7 @@ export interface ScanStatus {
 }
 export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
-  transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
+  transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string; organizeByTags: boolean
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean; lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
   lastfmEnabled: boolean; listenBrainzEnabled: boolean
@@ -1528,9 +1541,14 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.5 Management UI (manage agent)
 - **Tracks** (sidebar entry; page title "Tracks") has four route tabs: Metadata, Upload, Links, Online. Upload, Links and
-  Online share the destination (`useDestination`, `DestinationSection`: library, folder, organize by tags — the folder and library are
-  kept while switching tabs, `organize` is remembered) and the server job list (`DownloadJobs`, links on Links, online
-  music on Online; `useJobNotifications` toasts finished jobs and refreshes the library).
+  Online share the destination (`useDestination`, `DestinationSection`: library and folder, kept while switching tabs)
+  and the server job list (`DownloadJobs`, links on Links, online music on Online; `useJobNotifications` toasts finished
+  jobs and refreshes the library). Organizing by tags is not chosen per tab: the three tabs send no `organize`, so
+  `settings.organizeByTags` applies to all of them; `DestinationSection` shows the current behaviour and pattern from
+  `GET /manage/placement` (with a link to the server settings for administrators). Tracks that arrive without an artist
+  or album tag (`untagged`) are prompted for the same way everywhere (`promptUntagged`): a warning toast with a "Fill in
+  tags" action when the batch or job finishes, and a "Fill in tags" button on the upload row / job row; both open the tag
+  editor on those tracks.
 - **Metadata** `/manage`: virtualized track table (checkbox column, cover, title, artist, album, album artist, #, disc, year, genre, format, bitrate, path; sortable; column visibility), search + filters (album/artist/genre/folder/missing), multi-select (click, shift-range, ctrl/cmd toggle, select all matching). Toolbar: Edit tags, Cover, Rename/Organize, Fix encoding, Rebuild tags, Delete, Rescan. Mobile: list with selection mode.
 - **Music-file confirmations**: tag, cover, and lyric saves (including Ctrl/Cmd+S),
   rename, encoding repair, tag rebuild, delete-to-trash, and permanent trash purge
@@ -1540,9 +1558,9 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   filesystem checks remain authoritative; API shapes are unchanged.
 - **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button), *Cover* (preview, drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines are `original 中文`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
-- **Upload** `/manage/upload`: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker, "organize by tags" toggle.
+- **Upload** `/manage/upload`: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker; files picked or dropped (folders included) are placed like every other import.
 - **Links** `/manage/links` (`LinkDownload` below the shared `DestinationSection`): YouTube / bilibili link (share text accepted; `detectSite` shows a site chip), audio format
-  (original / M4A / MP3 / Opus, remembered), "whole playlist", same destination and organize options; the job list polls
+  (original / M4A / MP3 / Opus, remembered), "whole playlist", same destination; the job list polls
   `/manage/downloads` every second while a job is active (progress, entry n/m, speed, ETA, cancel / retry / remove, Edit tags
   when done) and toasts + refreshes the library when a job this page saw finishes. When the feature is off or yt-dlp is not
   installed, the page says so (admins get a link to Admin → yt-dlp, `/admin/settings/ytdlp`).

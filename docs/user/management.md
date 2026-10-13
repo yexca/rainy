@@ -145,10 +145,22 @@ left empty are removed (never the library root). The default pattern is set in
 ## Upload
 
 **Tracks → Upload** accepts files and whole folders by drag and drop, with
-per-file progress. Choose the target library and folder, and optionally
-**Organize by tags** to place each file with the rename pattern. Without
-organizing, uploaded folder structure is kept. Uploaded files appear in the
-library immediately.
+per-file progress. Choose the target library and folder. Uploaded files appear
+in the library immediately.
+
+By default every file you add — picked, dragged in, downloaded from a link, or
+taken from an online catalogue — is **organized by tags**: Rainy places it with
+the rename pattern, under the folder you chose. The destination box shows the
+pattern in use. An administrator can turn this off with **Organize added music
+by tags** in **Admin → Settings**; files then keep their names in the chosen
+folder, and uploaded folder structure is kept.
+
+A file without artist or album tags is still added, under
+`[Unknown Artist]/[Unknown Album]` when organizing. Rainy then asks for the
+missing tags: select **Fill in tags** in the notice or next to the file to open
+the tag editor. Filling in tags does not move the file; use
+[Rename / organize](#rename-and-organize) afterwards to file it by its new
+tags.
 
 Uploads through a reverse proxy are limited by the proxy's body size; see
 [Reverse proxy](../operations/reverse-proxy.md).
@@ -162,9 +174,9 @@ too), choose the audio format, and select **Download**. **Original (no
 conversion)** keeps the site's audio stream (Opus from YouTube, AAC from
 bilibili); M4A, MP3, and Opus convert it. **Whole playlist** downloads up to
 100 entries of the playlist or multi-part video the link belongs to. Files go
-to the destination above and follow **Organize by tags** like uploads;
-otherwise they are named after the video title, and playlist entries go into a
-folder named after the playlist. Rainy writes the title, artist (the channel
+to the destination above and are organized by tags like uploads; when
+organizing is off they are named after the video title, and playlist entries
+go into a folder named after the playlist. Rainy writes the title, artist (the channel
 when nothing better is known), album, date, the source link as the comment, and
 a square cover cut from the thumbnail; fix the rest in the tag editor. Downloads
 run on the server, so you can leave the page; live streams are skipped. Only
@@ -201,8 +213,9 @@ choose the destination (shared with the Upload and Links tabs), the best quality
 want (Hi-Res, FLAC, 320K, or 128K; a lower one is used when the song or the
 sources lack it), and whether to embed the catalogue's lyrics (with a paired
 translation) and cover. Rainy writes the title, artists, album, lyrics, and
-cover, names files `Title - Artists.ext` unless you organize by tags, and
-records each download in the edit history. Downloads run on the server, so you
+cover, organizes files by tags like uploads (or names them
+`Title - Artists.ext` when organizing is off), and records each download in
+the edit history. Downloads run on the server, so you
 can leave the page. Only download what you have the right to keep.
 
 Rainy cannot obtain songs by itself: the download link comes from a **music

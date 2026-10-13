@@ -65,7 +65,7 @@ func TestJSONMatchesTSContract(t *testing.T) {
 		{"TrashEntry", TrashEntry{}, `id libraryId originalPath trashPath size title artist album trackId deletedBy deletedAt`, ""},
 		{"Library", Library{}, `id name path createdAt updatedAt lastScanAt`, ""},
 		{"Settings", Settings{}, `scanInterval genreSeparators ignoredArticles coverArtFiles transcodeFormat
-			transcodeBitrate renamePattern fixEncodingOnScan enableDownloads onlineMetadata onlineMetadataChinaIp ytdlpEnabled
+			transcodeBitrate renamePattern organizeByTags fixEncodingOnScan enableDownloads onlineMetadata onlineMetadataChinaIp ytdlpEnabled
 			lxSourcesEnabled lxSourceMode lxSourceId lastfmEnabled listenBrainzEnabled`, ""},
 	}
 	for _, c := range cases {

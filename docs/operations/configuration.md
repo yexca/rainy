@@ -101,7 +101,8 @@ and are stored in the `settings` table.
 | Cover art files | `cover.*,folder.*,front.*,album.*,albumart*.*` | Folder image names, in priority order |
 | Transcode format | `mp3` | Default target when a client limits the bitrate (`mp3`, `opus`, or `aac`) |
 | Transcode bitrate | `192` | Default bitrate in kbps |
-| Rename pattern | `{albumartist}/{album}/[{disc}-]{track:2} {title}` | Default pattern for rename and organized uploads |
+| Rename pattern | `{albumartist}/{album}/[{disc}-]{track:2} {title}` | Default pattern for rename and for music organized when it is added |
+| Organize added music by tags | on | Place uploads, link downloads, and online music with the rename pattern, under the folder chosen when adding them. When off, files keep their names in that folder |
 | Repair garbled tags when reading | on | Show GBK, Big5, and Shift-JIS tags correctly without modifying files |
 | Allow downloads | on | Let users with the download permission save original files |
 | Online metadata lookup | off | Let managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo, and iTunes from the tag editor. The server contacts these services only when someone searches; see [Privacy](../../PRIVACY.md#online-metadata-lookup). Outbound requests honor `HTTPS_PROXY` / `HTTP_PROXY`. |

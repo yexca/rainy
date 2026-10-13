@@ -88,10 +88,12 @@ type ItemError struct {
 }
 
 // BatchResult is the response of batch operations: the tracks as they are now, and the
-// items that failed.
+// items that failed. Imports (uploads and downloads) also list the new tracks that have no
+// artist or album tag.
 type BatchResult struct {
-	Updated []model.Track `json:"updated"`
-	Errors  []ItemError   `json:"errors"`
+	Updated  []model.Track `json:"updated"`
+	Errors   []ItemError   `json:"errors"`
+	Untagged []string      `json:"untagged,omitempty"`
 
 	errs []error // the errors behind Errors (for readonly detection)
 }
@@ -138,6 +140,15 @@ func (s *Service) settings(ctx context.Context) model.Settings {
 		return def
 	}
 	return set
+}
+
+// organize resolves the optional "organize" flag of an import request: when the request
+// does not say, settings.OrganizeByTags decides.
+func (s *Service) organize(ctx context.Context, requested *bool) bool {
+	if requested != nil {
+		return *requested
+	}
+	return s.settings(ctx).OrganizeByTags
 }
 
 // libraries caches library rows for the duration of one operation.

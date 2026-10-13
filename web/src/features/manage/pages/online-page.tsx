@@ -158,7 +158,7 @@ function OnlineSearch() {
       const jobs = []
       for (const part of chunk(list, BATCH)) {
         const res = await api.manage.online.download({
-          songs: part, quality, lyrics, cover, libraryId: target.libraryId, dir: target.dir || undefined, organize: target.organize,
+          songs: part, quality, lyrics, cover, libraryId: target.libraryId, dir: target.dir || undefined,
         })
         jobs.push(...res.jobs)
       }
