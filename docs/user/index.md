@@ -24,11 +24,11 @@ OpenAI; Apple; Google MD), and the accent colour; the **Original** accent follow
 the style. A style also sets the layout: on tablets and desktops Apple and OpenAI have no bar
 across the top and keep your account and the appearance button in the bottom-left corner of
 the sidebar, OpenAI and Google MD show Quick actions as a search-like field, and Google MD
-labels the icons of the collapsed sidebar. Album, playlist, and artist pages take on the colours of their artwork; turn **Album colours** off
-there if you prefer the plain theme. The **Immersive** switch next to the accent colour, on by
-default in Apple, goes further and colours the whole app — sidebar, player, and menus — with the
+labels the icons of the collapsed sidebar. The **Immersive** switch next to the accent colour, on by
+default in Apple, colours the whole app — sidebar, player, and menus — with the
 album, playlist, or artist on screen, or with the song playing on other pages; the cover's
-colours glow softly behind the sidebar, the header, and the page. While it is on,
+colours glow softly behind the sidebar, the header, and the page, and those pages blur their
+artwork behind the header. With Immersive off every page keeps the style's own look. While it is on,
 the first accent swatch takes the highlight from the cover too, and the other swatches keep a
 highlight colour of your choice.
 Rainy's mascot appears on empty and error pages and keeps you company in the

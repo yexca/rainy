@@ -11,15 +11,12 @@ export interface ThemeContextValue {
   style: Style
   /** The highlight; in immersive mode `original` takes it from the cover and a preset keeps its own. */
   accent: Accent
-  /** Album pages take on the cover's colours (immersive mode does so everywhere). */
-  albumColors: boolean
   /** Immersive mode: the whole app takes its colours from the cover on screen or playing. */
   immersive: boolean
   setTheme: (theme: Theme) => void
   /** Also moves immersive mode to what the new style starts with, unless the user set it otherwise. */
   setStyle: (style: Style) => void
   setAccent: (accent: Accent) => void
-  setAlbumColors: (enabled: boolean) => void
   setImmersive: (enabled: boolean) => void
   /** Immersive mode: tokens that replace the theme on `<html>` (`null` restores it). */
   setOverride: (override: ThemeOverride | null) => void

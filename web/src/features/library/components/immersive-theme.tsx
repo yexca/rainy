@@ -56,7 +56,7 @@ export function ImmersiveTheme() {
 
   const theme = useMemo(() => {
     if (!seeds) return null
-    const cover = coverTheme(seeds, resolvedTheme === 'dark', true)
+    const cover = coverTheme(seeds, resolvedTheme === 'dark')
     return accent === 'original' ? cover : withoutAccent(cover)
   }, [seeds, resolvedTheme, accent])
 
@@ -66,5 +66,5 @@ export function ImmersiveTheme() {
 
   useEffect(() => () => setOverride(null), [setOverride])
 
-  return theme?.backdrop ? <Backdrop colors={theme.backdrop} /> : null
+  return theme ? <Backdrop colors={theme.backdrop} /> : null
 }

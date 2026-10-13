@@ -101,7 +101,7 @@ export default function PlaylistPage() {
   ) : null
 
   return (
-    // Like album pages, the page takes on the artwork's colours.
+    // Like album pages, the app takes on the artwork's colours in immersive mode.
     <Page {...coverTheme}>
       <div className="relative isolate">
         {playlist && playlist.songCount > 0 ? (

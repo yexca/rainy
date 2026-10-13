@@ -1,8 +1,8 @@
 /**
- * Album colours (no imports, unit-tested in web/tests): pick a background and an accent colour
- * from a cover's pixels, then derive a scoped set of theme tokens (`--background`,
- * `--foreground`, `--primary`, …) so a detail page takes on the album's colours, like the
- * Apple Music album view. Colour math runs in OKLab/OKLCH; every token is gamut-mapped to sRGB
+ * Cover colours for immersive mode (no imports, unit-tested in web/tests): pick a background and
+ * an accent colour from a cover's pixels, then derive a set of theme tokens (`--background`,
+ * `--foreground`, `--primary`, …) and the colour fields behind the app, so the whole app takes
+ * on the cover's colours. Colour math runs in OKLab/OKLCH; every token is gamut-mapped to sRGB
  * and text colours are checked against WCAG contrast.
  */
 
@@ -22,14 +22,14 @@ export interface CoverSeeds {
 }
 
 export interface CoverTheme {
-  /** The page renders dark (adds `.dark` so `dark:` variants follow). */
+  /** The app renders dark (adds `.dark` so `dark:` variants follow). */
   dark: boolean
-  /** Custom properties to set on the page element. */
+  /** Custom properties to set on `<html>`. */
   vars: Record<string, string>
   /** Page background as hex, for `<meta name="theme-color">`. */
   themeColor: string
-  /** With `backdrop`: the hex colours of the fields drawn behind the app (`<ImmersiveTheme/>`). */
-  backdrop?: string[]
+  /** The hex colours of the fields drawn behind the app (`<ImmersiveTheme/>`). */
+  backdrop: string[]
 }
 
 type Rgb = [number, number, number]
@@ -246,7 +246,7 @@ function withContrast(color: Oklch, bg: Oklch, ratio: number, direction: 1 | -1)
   return current
 }
 
-/** Lightness below which a light-themed viewer still gets a dark album page. */
+/** Lightness below which a light-themed viewer still gets a dark app. */
 const DARK_COVER_LIGHTNESS = 0.6
 
 /**
@@ -271,15 +271,15 @@ function backdropFields(seeds: CoverSeeds, bg: Oklch, dark: boolean): Oklch[] {
 }
 
 /**
- * Theme tokens for a page coloured by `seeds`. `siteDark` is the resolved app theme: a dark
- * app always gets a deep version of the cover colour; a light app gets a pale tint, or a deep
- * page when the cover itself is dark. The accent becomes `--primary` (kept readable against the
- * page); a greyscale cover keeps the user's accent.
+ * Theme tokens for an app coloured by `seeds` (immersive mode). `siteDark` is the resolved app
+ * theme: a dark app always gets a deep version of the cover colour; a light app gets a pale
+ * tint, or a deep page when the cover itself is dark. The accent becomes `--primary`; a
+ * greyscale cover keeps the user's accent.
  *
- * `backdrop` (immersive mode) also returns the colour fields drawn behind the app: text stays
- * readable on each of them, and cards and fills turn translucent so the fields show through.
+ * Also returns the colour fields drawn behind the app (`backdrop`): text stays readable on the
+ * page and on each of them, and cards and fills are translucent so the fields show through.
  */
-export function coverTheme(seeds: CoverSeeds, siteDark: boolean, backdrop = false): CoverTheme {
+export function coverTheme(seeds: CoverSeeds, siteDark: boolean): CoverTheme {
   const seed = seeds.background
   const hue = seed.h
   const dark = siteDark || seed.l < DARK_COVER_LIGHTNESS
@@ -293,7 +293,7 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean, backdrop = fals
 
   // Text is checked against the hardest surface it sits on: the page, or the colour field
   // closest to the text in lightness.
-  const fields = backdrop ? backdropFields(seeds, bg, dark) : []
+  const fields = backdropFields(seeds, bg, dark)
   const surface = fields.reduce((hardest, field) => (luminance(field) > luminance(hardest) === dark ? field : hardest), bg)
 
   const fg: Oklch = dark ? { l: 0.98, c: Math.min(bg.c, 0.015), h: hue } : { l: 0.2, c: Math.min(bg.c, 0.02), h: hue }
@@ -303,32 +303,25 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean, backdrop = fals
     TEXT_CONTRAST,
     dark ? 1 : -1,
   )
-  const card: Oklch = dark ? { ...bg, l: bg.l + 0.035 } : { l: Math.min(bg.l + 0.025, 0.99), c: bg.c * 0.6, h: hue }
-  const fill: Oklch = dark ? { l: bg.l + 0.075, c: bg.c * 0.9, h: hue } : { l: bg.l - 0.045, c: bg.c * 1.2, h: hue }
+  // Menus (`--popover`) stay opaque; cards and fills only veil what is behind them.
+  const popover: Oklch = dark ? { ...bg, l: bg.l + 0.035 } : { l: Math.min(bg.l + 0.025, 0.99), c: bg.c * 0.6, h: hue }
+  const veil = dark ? 'rgb(255 255 255 / 9%)' : 'rgb(0 0 0 / 6%)'
 
   const vars: Record<string, string> = {
     '--background': toHex(bg),
     '--foreground': toHex(fg),
-    '--card': toHex(card),
+    '--card': dark ? 'rgb(255 255 255 / 5%)' : 'rgb(255 255 255 / 45%)',
     '--card-foreground': toHex(fg),
-    '--popover': toHex(card),
+    '--popover': toHex(popover),
     '--popover-foreground': toHex(fg),
-    '--secondary': toHex(fill),
+    '--secondary': veil,
     '--secondary-foreground': toHex(fg),
-    '--muted': toHex(fill),
+    '--muted': veil,
     '--muted-foreground': toHex(muted),
-    '--accent': toHex(fill),
+    '--accent': veil,
     '--accent-foreground': toHex(fg),
     '--border': dark ? 'rgb(255 255 255 / 12%)' : 'rgb(0 0 0 / 10%)',
     '--input': dark ? 'rgb(255 255 255 / 16%)' : 'rgb(0 0 0 / 12%)',
-  }
-  if (backdrop) {
-    // Menus (`--popover`) stay opaque; cards and fills only veil what is behind them.
-    const veil = dark ? 'rgb(255 255 255 / 9%)' : 'rgb(0 0 0 / 6%)'
-    vars['--card'] = dark ? 'rgb(255 255 255 / 5%)' : 'rgb(255 255 255 / 45%)'
-    vars['--secondary'] = veil
-    vars['--muted'] = veil
-    vars['--accent'] = veil
   }
 
   const accentSeed = seeds.accent
@@ -345,7 +338,7 @@ export function coverTheme(seeds: CoverSeeds, siteDark: boolean, backdrop = fals
     vars['--ring'] = toHex(primary)
   }
 
-  return backdrop ? { dark, vars, themeColor: toHex(bg), backdrop: fields.map(toHex) } : { dark, vars, themeColor: toHex(bg) }
+  return { dark, vars, themeColor: toHex(bg), backdrop: fields.map(toHex) }
 }
 
 /** The cover's highlight tokens: left out when the user's accent preset keeps the highlight. */

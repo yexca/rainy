@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { coverUrlForPixels } from '@/lib/cover'
 import { cn } from '@/lib/utils'
 
+import { useImmersive } from '../lib/use-cover-theme'
+
 export interface CollectionHeroProps {
   coverArt: string
   shape?: 'square' | 'circle'
@@ -28,12 +30,14 @@ export interface CollectionHeroProps {
 }
 
 /**
- * Blurred, saturated artwork glow behind a hero. It fades out through a mask rather than into
- * the page colour, so it also sits on a see-through page (immersive mode).
+ * Blurred, saturated artwork glow behind a hero, in immersive mode only: with the mode off the
+ * hero sits on the style's plain page and no cover is drawn behind it. It fades out through a
+ * mask rather than into the page colour, because the immersive page is see-through.
  */
 export function ArtworkBackdrop({ coverArt, className }: { coverArt: string; className?: string }) {
+  const immersive = useImmersive()
   const [loaded, setLoaded] = useState(false)
-  if (!coverArt) return null
+  if (!immersive || !coverArt) return null
   return (
     <div
       aria-hidden

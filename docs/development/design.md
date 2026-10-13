@@ -43,30 +43,31 @@ explains the rules every UI change must keep.
 - Accent presets set `--primary`: `original` (default, the style's own
   accent), `rain` (periwinkle blue), `rose`, `violet`, `emerald`, `amber`, and
   `graphite`. A preset wins over every style.
-- **Album colours.** Album, playlist, and artist pages take on their
-  artwork's colours, like the Apple Music album view: the dominant colour becomes the page background
-  (a deep tone in the dark theme or for dark covers, a pale tint otherwise)
-  and the most vivid colour becomes `--primary`. The tokens are scoped to the
-  page element, so the sidebar, player, and menus keep the user's theme, and
-  every text colour keeps WCAG AA contrast. Greyscale covers keep the user's
-  accent; pages without artwork keep the plain theme. Users can turn this
-  off under Settings → Appearance.
-- **Immersive mode** applies the same cover colours to the whole app —
-  sidebar, header, player, menus — using the cover page on screen, or else the
-  playing song. Its switch sits beside the accent label, and the swatches
+- **Covers never colour a style.** With immersive mode off, album, playlist,
+  and artist pages look like every other page of the style in use: the
+  style's own surfaces and accent, no colours taken from the artwork, and
+  nothing blurred behind the header. The artwork itself is the only picture on
+  the page.
+- **Immersive mode** is the one place where covers set the colours, like the
+  Apple Music album view, and it does so for the whole app — sidebar, header,
+  player, menus — using the cover page on screen, or else the playing song.
+  The cover's dominant colour becomes the background (a deep tone in the dark
+  theme or for dark covers, a pale tint otherwise) and its most vivid colour
+  the highlight. Its switch sits beside the accent label, and the swatches
   below pick the highlight: the first becomes a colour wheel, meaning the
   highlight follows the cover too (the style's own colour when there is no
   cover or it is greyscale), and the presets stay fixed highlights over the
-  cover's surfaces. Without a cover the user's theme returns. It works
-  whatever the album colours setting, which only governs the mode when off.
+  cover's surfaces. Without a cover the user's theme returns.
   The cover's colours also fill the window as three soft colour fields (its
   own hue, the accent's, and a neighbouring one; radial gradients, no blur
   filters) behind the app, and the chrome is see-through over them: the
   sidebar and the page are transparent, the app header is glass because pages
   scroll under it, and cards and fills are translucent veils. Menus and
-  dialogs stay opaque. Every text colour keeps WCAG AA contrast on each
-  field. From tablets up the fields drift while music plays and reduced
-  motion is off; phones keep them still and keep their opaque bars.
+  dialogs stay opaque. Album, playlist, and artist pages also blur their
+  artwork into a soft glow behind the header; that glow belongs to this mode
+  only. Every text colour keeps WCAG AA contrast on each field. From tablets
+  up the fields drift while music plays and reduced motion is off; phones
+  keep them still and keep their opaque bars.
 - Each style picks its Latin faces and falls back to system and CJK fonts;
   `h1` titles use the style's heading face. Times and durations use tabular
   numbers.

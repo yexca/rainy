@@ -34,7 +34,7 @@ export default function AlbumPage() {
   const coverTheme = useCoverTheme(album?.coverArt)
 
   return (
-    // The whole page (nav bar, hero, tracks, footer) takes on the album's colours.
+    // In immersive mode the whole app takes on the album's colours.
     <Page {...coverTheme}>
       <div className="relative isolate">
         {album ? <ArtworkBackdrop key={album.coverArt} coverArt={album.coverArt} className="bleed-x h-[34rem] md:h-[26rem]" /> : null}

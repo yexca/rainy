@@ -24,8 +24,6 @@ export type Theme = (typeof THEMES)[number]
 export const THEME_STORAGE_KEY = 'rainy.theme'
 export const STYLE_STORAGE_KEY = 'rainy.style'
 export const ACCENT_STORAGE_KEY = 'rainy.accent'
-/** Album pages take on the cover's colours (`'0'` turns it off). */
-export const ALBUM_COLORS_STORAGE_KEY = 'rainy.album-colors'
 /** Immersive mode: the whole app takes on the current cover's colours (`'1'` on, `'0'` off, unset: the style decides). */
 export const IMMERSIVE_STORAGE_KEY = 'rainy.immersive'
 
@@ -74,10 +72,6 @@ export function readAccent(): Accent {
   return isAccent(value) ? value : DEFAULT_ACCENT
 }
 
-export function readAlbumColors(): boolean {
-  return readStorage(ALBUM_COLORS_STORAGE_KEY) !== '0'
-}
-
 /** The saved choice, or what the style starts with. */
 export function readImmersive(style: Style = readStyle()): boolean {
   const value = readStorage(IMMERSIVE_STORAGE_KEY)
@@ -94,10 +88,6 @@ export function storeStyle(style: Style): void {
 
 export function storeAccent(accent: Accent): void {
   writeStorage(ACCENT_STORAGE_KEY, accent)
-}
-
-export function storeAlbumColors(enabled: boolean): void {
-  writeStorage(ALBUM_COLORS_STORAGE_KEY, enabled ? '1' : '0')
 }
 
 export function storeImmersive(enabled: boolean): void {
@@ -121,14 +111,6 @@ function withoutTransitions(fn: () => void): void {
 
 /** The override applied to `<html>` by the last applyTheme() (its inline properties to remove later). */
 let applied: ThemeOverride | null = null
-
-/** The theme colour for what `<html>` shows right now (after applyTheme or the pre-paint script). */
-export function currentThemeColor(): string {
-  if (applied) return applied.themeColor
-  const root = document.documentElement
-  const style = isStyle(root.dataset.style) ? root.dataset.style : DEFAULT_STYLE
-  return themeColor(style, root.classList.contains('dark') ? 'dark' : 'light')
-}
 
 /**
  * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser

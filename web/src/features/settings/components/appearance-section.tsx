@@ -12,7 +12,7 @@ import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
 
 export function AppearanceSection() {
   const { t, i18n } = useTranslation('settings')
-  const { theme, setTheme, style, setStyle, accent, setAccent, albumColors, setAlbumColors, immersive, setImmersive } = useTheme()
+  const { theme, setTheme, style, setStyle, accent, setAccent, immersive, setImmersive } = useTheme()
   // Re-render on language change (i18n.language is read for the current value).
   const language: Language = i18n.language ? currentLanguage() : 'en'
 
@@ -43,14 +43,6 @@ export function AppearanceSection() {
           <AccentPicker value={accent} style={style} immersive={immersive} onChange={setAccent} />
         </div>
       </div>
-      {/* Immersive mode already colours every page, cover pages included. */}
-      <SettingsRow
-        label={t('appearance.albumColors')}
-        description={immersive ? t('appearance.albumColorsImmersive') : t('appearance.albumColorsHint')}
-        htmlFor="settings-album-colors"
-      >
-        <Switch id="settings-album-colors" checked={immersive || albumColors} onCheckedChange={setAlbumColors} disabled={immersive} />
-      </SettingsRow>
       <SettingsRow label={t('common:language.label')} stacked>
         <Segmented
           label={t('common:language.label')}

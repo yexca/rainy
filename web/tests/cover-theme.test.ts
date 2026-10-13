@@ -99,45 +99,29 @@ describe('coverTheme', () => {
     assert.equal(theme.themeColor, theme.vars['--background'])
   })
 
-  it('keeps text and accent readable for any cover colour (WCAG AA)', () => {
+  it('keeps text and accent readable on the page and on every colour field behind it (WCAG AA)', () => {
     for (const siteDark of [false, true]) {
       for (let l = 0.05; l <= 1; l += 0.15) {
         for (let c = 0; c <= 0.3; c += 0.1) {
           for (let h = 0; h < 360; h += 30) {
             const color = { l, c, h }
-            const theme = coverTheme(seeds(color, c > 0 ? color : null), siteDark)
-            const bg = fromHex(theme.vars['--background'])
-            const label = `l=${l.toFixed(2)} c=${c.toFixed(1)} h=${h} dark=${siteDark}`
-            assert.ok(contrast(fromHex(theme.vars['--foreground']), bg) >= 7, `foreground ${label}`)
-            // Hex rounding may cost a hair of contrast.
-            assert.ok(contrast(fromHex(theme.vars['--muted-foreground']), bg) >= TEXT_CONTRAST - 0.1, `muted ${label}`)
-            if (theme.vars['--primary']) {
-              const primary = fromHex(theme.vars['--primary'])
-              assert.ok(contrast(primary, bg) >= TEXT_CONTRAST - 0.1, `primary ${label}`)
-              assert.ok(contrast(fromHex(theme.vars['--primary-foreground']), primary) >= 3, `on primary ${label}`)
-            }
-          }
-        }
-      }
-    }
-  })
-
-  it('keeps text and accent readable on every colour field of the immersive backdrop', () => {
-    for (const siteDark of [false, true]) {
-      for (let l = 0.05; l <= 1; l += 0.15) {
-        for (let c = 0; c <= 0.3; c += 0.1) {
-          for (let h = 0; h < 360; h += 30) {
-            const color = { l, c, h }
-            const accent = c > 0 ? { l: 1 - l, c, h: h + 150 } : null
-            const theme = coverTheme(seeds(color, accent), siteDark, true)
-            const label = `l=${l.toFixed(2)} c=${c.toFixed(1)} h=${h} dark=${siteDark}`
-            assert.equal(theme.backdrop?.length, 3, `fields ${label}`)
-            for (const hex of [theme.vars['--background'], ...(theme.backdrop ?? [])]) {
-              const surface = fromHex(hex)
-              assert.ok(contrast(fromHex(theme.vars['--foreground']), surface) >= 7, `foreground on ${hex} ${label}`)
-              assert.ok(contrast(fromHex(theme.vars['--muted-foreground']), surface) >= TEXT_CONTRAST - 0.1, `muted on ${hex} ${label}`)
+            // The cover's own colour as the accent, and a contrasting one.
+            for (const accent of c > 0 ? [color, { l: 1 - l, c, h: h + 150 }] : [null]) {
+              const theme = coverTheme(seeds(color, accent), siteDark)
+              const label = `l=${l.toFixed(2)} c=${c.toFixed(1)} h=${h} accent=${accent?.h} dark=${siteDark}`
+              assert.equal(theme.backdrop.length, 3, `fields ${label}`)
+              for (const hex of [theme.vars['--background'], ...theme.backdrop]) {
+                const surface = fromHex(hex)
+                assert.ok(contrast(fromHex(theme.vars['--foreground']), surface) >= 7, `foreground on ${hex} ${label}`)
+                // Hex rounding may cost a hair of contrast.
+                assert.ok(contrast(fromHex(theme.vars['--muted-foreground']), surface) >= TEXT_CONTRAST - 0.1, `muted on ${hex} ${label}`)
+                if (theme.vars['--primary']) {
+                  assert.ok(contrast(fromHex(theme.vars['--primary']), surface) >= TEXT_CONTRAST - 0.1, `primary on ${hex} ${label}`)
+                }
+              }
               if (theme.vars['--primary']) {
-                assert.ok(contrast(fromHex(theme.vars['--primary']), surface) >= TEXT_CONTRAST - 0.1, `primary on ${hex} ${label}`)
+                const primary = fromHex(theme.vars['--primary'])
+                assert.ok(contrast(fromHex(theme.vars['--primary-foreground']), primary) >= 3, `on primary ${label}`)
               }
             }
           }
@@ -146,11 +130,9 @@ describe('coverTheme', () => {
     }
   })
 
-  it('draws a backdrop only when asked, with see-through cards and fills and opaque menus', () => {
-    const cover = seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 })
-    assert.equal(coverTheme(cover, true).backdrop, undefined)
-    const theme = coverTheme(cover, true, true)
-    for (const hex of theme.backdrop ?? []) assert.match(hex, /^#[0-9a-f]{6}$/)
+  it('draws colour fields behind see-through cards and fills, and keeps menus opaque', () => {
+    const theme = coverTheme(seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 }), true)
+    for (const hex of theme.backdrop) assert.match(hex, /^#[0-9a-f]{6}$/)
     for (const key of ['--card', '--secondary', '--muted', '--accent']) assert.match(theme.vars[key], /^rgb\(.+ \/ \d+%\)$/, key)
     for (const key of ['--background', '--popover']) assert.match(theme.vars[key], /^#[0-9a-f]{6}$/, key)
     assert.deepEqual(withoutAccent(theme).backdrop, theme.backdrop)
@@ -158,7 +140,7 @@ describe('coverTheme', () => {
 
   it('emits valid hex colours', () => {
     const theme = coverTheme(seeds({ l: 0.6, c: 0.35, h: 145 }, { l: 0.7, c: 0.4, h: 330 }), false)
-    for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--card', '--popover', '--secondary']) {
+    for (const key of ['--background', '--foreground', '--primary', '--muted-foreground', '--popover']) {
       assert.match(theme.vars[key], /^#[0-9a-f]{6}$/, key)
     }
   })

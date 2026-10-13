@@ -37,7 +37,7 @@ export default function ArtistPage() {
   const coverTheme = useCoverTheme(artist?.coverArt)
 
   return (
-    // Like album pages, the page takes on the artwork's colours.
+    // Like album pages, the app takes on the artwork's colours in immersive mode.
     <Page {...coverTheme}>
       <div className="relative isolate">
         {artist ? (
