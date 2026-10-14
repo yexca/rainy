@@ -109,6 +109,7 @@ export default function HomePage() {
     <Page>
       <PageHeader
         title={title}
+        bar={false}
         subtitle={
           stats && stats.tracks > 0
             ? t('home.stats', {

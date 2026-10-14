@@ -163,6 +163,9 @@ reading layout.
 
 - Page titles are large and bold. On mobile, the large title collapses into a
   centered navigation title while scrolling (`PageHeader` handles this).
+- Home's title is a greeting, so it gets no top bar of its own
+  (`PageHeader bar={false}`): while scrolling, the app header shows it after
+  the logo, and styles with the sidebar chrome show nothing.
 - Section titles are `text-xl font-semibold`; body text is `text-sm`; secondary
   text uses `text-muted-foreground`.
 - Desktop list rows are 48 px. Mobile rows are 60 px with 44 px artwork and

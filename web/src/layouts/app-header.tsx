@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
+import { useUI } from '@/stores/ui'
 
 import { HeaderActions } from './header-actions'
 import { QuickActionsField } from './quick-actions'
@@ -53,7 +54,8 @@ export function Brand({ className }: { className?: string }) {
  * immersive mode), with the sidebar toggle before the logo;
  * phones (no sidebar) get a glass bar matching the tab bar, with just the logo. The quick-control
  * tray and the account menu sit on the right. Its height is `--app-header-h` (safe area
- * included); page top bars stick right below it.
+ * included); page top bars stick right below it. A page without one (`PageHeader bar={false}`)
+ * has its title after the logo once its large title has scrolled away (`useUI.headerTitle`).
  *
  * `hidden` (styles with the `sidebar` chrome, tablets and desktops): the bar slides up out of
  * view and the sidebar shows the same controls; only a strip over the safe area stays.
@@ -62,6 +64,7 @@ export function Brand({ className }: { className?: string }) {
  */
 export function AppHeader({ hidden = false, field = false, className }: { hidden?: boolean; field?: boolean; className?: string }) {
   const isMobile = useIsMobile()
+  const headerTitle = useUI((s) => s.headerTitle)
 
   return (
     <header
@@ -84,7 +87,19 @@ export function AppHeader({ hidden = false, field = false, className }: { hidden
         )}
       >
         {isMobile ? null : <SidebarToggle />}
-        <Brand className="-ml-1.5 md:ml-0" />
+        <Brand className="-ml-1.5 shrink-0 md:ml-0" />
+        {headerTitle ? (
+          <div
+            aria-hidden={!headerTitle.shown}
+            className={cn(
+              'flex min-w-0 items-center gap-2 transition-opacity duration-200 md:gap-3 md:pl-1.5',
+              headerTitle.shown ? 'opacity-100' : 'opacity-0',
+            )}
+          >
+            <span aria-hidden className="h-5 w-px shrink-0 bg-border md:bg-sidebar-border" />
+            <span className="truncate text-sm font-semibold">{headerTitle.title}</span>
+          </div>
+        ) : null}
         {field ? (
           <div className="flex min-w-0 flex-1 justify-center px-4">
             <QuickActionsField className="w-full max-w-md" />

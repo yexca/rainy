@@ -23,6 +23,13 @@ export interface UIState {
   openAddToPlaylist: (trackIds: string[]) => void
   closeAddToPlaylist: () => void
 
+  /**
+   * The title of a page without a top bar of its own (`PageHeader bar={false}`), for the app
+   * header; `shown` once the page's large title has scrolled away.
+   */
+  headerTitle: HeaderTitle | null
+  setHeaderTitle: (headerTitle: HeaderTitle | null) => void
+
   /** Desktop sidebar expanded (persisted). Tablets always show the icon rail. */
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
@@ -33,6 +40,11 @@ export interface UIState {
   /** Mascot companion in the bottom-right corner on tablets and desktops (persisted). */
   mascotCompanion: boolean
   setMascotCompanion: (on: boolean) => void
+}
+
+export interface HeaderTitle {
+  title: string
+  shown: boolean
 }
 
 const closed: TrackSelectionDialog = { open: false, trackIds: [] }
@@ -49,6 +61,9 @@ export const useUI = create<UIState>()(
       openAddToPlaylist: (trackIds) =>
         set({ addToPlaylist: { open: trackIds.length > 0, trackIds: [...trackIds] } }),
       closeAddToPlaylist: () => set((s) => ({ addToPlaylist: { ...s.addToPlaylist, open: false } })),
+
+      headerTitle: null,
+      setHeaderTitle: (headerTitle) => set({ headerTitle }),
 
       sidebarOpen: true,
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),

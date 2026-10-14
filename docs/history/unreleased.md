@@ -48,3 +48,6 @@ tagged release note; see
   turn Immersive on for the cover-coloured look.
 - The sidebar is narrower (208 px instead of 240 px), leaving more room for
   the library.
+- The home page's greeting no longer gets a bar of its own while you scroll.
+  Styles with a header across the top show it there, beside the logo; styles
+  that keep everything in the sidebar show nothing.

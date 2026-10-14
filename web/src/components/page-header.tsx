@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
+import { useUI } from '@/stores/ui'
 
 export interface PageHeaderProps {
   /** Page title (also used for the collapsed bar and `document.title`). */
@@ -17,6 +18,11 @@ export interface PageHeaderProps {
   navActions?: ReactNode
   /** Back button: `true` = history back (falls back to Home), a string = link target. */
   back?: boolean | string
+  /**
+   * `false`: no top bar of its own. The collapsed title shows in the app header instead (styles
+   * without an app header show none), so `back` and `navActions` have nowhere to go.
+   */
+  bar?: boolean
   /** Extra content below the title block (tabs, filters, search field…). */
   children?: ReactNode
   /** Set `document.title` to "<title> · Rainy" (default true). */
@@ -31,6 +37,7 @@ export interface PageHeaderProps {
  *   a glass nav bar with a small centred title (17px semibold).
  * - Desktop: `text-3xl` title with subtitle + actions; a slim glass bar with the title appears
  *   on scroll.
+ * - `bar={false}`: the bar is left out and the app header shows the title on scroll.
  *
  * Must be rendered inside a `.page-x` container (`<Page>`): the sticky bar bleeds to the edges.
  * Collapsing uses an IntersectionObserver on the large title (no scroll listeners).
@@ -41,6 +48,7 @@ export function PageHeader({
   actions,
   navActions,
   back,
+  bar = true,
   children,
   documentTitle = true,
   className,
@@ -51,6 +59,7 @@ export function PageHeader({
   const barRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const [collapsed, setCollapsed] = useState(false)
+  const setHeaderTitle = useUI((s) => s.setHeaderTitle)
 
   useEffect(() => {
     const bar = barRef.current
@@ -67,7 +76,13 @@ export function PageHeader({
     )
     observer.observe(heading)
     return () => observer.disconnect()
-  }, [isMobile])
+  }, [isMobile, bar])
+
+  useEffect(() => {
+    if (bar) return
+    setHeaderTitle({ title, shown: collapsed })
+    return () => setHeaderTitle(null)
+  }, [bar, title, collapsed, setHeaderTitle])
 
   useEffect(() => {
     if (!documentTitle) return
@@ -90,56 +105,67 @@ export function PageHeader({
 
   return (
     <header className={cn('relative', className)}>
+      {bar ? (
+        <div
+          ref={barRef}
+          className={cn(
+            'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 transition-[background-color,border-color] duration-200',
+            collapsed ? 'glass' : '[--hairline-color:transparent]',
+          )}
+        >
+          <div className="relative flex h-11 items-center gap-1 md:h-12">
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              {back ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goBack}
+                  aria-label={t('actions.back')}
+                  className="-ml-2 size-11 text-primary hover:bg-transparent hover:text-primary/80 md:-ml-1 md:size-8 md:text-foreground md:hover:bg-accent"
+                >
+                  <ChevronLeft className="size-7 md:size-5" strokeWidth={isMobile ? 2 : 1.75} />
+                </Button>
+              ) : null}
+              {!isMobile ? (
+                <span
+                  aria-hidden={!collapsed}
+                  className={cn(
+                    'truncate text-sm font-semibold transition-opacity duration-200',
+                    collapsed ? 'opacity-100' : 'opacity-0',
+                  )}
+                >
+                  {title}
+                </span>
+              ) : null}
+            </div>
+            {isMobile ? (
+              <div className="pointer-events-none absolute inset-x-14 flex justify-center">
+                <span
+                  aria-hidden={!collapsed}
+                  className={cn(
+                    'truncate text-[17px] font-semibold transition-opacity duration-200',
+                    collapsed ? 'opacity-100' : 'opacity-0',
+                  )}
+                >
+                  {title}
+                </span>
+              </div>
+            ) : null}
+            {navActions ? <div className="flex shrink-0 items-center gap-1">{navActions}</div> : null}
+          </div>
+        </div>
+      ) : (
+        // Where a bar would stick: the title is collapsed once it has scrolled above this line.
+        <div ref={barRef} aria-hidden className="sticky top-(--app-header-h) h-0" />
+      )}
+
       <div
-        ref={barRef}
         className={cn(
-          'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 transition-[background-color,border-color] duration-200',
-          collapsed ? 'glass' : '[--hairline-color:transparent]',
+          'pb-4 md:flex md:items-end md:justify-between md:gap-6 md:pb-6',
+          // Without a bar the title keeps the place it has below one.
+          bar ? 'pt-1 md:pt-2' : 'pt-12 md:pt-14',
         )}
       >
-        <div className="relative flex h-11 items-center gap-1 md:h-12">
-          <div className="flex min-w-0 flex-1 items-center gap-1">
-            {back ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goBack}
-                aria-label={t('actions.back')}
-                className="-ml-2 size-11 text-primary hover:bg-transparent hover:text-primary/80 md:-ml-1 md:size-8 md:text-foreground md:hover:bg-accent"
-              >
-                <ChevronLeft className="size-7 md:size-5" strokeWidth={isMobile ? 2 : 1.75} />
-              </Button>
-            ) : null}
-            {!isMobile ? (
-              <span
-                aria-hidden={!collapsed}
-                className={cn(
-                  'truncate text-sm font-semibold transition-opacity duration-200',
-                  collapsed ? 'opacity-100' : 'opacity-0',
-                )}
-              >
-                {title}
-              </span>
-            ) : null}
-          </div>
-          {isMobile ? (
-            <div className="pointer-events-none absolute inset-x-14 flex justify-center">
-              <span
-                aria-hidden={!collapsed}
-                className={cn(
-                  'truncate text-[17px] font-semibold transition-opacity duration-200',
-                  collapsed ? 'opacity-100' : 'opacity-0',
-                )}
-              >
-                {title}
-              </span>
-            </div>
-          ) : null}
-          {navActions ? <div className="flex shrink-0 items-center gap-1">{navActions}</div> : null}
-        </div>
-      </div>
-
-      <div className="pt-1 pb-4 md:flex md:items-end md:justify-between md:gap-6 md:pt-2 md:pb-6">
         <div className="min-w-0">
           <h1
             ref={titleRef}
