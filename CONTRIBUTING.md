@@ -101,7 +101,9 @@ explains how they map to Actions jobs.
 - Put runtime setup, configuration, and troubleshooting in `docs/operations/`.
 - Put local development and test instructions in `docs/development/`.
 - Capture durable architectural decisions as ADRs in `docs/decisions/`.
-- Record user-facing changes in `docs/history/unreleased.md`.
+- Record user-facing changes in `docs/history/unreleased.md`, as a bullet in
+  the folded block of its area; see
+  [Release Notes](docs/development/commit-and-release.md#release-notes).
 - Keep the translated READMEs in `docs/readme/` in step with `README.md`.
 
 ## Sensitive Data Check

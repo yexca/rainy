@@ -277,7 +277,7 @@ several versions.
 digest, and change it deliberately during upgrades:
 
 ```dotenv
-RAINY_IMAGE=yexca/rainy:0.1.1
+RAINY_IMAGE=yexca/rainy:0.1.2
 # or
 RAINY_IMAGE=yexca/rainy@sha256:<digest>
 ```

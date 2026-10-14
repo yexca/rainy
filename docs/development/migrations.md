@@ -55,8 +55,9 @@ The version stored in `schema_migrations` is the file name without `.sql`.
 4. Add a store test that exercises the new column or table through
    `dbtest.New(t)`, which runs the complete chain.
 5. Mention the migration in
-   [`docs/history/unreleased.md`](../history/unreleased.md) so the release note
-   can tell operators to back up `/config` first.
+   [`docs/history/unreleased.md`](../history/unreleased.md) as an
+   `[!IMPORTANT]` note above the area blocks, so the release note can tell
+   operators to back up `/config` first.
 
 ## Related Docs
 
