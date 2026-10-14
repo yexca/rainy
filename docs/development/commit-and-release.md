@@ -23,6 +23,13 @@ Common types are `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, and
 Before every commit, run `make sensitive-check`; see
 [Testing](testing.md#before-committing).
 
+## Signed Commits
+
+Commits are signed with the committer's configured Git signing key. When the
+signer is unavailable or waits for approval, stop and resolve it; never
+disable signing, pass `--no-gpg-sign`, or switch to another signer to get a
+commit through.
+
 ## Release Notes
 
 A release note shows its area titles and folds the changes under each one, so
@@ -81,9 +88,10 @@ title already identify the version.
 
 [`VERSION`](../../VERSION) is the single source of the application version and
 uses the `v<major>.<minor>.<patch>` format. The Makefile and the Docker build
-inject it into `internal/buildinfo.Version` through `-ldflags`, and
-`rainy version`, the Subsonic `serverVersion`, and the admin system page all
-report it. Image tags drop the leading `v` (`v0.1.0` becomes `0.1.0`).
+inject it into `internal/buildinfo.Version` through `-ldflags` (release
+builds pass the tag itself), and `rainy version`, the Subsonic
+`serverVersion`, `GET /api/auth/status`, and the admin system page all report
+it. Image tags drop the leading `v` (`v0.1.0` becomes `0.1.0`).
 
 ## Releasing
 
@@ -93,26 +101,23 @@ report it. Image tags drop the leading `v` (`v0.1.0` becomes `0.1.0`).
    in [Release Notes](#release-notes), leave `unreleased.md` with its heading
    and a pointer to the new release, and add the new page to the
    [history index](../history/index.md).
-2. Run `make release-check` to validate VERSION and its nonempty release note,
-   then wait for CI to succeed on that commit.
-3. Tag the commit with exactly the value of `VERSION` and push the tag.
+2. Run `make release-check` to validate `VERSION` and its nonempty release
+   note.
+3. Land the change on `main`. The push to `main` starts the CI run the
+   release waits for.
+4. Tag that commit on `main` with exactly the value of `VERSION` and push the
+   tag.
 
-The tag must equal `VERSION` and point at a commit on `main` whose CI run
-succeeded. The release workflow verifies main ancestry and looks up that run
-before publishing: it waits
-while the run is in progress and stops if it failed or was cancelled, instead
-of repeating the full validation suite.
-
-The release then:
-
-- Builds multi-architecture images for `linux/amd64` and `linux/arm64`.
-- Pushes them to Docker Hub as `yexca/rainy` and to the GitHub Container
-  Registry. Docker Hub uses the repository owner as the username and the
-  `DOCKERHUB_TOKEN` repository secret as the credential.
-- Publishes the GitHub Release with the tracked release note as its body.
+The release workflow re-runs the release check against the tag, requires the
+tagged commit to belong to `main`, and waits up to 30 minutes for that
+commit's `main` CI run to succeed; a failed or cancelled run stops the release
+before anything is published. It then pushes `linux/amd64` and `linux/arm64`
+images to Docker Hub (`yexca/rainy`) and GHCR and publishes the GitHub Release
+with the tracked release note as its body. [CI and release
+automation](ci.md#releases) describes each job.
 
 The production [`docker-compose.yml`](../../docker-compose.yml) defaults to
-`yexca/rainy:latest`, which the release updates. Operators who need
+`yexca/rainy:latest`, which every release moves. Operators who need
 reproducible deployments pin `RAINY_IMAGE` to a release tag or digest; see
 [Docker](../operations/docker.md#pin-the-image).
 

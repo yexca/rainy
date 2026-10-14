@@ -40,7 +40,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 - **在浏览器里管理曲库**：单曲或批量编辑标签（先预览再应用）、封面、内嵌或 `.lrc` 歌词、按规则重命名/整理、上传、通过 yt-dlp 从 YouTube 和哔哩哔哩链接下载（可选）、通过兼容 lx music 的音源在线搜索并下载歌曲（可选）、可还原的回收站、曲库体检和完整的修改历史。
 - **对中文曲库友好**：扫描时自动修复 GBK、Big5、Shift-JIS 编码造成的乱码，也可以一键以 UTF-8 永久写回；中文艺人名按拼音首字母归类。
 - **你的收听统计**：像 Last.fm 一样的个人收听报表和播放记录，附带月度和年度回顾，还可以把网页端和 Subsonic 客户端的播放记录同步到 Last.fm 和 ListenBrainz（可选）。
-- **为你推荐**：每日推荐，以及队列快播完时自动续上相似歌曲的无限模式，全部在你的服务器上根据你自己的曲库和播放记录计算，不向外发送任何数据。
+- **为你推荐**：每日推荐、每周推荐、首页的歌曲推荐，以及队列快播完时自动续上相似歌曲的无限模式，全部在你的服务器上根据你自己的曲库和播放记录计算，不向外发送任何数据。
 - **多用户**：管理员、曲库管理员、普通用户三种角色，下载权限可单独控制。收藏、评分、播放次数、歌单和播放队列都按用户独立保存，队列还能在网页端和 Subsonic 客户端之间接着听。
 
 ## 快速开始
@@ -66,7 +66,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 
 4. 浏览器打开 `http://<NAS 的 IP>:7650`，第一次访问时创建管理员账号。Rainy 会自动把 `/data` 添加为第一个音乐库并开始扫描。
 
-[`.env.example`](../../.env.example) 列出了所有可选项：镜像、数据目录、主机端口、扫描间隔、日志级别、反向代理信任和登录有效期。修改 `.env` 后执行 `docker compose up -d` 生效；`docker compose restart` 不会重新读取 `.env`。需要可复现的部署时，请在 `.env` 中把 `RAINY_IMAGE` 固定为某个发布版本或镜像 digest。完整说明见[配置](../operations/configuration.md)。
+[`.env.example`](../../.env.example) 列出了其余的 Compose 设置：镜像、数据目录、主机端口、文件权限掩码、扫描间隔、日志级别、反向代理信任和登录有效期。修改 `.env` 后执行 `docker compose up -d` 生效；`docker compose restart` 不会重新读取 `.env`。需要可复现的部署时，请在 `.env` 中把 `RAINY_IMAGE` 固定为某个发布版本或镜像 digest。全部变量见[配置](../operations/configuration.md)。
 
 ## 目录与权限（PUID / PGID）
 
@@ -75,8 +75,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 | `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；默认 root；非零 PUID 时调整所有权 |
 | `RAINY_MUSIC_PATH`（默认 `./data`） | `/data` | 你的音乐 | 播放只需可读；**要在网页里改标签、换封面、重命名、上传、删除，就必须可写** |
 
-旧安装将应用数据挂载到 `/data`、音乐挂载到 `/music` 时，请先按
-[挂载路径升级说明](../operations/docker.md#upgrading-the-mount-layout)保留数据库和密钥，并修改已有音乐库的路径。
+把应用数据放在 `/data`、音乐放在 `/music` 的安装，需要把 `RAINY_DATA_DIR` 和 `RAINY_MUSIC_DIR` 设为这两个路径，或按[挂载路径说明](../operations/docker.md#upgrading-the-mount-layout)改用上面的挂载方式。
 
 容器默认以 root 运行（`PUID=0`、`PGID=0`）。设置非零 `PUID` 时，会把 `/config` 的所有者改为指定用户并降权运行。**`/data` 不会被 chown**，它的权限由你的 NAS 决定。编辑保存和删除音乐文件在网页中都需要两步确认。
 
@@ -109,20 +108,20 @@ nginx、Caddy、群晖 DSM 反向代理和 Tailscale 的配置示例见[反向�
 
 ## 使用 Subsonic 客户端
 
-在客户端里填写服务器地址 `http://<NAS 的 IP>:7650` 或 `https://music.example.com`（**不要**加 `/rest`）、Rainy 用户名和密码即可。支持 OpenSubsonic API 密钥的客户端可以只填 API 密钥：在网页「设置 → Subsonic 客户端」中生成（只显示一次），随时可以撤销。推荐客户端和转码规则见[客户端](../user/clients.md)。
+在客户端里填写服务器地址 `http://<NAS 的 IP>:7650` 或 `https://music.example.com`（**不要**加 `/rest`）、Rainy 用户名和密码即可。支持 OpenSubsonic API 密钥的客户端可以只填 API 密钥：在网页「设置 → 应用」的「Subsonic 客户端」中生成（只显示一次），随时可以撤销。推荐客户端和转码规则见[客户端](../user/clients.md)。
 
 ## 中文乱码修复
 
 很多老的中文 MP3 用 GBK、Big5 或 Shift-JIS 写入标签，却声明为 Latin-1，于是在大多数播放器里显示成 `ÖÜ½ÜÂ×` 这样的乱码。Rainy 分两步处理：
 
 1. **读取时自动修复（默认开启）**：扫描时还原成正确文字存入数据库，**不修改文件**。开关在「系统 → 服务器设置」。
-2. **永久修复文件**：在「管理 → 体检」的「编码问题」里逐个字段预览原值和新值，确认后以 UTF-8 重新写入标签（需要音乐目录可写）。
+2. **永久修复文件**：在「管理工具 → 体检」的「编码问题」里逐个字段预览原值和新值，确认后以 UTF-8 重新写入标签（需要音乐目录可写）。
 
 识别规则很保守，正常的西文标签（如 `Exémplé`）不受影响。详见[曲库说明](../user/library.md#fixing-garbled-tags)。
 
 ## 备份与升级
 
-所有状态都在数据目录里。**`rainy.db` 和 `secret.key` 必须一起备份**：`secret.key` 用于加密存储用户密码，丢了它所有用户都要重置密码；两者同时泄露则可还原出所有密码，请妥善保管备份。
+所有状态都在数据目录里。**`rainy.db` 和 `secret.key` 必须一起备份**：`secret.key` 用于加密存储用户密码、播放记录同步的凭据和 yt-dlp 的 Cookie，丢了它所有用户都要重置密码，这些凭据也要重新填写；两者同时泄露则可还原出所有密码，请妥善保管备份。
 
 ```sh
 docker compose stop rainy

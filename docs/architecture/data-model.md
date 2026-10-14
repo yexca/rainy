@@ -10,9 +10,12 @@ rows are in [contract §5.2](contract.md#52-models-internalmodel).
 - Timestamps are `INTEGER` unix milliseconds (UTC). `0` means never or unknown.
 - Durations are floating-point seconds.
 - Booleans are `INTEGER` `0` or `1`.
-- Paths are library-relative and use forward slashes. Only the `libraries`
-  table stores an absolute OS path (the library root). Absolute paths are
-  built at runtime with `util.SafeJoin`.
+- Paths are library-relative and use forward slashes. The exceptions are
+  absolute OS paths the server resolved itself: the library root
+  (`libraries.path`) and the scanner-found folder images (`albums.cover_path`,
+  `artists.image_path`). Trash paths (`trash.trash_path`) are relative to
+  `<data>/trash`. Absolute paths for files are built at runtime with
+  `util.SafeJoin`.
 - Text columns are `NOT NULL DEFAULT ''` unless `NULL` carries meaning (for
   example, `starred_at` is `NULL` when an item is not starred).
 
@@ -21,20 +24,20 @@ rows are in [contract §5.2](contract.md#52-models-internalmodel).
 | Entity | ID form | Why |
 | --- | --- | --- |
 | Tracks, users, playlists, radio stations, trash entries, music sources | Random 22-character base62 (`util.NewID`) | Opaque and stable once assigned |
-| Albums, artists, genres | Deterministic hash of normalized names (`util.HashID`) | Survive a full rescan or a database rebuild without breaking favorites or playlists |
+| Albums, artists, genres | Deterministic 22-character hash of trimmed, lower-cased names (`util.HashID`) | Survive a full rescan or a database rebuild without breaking favorites or playlists |
 | Libraries | Integer | Small, operator-managed list |
 
 A track keeps its ID when the scanner detects that a file was moved (a new
-file matching a vanished track by size, duration, and title), and when Rainy
-itself renames the file. Favorites, ratings, playlists, and play history
+file matching a vanished track by size, duration within one second, and
+title), and when Rainy itself renames the file. Favorites, ratings, playlists, and play history
 therefore survive reorganizing a library.
 
 ## Tables
 
 | Area | Tables | Notes |
 | --- | --- | --- |
-| Library index | `libraries`, `tracks`, `albums`, `artists`, `genres`, `track_genres` | Rebuilt from files by the scanner |
-| Accounts | `users`, `sessions` | Passwords are stored encrypted (see below); sessions store a SHA-256 hash of the token |
+| Library index | `libraries`, `tracks`, `albums`, `artists`, `genres`, `track_genres` | `libraries` holds the roots an administrator configured; the other tables are rebuilt from files by the scanner |
+| Accounts | `users`, `sessions` | Passwords are stored encrypted (see below); `users.api_key_hash` and `sessions.token_hash` store SHA-256 hashes of the API key and session token |
 | Per-user state | `annotations`, `play_history`, `playlists`, `playlist_tracks`, `play_queues`, `bookmarks`, `scrobble_accounts`, `scrobble_queue`, `daily_mixes`, `weekly_mixes` | Cascade-deleted with the user. `play_history` keeps a snapshot of each play's title, artist, album, ids, and duration so reports still show plays of purged tracks; `scrobble_accounts` holds the encrypted Last.fm session key or ListenBrainz token, `scrobble_queue` the plays waiting to be sent, and `daily_mixes` the track ids of each local day's mix (kept 30 days), and `weekly_mixes` those of each local week's mix, keyed by its Monday (kept 12 weeks) |
 | Server state | `settings`, `radio_stations`, `lx_sources` | Settings are key/value rows over `model.Settings` defaults, plus the Last.fm API key and encrypted shared secret (`lastfm.apiKey`, `lastfm.secretEnc`), which are not part of `model.Settings`; `lx_sources` holds imported lx-music source scripts, their priority, and what their last start reported |
 | Management | `edit_log`, `trash` | The history of file changes and the restorable trash |
@@ -61,7 +64,8 @@ purge them from the library doctor.
 
 If a library root is missing, unreadable, or suddenly empty while the database
 still holds tracks for it, the scanner aborts that library instead of marking
-everything missing.
+everything missing. Unreadable and suddenly empty folders inside a library
+have their own guards; see [Reliability](../operations/reliability.md).
 
 ## Passwords and Keys
 

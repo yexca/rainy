@@ -35,9 +35,13 @@ credentials would cross the internet unencrypted.
   managers can edit tags, rename, upload, and delete (to the trash).
 - Downloads are governed by the per-user download permission and the global
   **Allow downloads** setting.
-- An administrator can reset another user's password, which also signs that
-  user out everywhere. The `rainy user reset-password` command does the same
-  from the host.
+- An administrator can reset another user's password, which also ends all of
+  that user's web sessions. The `rainy user reset-password` command does the
+  same from the host. Neither revokes the user's API key; the user revokes it
+  in **Settings → Apps**.
+- `RAINY_MODE=development` signs every native API request without a valid
+  session in as `RAINY_DEV_USER`, an administrator by default. Use it only for
+  a local preview; never on a server anyone else can reach.
 
 ## Sessions and Rate Limiting
 
@@ -47,21 +51,25 @@ request arrived over HTTPS or with `X-Forwarded-Proto: https`.
 
 Failed sign-ins are limited in memory: 10 failures within 10 minutes for one
 client address or username lock it for 5 minutes. Subsonic authentication
-allows 20 failures in the same window. Behind a reverse proxy, set
+allows 20 failures in the same window; failed Subsonic API keys count against
+the client address. The counters reset when Rainy restarts. Behind a reverse proxy, set
 `RAINY_TRUST_PROXY=true` so the limit applies per real client instead of to the
 proxy. Never enable it when clients can reach Rainy directly, because they
 could then choose their own address.
 
 ## Subsonic Credentials
 
-Subsonic clients send either the password or a salted MD5 token on every
-request, often in the URL. Use HTTPS for any client outside your home network.
-Prefer OpenSubsonic API keys where the client supports them: a key can be
-revoked in **Settings → Subsonic apps** without changing the password.
+Subsonic clients send either the password (plain or hex-encoded) or a salted
+MD5 token on every request, often in the URL. Use HTTPS for any client outside
+your home network. Prefer OpenSubsonic API keys where the client supports
+them: each user has at most one key, which can be regenerated or revoked in
+**Settings → Apps** without changing the password.
 
 ## Stored Secrets
 
-- `secret.key` encrypts stored passwords with AES-256-GCM. Passwords are
+- `secret.key` (created with owner-only permissions on first start) encrypts
+  stored passwords with AES-256-GCM, together with the Last.fm shared secret,
+  linked scrobbling credentials, and yt-dlp sign-in cookies. Passwords are
   reversible by design because Subsonic token authentication requires them.
   Anyone with both `rainy.db` and `secret.key` can recover every password.
 - Session tokens and API keys are stored only as SHA-256 hashes.
@@ -73,12 +81,21 @@ revoked in **Settings → Subsonic apps** without changing the password.
 - Mount only your music at `/data` and a dedicated folder at `/config`. Never
   mount a host root, home directory, or the Docker socket.
 - Every file operation is confined to the library roots, and libraries may not
-  overlap the data directory.
+  overlap the data directory or each other.
 - Mount the music read-only (`:ro`) if nobody should edit files through Rainy.
 - The container runs as root by default. Set a nonzero `PUID:PGID` or explicit
   `user:` to run as an unprivileged user. Web file edits and deletion require
   two confirmation stages; these do not replace API authorization or mount permissions.
 - Keep the image up to date; see [Docker](docker.md#upgrade).
+
+## Outbound Requests
+
+Rainy makes no outbound requests by default. Online metadata lookup, yt-dlp
+downloads, online music, and scrobbling are administrator settings that are
+off by default; each sends data only as described in
+[Privacy](../../PRIVACY.md). Music source scripts run on the server and may
+reach only public internet addresses, never loopback, private, or reserved
+ones. Import only scripts you trust.
 
 ## Known Limitations
 

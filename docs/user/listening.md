@@ -6,10 +6,11 @@ can also send your plays to Last.fm or ListenBrainz ("scrobbling").
 
 ## What Counts as a Play
 
-A song counts as played once you have listened to half of it or 4 minutes of
-it, whichever comes first. Plays from the web app and from Subsonic apps that
-report plays to the server (most do) are counted alike, and each play records
-which player it came from.
+In the web app, a song counts as played once you have listened to half of it
+or 4 minutes of it, whichever comes first. Subsonic apps that report plays to
+the server (most do) decide themselves when a play is complete, usually by the
+same rule. Plays from both are counted alike in play counts, **Recently
+played**, and your report, and each play records which player it came from.
 
 Your report and history are private: other users, including administrators,
 cannot see them in the app.
@@ -57,13 +58,15 @@ the library, picked for you once a day. It mixes:
 
 - songs by artists similar to the ones you played most in the last 30 days
   (artists that share their genres);
-- favorites to rediscover: songs you starred or played several times but
+- favorites to rediscover: songs you starred or played at least twice but
   haven't heard for a month;
-- songs you have never played from the genres you listen to most;
-- songs by your top artists and songs you starred.
+- songs you have never played from the genres you listened to most in the
+  last 90 days;
+- songs by your top artists and your favorites.
 
-Songs you played in the last three days and songs you rated one star are left
-out, and no artist appears more than twice when the library allows it. A new
+Songs you rated one star are left out, songs you played in the last three days
+are picked only when little else fits, and no artist appears more than twice
+when the library allows it. A new
 user without plays gets songs from the whole library. The mix stays the same
 all day on every device and changes at midnight in your time zone; tap the card
 to see the songs, or the play button to start it.
@@ -73,9 +76,9 @@ to see the songs, or the play button to start it.
 Next to it sits your **Weekly Mix**: about 50 songs picked once a week, made
 for finding music. It draws on the same sources as the Daily Mix but turns the
 order around: songs you have never played come first, then artists similar to
-your favorites, then favorites to rediscover. Songs you played in the last
-seven days are left out, and no artist appears more than three times when the
-library allows it. The mix stays the same from Monday to Sunday on every device
+the ones you play most, then favorites to rediscover. Songs you played in the
+last seven days are picked only when little else fits, and no artist appears
+more than three times when the library allows it. The mix stays the same from Monday to Sunday on every device
 and changes on Monday at midnight in your time zone; the card shows the week it
 belongs to.
 
@@ -86,12 +89,14 @@ album shelves. Tap a song to play its shelf from there, or the play button
 beside the title to start from the top.
 
 - **Quick picks**: a dozen songs that suit what you have been playing, by your
-  top artists of the last 90 days and artists like them. They change every time
-  you ask; the refresh button beside the title shows other songs.
+  top artists of the last 90 days and artists like them. The refresh button
+  beside the title shows other songs.
 - **On repeat**: the songs you played most in the last 30 days (at least
   twice), most played first.
-- **Rediscover**: songs you starred or played several times but haven't heard
+- **Rediscover**: songs you starred or played at least twice but haven't heard
   for a month.
+
+Quick picks and Rediscover are picked again each time the home page loads.
 
 A song appears on one shelf only, and a shelf with nothing to show is hidden,
 so a new user sees just Quick picks, drawn from the whole library.

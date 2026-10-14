@@ -52,8 +52,7 @@ Docker image for `linux/amd64` and `linux/arm64`.
 - **A player worth installing.** The web app installs as a PWA and offers an
   iOS-style Now Playing screen, synced lyrics, a draggable queue, lock-screen
   controls through Media Session, AirPlay on iOS, light and dark themes in four
-  styles, and
-  English and Simplified Chinese.
+  styles, and English and Simplified Chinese.
 - **Library management in the browser.** Single and batch tag editing with
   preview-before-apply tools, cover art, embedded or `.lrc` lyrics,
   rename/organize by pattern, uploads, optional downloads from YouTube and
@@ -68,8 +67,8 @@ Docker image for `linux/amd64` and `linux/arm64`.
   scrobbling to Last.fm and ListenBrainz from the web app and your Subsonic
   apps.
 - **Music picked for you.** A daily and a weekly mix, song picks on the home
-  page, and an infinite mode that keeps playing similar songs, chosen from your own library and plays on your
-  server; nothing is sent anywhere.
+  page, and an infinite mode that keeps playing similar songs, chosen from
+  your own library and plays on your server; nothing is sent anywhere.
 - **Multi-user.** Administrator, manager, and listener roles with a separate
   download permission. Favorites, ratings, play counts, playlists, and the play
   queue are per user, and the queue follows you between the web app and
@@ -97,9 +96,10 @@ if you want to edit tags, covers, or file names in Rainy. See
 [Docker](docs/operations/docker.md#permissions-puid-and-pgid) for how to find
 these values on Synology, QNAP, Unraid, TrueNAS SCALE, and OpenMediaVault.
 
-[`.env.example`](.env.example) lists every optional setting: the image, data
-path, host port, scan schedule, log level, proxy trust, and session lifetime.
-See [Configuration](docs/operations/configuration.md) for details.
+[`.env.example`](.env.example) lists the other Compose settings: the image,
+data path, host port, file-creation mask, scan schedule, log level, proxy
+trust, and session lifetime. See
+[Configuration](docs/operations/configuration.md) for every variable.
 
 ### 2. Start Rainy
 
@@ -128,13 +128,15 @@ install the web app as a PWA.
 | `RAINY_DATA_PATH` (default `./config`) | `/config` | SQLite database, `secret.key`, cover cache, trash, upload staging, and yt-dlp with its encrypted cookies | Yes |
 | `RAINY_MUSIC_PATH` (default `./data`) | `/data` | Your music library; writable when you use management features | Yes, with your NAS backup tools |
 
-`secret.key` encrypts stored passwords. Losing it means every user must have
-their password reset. Do not commit either directory: they contain account
+`secret.key` encrypts stored passwords, scrobbling credentials, and yt-dlp
+cookies. Losing it means every user must have their password reset and those
+credentials entered again. Do not commit either directory: they contain account
 data, listening history, and your media.
 
-Existing installations using `/data` for application state and `/music` for
-music must follow [the mount upgrade guide](docs/operations/docker.md#upgrading-the-mount-layout)
-before switching to these defaults.
+An installation that keeps application state at `/data` and music at
+`/music` sets `RAINY_DATA_DIR` and `RAINY_MUSIC_DIR` to those paths, or moves
+to these mounts with
+[the mount layout guide](docs/operations/docker.md#upgrading-the-mount-layout).
 
 ## User documentation
 
@@ -175,11 +177,11 @@ use.
 Library data and media require sign-in. Without an account, a client can reach
 only the app shell, the health check, sign-in, and the first-run setup, which
 closes once the first account exists. All file operations are confined to the
-configured library roots. Rainy does not
-send telemetry and makes no outbound requests of its own unless an
-administrator enables the optional online metadata lookup, downloads from
-YouTube and bilibili, online music, or scrobbling to Last.fm and
-ListenBrainz. Report a suspected
+configured library roots and the data directory. Rainy does not send
+telemetry and makes no outbound requests of its own unless an administrator
+enables the optional online metadata lookup, downloads from YouTube and
+bilibili, online music, or scrobbling to Last.fm and ListenBrainz. Report a
+suspected
 vulnerability through the private process in [SECURITY.md](SECURITY.md), and
 read [PRIVACY.md](PRIVACY.md) before sharing logs or diagnostics.
 

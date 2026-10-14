@@ -7,8 +7,18 @@ installed as an app (PWA).
 
 - **On phones**, a floating mini player sits above the tab bar. Tap it or swipe
   up to open **Now Playing**, and drag down to close it.
-- **On desktop**, the player bar sits at the bottom of the window. Open the
-  queue or lyrics in a side panel, or expand to the full Now Playing view.
+- **On tablets and desktops**, the **Player layout** button picks how the
+  player sits on the page; the choice is saved in this browser:
+  - **Bottom bar** (the default) spans the bottom of the window. Open the queue
+    or lyrics in a side panel, or expand to the full-screen player. The tab
+    above the bar hides it, and its pin chooses between keeping the bar open
+    and hiding it until the pointer reaches the bottom edge.
+  - **Floating window** is a small Now Playing window in the bottom-right
+    corner.
+  - **Floating mini bar** is a compact bar in the bottom-right corner; drag
+    across it to seek.
+  - **Full-screen player** opens Now Playing over the page and returns to the
+    chosen layout when closed.
 
 Now Playing shows large artwork over a background made from the cover's colors,
 a scrubber with elapsed and remaining time, transport controls, a star, and a
@@ -22,6 +32,7 @@ the Media Session API.
 
 | Key | Action |
 | --- | --- |
+| Ctrl+K (⌘K on a Mac) | Open Quick actions |
 | Space | Play or pause |
 | ← / → | Back or forward 5 seconds |
 | Shift+← / Shift+→ | Previous or next song |
@@ -43,9 +54,10 @@ Turn on infinite mode with the ∞ button in **Playing Next** (or in **Settings 
 Playback**) and the music doesn't stop when the queue runs out. When two songs
 or fewer are left, Rainy adds about ten songs like the ones you are playing:
 songs by the same artists, by artists sharing their genres, and from the same
-genres, favoring songs you starred, rated highly, or play often. Songs you
-played in the last day, songs already in the queue, and songs you rated one
-star are left out.
+genres, favoring songs you starred, rated highly, or play often, with at most
+two songs per artist when the library allows it. Songs already in the queue
+and songs you rated one star are left out, and songs you played in the last
+day are picked only when little else fits.
 
 Suggested songs are marked with ∞ in the queue. Songs you add with **Add to
 queue** play before them, and turning infinite mode off removes the
@@ -107,21 +119,22 @@ only.
 
 | Setting | Options |
 | --- | --- |
-| Streaming quality | Original, or a maximum bitrate. Higher-bitrate files are converted on the server |
+| Streaming quality | Original, or at most 320, 192, or 128 kbps. Lossless files and files above the limit are converted on the server |
 | Conversion format | MP3, AAC, or Opus (Opus is replaced by AAC or MP3 where the browser cannot play it) |
 | Volume normalization | Off, Song, or Album, using ReplayGain tags. Not available on iPhone and iPad, where the system controls volume |
 | Preload next song | Buffers the next song for near-gapless playback. Not available on iPhone and iPad |
 
 Formats the browser cannot play, such as APE or DSD, are converted
-automatically even at "Original" quality. Conversion needs ffmpeg, which the
-Docker image includes.
+automatically even at **Original** quality (at 320 kbps). Conversion needs
+ffmpeg, which the Docker image includes; without it the original file is sent.
 
-Plays count toward play counts and "recently played" after half of a song or
-4 minutes, whichever comes first.
+When a song counts as played is described in
+[What Counts as a Play](listening.md#what-counts-as-a-play).
 
 ## Internet Radio
 
-**Radio** lists stations that an administrator added with a stream URL. Your
+**Radio** lists stations that an administrator added on that page with a
+stream URL (MP3, AAC, Ogg, or HLS). Your
 browser connects to the station directly, so the station sees your device's
 address, not the server's.
 
@@ -134,11 +147,11 @@ Installing requires HTTPS; see [Reverse proxy](../operations/reverse-proxy.md).
 - **Android:** open the address in Chrome and choose **Install app** from the
   menu.
 - **Desktop:** use the install icon in the Chrome or Edge address bar, or
-  **Settings → App → Install**.
+  **Install** under **Settings → Apps**.
 
-The installed app opens full screen, keeps covers cached for faster browsing,
-and shows an "update available" message when a new version of Rainy is
-deployed. Music itself is always streamed, not stored offline.
+The installed app opens full screen, opens even without a connection, keeps
+covers cached for faster browsing, and offers to reload when a new version of
+Rainy is deployed. Music itself is always streamed, not stored offline.
 
 On iOS, lock-screen playback works in the installed app, but iOS may suspend a
 web app that stays in the background for a long time. For long listening

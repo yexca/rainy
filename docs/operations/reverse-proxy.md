@@ -15,12 +15,14 @@ not supported.
 
 - Set `RAINY_TRUST_PROXY=true` so sign-in rate limiting sees the real client
   address. Rainy then trusts `X-Real-IP`, or the last `X-Forwarded-For` hop,
-  which is the one your proxy appends. Enable it only when every request
-  reaches Rainy through that proxy.
-- Pass `X-Forwarded-Proto` so Rainy marks the session cookie `Secure`.
+  which is the one your proxy appends; it ignores `True-Client-IP`. Enable it
+  only when every request reaches Rainy through that proxy.
+- Pass `X-Forwarded-Proto` so Rainy marks the session cookie `Secure`. Rainy
+  reads this header whether or not `RAINY_TRUST_PROXY` is set.
 - Do not buffer `/api/events`. It is a long-lived server-sent event stream for
   scan progress and live updates; buffering freezes progress bars.
-- Raise the request body limit so uploads of albums and lossless files work.
+- Raise the request body limit for uploads. The web app sends one file per
+  request, and Rainy accepts files up to 2 GiB.
 - Allow long read timeouts for streaming and transcoding.
 
 ## nginx
@@ -34,7 +36,7 @@ server {
     ssl_certificate     /etc/letsencrypt/live/music.example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/music.example.com/privkey.pem;
 
-    client_max_body_size 2g;          # uploads of albums and lossless files
+    client_max_body_size 2g;          # one uploaded file per request, up to 2 GiB
 
     location / {
         proxy_pass http://127.0.0.1:7650;
@@ -97,13 +99,13 @@ the LAN address `http://<nas-ip>:7650` instead.
 
 - **Tailscale:** `tailscale serve --bg 7650` gives Rainy an HTTPS `*.ts.net`
   address reachable only from your own devices, without opening a port.
-- **Cloudflare Tunnel:** the free plan limits a single upload request to
-  100 MB.
+- **Cloudflare Tunnel:** the free plan limits a single upload request, and
+  therefore a single uploaded file, to 100 MB.
 
 ## After Enabling HTTPS
 
-- Restart the container after setting `RAINY_TRUST_PROXY=true`
-  (`docker compose up -d`).
+- Recreate the container after setting `RAINY_TRUST_PROXY=true`
+  (`docker compose up -d`; `docker compose restart` does not apply it).
 - Install the app from the HTTPS address; see
   [Playback](../user/playback.md#install-the-app).
 - In Subsonic clients, use the HTTPS address without `/rest`.

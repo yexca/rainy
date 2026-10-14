@@ -23,8 +23,9 @@ Then read the public docs that match the area you are changing:
 
 ## Core Rules
 
-- Build absolute file paths only with `util.SafeJoin`, and never touch files
-  outside a library root or the data directory.
+- Build absolute file paths only with `util.SafeJoin` (plus the symlink-aware
+  `util.EnsureWithinRoot` for file mutations), and never touch files outside a
+  library root or the data directory.
 - Keep the build pure Go (`CGO_ENABLED=0`).
 - Store timestamps as unix milliseconds, durations as float seconds, and paths
   as library-relative with `/`.
@@ -45,15 +46,9 @@ Use:
 <type>(scope): <description>
 ```
 
-Examples:
-
-```text
-feat(player): add sleep timer
-fix(scanner): keep track ids for moved files
-docs(operations): describe Unraid permissions
-```
-
-See [Commit and release](docs/development/commit-and-release.md).
+Types, scopes, examples, and the
+[signing rule](docs/development/commit-and-release.md#signed-commits) are in
+[Commit and release](docs/development/commit-and-release.md).
 
 ## Security Reports
 
@@ -70,7 +65,7 @@ smallest target that covers the files you changed:
 make docs-check          # public documentation links
 make ci-policy           # docs and validation-policy tests
 make ci-style            # frontend lint
-make ci-backend          # backend format, lint, tests, vet, race, and vulnerability checks
+make ci-backend          # backend format, lint, module, vulnerability, vet, coverage, and race checks
 make ci-frontend         # frontend audit, typecheck, helper tests, and build
 make ci-production       # production image build and smoke test
 ```
@@ -93,18 +88,18 @@ explains how they map to Actions jobs.
 
 ## Documentation Rules
 
-- Put stable public documentation under `docs/`; the index is
-  [docs/README.md](docs/README.md).
-- Keep the [architecture contract](docs/architecture/contract.md) precise and
-  current. Other architecture pages summarize and link to it.
-- Put user-facing behavior in `docs/user/`.
-- Put runtime setup, configuration, and troubleshooting in `docs/operations/`.
-- Put local development and test instructions in `docs/development/`.
-- Capture durable architectural decisions as ADRs in `docs/decisions/`.
-- Record user-facing changes in `docs/history/unreleased.md`, as a bullet in
-  the folded block of its area; see
+Public documentation lives under `docs/`. Where each topic belongs is listed
+in [Documentation Rules](docs/README.md#documentation-rules), and the writing
+rules (present tense, no change narration, one place per fact) are in the
+[agent guide](AGENTS.md#documentation). In short:
+
+- Describe the current system. Release notes in `docs/history/` are the only
+  place for change history: record a user-facing change as a bullet in the
+  folded block of its area in `docs/history/unreleased.md`; see
   [Release Notes](docs/development/commit-and-release.md#release-notes).
-- Keep the translated READMEs in `docs/readme/` in step with `README.md`.
+- Update the [architecture contract](docs/architecture/contract.md) in the
+  same change as the code it describes.
+- Update the translated READMEs in `docs/readme/` together with `README.md`.
 
 ## Sensitive Data Check
 

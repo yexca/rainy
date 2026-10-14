@@ -16,7 +16,7 @@ Security fixes target the latest tagged release.
 
 | Version | Support |
 | --- | --- |
-| Latest release matching [VERSION](VERSION) | Supported |
+| The latest release (the newest `v<major>.<minor>.<patch>` tag and its images) | Supported |
 | `main` after the latest release | Reports accepted; development code |
 | Older releases and unofficial builds | Not supported |
 
@@ -27,9 +27,9 @@ practical.
 
 Rainy has these intended trust boundaries:
 
-- Library data, media, and every API except the health check, sign-in, and
-  first-run setup require authentication. First-run setup is intended to be
-  available only while no user exists.
+- Library data, media, and every API except the health check, the sign-in
+  status, sign-in, sign-out, and first-run setup require authentication.
+  First-run setup is intended to be available only while no user exists.
 - Listeners may read the library and change only their own state. Managers may
   change music files through management features. Administrators manage users,
   libraries, and server settings. Crossing one of these boundaries without the
@@ -87,6 +87,10 @@ test.
 - Issues that require prior control of the host, the database, `secret.key`,
   or the mounted folders.
 - Enabling `RAINY_TRUST_PROXY` while clients can reach Rainy directly.
+- Running `RAINY_MODE=development` (which signs requests in without a
+  password) or setting `RAINY_DEV_CORS` on a server others can reach.
+- Behavior of lx-music source scripts or Subsonic apps that an operator chose
+  to trust, beyond Rainy's own sandbox and address checks.
 - The limitations documented in
   [Deployment security](docs/operations/security.md#known-limitations).
 - Denial-of-service testing, social engineering, physical attacks, or automated

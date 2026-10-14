@@ -2,7 +2,9 @@
 
 Rainy ships as one Docker image for `linux/amd64` and `linux/arm64` (Synology
 Plus models, ARM NAS devices, and Raspberry Pi 4/5 included). The image
-contains the server, the web app, and ffmpeg. 32-bit ARM is not supported.
+contains the server, the web app, ffmpeg, and QuickJS (the JavaScript runtime
+yt-dlp uses for YouTube). yt-dlp itself is not included; an administrator
+installs it from **Admin → yt-dlp** when needed. 32-bit ARM is not supported.
 
 ## Default Stack
 
@@ -22,8 +24,9 @@ docker compose up -d --pull always
 docker compose logs -f rainy   # wait for "Rainy is listening"
 ```
 
-Open `http://<host>:7650` and create the administrator account. Rainy adds
-`/data` as the first library and starts a scan.
+On first start, Rainy adds `/data` as the first library when no library
+exists and scans it. Open `http://<host>:7650` and create the administrator
+account.
 
 The service restarts automatically (`restart: unless-stopped`). Automatic
 restarts and `docker compose restart` reuse the current image and do not
@@ -33,7 +36,7 @@ The container has two mounts:
 
 | Host (`.env`) | Container | Contents | Access |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH` (default `./config`) | `/config` | Database, `secret.key`, cover cache, trash, upload staging | Read-write; owned by `PUID:PGID` |
+| `RAINY_DATA_PATH` (default `./config`) | `/config` | Database, `secret.key`, cover cache, trash, upload staging, yt-dlp | Read-write; owned by `PUID:PGID` |
 | `RAINY_MUSIC_PATH` (default `./data`) | `/data` | Your music | Read for playback; read-write for management features |
 
 All optional variables are listed in [Configuration](configuration.md).
@@ -70,11 +73,6 @@ in root mode as well. A nonzero `PUID` opts into making `/config` owned by
 `PUID:PGID` and running Rainy as that user. **Music ownership is never changed**;
 its permissions belong to your NAS. Root cannot write a volume mounted `:ro`
 and may still be restricted by NAS share ACLs or root squash.
-
-The web app requires two confirmation stages for saving edits, renaming files,
-repairing/rebuilding tags, moving music to trash, and permanently deleting trash.
-These are web interaction checks; manager authorization and filesystem checks
-remain enforced by the API.
 
 To opt into a non-root user:
 
@@ -223,12 +221,14 @@ More answers are in [Troubleshooting](troubleshooting.md).
 
 ### Upgrading the Mount Layout
 
-Older images stored application state at `/data` and music at `/music`.
-New defaults use `/config` for state and `/data` for music. Changing an image
-alone does not relocate an existing database or change stored library roots.
+The image keeps application state at `/config` and music at `/data`. A
+deployment whose state is mounted at `/data` and music at `/music` must either
+keep those paths through environment overrides or move to the standard
+layout. Changing the image never relocates a database or rewrites stored
+library roots.
 
-To keep an existing deployment's mounts, add these environment overrides to
-its existing Compose file before updating the image:
+To keep the `/data` (state) and `/music` (music) mounts, add these overrides
+to the Compose file before updating the image:
 
 ```yaml
 environment:
@@ -236,7 +236,7 @@ environment:
   RAINY_MUSIC_DIR: /music
 ```
 
-To adopt the new layout:
+To move to the standard layout:
 
 1. Stop Rainy and back up the existing state directory, including `rainy.db`
    and `secret.key`; see [Database backups](database.md#backups).
@@ -277,7 +277,8 @@ several versions.
 digest, and change it deliberately during upgrades:
 
 ```dotenv
-RAINY_IMAGE=yexca/rainy:0.1.2
+# a release tag, without the leading v
+RAINY_IMAGE=yexca/rainy:<major>.<minor>.<patch>
 # or
 RAINY_IMAGE=yexca/rainy@sha256:<digest>
 ```
@@ -292,7 +293,7 @@ runs as root by default, matching the default server user. For a non-root
 deployment, add `-u <PUID>:<PGID>` to these commands to match its configured user:
 
 ```sh
-# Reset a forgotten password and sign the user out everywhere
+# Reset a forgotten password and end the user's web sessions
 docker compose exec rainy rainy user reset-password admin 'new-password'
 
 # List users
@@ -304,9 +305,12 @@ docker compose exec rainy rainy version
 
 ## Health Check
 
-The Compose health check requests `http://127.0.0.1:7650/api/health` inside
-the container. Leave `RAINY_ADDRESS` and `RAINY_PORT` at their defaults inside
-the container, and change the published port with `RAINY_HOST_PORT` instead.
+`/api/health` answers `{"status":"ok"}` without authentication. The Compose
+health check requests `http://127.0.0.1:7650/api/health` inside the container
+every 30 seconds; the image's own `HEALTHCHECK` (used by plain `docker run`)
+requests the same path on `RAINY_PORT`. Leave `RAINY_ADDRESS` and `RAINY_PORT`
+at their defaults inside the container, and change the published port with
+`RAINY_HOST_PORT` instead.
 
 ## Development Stack
 

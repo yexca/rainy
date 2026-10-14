@@ -11,7 +11,8 @@ and lint.
 - GNU Make; a Bash-compatible shell and ffmpeg for synthetic media generation.
 - Node.js from [`.nvmrc`](../../.nvmrc) with Corepack enabled; use the pnpm
   version pinned in `web/package.json`.
-- Go 1.26 or newer for host-side backend tests and static checks.
+- Go 1.26 for host-side backend tests and static checks; `go.mod` selects the
+  `go1.26.9` toolchain.
 
 Documentation and policy checks need only Node, Git, and Make. Development
 works on Windows (PowerShell or Git Bash), macOS, and Linux. Production runs
@@ -49,9 +50,12 @@ at `/data` (override with `RAINY_DEV_MUSIC_PATH`). It defaults to debug logs,
 disabled periodic scans, and `RAINY_MODE=development`, which signs the web app
 in as `RAINY_DEV_USER` (default `dev`; created as an administrator with a
 random password when missing, an existing account keeps its role) so the
-preview needs no login. Set `RAINY_MODE=production` to test signing in;
-environment overrides still apply. Keep development data separate from the
-real library.
+preview needs no login. A valid session takes precedence, so signing in as
+another account previews that account. Set `RAINY_MODE=production` to test
+signing in. Only the variables the Compose file names reach the container (`PUID`,
+`PGID`, `TZ`, `RAINY_LOG_LEVEL`, `RAINY_SCAN_INTERVAL`, `RAINY_MODE`, and
+`RAINY_DEV_USER`); set them in the shell to override their defaults. Keep
+development data separate from the real library.
 
 The Compose project is named after the checkout directory, so each Git
 worktree runs its own container. Give every checkout that runs at the same
@@ -92,10 +96,12 @@ production UI; Vite reflects frontend edits directly.
 Run host-side checks with `make backend-test` or `make ci-backend`. Rebuild
 the Docker stack with `make docker-up` after backend changes.
 
-`backend-build`, `backend-run`, and `frontend-build` remain available for
-explicit host-build workflows. The binary embeds `web/dist`, so a complete
-host build needs `frontend-build` first. Host runtime reads `RAINY_*` variables
-and defaults to `./data` and `./config`; choose synthetic paths deliberately.
+`backend-build`, `backend-run`, and `frontend-build` serve explicit
+host-build workflows. The binary embeds `web/dist`, so a complete host build
+needs `frontend-build` first. A host run reads the same `RAINY_*` variables as
+the container and defaults to music in `./data` and application state in
+`./config`, relative to the working directory; choose synthetic paths
+deliberately.
 Agent work uses Docker for running the app unless the user requests a host
 runtime. The host build in `ci-frontend` is validation, not a running instance.
 

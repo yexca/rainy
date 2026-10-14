@@ -51,13 +51,15 @@ Conventions:
 - Tests must not contact real external services. Use canned responses through
   a fake HTTP transport or loopback `httptest` servers; unknown mock requests
   must fail instead of falling back to the network. Provider domains may appear
-  in protocol fixtures but must never be dialed. Tests that need ffmpeg must call `t.Skip`
-  when it is unavailable, so `go test ./...` passes on a clean machine.
+  in protocol fixtures but must never be dialed.
+- Tests that need ffmpeg or ffprobe call `t.Skip` when `exec.LookPath` cannot
+  find them, so `go test ./...` passes on a clean machine. The CI coverage and
+  race jobs install ffmpeg, so these tests run there.
 - Build file fixtures in `t.TempDir()`. Scanner, artwork, and manage tests
   that need real audio copy the generated `testdata/music` library into a
-  temporary directory and call `t.Skip` when it has not been generated, so
-  run `make testdata` first for full coverage. Never modify `testdata/music`
-  in place.
+  temporary directory and call `t.Skip` when it has not been generated. CI
+  does not generate it, so run `make testdata` locally before changing those
+  areas. Never modify `testdata/music` in place.
 - Subsonic responses are compared against golden files in
   `internal/subsonic/testdata/`. Review golden-file diffs as carefully as code:
   they are what third-party clients see.
@@ -71,17 +73,19 @@ Conventions:
 make frontend-install    # pnpm install with the pinned pnpm version
 make frontend-typecheck  # tsc
 make frontend-lint       # eslint
-make frontend-test       # unit tests for pure helpers (node --test web/tests)
+make frontend-test       # helper unit tests (node --test "tests/**/*.test.ts")
 make frontend-audit      # dependency audit
 make frontend-build      # production build into web/dist
 make docs-check          # documentation link check (frontend-docs is an alias)
 ```
 
 Pure, framework-free helpers such as the bilingual lyrics analyzer
-(`src/lib/lyrics/bilingual.ts`) have unit tests in `web/tests/*.test.ts`, run
-by Node's built-in test runner with type stripping. Keep such modules free of
-path aliases and non-erasable TypeScript so the tests can import them directly.
-Heuristics get adversarial cases: lines that must *not* be split.
+(`src/lib/lyrics/bilingual.ts`) and the feature `lib/` modules have unit tests
+in `web/tests/*.test.ts`, run by Node's built-in test runner (`node:test`)
+with type stripping; there is no Vitest or Jest. Tests import the source with
+relative paths and `.ts` extensions, so keep such modules free of path aliases
+and non-erasable TypeScript. Heuristics get adversarial cases, such as lyric
+lines that must *not* be split.
 
 ## Browser Checks
 
@@ -99,8 +103,9 @@ keyboard focus stays visible. The detailed contract is in
 
 Assert observable behavior and use accessible roles, labels, focus, and
 visible completion conditions. Do not couple browser checks to incidental DOM
-ancestry, utility classes, or fixed delays. Rainy currently uses manual browser
-checks; the production smoke target checks HTTP/runtime behavior.
+ancestry, utility classes, or fixed delays. Browser checks are manual; Rainy
+has no automated browser test target, and the production smoke target checks
+HTTP and runtime behavior only.
 
 ## Test Data
 
@@ -126,37 +131,36 @@ public repository data:
 make docker-build smoke      # or: make ci-production
 ```
 
-`make smoke` runs `DOCKER_IMAGE` (default `rainy:dev`) in a disposable
-container and checks the health endpoint, the SPA shell, the Subsonic `ping`,
-and first-run setup and sign-in. It tests both default root and an explicit
-non-root user, persistence across restarts, and rejects tag edits and deletion
-on a read-only music mount without changing a generated synthetic WAV. `make ci-local` and CI build and test the
-image as `rainy:ci`.
+`make smoke` (`scripts/production-smoke.mjs`) runs `DOCKER_IMAGE` (default
+`rainy:dev`) in a disposable container with temporary data and a read-only
+music mount holding one generated synthetic WAV. It runs twice: as root (the
+default) and with `PUID=1000`/`PGID=1000`. Each run checks the health
+endpoint, `rainy version`, the runtime user, the SPA shell and manifest,
+first-run setup and the session cookie, that state lives in `/config` and the
+default library is `/data`, that the read-only mount receives no application
+state, that tag edits and deletion fail with `readonly` and leave the WAV
+unchanged, that the account and session survive a restart, that the native API
+rejects anonymous requests, Subsonic `ping` with right and wrong passwords, and
+the scan status endpoint. `make ci-local` and CI build and test the image as
+`rainy:ci`.
 
 ## CI Targets
 
-| Target | Scope |
-| --- | --- |
-| `make ci-policy` | Documentation links and the privacy-scanner, CI-plan, and release-check tests; only Node and Git required |
-| `make ci-style` | Frontend lint |
-| `make ci-backend` | `ci-backend-static` (format, lint, module verification, vulnerabilities, vet), `ci-backend-coverage`, and `ci-backend-race` |
-| `make ci-frontend` | Dependency audit, typecheck, helper tests, and production build |
-| `make ci-production` | `docker-build` plus `smoke` |
-| `make ci-local` | Every CI validation phase above, using the image tag `rainy:ci` |
-| `make ci` | Same as `ci-local` |
-
-Actions selects affected phases for PRs and runs all phases on `main`.
-The always-running Core check enforces the plan; see
-[CI and release automation](ci.md). Keep local validation proportional and
-remove generated build/coverage output after checks. The full CI sequence
-does not replace `make sensitive-check` on the actual working-tree diff.
+[CI and release automation](ci.md#local-equivalents) maps each Make target to
+its Actions job. Keep local validation proportional and remove generated
+build and coverage output after checks. The full CI sequence does not replace
+`make sensitive-check` on the actual working-tree diff.
 
 ## Before Committing
 
 - Run the tests that cover your change, or `make ci-local` for broad changes.
 - Run `make docs-check` after changing any public documentation.
-- Run `make sensitive-check`. It scans the working tree for secrets, private
-  paths, runtime data, and non-reserved URLs before they reach a commit.
+- Run `make sensitive-check` before committing. It scans tracked changes
+  against `HEAD` plus untracked files for secrets, private paths, runtime
+  data, non-reserved IPv4 addresses, and URLs that are not approved. An
+  approved public endpoint belongs in `scripts/privacy-allowlist.json` with
+  the files allowed to contain it and a reason; the scan flags every change to
+  that list for review.
 - Check `git status` and review the staged diff for databases, `.env` files,
   logs, media, and personal paths.
 - Update the [contract](../architecture/contract.md) and public docs for

@@ -38,7 +38,7 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 - 在瀏覽器中管理音樂庫：批次編輯標籤、封面、歌詞、重新命名與整理、上傳、透過 yt-dlp 從 YouTube 與嗶哩嗶哩連結下載（選用）、透過相容 lx music 的音源線上搜尋並下載歌曲（選用）、可還原的資源回收筒、音樂庫健檢與修改紀錄。
 - 自動修復 GBK、Big5、Shift-JIS 編碼造成的亂碼，並可用 UTF-8 永久寫回檔案。
 - 個人收聽統計與播放紀錄（含月度與年度回顧），並可將播放紀錄同步到 Last.fm 與 ListenBrainz（選用）。
-- 每日推薦，以及自動接續相似歌曲的無限模式，全部在伺服器上依你自己的音樂庫與播放紀錄計算。
+- 每日推薦、每週推薦、首頁的歌曲推薦，以及自動接續相似歌曲的無限模式，全部在伺服器上依你自己的音樂庫與播放紀錄計算。
 - 多使用者：管理員、音樂庫管理者與一般使用者，下載權限可個別設定。
 
 網頁介面目前提供英文與簡體中文。
@@ -72,10 +72,9 @@ Rainy 與 [Navidrome](https://www.navidrome.org/) 定位相近，把 NAS 上的�
 | `RAINY_DATA_PATH`（預設 `./config`） | `/config` | 資料庫、`secret.key`、封面快取、資源回收筒 |
 | `RAINY_MUSIC_PATH`（預設 `./data`） | `/data` | 你的音樂 |
 
-舊安裝使用 `/data` 儲存應用資料、`/music` 掛載音樂時，請先依
-[掛載路徑升級說明](../operations/docker.md#upgrading-the-mount-layout)保留資料庫和金鑰，並修改現有音樂庫的路徑。
+將應用資料放在 `/data`、音樂放在 `/music` 的安裝，需將 `RAINY_DATA_DIR` 與 `RAINY_MUSIC_DIR` 設為這兩個路徑，或依[掛載路徑說明](../operations/docker.md#upgrading-the-mount-layout)改用上述掛載方式。
 
-`secret.key` 用於加密儲存的密碼，請與 `rainy.db` 一併備份並妥善保管。請勿將這些目錄提交到版本庫。
+`secret.key` 用於加密儲存的密碼、播放紀錄同步的憑證與 yt-dlp 的 Cookie，請與 `rainy.db` 一併備份並妥善保管。請勿將這些目錄提交到版本庫。
 
 ## 使用者文件
 

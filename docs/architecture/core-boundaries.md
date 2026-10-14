@@ -53,9 +53,11 @@ clients, with its own response shapes and error codes. Changes require the
 relevant contract and golden-file updates.
 
 The backend enforces listener, manager, administrator, and download permissions.
-UI visibility does not grant access. Optional metadata lookup, downloads,
-online music, and scrobbling cross an outbound boundary only when enabled;
-follow [Secure development](../development/security.md) and
+UI visibility does not grant access. Optional metadata lookup, link downloads,
+online music, and scrobbling are the only features that cross an outbound
+boundary, and only when enabled (see
+[Runtime topology](index.md#runtime-topology)); follow
+[Secure development](../development/security.md) and
 [Privacy](../../PRIVACY.md) when changing them.
 
 ## Process Boundary

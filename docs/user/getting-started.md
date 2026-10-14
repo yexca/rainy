@@ -22,22 +22,27 @@ If the library stays empty, see
 
 ## 3. Explore
 
-- **Home** shows recently added, recently played, most played, starred, and
-  random albums.
-- **Library** (on phones) or the sidebar (on desktop) leads to albums, artists,
-  songs, genres, favorites, playlists, and radio.
+- **Home** shows **Made for You** (your daily and weekly mix), shelves of songs
+  picked for you, and recently added, recently played, most played, random
+  (**Discover**), and favorite albums; see
+  [Listening](listening.md#songs-on-the-home-page).
+- **Library** (on phones) or the sidebar (on tablets and desktops) leads to
+  albums, artists, songs, genres, favorites, playlists, your listening report,
+  and radio.
 - **Search** finds artists, albums, and songs; it ignores case, accents, and
   full-width characters.
 
-Tap an album to play it, or use the "…" menu on any track for play next, add
-to queue, add to playlist, star, download, and (for managers) edit tags.
+Tap an album to play it, or use the "…" menu on any track to play it next, add
+it to the queue or a playlist, go to its album or artist, add it to favorites,
+download it, and (for managers) edit its tags.
 
 ## 4. Add People
 
-Under **Admin → Users**, create accounts for everyone who should listen. Grant:
+Under **Admin → Users**, create accounts for everyone who should listen. Grant
+the roles:
 
-- **Download** to let someone save original files.
-- **Manager** only to people you trust with your music files.
+- **Downloads** to let someone save original files.
+- **Library manager** only to people you trust with your music files.
 - **Administrator** only to people who should manage the server itself.
 
 ## 5. Add More Libraries (Optional)

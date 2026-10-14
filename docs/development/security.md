@@ -21,43 +21,63 @@ should use the [Security Policy](../../SECURITY.md).
   users, libraries, scans, and server settings.
 - Library roots and the data directory are trusted operator mounts. Paths from
   requests, tags, uploads, archive names, and the database remain untrusted.
-- Outbound requests exist only in `internal/metasearch`, behind the
-  admin-only `onlineMetadata` setting (off by default) and the manager role,
-  and in `internal/ytdlp`, behind the admin-only `ytdlpEnabled` setting (off by
-  default). yt-dlp runs with a fixed argument list (`--ignore-config`,
-  `--no-plugin-dirs`, no generic extractor, the link last after `--`), only for
-  links to the allow-listed YouTube and bilibili hosts, and writes only into
-  its work directory; its binary comes from the official GitHub release,
-  verified against `SHA2-256SUMS`, and never from a URL taken from an API
-  response. Sign-in cookies are credentials: keep them encrypted, out of every
-  API response, log line, and error message, and give each run a private copy
-  that is deleted with its work directory.
-  Online music (`internal/lxmusic`) sits behind the admin-only
-  `lxSourcesEnabled` setting (off by default). Its catalogue searches follow the
-  same rules as metasearch. Its lx-music source scripts are third-party code
-  imported by an administrator: they run in a goja interpreter with only the
-  lx-music API (no `require`, file system, processes or `fetch`), every run of
-  script code is interrupted after 10 s and the interpreter discarded, inputs
-  and responses are bounded, and `lx.request`, script imports from a link, and
-  audio downloads may dial public internet addresses only (checked after DNS
-  resolution and on every redirect). Memory use is not bounded, which is why
-  only administrators can import scripts. No endpoint returns a script, and
-  songs sent back by clients are validated before their ids reach a script.
-  Scrobbling (`internal/scrobble`) sits behind the admin-only `lastfmEnabled`
-  and `listenBrainzEnabled` settings (off by default) and sends only the plays,
-  "now playing" updates, and loved tracks of users who linked an account. It
-  uses the fixed Last.fm and ListenBrainz API URLs; the browser, never the
-  server, opens the Last.fm sign-in page, and the returned token is accepted
-  only with the random `state` issued to the same user. Last.fm session keys,
-  ListenBrainz tokens, and the Last.fm shared secret are credentials: keep them
-  encrypted with `secret.key`, out of every API response, log line, and error
-  message.
-  Use fixed endpoint URLs, pass user input only as an encoded parameter,
-  validate provider ids before requesting, cap response sizes, and fetch covers
-  only from the allow-listed provider image hosts. Responses from these
-  services are untrusted text. Any new outbound host needs a
-  [PRIVACY.md](../../PRIVACY.md) update and an entry in
-  `scripts/privacy-allowlist.json`.
+- Outbound requests leave the server only for the optional features described
+  in [Outbound Requests](#outbound-requests).
+
+## Outbound Requests
+
+Rainy makes no outbound request unless an administrator turns on the setting
+of the feature that needs it; every such setting is off by default. There is
+no shared outbound transport or global egress policy: each package below
+builds its own `http.Client` from a clone of Go's default transport, so the
+environment's `HTTPS_PROXY`/`HTTP_PROXY` apply, and adds its own controls.
+
+| Package | Admin setting | Destinations | Package-specific controls |
+| --- | --- | --- | --- |
+| `internal/metasearch` (online metadata in the tag editor; managers search) | `onlineMetadata` | Fixed API URLs of NetEase Cloud Music, QQ Music, Kugou, Kuwo, and the iTunes Search API | Redirects stay on the same host (at most three); covers are fetched only from the provider image hosts in `coverHosts` |
+| `internal/ytdlp` (link downloads; managers submit links, administrators install yt-dlp) | `ytdlpEnabled` | YouTube and bilibili through yt-dlp; GitHub for the yt-dlp binary; `b23.tv` share links | See below |
+| `internal/lxmusic` (online music; administrators import source scripts) | `lxSourcesEnabled` | Catalogue search APIs, script links, and whatever source scripts request | Public internet addresses only, checked on the URL, after DNS resolution on every dialled address, and on every redirect (at most five); a configured proxy is exempt from the address check |
+| `internal/scrobble` (Last.fm and ListenBrainz) | `lastfmEnabled`, `listenBrainzEnabled` | The fixed Last.fm and ListenBrainz API URLs | Redirects are never followed |
+
+Every outbound client keeps these rules:
+
+- Bound each request: a dial timeout plus a request or response-header
+  timeout, and read every response body through a size cap.
+- Use fixed endpoint URLs and pass user input only as an encoded parameter.
+  Validate provider and song ids before they reach a request.
+- Report failures by host. Errors drop Go's `*url.Error` wrapper, whose
+  message repeats the full URL and may carry tokens.
+- Treat every response as untrusted text.
+- Add any new outbound host to [PRIVACY.md](../../PRIVACY.md) and, when it
+  appears in tracked files, to `scripts/privacy-allowlist.json`.
+
+yt-dlp runs with a fixed argument list (`--ignore-config`,
+`--no-plugin-dirs`, the generic extractor disabled, the link last after `--`),
+only for links whose host exactly matches the YouTube and bilibili allow list,
+and writes only into its work directory. Rainy resolves a `b23.tv` share link
+itself without following the redirect and accepts it only when it points at a
+bilibili video. The yt-dlp binary comes from the official GitHub release:
+Rainy reads the latest tag from the GitHub API, builds the download URLs from
+that validated tag instead of following a URL from the response, follows
+redirects only over HTTPS to GitHub hosts, and verifies the binary against
+`SHA2-256SUMS`. Sign-in cookies are credentials: keep them encrypted, out of
+every API response, log line, and error message, and give each run a private
+copy that is deleted with its work directory.
+
+lx-music source scripts are third-party code imported by an administrator.
+They run in a goja interpreter with only the lx-music API (no `require`, file
+system, processes, or `fetch`); every run of script code is interrupted after
+10 s and the interpreter discarded; and request bodies and responses are
+bounded. Memory use is not bounded, which is why only administrators can
+import scripts. No endpoint returns a script, and songs sent back by clients
+are validated before their ids reach a script.
+
+Scrobbling sends only the plays, "now playing" updates, and loved tracks of
+users who linked an account. The browser, never the server, opens the Last.fm
+sign-in page, and the returned token is accepted only with the random `state`
+issued to the same user. Last.fm session keys, ListenBrainz tokens, and the
+Last.fm shared secret are credentials: keep them encrypted with `secret.key`,
+out of every API response, log line, and error message.
 
 ## Filesystem Operations
 
@@ -65,16 +85,19 @@ should use the [Security Policy](../../SECURITY.md).
   absolute input, `..`, NUL bytes, and anything outside the root. Use the
   symlink-aware helpers (`EnsureWithinRoot`, `IsWithin`) before reading or
   moving images and other files found by pattern.
-- Never touch files outside a library root or the data directory. Libraries
-  may not overlap the data directory.
+- Never touch files outside a library root or the data directory. A library
+  may not overlap the data directory or another library.
 - Hold the scanner's library lock across a mutation and its rescan, write an
   `edit_log` row, and move deletions to the trash instead of removing files.
   See [Library management](../architecture/library-management.md).
 - Treat a read-only mount as a normal condition and return the `readonly`
   error.
-- Bound resource use: uploads have a per-request cap, and image decoding,
-  resizing, and ffmpeg processes must stop when the request is cancelled.
-- Pass file paths to ffmpeg as absolute `file:` URLs and never through a shell.
+- Bound resource use: uploads stream to the data directory's `tmp` folder
+  under per-file, per-request, and file-count limits; image decoding,
+  resizing, and ffmpeg processes stop when the request is cancelled.
+- Run ffmpeg and ffprobe with a fixed argument list and the input as an
+  absolute `file:` URL, never through a shell and never with user input as an
+  option.
 
 ## Authentication and Authorization
 

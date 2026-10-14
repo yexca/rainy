@@ -7,16 +7,19 @@ vendor, reverse proxy, VPN, hosting provider, or third-party Subsonic apps.
 
 ## No Telemetry
 
-Rainy does not include analytics, crash reporting, advertising, update checks,
-or any other project-operated service. By default the server makes no outbound
-network requests of its own: covers, lyrics, similar songs, and artist
-information all come from your own files and database. All data stays on your
-instance unless you, a user, or a client app sends it elsewhere. The
-exceptions are the opt-in online metadata lookup, downloads from YouTube and
-bilibili, online music through music sources, and scrobbling to Last.fm and
-ListenBrainz, all described below.
+Rainy does not include analytics, crash reporting, advertising, checks for
+Rainy updates, or any other project-operated service. By default the server
+makes no outbound network requests of its own: covers, lyrics, similar songs,
+and artist information all come from your own files and database. All data
+stays on your instance unless you, a user, or a client app sends it elsewhere.
+The exceptions are the opt-in online metadata lookup, downloads from YouTube
+and bilibili, online music through music sources, and scrobbling to Last.fm
+and ListenBrainz, all described below. Each is an administrator setting that
+is off by default. Their outbound requests honor the `HTTPS_PROXY`,
+`HTTP_PROXY`, and `NO_PROXY` environment variables, and each service's own
+privacy policy applies to the requests it receives.
 
-The only external connections happen in the browser:
+With those features off, the only external connections happen in the browser:
 
 - **Internet radio.** The browser connects directly to each station's stream
   URL, so the station sees the listener's IP address.
@@ -50,9 +53,7 @@ the server's real address from these services. No account, cookie,
 file, path, or listening data is sent. Results only fill the tag editor; files
 change only when the manager saves. Rainy does not store search terms or
 results on the server, and the logs record only the provider and error of a
-failed lookup. Each service's own privacy policy applies to the requests it
-receives. Outbound requests honor the `HTTPS_PROXY` and `HTTP_PROXY`
-environment variables.
+failed lookup.
 
 ## Downloads from YouTube and Bilibili
 
@@ -82,9 +83,7 @@ the requests below are made.
   session itself.
 
 The edit history records who downloaded which file and its source link. Rainy
-keeps the list of download jobs only in memory. yt-dlp's requests honor the
-`HTTPS_PROXY` and `HTTP_PROXY` environment variables. Each site's own privacy
-policy applies to the requests it receives.
+keeps the list of download jobs only in memory.
 
 ## Online Music and Music Sources
 
@@ -109,8 +108,10 @@ but not run.
   Music and Migu requests also carry the fixed client identifiers lx-music
   uses, which are the same for every installation.
 - **Music sources.** A music source is an lx-music custom source script that
-  an administrator imports, from a file or from a link the server downloads.
-  Rainy runs a script when a download needs it or an administrator tests it.
+  an administrator imports, from a file or from a link the server downloads
+  (again only when the administrator asks to update it). Rainy runs a script
+  when it is imported or updated, when an administrator tests it, and when a
+  download needs it; an idle script is stopped.
   **The script decides which servers it contacts**, usually its author's
   server, which then learns the server's IP address and the song being
   downloaded (its catalogue ids, title, artists, album, and the requested
@@ -127,10 +128,8 @@ but not run.
 Nothing about your library, users, or listening is sent, except the song
 being downloaded. The edit history records who downloaded which song, its
 catalogue page, the quality, and the source that provided it. Rainy keeps the
-list of download jobs only in memory. These requests honor the `HTTPS_PROXY`
-and `HTTP_PROXY` environment variables. Each service's own privacy policy
-applies to the requests it receives. Only download what you have the right to
-keep.
+list of download jobs only in memory. Only download what you have the right
+to keep.
 
 ## Scrobbling to Last.fm and ListenBrainz
 
@@ -164,16 +163,13 @@ in **Settings → Scrobbling**; nothing is sent for anyone else.
   already sent; manage that data, and Rainy's access, in your account at the
   service.
 
-These requests honor the `HTTPS_PROXY` and `HTTP_PROXY` environment variables.
-Each service's own privacy policy applies to the data it receives.
-
 ## Server-Side Data
 
 The data folder (`/config` in Docker) contains:
 
 | Location | Contents |
 | --- | --- |
-| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name and a copy of each played song's title, artist, album, and duration, linked Last.fm and ListenBrainz accounts (account name and encrypted session key or token) and plays waiting to be sent to them, playlists, play queues, bookmarks, radio stations, server settings, imported music source scripts, the library index, trash entries, and the edit history (who changed which file, when, and the old and new values) |
+| `rainy.db` | Usernames, display names, email addresses (optional), roles, encrypted passwords, hashed API keys, sessions (hashed token, user agent, IP address, timestamps), favorites, ratings, play counts, play history with the client name and a copy of each played song's title, artist, album, and duration, linked Last.fm and ListenBrainz accounts (account name and encrypted session key or token) and plays waiting to be sent to them, daily and weekly mixes, playlists, play queues, bookmarks, radio stations, library names and paths, server settings (including the Last.fm API key and the encrypted shared secret), imported music source scripts, the library index, trash entries (with who deleted each file), and the edit history (who changed which file, when, and the old and new values) |
 | `secret.key` | The key that encrypts stored passwords, the Last.fm and ListenBrainz credentials, and the yt-dlp sign-in cookies |
 | `trash/` | Music files deleted through Rainy, until the trash is emptied |
 | `cache/` | Resized cover images |
@@ -187,8 +183,9 @@ are stored only as SHA-256 hashes.
 
 Rainy also keeps some data only in memory: the "now playing" list (who is
 playing what, on which client, for up to 15 minutes), sign-in rate-limit
-counters keyed by IP address and username, and Last.fm sign-ins in progress
-(for 15 minutes). All are lost on restart.
+counters keyed by IP address and username, the lists of link and online-music
+download jobs, and Last.fm sign-ins in progress (for 15 minutes). All are lost
+on restart.
 
 Each user's listening report and history are visible only to that user in the
 app; administrators can read them only from the database itself. The same
@@ -242,10 +239,10 @@ Backups of the data folder carry the same sensitivity as the originals,
 including recoverable passwords. Store them encrypted and access-controlled.
 
 Deleting a user removes their sessions, favorites, ratings, play history,
-playlists, queue, bookmarks, linked scrobbling accounts, and waiting plays
-through database cascades. Plays already sent to Last.fm or ListenBrainz stay
-there. Edit-history entries
-keep the username that made each change. Deleting a user, a database row, or
+playlists, queue, bookmarks, daily and weekly mixes, linked scrobbling
+accounts, and waiting plays through database cascades. Plays already sent to
+Last.fm or ListenBrainz stay there. Edit-history and trash entries keep the
+username that made each change. Deleting a user, a database row, or
 the container does not remove copies in backups, reverse-proxy logs, or client
 apps; operators are responsible for those systems.
 

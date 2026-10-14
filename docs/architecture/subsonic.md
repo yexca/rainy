@@ -3,13 +3,13 @@
 Rainy implements the Subsonic API 1.16.1 with OpenSubsonic extensions under
 `/rest`, so existing Subsonic clients work without a Rainy-specific app. The
 full method list, envelope, error codes, and song fields are in
-[contract §6](contract.md#6-subsonic--opensubsonic-rest--owner-subsonic-agent).
+[contract §6](contract.md#6-subsonic--opensubsonic-rest).
 User-facing setup is in [Clients](../user/clients.md).
 
 ## Protocol
 
-- Methods answer on `/rest/{method}` and `/rest/{method}.view`, with `GET` or
-  form-encoded `POST` (OpenSubsonic `formPost`).
+- Methods answer on `/rest/{method}` and `/rest/{method}.view`, with `GET`,
+  `HEAD`, or form-encoded `POST` (OpenSubsonic `formPost`).
 - Responses default to XML; `f=json` and `f=jsonp` are supported. The envelope
   reports `type="rainy"`, the server version, and `openSubsonic=true`.
 - CORS allows any origin so browser-based clients can connect.
@@ -21,7 +21,8 @@ Clients authenticate with one of:
 - `u` + `p` (plain or `enc:`-hex encoded password).
 - `u` + `t` + `s`, where `t = md5(password + s)` (token authentication).
 - `apiKey` (OpenSubsonic `apiKeyAuthentication`). Users create a key in
-  **Settings → Subsonic apps**; it is shown once and stored as a hash.
+  **Settings → Apps** (the **Subsonic apps** card); it is shown once and
+  stored as a hash.
 
 Token authentication is why Rainy stores passwords reversibly encrypted; see
 [Data model](data-model.md#passwords-and-keys). Failed authentications are rate
@@ -51,13 +52,17 @@ credentials automatically.
 - **Play queues** are shared with the web player, including the index-based
   variants, so playback can move between devices.
 - **Scrobbling** with `submission=false` updates "now playing"; `true`
-  records a play.
+  records a play. Both are forwarded to the user's linked Last.fm or
+  ListenBrainz accounts, and stars are mirrored to Last.fm loved tracks, as
+  for the web app.
 - **Similar and top songs** are computed locally from the library; Rainy makes
   no external lookups.
 - **Administration** (`startScan`, user management, radio station writes)
   requires an administrator.
-- **Not implemented:** podcasts, shares, chat, and jukebox return empty lists
-  or error 0 ("not supported"); `getAvatar` returns "not found".
+- **Not implemented:** podcasts, shares, chat, and jukebox. Their list
+  methods return empty lists, podcast episode lookups return error 70 (not
+  found), and every other method returns error 0 ("not supported");
+  `getAvatar` returns error 70.
 
 ## Changing the Subsonic API
 

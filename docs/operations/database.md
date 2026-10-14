@@ -19,15 +19,23 @@ On the host, these live in the folder configured by `RAINY_DATA_PATH`
 
 | File or folder | Contents | Back up? |
 | --- | --- | --- |
-| `rainy.db` (with `-wal` and `-shm`) | Users, sessions, playlists, favorites, ratings, play history, play queues, settings, the library index, trash entries, and the edit history | Yes |
-| `secret.key` | 32-byte key that encrypts stored passwords | Yes. **Without it, every user must have their password reset.** |
+| `rainy.db` (with `-wal` and `-shm`) | Users, sessions, libraries, playlists, favorites, ratings, play history, play queues, bookmarks, radio stations, daily and weekly mixes, linked scrobbling accounts and plays waiting to be sent, imported music source scripts, settings, the library index, trash entries, and the edit history | Yes |
+| `secret.key` | 32-byte key that encrypts stored passwords, the Last.fm shared secret, linked scrobbling credentials, and yt-dlp sign-in cookies | Yes. **Without it, every user must have their password reset** (see below). |
 | `trash/` | Music files deleted in Rainy | Recommended |
+| `ytdlp/` | yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies | Optional; Rainy can install yt-dlp again |
 | `cache/` | Resized cover images | No; rebuilt on demand |
-| `tmp/` | Upload staging | No |
+| `tmp/` | Upload staging and running downloads | No |
 
 The library index (tracks, albums, artists, genres) can be rebuilt by
 rescanning, but favorites, ratings, playlists, play counts, and the edit
 history cannot. Back up the whole database.
+
+When `secret.key` is missing, Rainy creates a new one at startup and nothing
+encrypted with the old key can be read: nobody can sign in until an
+administrator resets each password with `rainy user reset-password` (see
+[Docker](docker.md#command-line-tools)), the Last.fm shared secret must be
+entered again, users must reconnect their scrobbling accounts, and yt-dlp
+sign-in cookies must be pasted again.
 
 ## Migrations on Startup
 
@@ -39,8 +47,9 @@ previous image in that case. Migration rules for contributors are in
 
 ## Connection Settings
 
-Rainy opens a read-only reader pool and a single writer connection. Every
-connection applies:
+Rainy opens a reader pool (`query_only`, at least four connections or twice
+the CPU count) and a single writer connection whose transactions take the
+write lock up front (`BEGIN IMMEDIATE`). Every connection applies:
 
 | Pragma | Value | Purpose |
 | --- | --- | --- |
@@ -83,16 +92,17 @@ trash and edit history help undo mistakes, but they are not a backup.
 2. Replace the data folder with the backup contents.
 3. Start it again: `docker compose start rainy`.
 
-The entrypoint fixes file ownership on startup. If the restored database is
-older than the running image, its migrations run automatically.
+With a nonzero `PUID`, the entrypoint fixes the data folder's ownership on
+startup. If the restored database is older than the running image, its
+migrations run automatically.
 
 ## Maintenance
 
 - **Clear the cover cache** under **Admin → System**, or delete
   `cache/` while Rainy is stopped. The same tab shows the database, cache, and
   trash sizes.
-- **Empty the trash** from **Manage → Trash** to reclaim space.
-- **Purge missing tracks** from **Manage → Doctor** after files are removed on
+- **Empty the trash** from **Library tools → Trash** to reclaim space.
+- **Purge missing tracks** from **Library tools → Doctor** after files are removed on
   purpose.
 
 ## Related Docs

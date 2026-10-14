@@ -5,8 +5,8 @@ Security guidance is split by audience:
 - [Security policy](../../SECURITY.md): supported versions, private
   vulnerability reporting, scope, and disclosure.
 - [Deployment security](../operations/security.md): network exposure, accounts
-  and roles, sessions, Subsonic credentials, stored secrets, and container
-  boundaries.
+  and roles, sessions, Subsonic credentials, stored secrets, container
+  boundaries, and the opt-in outbound features.
 - [Reverse proxy and HTTPS](../operations/reverse-proxy.md): TLS termination,
   proxy trust, and the settings Rainy needs behind a proxy.
 - [Secure development](../development/security.md): trust boundaries,

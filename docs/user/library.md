@@ -29,16 +29,17 @@ produces this layout automatically; see
 
 ## Tags That Matter
 
-- **ALBUMARTIST** keeps an album together. Without it, an album with guest
-  artists splits into several albums. For compilations, use `Various Artists`
-  and set `COMPILATION=1`.
+- **ALBUMARTIST** keeps an album together. Without it, the track artist is
+  used, so an album with guest artists splits into several albums. For
+  compilations, set `COMPILATION=1` (iTunes' compilation flag counts too); a
+  compilation without ALBUMARTIST is filed under `Various Artists`.
 - **DISCNUMBER** (for example `1/2`) and **TRACKNUMBER** (for example `3/12`)
   order multi-disc albums.
 - **DATE** or **YEAR** provide the year; **ORIGINALDATE** is also read.
 - **GENRE** can hold several genres, such as `Pop; Rock`. The separators
   (default `;`, `/`, and `,`) are configurable in **Admin → Settings**.
-- **Sort tags** (`SORTARTIST`, `SORTALBUM`, and so on) and MusicBrainz IDs are
-  used when present.
+- **Sort tags** (`ARTISTSORT`, `ALBUMSORT`, `ALBUMARTISTSORT`, `TITLESORT`)
+  and MusicBrainz IDs are used when present.
 - **ReplayGain** tags enable volume normalization in the player.
 
 When a tag is missing, Rainy falls back to the file name for the title,
@@ -46,29 +47,35 @@ When a tag is missing, Rainy falls back to the file name for the title,
 
 Artist names are indexed by initial letter. Chinese names use the pinyin
 initial (for example, a name starting with 周 is listed under Z), and leading
-articles such as "The" and "La" are ignored when sorting.
+articles such as "The" and "La" are ignored when sorting; the list is
+**Ignored articles** in **Admin → Settings**.
 
 ## Covers and Lyrics
 
 - **Album covers** come from the folder image first (`cover.*`, `folder.*`,
   `front.*`, `album.*`, `albumart*.*` in JPEG, PNG, or WebP), then from the
-  embedded picture. For multi-disc albums, a cover one level above `CD1` or
-  `Disc 2` folders is found too. The file-name patterns are configurable.
-- **Artist images** are `artist.*` files in the folder above the album folder;
-  otherwise the latest album cover is used.
-- **Lyrics** come from a `.lrc` file with the same name as the audio file, then
-  from the embedded `LYRICS` or `UNSYNCEDLYRICS` tag.
+  embedded picture. For multi-disc albums, a cover one level above disc
+  folders such as `CD1`, `Disc 2`, or `Vinyl 1` is found too. The file-name
+  patterns are **Cover image files** in **Admin → Settings**.
+- **Artist images** are `artist.*` files in the folder above the album folder,
+  else in the album folder itself; otherwise the cover of the artist's most
+  recent album is used.
+- **Lyrics** come from a `.lrc` file with the same name as the audio file
+  (UTF-8, UTF-16, GBK, Big5, or Shift-JIS), then from the embedded `LYRICS` or
+  `UNSYNCEDLYRICS` tag.
 
 ## Supported Formats
 
-MP3, FLAC, AAC/M4A/M4B/ALAC, Ogg Vorbis, Opus, WAV, AIFF, APE, WavPack,
-Musepack, TTA, WMA, Speex, and DSD (DSF/DFF). Formats that browsers cannot play
-are transcoded automatically when ffmpeg is available.
+MP3, FLAC, AAC/M4A/M4B/MP4/ALAC, Ogg Vorbis, Opus, WAV, AIFF, APE, WavPack,
+Musepack, TTA, WMA, Speex, and DSD (DSF/DFF). Other files are not indexed.
+Formats that browsers cannot play are transcoded automatically when ffmpeg is
+available.
 
 ## What Gets Scanned
 
 Rainy scans every library on startup (unless `RAINY_SCAN_ON_START=false`), on
-the scan interval (hourly by default), and when you start a scan manually.
+the **Automatic scan** interval in **Admin → Settings** (every hour by
+default), and when you start a scan manually.
 
 - A **quick scan** reads only new files and files whose size or modification
   time changed.
@@ -76,12 +83,12 @@ the scan interval (hourly by default), and when you start a scan manually.
   affect how tags are read, such as genre separators or encoding repair.
 
 Start either one under **Admin → Libraries**, or rescan a single folder from
-**Manage → Folders**.
+**Library tools → Folders**.
 
 Rainy skips:
 
-- Hidden files and folders (names starting with `.`).
-- NAS and OS system folders: `@eaDir`, `#recycle`, `#snapshot`, `.@__thumb`,
+- Hidden files and folders (names starting with `.`, such as `.@__thumb`).
+- NAS and OS system folders: `@eaDir`, `#recycle`, `#snapshot`, `@Recycle`,
   `$RECYCLE.BIN`, `lost+found`, and `System Volume Information`.
 - Any folder that contains a file named `.rainyignore`, including all of its
   subfolders. Create an empty file with that name to exclude a folder.
@@ -91,12 +98,15 @@ Rainy skips:
 When you move or rename files outside Rainy, the next scan recognizes a moved
 file by its size, duration, and title, and keeps its favorites, ratings, play
 counts, and playlist entries. Files that disappear are marked missing and
-hidden; they return automatically if the files come back. Purge them from
-**Manage → Doctor** once they are gone for good.
+hidden; they return automatically if the files come back. Remove them under
+**Missing files** in **Library tools → Doctor** once they are gone for good.
 
 If a whole library suddenly looks empty or unreadable (for example, an
 unmounted disk or share), Rainy skips that library and logs a warning instead
-of marking everything missing.
+of marking everything missing. The same applies inside a library to a folder
+or link that cannot be read and to a folder that held 20 or more songs and is
+now completely empty: its songs stay as they are until it comes back. To remove
+such songs for good, delete the folder itself.
 
 ## Fixing Garbled Tags
 
@@ -109,8 +119,9 @@ Rainy handles this in two steps:
 1. **Repair when reading (on by default).** The scanner detects this mojibake
    and stores the corrected text in the database. Your files are not modified.
    The switch is **Repair garbled tags when reading** in **Admin → Settings**.
-2. **Fix the files permanently.** Open the **Encoding** issues in
-   **Manage → Doctor**, review the old and new value of every field, and
+2. **Fix the files permanently.** Open the **Encoding** check in
+   **Library tools → Doctor** (or select tracks in **Tracks → Metadata** and
+   choose **Fix encoding**), review the old and new value of every field, and
    confirm. Rainy rewrites the tags as UTF-8, so every other player and
    Subsonic client shows them correctly too. This requires a writable music
    folder.

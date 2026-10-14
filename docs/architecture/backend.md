@@ -30,16 +30,16 @@ from `RAINY_*` environment variables; see
 | `config` | Loads `RAINY_*` environment variables and derives data-directory paths |
 | `db` | Opens SQLite, applies embedded migrations; `db/dbtest` gives tests a migrated temporary database |
 | `model` | Shared structs whose JSON form is the native API shape |
-| `util` | IDs, time, search normalization, cover-art IDs, MIME types, and `SafeJoin` |
+| `util` | IDs, time, search normalization, cover-art IDs, MIME types, and the path guards `SafeJoin` and `EnsureWithinRoot` |
 | `store` | All shared SQL (the repository layer) |
 | `auth` | Password encryption, sessions, API keys, middleware, and login rate limiting |
 | `events`, `nowplaying` | In-process pub/sub for server-sent events, and the in-memory "now playing" list |
-| `tags` | TagLib wrapper for reading and writing tags and pictures, plus mojibake repair |
+| `tags` | TagLib wrapper for reading and writing tags and pictures, the read-only ffprobe fallback, and mojibake repair |
 | `scanner` | Library walks, scheduling, targeted rescans, and the library lock |
 | `artwork` | Cover resolution, resizing, and the disk cache |
 | `transcode`, `lyrics` | ffmpeg streaming and LRC parsing |
 | `manage` | Tag editing, covers, lyrics, rename, upload, trash, the library doctor, and the edit log |
-| `metasearch` | Opt-in online metadata lookup for the tag editor |
+| `metasearch` | Opt-in online metadata lookup for the tag editor, and the cover proxy for its providers' image hosts |
 | `ytdlp` | Opt-in downloads from YouTube and bilibili: the yt-dlp binary (install, update), encrypted sign-in cookies, and yt-dlp runs |
 | `lxmusic` | Opt-in online music: song search in the five lx-music catalogues and lx-music custom source scripts run in a sandboxed goja interpreter |
 | `listening` | Listening reports from the play history: totals, the timeline, the hour-of-week clock, and top lists |
@@ -51,10 +51,30 @@ from `RAINY_*` environment variables; see
 
 ## Dependency Rules
 
-- `model`, `util`, `config`, and `buildinfo` import nothing internal.
+Imports point downward through these layers; a package imports only packages
+in lower layers:
+
+```text
+cmd/rainy
+server
+api, subsonic
+app
+manage, scrobble
+scanner
+artwork, auth, listening, recommend, lxmusic
+store, metasearch, transcode, lyrics, ytdlp
+db, model, util, config, buildinfo, events, nowplaying, tags
+```
+
+- `model`, `util`, `config`, `buildinfo`, `events`, `nowplaying`, `tags`, and
+  `db` import nothing internal.
 - `store` imports only `db`, `model`, and `util`.
-- Services import `store` but never `api`, `subsonic`, `server`, or `app`.
-- Only `app` knows every service; handlers receive the `App` container.
+- Services import `store` and lower services but never `api`, `subsonic`,
+  `server`, or `app`.
+- `app` is the dependency container that constructs and wires every service.
+  The handler packages `api` and `subsonic` receive the `*app.App`, and
+  `server` mounts them. `cmd/rainy` builds the `App` and the server, and opens
+  the store directly for its maintenance commands.
 
 The full conventions (IDs, timestamps, paths, logging, errors, context) are in
 [contract §3](contract.md#3-conventions).
@@ -92,14 +112,19 @@ interval stored in settings.
 A library lock serializes scans and file mutations. Management operations hold
 it across the file change and the targeted rescan that follows, so a scan never
 observes a half-finished rename. Details are in
-[contract §5.8](contract.md#58-scanner-owner-scanner-agent) and
-[§13](contract.md#13-wave-2-implementation-notes).
+[contract §5.8](contract.md#58-scanner).
+
+Other background work stays in the process: link and online-music downloads
+run as in-memory jobs in `manage`, `scrobble` sends queued plays from a
+retrying background sender, and `lxmusic` stops source scripts that stay idle.
 
 ## Shutdown
 
 On `SIGINT` or `SIGTERM`, the server stops accepting connections, cancels
-request contexts shortly after shutdown begins (ending event streams), stops
-the scan scheduler, and closes the database last so the WAL is checkpointed.
+request contexts shortly after shutdown begins (ending event streams), and
+stops the scan scheduler. It then cancels running download jobs, stops the
+scrobble sender, the source scripts, and any yt-dlp install in progress, and
+closes the database last so the WAL is checkpointed.
 
 ## Related Docs
 

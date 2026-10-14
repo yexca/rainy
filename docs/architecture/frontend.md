@@ -14,19 +14,24 @@ The precise layout, routes, and cross-feature contracts are in
 | Path | Responsibility |
 | --- | --- |
 | `src/lib/api/` | Fetch client, contract types, and one typed function per endpoint |
+| `src/lib/` | Query client and keys, i18n setup, formatting, theme, and other shared helpers |
 | `src/components/`, `src/components/ui/` | Shared components and generated shadcn components |
-| `src/layouts/` | The signed-in app shell (sidebar, tab bar, player slots) and the auth layout |
+| `src/hooks/` | Shared hooks: auth state, server-sent events, theme, and media queries |
+| `src/stores/` | Global UI state (`useUI`): cross-feature dialog openers and shell preferences |
+| `src/layouts/` | The root layout, route guards, the signed-in app shell (sidebar, header, mobile tab bar, player slots), navigation, and the auth layout |
 | `src/features/auth/` | Sign-in and first-run setup |
-| `src/features/library/` | Browsing pages, track lists, cards, and context menus |
-| `src/features/player/` | Audio engine, queue store, player UI, lyrics, and PWA glue |
-| `src/features/settings/` | Per-user settings |
-| `src/features/manage/`, `src/features/admin/` | Library management and administration |
-| `src/locales/{en,zh}/` | Translations, one namespace file per feature |
+| `src/features/library/` | Home, browsing, search, favorites, playlists, radio, listening reports, and the daily and weekly mixes |
+| `src/features/player/` | Audio engine, queue store, player UI, lyrics, play reporting, and the PWA update prompt |
+| `src/features/settings/` | Per-user settings, the About page, and the Last.fm sign-in callback |
+| `src/features/manage/` | The track table and tag editor, upload, link and online downloads, folders, doctor, trash, and history |
+| `src/features/admin/` | Users, libraries, and server settings (general, yt-dlp, sources, scrobbling, system) |
+| `src/locales/{en,zh}/` | Translations, one namespace file per feature plus `common` |
 
 Every page module lives at `src/features/<area>/pages/<name>-page.tsx` and is
 lazy-loaded by `src/router.tsx`. Manage routes require a manager or
-administrator, admin routes require an administrator, and signed-out users are
-redirected to `/login` (or `/setup` before the first account exists).
+administrator, admin routes require an administrator (others see a forbidden
+page), and signed-out users are redirected to `/login` (or `/setup` before the
+first account exists).
 
 ## State
 
@@ -49,15 +54,20 @@ The name view completes its A–Z index in later batches of up to 1000, with a
 
 ## Player and PWA
 
-A single audio element plays the current track while a second one preloads
-the next track shortly before the end. Media Session exposes metadata and
-transport controls to lock screens, headsets, and car displays. The streaming
-quality setting chooses between original files and transcoded streams.
+One audio element plays the current track while a second one buffers the next
+track about 20 seconds before the end; the two swap when the track ends. On
+iOS a single element plays everything, because WebKit requires a user gesture
+per element. Streams load lazily: while paused, changing tracks only updates
+the UI. Media Session exposes metadata and transport controls to lock screens,
+headsets, and car displays. The streaming quality setting chooses between
+original files and transcoded streams.
 
-`vite-plugin-pwa` generates the service worker and manifest. Covers are cached
-for offline browsing; streams, downloads, and the event stream are never
-cached. The behavior contract for the player is in
-[Design](../development/design.md#ios-style-player).
+`vite-plugin-pwa` generates the service worker and manifest from
+`web/pwa.config.ts`. The service worker precaches the built app shell and
+caches covers for offline browsing; streams, downloads, and the event stream
+bypass it entirely. A new version waits for the listener to accept an update
+prompt instead of reloading during playback. The behavior contract for the
+player is in [Design](../development/design.md#ios-style-player).
 
 ## Internationalization
 

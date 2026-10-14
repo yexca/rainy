@@ -2,7 +2,8 @@
 
 The [Makefile](../../Makefile) defines validation commands. Actions provisions
 tools, selects the required phases, runs those targets, and records results.
-The working-tree privacy scan remains a separate pre-commit and handoff step.
+The working-tree privacy scan (`make sensitive-check`) is a separate pre-commit
+and handoff step that no CI job runs.
 
 ## Pull Requests
 
@@ -21,7 +22,17 @@ documentation links and the privacy-scanner, CI-plan, and release-check tests.
 Combined changes select the union. An unavailable or empty diff selects all
 jobs. Pushes to `main` and reusable calls with `run_builds: true` also run all
 phases. Go formatting belongs to Backend static checks; frontend lint belongs
-to Style. Independent phases start after Policy.
+to Style. Independent phases start after Policy, and a newer push to the same
+pull request or branch cancels the older run.
+
+| Job | Runs |
+| --- | --- |
+| Policy | `make ci-policy`, then `make ci-plan` |
+| Style | `make ci-style` |
+| Backend (static), (coverage), (race) | `make ci-backend-<check>` as three parallel matrix jobs; coverage and race install ffmpeg so media tests run, and coverage uploads `coverage.out` as an artifact |
+| Frontend | `make ci-frontend` |
+| Smoke | `make docker-build` as `rainy:ci` with a Buildx layer cache, then `make smoke` |
+| Core | `make ci-results` |
 
 The stable required check is **Core**. It runs even after a failure and uses
 `make ci-results` to reject failures, cancellations, missing results, and
@@ -44,22 +55,36 @@ Configure branch protection to require Core rather than every conditional job.
 Use `make docs-check` for a documentation change. `frontend-docs` is a
 compatibility alias. `smoke` and `production-smoke` both exercise an already
 built image in a disposable container. No local phase publishes an image or
-release. Browser checks remain manual; see [Testing](testing.md#browser-checks).
+release. Browser checks are manual; see [Testing](testing.md#browser-checks).
 
 ## Releases
 
-[Release](../../.github/workflows/release.yml) runs on version tags. It first
-uses `make release-check` to require a valid `VERSION`, an identical tag, and
-nonempty `docs/history/<tag>.md`. Run that target locally before tagging; on
-a non-tag checkout it validates VERSION and its release notes.
+[Release](../../.github/workflows/release.yml) runs on tags matching
+`v*.*.*` in three jobs:
 
-Actions also verifies that the commit belongs to `main` and waits for a
-successful main CI run for that exact commit. Only then does it publish
-amd64/arm64 images to Docker Hub and GHCR, followed by the GitHub Release.
+1. **Verify release source** runs `make release-check`, which requires a
+   `VERSION` of the form `v<major>.<minor>.<patch>`, a tag equal to it, and a
+   nonempty `docs/history/<tag>.md`. On a non-tag checkout the target
+   validates `VERSION` and its release notes only. The job then requires the
+   tagged commit to be an ancestor of `main` and waits for a successful CI run
+   triggered by a push to `main` for that exact commit. It polls every minute,
+   fails as soon as every such run has finished without success (failed or
+   cancelled), and gives up after 30 minutes.
+2. **Build and push image** builds `linux/amd64` and `linux/arm64` with Buildx
+   (QEMU only for the final arm64 stage), passes the tag, commit, and build
+   date as build arguments, and pushes to Docker Hub
+   (`<repository owner>/rainy`, signed in as the repository owner with the
+   `DOCKERHUB_TOKEN` secret) and to GHCR (`ghcr.io/<repository>`). Image tags
+   drop the leading `v`: the full version, `<major>.<minor>`, and `latest`.
+   Images carry OCI labels plus SBOM and provenance (`mode=max`)
+   attestations.
+3. **Publish GitHub release** creates the release, or updates an existing one,
+   titled with the tag and with `docs/history/<tag>.md` as its body.
+
 Concurrent attempts for the same tag are serialized without cancelling an
-active publication.
+active publication. The release does not repeat the CI validation suite.
 
-Actions remain pinned to full commit SHAs. Validation has read-only repository
-permissions; registry and release write permissions are limited to the jobs
-that publish. See [Commit and release](commit-and-release.md) for signing and
+Third-party actions are pinned to full commit SHAs. Validation has read-only
+repository permissions; registry and release write permissions are limited to
+the jobs that publish. See [Commit and release](commit-and-release.md) for signing and
 the release procedure.

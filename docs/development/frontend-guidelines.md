@@ -8,8 +8,9 @@ Read [Frontend architecture](../architecture/frontend.md),
 
 - Put domain pages and workflows in `web/src/features/<area>`.
 - Keep shared components, hooks, stores, and `lib` independent of features.
-  Communicate through the documented small shared contracts instead of deep
-  imports into another feature.
+  Communicate through the small shared contracts documented in contract §9.2
+  (such as `useUI` and the `usePlayer` store in `@/features/player/store`)
+  instead of deep imports into another feature.
 - Use TanStack Query for server state and the existing player stores for
   transport and queue state. Avoid a second audio engine or queue identity.
 - Keep the player mounted across navigation. Failures in a page or optional
@@ -32,5 +33,5 @@ React. Permission guards in the backend remain authoritative.
 Use `make ci-style` for lint and `make ci-frontend` for audit, typecheck,
 helper tests, and the production build. For interaction changes, run the
 Docker development stack and check the affected browser workflow as described
-in [Testing](testing.md#browser-checks). Rainy currently has no automated
-browser regression target; do not claim a manual check covers every browser.
+in [Testing](testing.md#browser-checks). Browser checks are manual; do not
+claim a manual check covers every browser.

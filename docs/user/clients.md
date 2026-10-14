@@ -15,11 +15,12 @@ Add a server in the app with:
 | Username | Your Rainy username |
 | Password | Your Rainy password, or leave it empty when using an API key |
 
-**Settings → Subsonic apps** in the web app shows the server address and your
-username to copy.
+The **Subsonic apps** section of **Settings → Apps** in the web app shows the
+server address and your username to copy, and suggests apps for your platform.
 
-Most apps use token authentication (`t` and `s` parameters), which Rainy
-supports. Older apps that offer "plain password" or "legacy authentication"
+Rainy implements Subsonic API 1.16.1. Most apps use token authentication (`t`
+and `s` parameters), which Rainy supports. Older apps that offer "plain
+password" or "legacy authentication" (including `enc:` hex-encoded passwords)
 work too.
 
 ## API Keys
@@ -27,7 +28,7 @@ work too.
 Apps that support the OpenSubsonic `apiKeyAuthentication` extension can sign in
 with an API key instead of your password:
 
-1. Open **Settings → Subsonic apps** and choose **Create API key**.
+1. Open **Settings → Apps** and choose **Create API key**.
 2. Copy the key immediately; it is shown only once.
 3. Paste it into the app.
 
@@ -38,14 +39,20 @@ user has one API key.
 ## Transcoding
 
 When an app requests a lower bitrate or a specific format, Rainy converts the
-stream with ffmpeg:
+stream with ffmpeg. The server's defaults are **Transcoding format** (MP3) and
+**Transcoding bitrate** (192 kbps) in **Admin → Settings**.
 
-- If the app requests MP3, Opus, or AAC, that format is used.
-- If the app only limits the bitrate, Rainy uses the server's default format
-  (MP3 unless changed in **Admin → Settings**), at 192 kbps unless a bitrate is
-  given.
+- If the app requests MP3, Opus, or AAC, that format is used, at the app's
+  bitrate limit or else the default bitrate. A file already in that format and
+  within the limit is sent as it is.
+- If the app only limits the bitrate, lossless files and files above the limit
+  are converted to the default format at that limit; other files are sent as
+  they are.
 - Formats most apps cannot decode (APE, WMA, DSF/DFF, WavPack, Musepack, and
-  TTA) are converted unless the app explicitly asks for the original.
+  TTA) are converted to the default format unless the app explicitly asks for
+  the original (`format=raw`).
+- Opus streams are capped at 256 kbps, MP3 and AAC at 320 kbps. Without ffmpeg,
+  the original file is sent.
 - Original files support seeking through HTTP range requests.
 
 ## What Syncs
@@ -53,7 +60,11 @@ stream with ffmpeg:
 - Favorites (stars), ratings, play counts, and playlists are shared between the
   web app and every Subsonic app, per user.
 - The play queue syncs between the web app and apps that support
-  `savePlayQueue`/`getPlayQueue`, so you can continue on another device.
+  `savePlayQueue`/`getPlayQueue` (or their OpenSubsonic index-based versions),
+  so you can continue on another device.
+- Apps that support the OpenSubsonic `songLyrics` extension show synced
+  lyrics. The supported extensions are listed in
+  [Subsonic API architecture](../architecture/subsonic.md).
 - Apps that download the whole library for offline browsing (such as
   Symfonium) are supported.
 

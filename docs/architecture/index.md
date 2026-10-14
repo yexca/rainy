@@ -54,22 +54,32 @@ Browser (web app / PWA)            Subsonic and OpenSubsonic clients
                          |                        transcode (ffmpeg), lyrics
                          |                                |
                     /config (DB, secret.key,         library roots
-                    cache, trash, tmp)             (for example /data)
+                    cache, trash, tmp, ytdlp)      (for example /data)
 ```
 
 One process serves the embedded web app, both APIs, and background scans.
 Server-sent events on `/api/events` push scan progress, library changes, and
-"now playing" updates to open browsers. There are no external services, and
-the server sends no outbound requests unless an administrator enables the
-opt-in online metadata lookup (`internal/metasearch`), which only runs when a
-manager searches from the tag editor, downloads from links
-(`internal/ytdlp`), which contact YouTube or bilibili only when a manager starts
-a download and GitHub only when an administrator checks for or installs a
-yt-dlp update, or online music (`internal/lxmusic`), which searches the online
-catalogues when a manager asks and runs administrator-imported lx-music source
-scripts that contact the servers their authors chose, or scrobbling
-(`internal/scrobble`), which sends the plays of users who linked a Last.fm or
-ListenBrainz account to that service.
+"now playing" updates to open browsers. There are no external services.
+
+The server sends outbound requests only from four opt-in features, each off
+until an administrator enables its server setting:
+
+- Online metadata lookup (`internal/metasearch`, `onlineMetadata`) searches
+  the catalogues and fetches lyrics and covers (from the providers' image
+  hosts only) when a manager searches from the tag editor or picks a result.
+- Link downloads (`internal/ytdlp`, `ytdlpEnabled`) contact YouTube or
+  bilibili when a manager starts a download (through the yt-dlp process, plus
+  resolving bilibili short links), and GitHub when an administrator checks for
+  or installs a yt-dlp update.
+- Online music (`internal/lxmusic`, `lxSourcesEnabled`) searches the online
+  catalogues, fetches lyrics and covers, and downloads audio when a manager
+  asks; it downloads source scripts when an administrator imports or refreshes
+  one from a link, and runs administrator-imported lx-music source scripts that
+  contact the servers their authors chose (public addresses only).
+- Scrobbling (`internal/scrobble`, `lastfmEnabled` and `listenBrainzEnabled`)
+  contacts Last.fm or ListenBrainz when a user links an account, and then
+  sends that user's plays and "now playing" updates to the linked services and
+  mirrors their favorites to Last.fm loved tracks.
 
 ## Related Docs
 

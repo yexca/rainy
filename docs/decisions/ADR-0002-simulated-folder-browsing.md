@@ -30,6 +30,6 @@ native API.
 - Both browsing models show the same library, and stars, ratings, and plays
   apply to the same items.
 - A folder-mode client does not see the literal directory tree. Managers who
-  need it use **Manage → Folders** in the web app.
+  need it use **Library tools → Folders** in the web app.
 - A clean `ALBUMARTIST` tag matters for every client; see the
   [library guide](../user/library.md#tags-that-matter).

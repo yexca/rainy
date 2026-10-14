@@ -1,15 +1,16 @@
 # Management
 
-Managers and administrators can change the music library from the **Manage**
-section, which has three entries in the sidebar: **Tracks**, **Library
-tools**, and (for administrators) **Admin**. Each entry's pages are tabs at
-the top of the page. **Tracks** has **Metadata** (the track table and tag
-editor), **Upload** (files from this device), **Links** (YouTube and
-bilibili), and **Online** (online music); **Library tools** has Folders,
-Doctor, Trash, and History; **Admin** has Users, Libraries, and the server
-settings: Settings, yt-dlp, Sources, Scrobbling, and System. On phones the **Manage** tab opens
-Tracks, with links to Library tools and Admin beside its tabs. Every change
-writes to your files, so:
+Library managers and administrators can change the music library from the
+**Manage** section, which has three entries in the sidebar: **Tracks**,
+**Library tools**, and (for administrators) **Admin**. Each entry's pages are
+tabs at the top of the page. **Tracks** has **Metadata** (the track table and
+tag editor), **Upload** (files from this device), **Links** (YouTube and
+bilibili), and **Online** (online music); **Library tools** has **Folders**,
+**Doctor**, **Trash**, and **History**; **Admin** has **Users**,
+**Libraries**, and the server settings: **Settings**, **yt-dlp**,
+**Sources**, **Scrobbling**, and **System**. On phones the **Manage** tab
+opens Tracks, with links to Library tools and Admin beside its tabs. Every
+change writes to your files, so:
 
 - The music folder must be writable by the container user; see
   [Docker](../operations/docker.md#permissions-puid-and-pgid). On a read-only
@@ -27,15 +28,17 @@ and the usual filesystem guards.
 
 ## Metadata
 
-**Metadata** is a table of every track with sortable, configurable
-columns (title, artist, album, album artist, track, disc, year, genre, format,
-bitrate, and path), search, and filters by album, artist, genre, folder, or
-missing files. Select tracks with click, Shift-click for a range, Ctrl/Cmd-click
-to toggle, or select everything that matches. On phones, the list switches to a
+**Metadata** is a table of every track with sortable, configurable columns
+(cover, title, artist, album, album artist, track, disc, year, genre, format,
+bitrate, time, size, path, and last change), search, and filters by library,
+album, artist, genre, folder, or missing files. Select tracks with click,
+Shift-click for a range, Ctrl/Cmd-click to toggle, or select everything that
+matches; double-click a track to edit it. On phones, the list switches to a
 selection mode.
 
 The toolbar applies actions to the selection: **Edit tags**, **Cover**,
-**Rename / organize**, **Fix encoding**, **Rebuild tags**, **Delete**, and **Rescan**.
+**Rename / organize**, **Fix encoding**, **Rebuild tags**, **Rescan**, and
+**Delete**.
 
 ## Tag Editor
 
@@ -84,15 +87,18 @@ title, artist, or album where available. A field containing replacement
 characters with no usable indexed value causes the file to fail without
 replacing the original. Select the tracks in **Metadata** and choose
 **Rebuild tags**; each copy is verified before replacing the original.
-For a WAV whose tags are displayed incorrectly by an older reader, first
-update Rainy and run a full scan to refresh the index without changing files.
+To refresh only how Rainy shows a file's tags, run a full scan instead: it
+updates the index without changing files.
 
 ## Covers
 
 From the **Cover** action or the editor's Cover tab, you can embed a picture in
 the audio files, save it as `cover.jpg` or `cover.png` in the album folder, or
-both. WebP, GIF, and BMP images are converted to JPEG for embedding. A replaced
-folder image moves to the trash, so it can be restored.
+both. WebP, GIF, and BMP images, and JPEG or PNG images larger than 1600
+pixels or 3 MB, are first converted to a JPEG of at most 1400 pixels. Saving a
+folder image moves every existing `cover.*` image of that folder to the trash,
+so it can be restored. **Remove cover** removes the embedded pictures and can
+also move the folder image to the trash.
 
 ## Lyrics
 
@@ -138,15 +144,19 @@ a purely Chinese part, and only when most lines of the text look that way.
 
 The file extension is kept. Characters that are not allowed in file names are
 replaced with `_`. The preview marks every file as ok, unchanged, conflict, or
-invalid before anything moves. `.lrc` files move with their songs, and folders
-left empty are removed (never the library root). The default pattern is set in
-**Admin → Settings**.
+invalid before anything moves. `.lrc` files move with their songs; when every
+song of a folder moves to the same new folder, its folder images move too.
+Folders left empty are removed (never the library root). The default pattern
+is **Default rename pattern** in **Admin → Settings**.
 
 ## Upload
 
-**Tracks → Upload** accepts files and whole folders by drag and drop, with
-per-file progress. Choose the target library and folder. Uploaded files appear
-in the library immediately.
+**Tracks → Upload** accepts audio files and whole folders by drag and drop or
+with **Choose files** and **Choose folder**, with per-file progress; other
+files are skipped (covers and lyrics are edited in the tag editor). Each file
+can be up to 2 GiB. Choose the target library and folder. Uploaded files
+appear in the library immediately. An existing file is never overwritten: a
+name that is taken gets a ` (1)` suffix.
 
 By default every file you add — picked, dragged in, downloaded from a link, or
 taken from an online catalogue — is **organized by tags**: Rainy places it with
@@ -176,11 +186,14 @@ bilibili); M4A, MP3, and Opus convert it. **Whole playlist** downloads up to
 100 entries of the playlist or multi-part video the link belongs to. Files go
 to the destination above and are organized by tags like uploads; when
 organizing is off they are named after the video title, and playlist entries
-go into a folder named after the playlist. Rainy writes the title, artist (the channel
-when nothing better is known), album, date, the source link as the comment, and
-a square cover cut from the thumbnail; fix the rest in the tag editor. Downloads
-run on the server, so you can leave the page; live streams are skipped. Only
-download what you have the right to keep.
+go into a folder named after the playlist, numbered in playlist order. Rainy
+writes the title, artist (the channel when nothing better is known), album,
+date, the source link as the comment, album artist and track number when
+known, and a square cover cut from the thumbnail; fix the rest in the tag
+editor. Downloads run on the server, so you can leave the page; a server
+restart cancels unfinished downloads, and live streams are skipped. Only
+download what you have the right to keep; what the server sends where is in
+[Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili).
 
 An administrator sets this up in **Admin → yt-dlp**:
 
@@ -215,8 +228,9 @@ sources lack it), and whether to embed the catalogue's lyrics (with a paired
 translation) and cover. Rainy writes the title, artists, album, lyrics, and
 cover, organizes files by tags like uploads (or names them
 `Title - Artists.ext` when organizing is off), and records each download in
-the edit history. Downloads run on the server, so you
-can leave the page. Only download what you have the right to keep.
+the edit history. Downloads run on the server, so you can leave the page. Only
+download what you have the right to keep; what the server sends where is in
+[Privacy](../../PRIVACY.md#online-music-and-music-sources).
 
 Rainy cannot obtain songs by itself: the download link comes from a **music
 source**, an lx-music custom source script that an administrator imports.
@@ -243,32 +257,40 @@ source in its menu.
 
 ## Trash
 
-**Delete** moves files to the trash in the data folder. **Manage → Trash** can
-restore them to their original place or delete them forever. Emptying the
-trash is permanent.
+**Delete** moves files (with their `.lrc` lyrics) to the trash in the data
+folder; their tracks stay in the database as missing, so a restore brings back
+their favorites, ratings, play counts, and playlist entries. **Library tools →
+Trash** can restore files to their original place, which fails when another
+file is there, or delete them forever. Emptying the trash is permanent; files
+stay in the trash until you delete them.
 
 ## Doctor
 
-**Manage → Doctor** finds common problems and links each one to the tool that
-fixes it:
+**Library tools → Doctor** finds common problems and links each one to the
+tool that fixes it:
 
-- **Missing tags**: tracks without a title, artist, or album.
+- **Missing tags**: tracks without a title, artist, album, or track number.
 - **No cover**: albums without artwork.
-- **Duplicates**: likely duplicate tracks.
-- **Missing files**: tracks whose files are gone; purge them once you are sure.
+- **Duplicates**: tracks with the same title and artist and nearly the same
+  length.
+- **Missing files**: tracks whose files are gone outside Rainy; **Remove**
+  deletes their entries, with their plays and favorites, once you are sure.
 - **Encoding**: garbled GBK, Big5, or Shift-JIS tags that can be rewritten as
   UTF-8; see [Library](library.md#fixing-garbled-tags).
 
 ## Folders
 
-**Manage → Folders** browses the files on disk, shows which files are indexed,
-and can rescan a single folder.
+**Library tools → Folders** browses the files on disk, shows which files are
+not scanned yet, and can rescan a single folder, open its tracks in the tag
+editor, or upload into it.
 
 ## History
 
-**Manage → History** records every change Rainy made to your files: tag edits and rebuilds,
-covers, lyrics, renames, uploads, downloads from links, deletions, restores,
-purges, and encoding fixes, with who made them, when, and a readable before-and-after view.
+**Library tools → History** records every change Rainy made to your files:
+tag edits and rebuilds, covers, lyrics, renames, uploads, downloads from links
+and online music, deletions, restores, purges, and encoding fixes, with who
+made them, when, and a readable before-and-after view. A track's history can
+be shown on its own.
 
 ## Related Docs
 

@@ -29,7 +29,7 @@ its entrypoint explain most permission and configuration problems there.
 ## New Music Does Not Appear
 
 Rainy runs a quick scan every hour by default. Start a scan from **Admin →
-Libraries**, or rescan one folder from **Manage → Folders**. Files uploaded or
+Libraries**, or rescan one folder from **Library tools → Folders**. Files uploaded or
 edited through Rainy appear immediately.
 
 ## Management Reports Read-Only Files
@@ -42,9 +42,14 @@ example with `ls -ln /path/to/music/<album>`. See
 ## Tracks Show as Missing After a Disk or Share Went Offline
 
 Rainy refuses to scan a library whose root is missing, unreadable, or suddenly
-empty, so a disconnected share does not mark everything missing. Tracks marked
-missing come back automatically when their files reappear. Purge them from
-**Manage → Doctor** only when the files are gone for good.
+empty, so a disconnected share does not mark everything missing; the log says
+`library unavailable` and names the root (for example, "refusing to mark them
+missing (is the share mounted?)"). An unreadable or suddenly empty folder
+inside a library is logged as a `scanner:` warning and its tracks are left
+unchanged. The exact rules are in [Reliability](reliability.md#storage-and-scans).
+
+Tracks marked missing come back automatically when their files reappear.
+Purge them from **Library tools → Doctor** only when the files are gone for good.
 
 ## A Subsonic Client Cannot Connect
 

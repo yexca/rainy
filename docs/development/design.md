@@ -4,7 +4,7 @@ Rainy's interface aims for calm, modern, Apple Music-inspired minimalism: lots
 of whitespace, large artwork, and restrained color. The exact tokens and sizes
 are part of the contract in
 [§9.3](../architecture/contract.md#93-design-system) and
-[§9.4](../architecture/contract.md#94-ios-style-player-player-agent); this page
+[§9.4](../architecture/contract.md#94-ios-style-player); this page
 explains the rules every UI change must keep.
 
 ## Principles
@@ -132,8 +132,9 @@ match.
 
 Navigation is tiered so everyday listening stays uncluttered. Managers get
 three sections, each a single sidebar item: **Tracks** (metadata, upload,
-online), **Library tools** (folders, doctor, trash, history), and, for admins,
-**Admin** (users, libraries, server settings). A section's pages are
+links, online), **Library tools** (folders, doctor, trash, history), and, for
+admins, **Admin** (users, libraries, server settings, and one tab per further
+server settings page: yt-dlp, sources, scrobbling, and system). A section's pages are
 horizontal tabs at the top of each of its pages, so the sidebar never grows a
 second level. On phones the Manage tab opens Tracks, with links to Library
 tools and Admin beside its tabs.
@@ -169,7 +170,8 @@ reading layout.
 - Section titles are `text-xl font-semibold`; body text is `text-sm`; secondary
   text uses `text-muted-foreground`.
 - Desktop list rows are 48 px. Mobile rows are 60 px with 44 px artwork and
-  iOS-style hairline separators inset from the artwork.
+  iOS-style hairline separators inset from the artwork; mobile rows in an
+  album's track list are 52 px.
 
 ## Surfaces, Motion, and Icons
 
@@ -179,8 +181,9 @@ reading layout.
   keep native scrolling smooth. Backdrop filters never animate.
 - Motion uses `motion/react` springs and honours the user's reduced-motion
   preference. Mobile presses scale down slightly for feedback.
-- Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke;
-  transport controls use filled glyphs.
+- Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke.
+  The desktop player bar's side controls use 18 px icons with a 1.9 stroke,
+  and transport controls use filled glyphs.
 - On touch devices, disable the tap highlight and body overscroll.
 
 ## Mascot
@@ -247,14 +250,15 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 - **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
   clear.
 - **Desktop player bar.** Artwork, title and artist links, and a star on the
-  left; transport and scrubber in the center; lyrics, queue, the auto-stop
-  timer, volume, the layout menu, and expand on the right. Queue and lyrics
+  left; transport and scrubber in the center; lyrics, floating
+  (picture-in-picture) lyrics, queue, the auto-stop timer, volume, the layout
+  menu, and expand on the right. Queue and lyrics
   open in a 360 px side panel.
 - **Auto-stop timer.** One timer button (player bar from 1024 px, Now
-  Playing, floating window) opens a small panel: a tab per mode, a line saying what the mode
-  does, the times to pick from, and a field for any number of minutes. Sleep stops playback once after the time;
-  Inactivity stops it when nothing was operated for that long and stays on
-  until turned off. The button is tinted while a mode is on, and the panel
+  Playing, floating window) opens a small panel: a tab per mode, a line saying
+  what the mode does, the times to pick from, and a field for any number of
+  minutes. Sleep stops playback once after the time; Inactivity stops it when
+  nothing was operated for that long and stays on until turned off. The button is tinted while a mode is on, and the panel
   shows what is running with a way to turn it off. When the timer stops the
   music, a message stays on screen until it is closed or playback resumes.
 - **Player layouts (tablet and desktop).** The layout menu lists four options,
@@ -276,10 +280,15 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 
 ## PWA
 
-The manifest names the app "Rainy", uses `standalone` display, and provides
-192 px, 512 px, maskable, and 180 px Apple touch icons, all drawn from the
-mascot icon art in `web/public/icon-source*.png` (`pnpm generate-pwa-assets`). iOS meta tags enable
-full-screen, black-translucent status bar, and `viewport-fit=cover` layouts.
+The manifest names the app "Rainy", uses `standalone` display, and lists
+64 px, 192 px, 512 px, and maskable 512 px icons; `index.html` links a 180 px
+Apple touch icon. All of them come from the mascot icon art:
+`pnpm generate-pwa-assets` renders the favicon and the regular icons from
+`web/public/icon-source.png`, and
+`RAINY_ICON_SET=adaptive pnpm generate-pwa-assets` renders the maskable and
+Apple icons from the full-bleed `web/public/icon-source-maskable.png`. iOS
+meta tags enable full-screen, black-translucent status bar, and
+`viewport-fit=cover` layouts.
 An "update available" toast offers new versions instead of reloading silently.
 
 ## Related Docs

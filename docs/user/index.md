@@ -18,31 +18,39 @@ app, update these pages in the same change.
 - [Clients](clients.md): Subsonic and OpenSubsonic apps and API keys.
 
 The web app is available in English and Simplified Chinese. Change the language
-from the user menu or under **Settings → Appearance**.
-The same page picks the theme, one of four styles (Anthropic, the default;
-OpenAI; Apple; Google MD), and the accent colour; the **Original** accent follows
-the style. A style also sets the layout: on tablets and desktops Apple and OpenAI have no bar
-across the top and keep your account and the appearance button in the bottom-left corner of
-the sidebar, OpenAI and Google MD show Quick actions as a search-like field, and Google MD
-labels the icons of the collapsed sidebar. The **Immersive** switch next to the accent colour, on by
-default in Apple, colours the whole app — sidebar, player, and menus — with the
-album, playlist, or artist on screen, or with the song playing on other pages; the cover's
-colours glow softly behind the sidebar, the header, and the page, and those pages blur their
-artwork behind the header. With Immersive off every page keeps the style's own look. While it is on,
-the first accent swatch takes the highlight from the cover too, and the other swatches keep a
-highlight colour of your choice.
-Rainy's mascot appears on empty and error pages and keeps you company in the
-bottom-right corner on tablets and desktops; **Settings → Mascot** turns the
-illustrations and the corner companion off separately.
+in the **Appearance** panel (the palette button beside your account) or under
+**Settings → Appearance**.
+Both places also pick the theme (light, dark, or system), one of four styles
+(Anthropic, the default; OpenAI; Apple; Google MD), and the accent colour; the
+**Original** accent follows the style. A style also sets the layout: on tablets
+and desktops Apple and OpenAI have no bar across the top and keep your account
+and the appearance button in the bottom-left corner of the sidebar, OpenAI and
+Google MD show Quick actions as a search-like field, and Google MD labels the
+icons of the collapsed sidebar. The **Immersive** switch next to the accent
+colour, on by default in Apple, colours the whole app — sidebar, player, and
+menus — with the album, playlist, or artist on screen, or with the song playing
+on other pages; the cover's colours glow softly behind the sidebar, the header,
+and the page, and those pages blur their artwork behind the header. With
+Immersive off every page keeps the style's own look. While it is on, the first
+accent swatch takes the highlight from the cover too, and the other swatches
+keep a highlight colour of your choice.
+
+**Quick actions** (Ctrl+K, or ⌘K on a Mac) jumps to a page, controls playback,
+or searches the library.
+
+Rainy's mascot appears on empty, error, and sign-in pages and keeps you company
+in the bottom-right corner on tablets and desktops. The **Mascot** section of
+**Settings → Appearance** turns the **Illustrations** and the **Corner
+companion** off separately.
 
 ## Roles
 
 | Role | Can do |
 | --- | --- |
 | Listener | Browse, search, play, star, rate, and manage their own playlists, queue, profile, password, and API key |
-| Download permission | Additionally download original files and album zips, while **Allow downloads** is on |
-| Manager | Additionally use everything under **Manage** |
-| Administrator | Additionally manage users, libraries, scans, radio stations, and server settings |
+| Downloads | Additionally download original files and album zips, while **Allow downloads** is on in **Admin → Settings** |
+| Library manager | Additionally use **Tracks** and **Library tools** under **Manage** |
+| Administrator | Additionally use **Admin** (users, libraries and scans, server settings) and add radio stations on the **Radio** page |
 
 Each user has their own favorites, ratings, play counts, listening history and
 report, scrobbling accounts, playlists, and play queue. Playlists can be made public so other users can see and play them.

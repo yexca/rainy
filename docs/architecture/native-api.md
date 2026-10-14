@@ -15,11 +15,16 @@ TypeScript types are in
 - Any request may instead send `Authorization: Bearer <token>`, where the token
   is a session token or the user's API key.
 - Sessions use a sliding expiry controlled by `RAINY_SESSION_TTL`.
+- With `RAINY_MODE=development`, `/api` requests without valid credentials
+  act as the development user (`RAINY_DEV_USER`); see
+  [Configuration](../operations/configuration.md).
 - `GET /api/auth/status` reports whether the server is initialized.
   `POST /api/auth/setup` creates the first administrator and is rejected once
   any user exists.
 - Failed sign-ins are rate limited in memory: 10 failures within 10 minutes
-  for one client IP or one username lock that key for 5 minutes.
+  for one client IP or one username lock that key for 5 minutes. Password
+  changes have their own limit: 5 wrong current passwords within 15 minutes
+  lock that user's password changes for 15 minutes.
 
 ## Authorization
 
@@ -27,21 +32,23 @@ Three guards protect the routes:
 
 | Guard | Applies to |
 | --- | --- |
-| Signed-in user | Browsing, streaming, covers, lyrics, favorites, ratings, playlists, queue, events, their own listening report and history, their own mixes, daily and weekly mix and song picks, and their own scrobbling accounts |
-| Manager (`canManage` or administrator) | `/api/manage/*`: tags, covers, lyrics, rename, upload, link and online music downloads, delete, trash, doctor, folders, and history |
-| Administrator | `/api/admin/*`: users, libraries, scans, server settings, music sources, scrobbling, statistics, system information, and cache |
+| Signed-in user | Their profile, password, and API key; browsing, search, streaming, covers, lyrics, favorites, ratings, playlists, queue, radio stations, events, their own listening report and history, mixes, the daily and weekly mixes and song picks, and their own scrobbling accounts |
+| Manager (`canManage` or administrator) | `/api/manage/*`: tags, tag rebuild, covers, lyrics, rename, placement, upload, online metadata lookup, link and online music downloads, delete, trash, missing-track purge, folders, doctor, encoding repair, and history |
+| Administrator | `/api/admin/*`: users, libraries, scans, server settings, statistics, system information, cache, yt-dlp and its cookies, scrobbling credentials, and music sources; plus creating, editing, and deleting radio stations under `/api/radios` |
 
-Downloads additionally require the user's download permission and the
-`enableDownloads` server setting. Only a playlist's owner or an administrator
-can modify it; someone else's private playlist answers `404`.
+Downloads additionally require the user's download permission (administrators
+always have it) and the `enableDownloads` server setting. Only a playlist's
+owner or an administrator can modify it (others get `403`); someone else's
+private playlist answers `404`.
 
 ## Conventions
 
 - Errors use an HTTP status plus
   `{"error":{"code":"<code>","message":"<text>"}}`. The `readonly` code (409)
   means the music files are not writable by the server.
-- Lists accept `offset`, `limit` (default 50, maximum 1000), `sort`, and
-  `order`, and return `{"items":[...],"total":N}`.
+- Lists accept `offset`, `limit` (default 50, maximum 1000 unless the contract
+  gives an endpoint a lower cap), `sort`, and `order`, and return
+  `{"items":[...],"total":N}`.
 - Every state-changing endpoint uses a non-GET method.
 - Timestamps are unix milliseconds, and JSON arrays are never `null`.
 - Batch management endpoints return `200` with per-item errors, so one

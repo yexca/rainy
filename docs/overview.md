@@ -24,7 +24,8 @@ Rainy currently includes:
 - A Go server with an embedded React web app, packaged as one Docker image for
   `linux/amd64` and `linux/arm64`.
 - A SQLite database for the library index, users, sessions, playlists, play
-  queues, annotations, settings, trash, and the edit log.
+  queues, annotations, listening history, mixes, settings, trash, and the edit
+  log.
 - A scanner that indexes libraries by tags, detects moved files, repairs
   legacy-encoded tags when reading, and runs on a schedule, at startup, or on
   demand.
@@ -32,20 +33,21 @@ Rainy currently includes:
   implementation with OpenSubsonic extensions (`/rest`).
 - Raw streaming with HTTP range support and on-the-fly transcoding through
   ffmpeg.
-- A web player with an iOS-style Now Playing screen, synced lyrics, queue
-  editing, Media Session integration, and PWA installation.
-- Management features: tag editing, cover art, lyrics, rename and organize,
-  upload, trash, a library doctor, a folder browser, and an edit history, plus
-  opt-in downloads from YouTube and bilibili links and online music through
-  lx-music compatible music sources.
+- A web player with an iOS-style Now Playing screen, synced and bilingual
+  lyrics with picture-in-picture, queue editing, an auto-stop timer, Media
+  Session integration, and PWA installation.
+- Management features: tag editing with opt-in online metadata lookup, cover
+  art, lyrics, rename and organize, upload, trash, a library doctor, a folder
+  browser, and an edit history, plus opt-in downloads from YouTube and bilibili
+  links and online music through lx-music compatible music sources.
 - A per-user listening report (plays over time, when you listen, top artists,
   albums, songs, and genres, with a recap for each month and year) and play
   history, with opt-in scrobbling to Last.fm and ListenBrainz.
 - Recommendations from your own library and listening history, computed on
   the server: an infinite mode that keeps the queue going with similar songs,
   a daily and a weekly mix, and shelves of songs on the home page.
-- Multiple users with administrator, manager, and download permissions, and
-  multiple libraries.
+- Multiple users with administrator, library manager, and download
+  permissions, and multiple libraries.
 
 ## Current Limits
 
@@ -55,8 +57,9 @@ Rainy currently includes:
   songs) rather than mirroring the directory tree. See
   [ADR-0002](decisions/ADR-0002-simulated-folder-browsing.md).
 - Rainy cannot be served under a URL sub-path; use a dedicated host name.
-- Podcasts, shares, chat, and jukebox mode are not implemented; the Subsonic
-  endpoints for them return empty results or "not supported".
+- Podcasts, shares, chat, videos, and jukebox mode are not implemented; the
+  Subsonic endpoints for them return empty results, "not found", or "not
+  supported".
 - Known edge cases are listed under
   [Known limitations](architecture/contract.md#known-limitations) in the
   architecture contract.
