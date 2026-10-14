@@ -68,6 +68,7 @@ export const routes: RouteObject[] = [
                   { path: 'radio', lazy: page(() => import('@/features/library/pages/radio-page')) },
                   { path: 'listening', lazy: page(() => import('@/features/library/pages/listening-page')) },
                   { path: 'daily', lazy: page(() => import('@/features/library/pages/daily-page')) },
+                  { path: 'weekly', lazy: page(() => import('@/features/library/pages/weekly-page')) },
                   { path: 'settings', lazy: page(() => import('@/features/settings/pages/settings-page')) },
                   { path: 'settings/lastfm', lazy: page(() => import('@/features/settings/pages/lastfm-callback-page')) },
                   { path: 'settings/:tab', lazy: page(() => import('@/features/settings/pages/settings-page')) },

@@ -8,6 +8,8 @@
  *   ['tracks', 'list', p]                     paged track lists
  *   ['genres'], ['search', q], ['starred'], ['playlists'], ['playlists', id]
  *   ['recommend', 'daily', day, tz]          daily mix (the server keeps it for the day)
+ *   ['recommend', 'weekly', monday, tz]      weekly mix (the server keeps it for the week)
+ *   ['random', 'picks']                      home song picks (not a library root: they would reshuffle)
  *   ['radios']                                (not library data; invalidated by the radio page)
  */
 import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
@@ -22,6 +24,8 @@ import {
 } from '@/lib/api/endpoints'
 import type { Page } from '@/lib/api/types'
 import { queryKeys } from '@/lib/query-keys'
+
+import { localDay, localMonday } from './mix-period'
 
 /** Albums per page for infinite grids (divisible by 2–6 so rows fill up evenly). */
 export const ALBUM_PAGE_SIZE = 120
@@ -64,11 +68,6 @@ export function browserTimeZone(): string {
   }
 }
 
-/** Local day (`2026-10-01`) so the daily mix query changes at midnight. */
-function localDay(now: Date = new Date()): string {
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-}
-
 export const dailyMixQuery = () => {
   const tz = browserTimeZone()
   return queryOptions({
@@ -77,6 +76,27 @@ export const dailyMixQuery = () => {
     staleTime: 5 * 60_000,
   })
 }
+
+export const weeklyMixQuery = () => {
+  const tz = browserTimeZone()
+  return queryOptions({
+    queryKey: [...queryKeys.recommend, 'weekly', localMonday(), tz],
+    queryFn: ({ signal }) => api.recommend.weekly({ tz }, { signal }),
+    staleTime: 5 * 60_000,
+  })
+}
+
+/**
+ * Home song shelves. Two of them are picked anew on every request, so the query stays out of
+ * the library roots (a `library` event must not reshuffle them under the user) and stays
+ * fresh for half an hour; the shelf's refresh button asks for other songs.
+ */
+export const songPicksQuery = () =>
+  queryOptions({
+    queryKey: [...queryKeys.random, 'picks'],
+    queryFn: ({ signal }) => api.recommend.picks({ signal }),
+    staleTime: 30 * 60_000,
+  })
 
 export const albumQuery = (id: string) =>
   queryOptions({

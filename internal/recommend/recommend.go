@@ -1,6 +1,7 @@
 // Package recommend picks songs for a user from their own library and listening history:
-// mixes that continue a queue (the web player's infinite mode) and a daily mix
-// (docs/architecture/contract.md §5.18). It only reads local data; nothing leaves the server.
+// mixes that continue a queue (the web player's infinite mode), a daily and a weekly mix, and
+// the song shelves of the home page (docs/architecture/contract.md §5.18). It only reads local
+// data; nothing leaves the server.
 package recommend
 
 import (
@@ -15,15 +16,19 @@ import (
 	"rainy/internal/store"
 )
 
-// Limits of the mix and daily mix.
+// Limits of the mix, the daily and weekly mix and the song picks.
 const (
 	DefaultMixSize = 10
 	MaxMixSize     = 50
 	MaxSeeds       = 10
 	MaxExclude     = 1000
 	DailySize      = 30
-	// dailyKeep is how long stored daily mixes are kept.
-	dailyKeep = 30 * 24 * time.Hour
+	WeeklySize     = 50
+	PicksSize      = 12 // songs per shelf of SongPicks
+	day            = 24 * time.Hour
+	// dailyKeep and weeklyKeep are how long stored mixes are kept.
+	dailyKeep  = 30 * day
+	weeklyKeep = 12 * 7 * day
 )
 
 // ErrInvalid reports a bad request.
@@ -77,7 +82,7 @@ func (s *Service) Mix(ctx context.Context, userID string, q MixQuery) ([]model.T
 		artists = append(artists, t.ArtistID, t.AlbumArtistID)
 	}
 	if len(artists) == 0 {
-		if artists, err = s.topIDs(ctx, userID, store.TopArtists, now.Add(-90*24*time.Hour), 5); err != nil {
+		if artists, err = s.topIDs(ctx, userID, store.TopArtists, now.Add(-90*day), 5); err != nil {
 			return nil, err
 		}
 	}
@@ -131,7 +136,7 @@ func (s *Service) Daily(ctx context.Context, userID string, loc *time.Location) 
 	row, err := s.st.GetDailyMix(ctx, userID, day)
 	if errors.Is(err, store.ErrNotFound) {
 		var ids []string
-		if ids, err = s.makeDaily(ctx, userID, now); err != nil {
+		if ids, err = s.makeStored(ctx, userID, now, dailyPlan); err != nil {
 			return nil, err
 		}
 		row, err = s.st.SaveDailyMix(ctx, userID, store.DailyMixRow{Day: day, TrackIDs: ids, CreatedAt: now.UnixMilli()},
@@ -147,23 +152,84 @@ func (s *Service) Daily(ctx context.Context, userID string, loc *time.Location) 
 	return &DailyMix{Date: row.Day, CreatedAt: row.CreatedAt, Tracks: tracks}, nil
 }
 
-// Daily mix sources and how many songs each contributes.
+// WeeklyMix is the user's mix of one local week.
+type WeeklyMix struct {
+	Week      string        `json:"week"`      // local date of the week's Monday, YYYY-MM-DD
+	CreatedAt int64         `json:"createdAt"` // unix ms
+	Tracks    []model.Track `json:"tracks"`
+}
+
+// Weekly returns the user's mix of this week in loc (nil = UTC); weeks start on Monday. It is
+// made and stored on the first request of the week, so it stays the same until the next
+// Monday and on every device. Songs removed since are left out. It draws on the sources of
+// the daily mix but is longer and leans towards songs the user has not heard: never played
+// songs first, and nothing played in the last week when the library allows.
+func (s *Service) Weekly(ctx context.Context, userID string, loc *time.Location) (*WeeklyMix, error) {
+	if loc == nil {
+		loc = time.UTC
+	}
+	now := s.now()
+	week := weekStart(now, loc)
+	row, err := s.st.GetWeeklyMix(ctx, userID, week)
+	if errors.Is(err, store.ErrNotFound) {
+		var ids []string
+		if ids, err = s.makeStored(ctx, userID, now, weeklyPlan); err != nil {
+			return nil, err
+		}
+		row, err = s.st.SaveWeeklyMix(ctx, userID, store.WeeklyMixRow{Week: week, TrackIDs: ids, CreatedAt: now.UnixMilli()},
+			now.Add(-weeklyKeep).UnixMilli())
+	}
+	if err != nil {
+		return nil, err
+	}
+	tracks, err := s.tracks(ctx, userID, row.TrackIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &WeeklyMix{Week: row.Week, CreatedAt: row.CreatedAt, Tracks: tracks}, nil
+}
+
+// weekStart returns the local date of the Monday of t's week in loc.
+func weekStart(t time.Time, loc *time.Location) string {
+	t = t.In(loc)
+	back := (int(t.Weekday()) + 6) % 7 // Monday = 0
+	return time.Date(t.Year(), t.Month(), t.Day()-back, 0, 0, 0, 0, loc).Format(time.DateOnly)
+}
+
+// Sources of the stored mixes.
 const (
-	srcSimilar     = "similar"
-	srcRediscover  = "rediscover"
-	srcDiscover    = "discover"
-	srcFamiliar    = "familiar"
-	srcFill        = "fill"
-	dailyPerArtist = 2
+	srcSimilar    = "similar"
+	srcRediscover = "rediscover"
+	srcDiscover   = "discover"
+	srcFamiliar   = "familiar"
+	srcFill       = "fill"
 )
 
-var dailyQuota = []struct {
+// mixPlan shapes a stored mix: its size, how many songs each source contributes (in the
+// order they are interleaved), the per-artist cap, and how recent a play pushes a song back.
+type mixPlan struct {
+	size          int
+	perArtist     int
+	recentPenalty time.Duration
+	quota         []quota
+}
+
+type quota struct {
 	src string
 	n   int
-}{{srcSimilar, 9}, {srcRediscover, 8}, {srcDiscover, 7}, {srcFamiliar, 6}}
+}
 
-func (s *Service) makeDaily(ctx context.Context, userID string, now time.Time) ([]string, error) {
-	day := 24 * time.Hour
+var (
+	// A daily mix should not repeat yesterday.
+	dailyPlan = mixPlan{size: DailySize, perArtist: 2, recentPenalty: 3 * day,
+		quota: []quota{{srcSimilar, 9}, {srcRediscover, 8}, {srcDiscover, 7}, {srcFamiliar, 6}}}
+	// A weekly mix is for finding songs: never played ones lead, last week's plays stay out.
+	weeklyPlan = mixPlan{size: WeeklySize, perArtist: 3, recentPenalty: 7 * day,
+		quota: []quota{{srcDiscover, 16}, {srcSimilar, 14}, {srcRediscover, 12}, {srcFamiliar, 8}}}
+)
+
+// makeStored picks the songs of a daily or weekly mix.
+func (s *Service) makeStored(ctx context.Context, userID string, now time.Time, plan mixPlan) ([]string, error) {
 	top, err := s.topIDs(ctx, userID, store.TopArtists, now.Add(-30*day), 8)
 	if err != nil {
 		return nil, err
@@ -183,15 +249,16 @@ func (s *Service) makeDaily(ctx context.Context, userID string, now time.Time) (
 	}
 
 	p := newPicker(s, now, nil)
-	p.recentPenalty = 3 * day // a daily mix should not repeat yesterday
+	p.recentPenalty = plan.recentPenalty
+	sample := func(n int) int { return n * plan.size / DailySize } // sample sizes grow with the mix
 	sources := []source{
-		{src: srcSimilar, weight: 0.9, q: store.CandidateQuery{ArtistIDs: similar, Limit: 150}, narrow: true},
+		{src: srcSimilar, weight: 0.9, q: store.CandidateQuery{ArtistIDs: similar, Limit: sample(150)}, narrow: true},
 		{src: srcRediscover, weight: 0.9, q: store.CandidateQuery{Favorites: true, Played: store.PlayedBefore,
-			Before: now.Add(-30 * day).UnixMilli(), Limit: 150}},
-		{src: srcDiscover, weight: 0.8, q: store.CandidateQuery{GenreIDs: genres, Played: store.PlayedNever, Limit: 150}, narrow: true},
-		{src: srcFamiliar, weight: 0.7, q: store.CandidateQuery{ArtistIDs: top, Limit: 100}, narrow: true},
-		{src: srcFamiliar, weight: 0.7, q: store.CandidateQuery{Favorites: true, Limit: 60}},
-		{src: srcFill, weight: 0.2, q: store.CandidateQuery{Limit: 120}},
+			Before: now.Add(-30 * day).UnixMilli(), Limit: sample(150)}},
+		{src: srcDiscover, weight: 0.8, q: store.CandidateQuery{GenreIDs: genres, Played: store.PlayedNever, Limit: sample(150)}, narrow: true},
+		{src: srcFamiliar, weight: 0.7, q: store.CandidateQuery{ArtistIDs: top, Limit: sample(100)}, narrow: true},
+		{src: srcFamiliar, weight: 0.7, q: store.CandidateQuery{Favorites: true, Limit: sample(60)}},
+		{src: srcFill, weight: 0.2, q: store.CandidateQuery{Limit: sample(120)}},
 	}
 	if err := p.load(ctx, userID, sources); err != nil {
 		return nil, err
@@ -200,12 +267,64 @@ func (s *Service) makeDaily(ctx context.Context, userID string, now time.Time) (
 	// Fill each source's quota, then the rest from every source by score, and interleave
 	// the sources so the mix doesn't play in blocks.
 	var groups [][]string
-	for _, qt := range dailyQuota {
-		groups = append(groups, p.pickFrom(qt.src, qt.n, dailyPerArtist))
+	for _, qt := range plan.quota {
+		groups = append(groups, p.pickFrom(qt.src, qt.n, plan.perArtist))
 	}
 	picked := interleave(groups)
-	picked = append(picked, p.pick(DailySize-len(picked), dailyPerArtist)...)
+	picked = append(picked, p.pick(plan.size-len(picked), plan.perArtist)...)
 	return p.spread(picked), nil
+}
+
+// SongPicks are the song shelves of the home page, PicksSize songs each at most. A song is
+// on one shelf only.
+type SongPicks struct {
+	Quick      []model.Track `json:"quick"`      // songs that suit what the user plays
+	OnRepeat   []model.Track `json:"onRepeat"`   // the user's most played songs of the last 30 days
+	Rediscover []model.Track `json:"rediscover"` // favorites not played for 30 days
+}
+
+// Picks returns the song shelves. OnRepeat lists the songs played at least twice in the last
+// 30 days, most played first. Rediscover picks from the favorites (starred or played twice)
+// not played for 30 days, and Quick is a mix without seeds (see Mix) that leaves out the songs
+// of both. Rediscover and Quick differ on every call; a new user only gets Quick, from the
+// whole library.
+func (s *Service) Picks(ctx context.Context, userID string) (*SongPicks, error) {
+	now := s.now()
+	top, err := s.st.ListeningTop(ctx, userID, store.TopTracks, now.Add(-30*day).UnixMilli(), 0, 2*PicksSize)
+	if err != nil {
+		return nil, err
+	}
+	var ids []string
+	for _, it := range top {
+		if it.Plays >= 2 {
+			ids = append(ids, it.ID)
+		}
+	}
+	onRepeat, err := s.tracks(ctx, userID, ids)
+	if err != nil {
+		return nil, err
+	}
+	onRepeat = onRepeat[:min(len(onRepeat), PicksSize)]
+
+	p := newPicker(s, now, nil)
+	if err := p.load(ctx, userID, []source{{weight: 1, q: store.CandidateQuery{Favorites: true, Played: store.PlayedBefore,
+		Before: now.Add(-30 * day).UnixMilli(), Limit: 8 * PicksSize}}}); err != nil {
+		return nil, err
+	}
+	rediscover, err := s.tracks(ctx, userID, p.spread(p.pick(PicksSize, 2)))
+	if err != nil {
+		return nil, err
+	}
+
+	var exclude []string
+	for _, t := range slices.Concat(onRepeat, rediscover) {
+		exclude = append(exclude, t.ID)
+	}
+	quick, err := s.Mix(ctx, userID, MixQuery{Exclude: exclude, Limit: PicksSize})
+	if err != nil {
+		return nil, err
+	}
+	return &SongPicks{Quick: quick, OnRepeat: onRepeat, Rediscover: rediscover}, nil
 }
 
 // topIDs returns the ids of the user's top artists or genres since `since` (zero = all time).
@@ -269,7 +388,7 @@ type picker struct {
 }
 
 func newPicker(s *Service, now time.Time, exclude map[string]bool) *picker {
-	return &picker{s: s, now: now, exclude: exclude, recentPenalty: 24 * time.Hour,
+	return &picker{s: s, now: now, exclude: exclude, recentPenalty: day,
 		cands: map[string]*scored{}, taken: map[string]bool{}, perArtist: map[string]int{}}
 }
 
@@ -330,7 +449,7 @@ func (p *picker) score(c store.Candidate, weight float64) float64 {
 		switch {
 		case since < p.recentPenalty:
 			sc -= 1
-		case since < 7*24*time.Hour:
+		case since < 7*day:
 			sc -= 0.25
 		}
 	}

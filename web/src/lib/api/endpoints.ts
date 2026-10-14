@@ -60,6 +60,7 @@ import type {
   ScrobblingAdmin,
   SearchResult,
   Settings,
+  SongPicks,
   StarType,
   SystemInfo,
   TagEdit,
@@ -67,6 +68,7 @@ import type {
   TrackTags,
   TrashEntry,
   User,
+  WeeklyMix,
   YtdlpInfo,
 } from './types'
 
@@ -352,6 +354,9 @@ export const api = {
     mix: (body: MixInput, opts?: CallOptions) => request<Track[]>('/recommend/mix', { ...opts, method: 'POST', body }),
     daily: (params: { tz?: string } = {}, opts?: CallOptions) =>
       request<DailyMix>('/recommend/daily', { ...opts, query: { ...params } }),
+    weekly: (params: { tz?: string } = {}, opts?: CallOptions) =>
+      request<WeeklyMix>('/recommend/weekly', { ...opts, query: { ...params } }),
+    picks: (opts?: CallOptions) => request<SongPicks>('/recommend/picks', opts),
   },
 
   // ---- §7.3 annotations

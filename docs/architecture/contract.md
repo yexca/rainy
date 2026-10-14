@@ -64,7 +64,7 @@ rainy/
 │   ├── ytdlp/                   opt-in downloads from YouTube / bilibili: yt-dlp binary, cookies, runs
 │   ├── lxmusic/                 opt-in online music: catalogue search, lx-music source scripts (goja sandbox), downloads of their links
 │   ├── listening/               listening reports from the play history (§5.17)
-│   ├── recommend/               infinite-mode mixes and daily mixes from the user's library and plays (§5.18)
+│   ├── recommend/               infinite-mode mixes, daily and weekly mixes and home song picks from the user's library and plays (§5.18)
 │   ├── scrobble/                opt-in scrobbling to Last.fm / ListenBrainz: queue, sender, account linking (§5.16)
 │   ├── app/                     dependency container wiring every service
 │   ├── api/                     native JSON API for the web UI (/api)
@@ -156,7 +156,7 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 Schema: `internal/db/migrations/0001_init.sql` plus later migrations in the same folder (`0002_play_queue_index.sql`
 adds `play_queues.current_index`, `0003_lx_sources.sql` adds the `lx_sources` table of §5.15, `0004_listening.sql` adds the
 play-history snapshot columns and the `scrobble_accounts` / `scrobble_queue` tables of §5.16, `0005_daily_mixes.sql` adds the
-`daily_mixes` table of §5.18) — read them, they are part of this contract.
+`daily_mixes` table and `0006_weekly_mixes.sql` the `weekly_mixes` table of §5.18) — read them, they are part of this contract.
 Migrations are embedded, applied in lexical order, tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`.
 
 `internal/db`:
@@ -418,6 +418,9 @@ type DailyMixRow struct { Day string; TrackIDs []string; CreatedAt int64 }
 GetDailyMix(ctx, userID, day string) (*DailyMixRow, error)      // ErrNotFound
 SaveDailyMix(ctx, userID string, mix DailyMixRow, pruneBefore int64) (*DailyMixRow, error) // the day's first mix wins; prunes the
                                      // user's mixes created before pruneBefore; returns the stored mix
+type WeeklyMixRow struct { Week string /*local date of the week's Monday*/; TrackIDs []string; CreatedAt int64 }
+GetWeeklyMix(ctx, userID, week string) (*WeeklyMixRow, error)   // ErrNotFound
+SaveWeeklyMix(ctx, userID string, mix WeeklyMixRow, pruneBefore int64) (*WeeklyMixRow, error) // same rules as SaveDailyMix, per week
 
 // Scrobbling (§5.16)
 ListScrobbleAccounts(ctx, userID) ([]model.ScrobbleAccount, error); GetScrobbleAccount(ctx, userID, service) (*model.ScrobbleAccount, error)
@@ -906,18 +909,22 @@ Picks songs for a user from their own library, plays, stars and ratings; nothing
 `getSimilarSongs(2)` and `getArtistInfo(2)` keep their own rules but share `store.SimilarArtistIDs`.
 ```go
 func New(st *store.Store) *recommend.Service
-const DefaultMixSize, MaxMixSize, MaxSeeds, MaxExclude, DailySize = 10, 50, 10, 1000, 30
+const DefaultMixSize, MaxMixSize, MaxSeeds, MaxExclude, DailySize, WeeklySize, PicksSize = 10, 50, 10, 1000, 30, 50, 12
 type MixQuery struct { Seeds, Exclude []string; Limit int }
 func (s *Service) Mix(ctx, userID string, q MixQuery) ([]model.Track, error)       // ErrInvalid beyond the limits
 type DailyMix struct { Date string /*local YYYY-MM-DD*/; CreatedAt int64; Tracks []model.Track } // json date createdAt tracks
 func (s *Service) Daily(ctx, userID string, loc *time.Location) (*DailyMix, error)  // loc nil = UTC
+type WeeklyMix struct { Week string /*local YYYY-MM-DD of the week's Monday*/; CreatedAt int64; Tracks []model.Track } // json week createdAt tracks
+func (s *Service) Weekly(ctx, userID string, loc *time.Location) (*WeeklyMix, error) // loc nil = UTC
+type SongPicks struct { Quick, OnRepeat, Rediscover []model.Track }                  // json quick onRepeat rediscover; never nil
+func (s *Service) Picks(ctx, userID string) (*SongPicks, error)
 ```
 Rules:
-- **Scoring** (both): source weight + 0.35 starred + 0.15 × (rating − 3) when rated + 0.08 × min(ln(1 + plays), 3) + a random
-  part in [0, 0.4); −1 when played within the recent window (mix: 1 day; daily: 3 days), −0.25 within 7 days. Songs rated
-  one star and excluded ids are never picked. Picking takes the best scores with at most two songs per artist (track artist,
-  else album artist), lifting the cap only when the library cannot fill the request, then moves songs so one artist doesn't
-  play twice in a row when another can go between.
+- **Scoring** (all): source weight + 0.35 starred + 0.15 × (rating − 3) when rated + 0.08 × min(ln(1 + plays), 3) + a random
+  part in [0, 0.4); −1 when played within the recent window (mix and picks: 1 day; daily: 3 days; weekly: 7 days), −0.25
+  within 7 days. Songs rated one star and excluded ids are never picked. Picking takes the best scores with at most two
+  songs per artist (weekly: three; track artist, else album artist), lifting the cap only when the library cannot fill the
+  request, then moves songs so one artist doesn't play twice in a row when another can go between.
 - **Mix**: seeds are the given tracks that exist and aren't missing (the user's top artists of 90 days without any).
   Sources: tracks by the seeds' artists and album artists (1.0), by `SimilarArtistIDs` of them (0.8, 10 artists), with the
   seeds' genres (0.55), and a random fill (0.25); seeds and `Exclude` are never picked.
@@ -926,6 +933,15 @@ Rules:
   quotas: artists similar to the user's top artists of 30 days (all time without plays then) — 9; favorites (starred or
   ≥ 2 plays) not played for 30 days — 8; never played tracks of the top genres of 90 days — 7; the top artists' tracks
   and starred tracks — 6; then the best of everything (including a random fill) up to 30. The sources are interleaved.
+- **Weekly**: the local week of `loc`, Monday to Sunday, keyed by its Monday's date; made and stored on the first request
+  of the week (`weekly_mixes`), returned like the daily mix afterwards; mixes older than 12 weeks are pruned. Same sources
+  as the daily mix with samples scaled to the size, in this order and with these quotas: never played tracks of the top
+  genres — 16; similar artists — 14; favorites not played for 30 days — 12; the top artists' and starred tracks — 8; then
+  the best of everything up to 50.
+- **Picks** (home song shelves, at most 12 each, a song on one shelf only): `OnRepeat` — the tracks played at least twice
+  in the last 30 days, most plays first, without missing ones; `Rediscover` — picked from the favorites not played for
+  30 days; `Quick` — a **Mix** without seeds that excludes the songs of both. `Rediscover` and `Quick` differ on every
+  call; nothing is stored.
 
 ## 6. Subsonic / OpenSubsonic (`/rest`) — owner: subsonic agent
 
@@ -1179,6 +1195,8 @@ Automatic fallback or one fixed source is chosen with `PUT /api/admin/settings` 
 |---|---|---|---|
 | POST | `/api/recommend/mix` | `{seeds: string[] (≤ 10, newest last), exclude?: string[] (≤ 1000), limit?: number (≤ 50, default 10)}` | `Track[]` (§5.18; 400 beyond the limits) |
 | GET | `/api/recommend/daily` | `tz?` (IANA; the day the mix belongs to) | `DailyMix` (made and stored on the first request of the day) |
+| GET | `/api/recommend/weekly` | `tz?` (IANA; the week, Monday to Sunday, the mix belongs to) | `WeeklyMix` (made and stored on the first request of the week) |
+| GET | `/api/recommend/picks` | | `SongPicks` (§5.18; `quick` and `rediscover` are picked anew on every request) |
 
 ## 8. TypeScript contract (`web/src/lib/api/types.ts`)
 
@@ -1370,6 +1388,8 @@ export interface ListeningReport {
 }
 export interface MixInput { seeds: string[]; exclude?: string[]; limit?: number }
 export interface DailyMix { date: string; createdAt: number; tracks: Track[] }
+export interface WeeklyMix { week: string /* the Monday, local YYYY-MM-DD */; createdAt: number; tracks: Track[] }
+export interface SongPicks { quick: Track[]; onRepeat: Track[]; rediscover: Track[] }
 export type ScrobbleService = 'lastfm' | 'listenbrainz'
 export interface ScrobbleAccount {
   service: ScrobbleService; available: boolean; linked: boolean; needsRelink: boolean
@@ -1419,6 +1439,7 @@ web/src/
 | `/radio` | Internet radio | library |
 | `/listening` | Listening report (overview + history; `?range=7d|30d|90d|12m|all|m<YYYY-MM>|y<year>&tab=history`) | library |
 | `/daily` | Daily mix (today's songs, play / shuffle) | library |
+| `/weekly` | Weekly mix (this week's songs, play / shuffle) | library |
 | `/settings`, `/settings/:tab` | User settings as route tabs: Account (`/settings`: profile, password, log out), `appearance` (+ mascot), `playback` (+ keyboard shortcuts), `apps` (Subsonic apps, install app), `scrobbling`; old `/settings#<section>` links redirect to the section's tab, `#about` to `/about` | player |
 | `/settings/lastfm` | Last.fm sign-in callback (links the account, then back to `/settings/scrobbling`) | player |
 | `/about` | About Rainy: tagline, version, Subsonic compatibility, overview, AI models used, reference projects, technologies, license (linked from the sidebar footer and the account menu) | player |
@@ -1607,10 +1628,23 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   mascot pose on ≥ 640px while illustrations are on.
 - **Made for You** (home, `components/for-you.tsx`, above the shelves): the daily mix card (2×2 cover mosaic of the first
   distinct albums under a date badge, "Updated every day", title, first artists and count; a stretched link to `/daily` and
-  a play button) and, during the first 7 days of a month (`recapMonth`), last month's recap card (report with `limit: 1`,
-  shown only with plays) linking to `/listening?range=m<YYYY-MM>`. Hidden when neither has content. The daily mix query
-  (`dailyMixQuery`, key `['recommend', 'daily', localDay, tz]`, `recommend` is a `LIBRARY_QUERY_ROOTS` root) is shared with
-  `/daily` (`pages/daily-page.tsx`: date · song count, play / shuffle, description, track list).
+  a play button), the weekly mix card (the same card with the week's first and last day over its months, "Updated every
+  Monday", linking to `/weekly`) and, during the first 7 days of a month (`recapMonth`), last month's recap card (report
+  with `limit: 1`, shown only with plays) linking to `/listening?range=m<YYYY-MM>`. Two columns from 640px, three from
+  1280px when all three show; hidden when none has content. The mix queries (`dailyMixQuery`, key
+  `['recommend', 'daily', localDay, tz]`; `weeklyMixQuery`, key `['recommend', 'weekly', localMonday, tz]`, both periods from `lib/mix-period.ts`; `recommend` is a
+  `LIBRARY_QUERY_ROOTS` root) are shared with `/daily` and `/weekly` (`pages/daily-page.tsx`, `pages/weekly-page.tsx`
+  over `components/mix-view.tsx`: day or week · song count, play / shuffle, description, track list).
+- **Home shelves** (`pages/home-page.tsx`): below Made for You, song shelves alternate with the album shelves — Quick
+  picks (with a "show other songs" button), Recently added, On repeat, Recently played, Rediscover, Most played, Discover,
+  Favorite albums; a shelf without items is not rendered. A song shelf (`components/song-shelf.tsx`, on
+  `HorizontalShelf` with `itemSize="column"`) lays its songs out in columns of four rows (60px, 56px from 768px; 44px
+  artwork, title, artist, the track menu, a context menu): one column and a peek of the next on phones, two from 640px,
+  three side by side from 1024px. A row plays the shelf from that song (or toggles the current one) and shows the playing
+  indicator over its artwork; the header button plays the shelf from the top. The shelves come from one request
+  (`songPicksQuery`, key `['random', 'picks']`, fresh for 30 minutes and outside `LIBRARY_QUERY_ROOTS` so library events
+  don't reshuffle them; stars are patched through `STAR_ROOTS`); while it loads the first shelf shows a skeleton, and a
+  failed request only hides the song shelves.
 - **Settings → Scrobbling** (`ScrobblingSection`, `/settings/scrobbling`): per service the linked account, a pause switch, the waiting
   plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
   confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates

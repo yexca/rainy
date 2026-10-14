@@ -11,12 +11,14 @@ import (
 	"rainy/internal/recommend"
 )
 
-// routesRecommend registers the infinite-mode mix and the daily mix
-// (docs/architecture/contract.md §7.9); mounted behind auth.RequireUser. Both only read the
-// signed-in user's own plays and annotations.
+// routesRecommend registers the infinite-mode mix, the daily and weekly mix and the home
+// page's song picks (docs/architecture/contract.md §7.9); mounted behind auth.RequireUser.
+// They only read the signed-in user's own plays and annotations.
 func (a *API) routesRecommend(r chi.Router) {
 	r.Post("/recommend/mix", a.recommendMix)
 	r.Get("/recommend/daily", a.recommendDaily)
+	r.Get("/recommend/weekly", a.recommendWeekly)
+	r.Get("/recommend/picks", a.recommendPicks)
 }
 
 type mixRequest struct {
@@ -58,4 +60,23 @@ func (a *API) recommendDaily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, mix)
+}
+
+func (a *API) recommendWeekly(w http.ResponseWriter, r *http.Request) {
+	loc := listening.LoadLocation(strings.TrimSpace(r.URL.Query().Get("tz")))
+	mix, err := a.app.Recommend.Weekly(r.Context(), userFrom(r).ID, loc)
+	if err != nil {
+		writeErr(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, mix)
+}
+
+func (a *API) recommendPicks(w http.ResponseWriter, r *http.Request) {
+	picks, err := a.app.Recommend.Picks(r.Context(), userFrom(r).ID)
+	if err != nil {
+		writeErr(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, picks)
 }

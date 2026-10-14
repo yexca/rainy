@@ -10,9 +10,9 @@ app, update these pages in the same change.
   garbled-tag repair.
 - [Playback](playback.md): the web player, the PWA, lyrics, the queue, and
   playback settings.
-- [Listening report, daily mix, and scrobbling](listening.md): your listening
-  statistics and monthly recaps, play history, the daily mix, and sending
-  plays to Last.fm or ListenBrainz.
+- [Listening report, mixes, and scrobbling](listening.md): your listening
+  statistics and monthly recaps, play history, the daily and weekly mix, the
+  home page's song shelves, and sending plays to Last.fm or ListenBrainz.
 - [Management](management.md): tag editing, covers, lyrics, rename and
   organize, upload, trash, the doctor, and history.
 - [Clients](clients.md): Subsonic and OpenSubsonic apps and API keys.

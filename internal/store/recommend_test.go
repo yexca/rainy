@@ -151,3 +151,32 @@ func TestDailyMixes(t *testing.T) {
 		t.Fatalf("empty mix %+v %v", empty, err)
 	}
 }
+
+// Weekly mixes follow the same rules as daily ones and are stored apart from them.
+func TestWeeklyMixes(t *testing.T) {
+	s := newStore(t)
+	u, other := listener(t, s, "u"), listener(t, s, "other")
+	if _, err := s.GetWeeklyMix(ctx, u.ID, "2026-09-28"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("no mix yet: %v", err)
+	}
+	if _, err := s.SaveWeeklyMix(ctx, u.ID, store.WeeklyMixRow{Week: "2026-06-29", TrackIDs: []string{"old"}, CreatedAt: 100}, 0); err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.SaveWeeklyMix(ctx, u.ID, store.WeeklyMixRow{Week: "2026-09-28", TrackIDs: []string{"a", "b"}, CreatedAt: 5000}, 0)
+	if err != nil || got.Week != "2026-09-28" || !slices.Equal(got.TrackIDs, []string{"a", "b"}) || got.CreatedAt != 5000 {
+		t.Fatalf("saved %+v %v", got, err)
+	}
+	got, err = s.SaveWeeklyMix(ctx, u.ID, store.WeeklyMixRow{Week: "2026-09-28", TrackIDs: []string{"c"}, CreatedAt: 6000}, 1000)
+	if err != nil || !slices.Equal(got.TrackIDs, []string{"a", "b"}) || got.CreatedAt != 5000 {
+		t.Fatalf("second save of the week must keep the first: %+v %v", got, err)
+	}
+	if _, err := s.GetWeeklyMix(ctx, u.ID, "2026-06-29"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("old mix not pruned: %v", err)
+	}
+	if _, err := s.GetWeeklyMix(ctx, other.ID, "2026-09-28"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("another user's mix: %v", err)
+	}
+	if _, err := s.GetDailyMix(ctx, u.ID, "2026-09-28"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("a weekly mix was stored as a daily one: %v", err)
+	}
+}

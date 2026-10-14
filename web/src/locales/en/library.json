@@ -28,6 +28,11 @@
     "upload": "Upload music",
     "scanLibrary": "Libraries & scan",
     "forYou": "Made for You",
+    "quickPicks": "Quick picks",
+    "refreshPicks": "Show other songs",
+    "onRepeat": "On repeat",
+    "rediscover": "Rediscover",
+    "playSection": "Play {{name}}",
     "recap": {
       "eyebrow": "Monthly recap",
       "title": "Your {{month}} in music",
@@ -352,16 +357,27 @@
       "firstPlay": "your first play in Rainy"
     }
   },
+  "mix": {
+    "artists_one": "{{artists}} · {{count}} song",
+    "artists_other": "{{artists}} and more · {{count}} songs",
+    "separator": ", "
+  },
   "daily": {
     "title": "Daily Mix",
     "eyebrow": "Updated every day",
     "open": "Open today’s Daily Mix",
     "play": "Play Daily Mix",
-    "artists_one": "{{artists}} · {{count}} song",
-    "artists_other": "{{artists}} and more · {{count}} songs",
-    "separator": ", ",
     "description": "Songs picked for you each day from your library: artists like the ones you play most, favorites you haven’t heard in a while, and songs you have never played. It stays the same all day.",
     "emptyTitle": "Nothing to pick yet",
     "emptyDescription": "Your Daily Mix appears once the library has songs."
+  },
+  "weekly": {
+    "title": "Weekly Mix",
+    "eyebrow": "Updated every Monday",
+    "open": "Open this week’s Weekly Mix",
+    "play": "Play Weekly Mix",
+    "description": "A longer mix picked for you every Monday from your library. It leans towards songs you have never played and artists like the ones you play most, with a few favorites you haven’t heard in a while, and leaves out what you played last week. It stays the same until next Monday.",
+    "emptyTitle": "Nothing to pick yet",
+    "emptyDescription": "Your Weekly Mix appears once the library has songs."
   }
 }

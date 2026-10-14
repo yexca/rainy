@@ -1,7 +1,7 @@
-# Listening Report, Daily Mix, and Scrobbling
+# Listening Report, Mixes, and Scrobbling
 
 Rainy keeps a history of what each user plays and turns it into a listening
-report, much like Last.fm, and picks a daily mix for you from your library. It
+report, much like Last.fm, and picks a daily and a weekly mix for you from your library. It
 can also send your plays to Last.fm or ListenBrainz ("scrobbling").
 
 ## What Counts as a Play
@@ -67,6 +67,34 @@ out, and no artist appears more than twice when the library allows it. A new
 user without plays gets songs from the whole library. The mix stays the same
 all day on every device and changes at midnight in your time zone; tap the card
 to see the songs, or the play button to start it.
+
+## Weekly Mix
+
+Next to it sits your **Weekly Mix**: about 50 songs picked once a week, made
+for finding music. It draws on the same sources as the Daily Mix but turns the
+order around: songs you have never played come first, then artists similar to
+your favorites, then favorites to rediscover. Songs you played in the last
+seven days are left out, and no artist appears more than three times when the
+library allows it. The mix stays the same from Monday to Sunday on every device
+and changes on Monday at midnight in your time zone; the card shows the week it
+belongs to.
+
+## Songs on the Home Page
+
+Below **Made for You**, the home page mixes shelves of songs in between the
+album shelves. Tap a song to play its shelf from there, or the play button
+beside the title to start from the top.
+
+- **Quick picks**: a dozen songs that suit what you have been playing, by your
+  top artists of the last 90 days and artists like them. They change every time
+  you ask; the refresh button beside the title shows other songs.
+- **On repeat**: the songs you played most in the last 30 days (at least
+  twice), most played first.
+- **Rediscover**: songs you starred or played several times but haven't heard
+  for a month.
+
+A song appears on one shelf only, and a shelf with nothing to show is hidden,
+so a new user sees just Quick picks, drawn from the whole library.
 
 Recommendations use only your own library and plays on the server. See also
 [infinite mode](playback.md#infinite-mode).

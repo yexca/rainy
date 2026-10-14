@@ -17,6 +17,7 @@ import { ActionMenuContext, type ActionMenuContextValue } from '../lib/actions'
 import type { TrackActionsContext } from '../lib/track-action-items'
 import { createTrackRows, type TrackSection } from '../lib/track-rows'
 import { useElementGeometry } from '../lib/use-element-geometry'
+import { useTrackState } from '../lib/use-track-state'
 import { Hairline } from './hairline'
 import { PlayingIndicator } from './playing-indicator'
 import { StarButton } from './star-button'
@@ -217,14 +218,6 @@ export function TrackList({
 function gridColumns(isAlbum: boolean, showAlbum: boolean): string {
   if (isAlbum || !showAlbum) return 'grid-cols-[2.25rem_minmax(0,1fr)_3.5rem_2rem_2rem]'
   return 'grid-cols-[2.25rem_minmax(0,1.2fr)_minmax(0,1fr)_3.5rem_2rem_2rem]'
-}
-
-function useTrackState(trackId: string): 'none' | 'playing' | 'paused' {
-  return usePlayer((s) => {
-    const current = s.index >= 0 ? s.queue[s.index] : undefined
-    if (!current || current.id !== trackId) return 'none'
-    return s.isPlaying ? 'playing' : 'paused'
-  })
 }
 
 function playlistContext(

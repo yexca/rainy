@@ -43,7 +43,7 @@ Rainy currently includes:
   history, with opt-in scrobbling to Last.fm and ListenBrainz.
 - Recommendations from your own library and listening history, computed on
   the server: an infinite mode that keeps the queue going with similar songs,
-  and a daily mix.
+  a daily and a weekly mix, and shelves of songs on the home page.
 - Multiple users with administrator, manager, and download permissions, and
   multiple libraries.
 

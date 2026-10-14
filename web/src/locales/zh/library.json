@@ -28,6 +28,11 @@
     "upload": "上传音乐",
     "scanLibrary": "音乐库与扫描",
     "forYou": "为你推荐",
+    "quickPicks": "猜你喜欢",
+    "refreshPicks": "换一批",
+    "onRepeat": "最近常听",
+    "rediscover": "重温旧爱",
+    "playSection": "播放「{{name}}」",
     "recap": {
       "eyebrow": "月度报告",
       "title": "你的{{month}}听歌报告",
@@ -335,15 +340,26 @@
       "firstPlay": "你在 Rainy 的第一次播放"
     }
   },
+  "mix": {
+    "artists_other": "{{artists}} 等 · {{count}} 首",
+    "separator": "、"
+  },
   "daily": {
     "title": "每日推荐",
     "eyebrow": "每天更新",
     "open": "打开今天的每日推荐",
     "play": "播放每日推荐",
-    "artists_other": "{{artists}} 等 · {{count}} 首",
-    "separator": "、",
     "description": "每天从你的曲库里挑选：与你常听的艺人相似的歌、好久没听的心头好，以及从没播放过的歌。一整天都保持不变。",
     "emptyTitle": "暂时没有可推荐的歌曲",
     "emptyDescription": "曲库里有歌曲后，这里就会出现每日推荐。"
+  },
+  "weekly": {
+    "title": "每周推荐",
+    "eyebrow": "每周一更新",
+    "open": "打开本周的每周推荐",
+    "play": "播放每周推荐",
+    "description": "每周一从你的曲库里挑选一份更长的歌单：以从没播放过的歌和与你常听的艺人相似的歌为主，加上一些好久没听的心头好，并避开上周听过的歌。到下周一之前保持不变。",
+    "emptyTitle": "暂时没有可推荐的歌曲",
+    "emptyDescription": "曲库里有歌曲后，这里就会出现每周推荐。"
   }
 }

@@ -6,6 +6,22 @@ migration or needs operator action. Each area becomes a collapsed block in the
 tagged release note; see
 [Commit and release](../development/commit-and-release.md#release-notes).
 
+> [!IMPORTANT]
+> This release adds a database migration (`0006_weekly_mixes`). Back up
+> `/config` before upgrading.
+
+## Listening
+
+- **Weekly Mix** joins the Daily Mix under **Made for You**: about 50 songs
+  picked every Monday and kept until the next one, on every device. It leans
+  towards songs you have never played and artists like the ones you play most,
+  and leaves out what you played in the last seven days.
+- The home page now has shelves of songs between the album shelves: **Quick
+  picks** (songs that suit what you play, with a button for other songs), **On
+  repeat** (your most played songs of the last 30 days), and **Rediscover**
+  (favorites you haven't heard for a month). Tap a song to play its shelf from
+  there.
+
 ## Library Management
 
 - **Organize by tags** is now a server setting instead of a switch on the

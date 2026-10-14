@@ -3,17 +3,20 @@ package api
 import (
 	"slices"
 	"testing"
+	"time"
 
 	"rainy/internal/model"
 	"rainy/internal/recommend"
 )
 
-// The mix and the daily mix need a user, validate their input and never return the seeds or
-// excluded songs.
+// The mix, the daily and weekly mix and the song picks need a user; the mix validates its
+// input and never returns the seeds or excluded songs; stored mixes stay the same.
 func TestNativeRecommend(t *testing.T) {
 	e := newNativeEnv(t)
 	nativeErrorCode(t, e.do("POST", "/recommend/mix", "", map[string]any{}), 401)
 	nativeErrorCode(t, e.do("GET", "/recommend/daily", "", nil), 401)
+	nativeErrorCode(t, e.do("GET", "/recommend/weekly", "", nil), 401)
+	nativeErrorCode(t, e.do("GET", "/recommend/picks", "", nil), 401)
 
 	seed, excluded := e.id("one"), e.id("umbrella")
 	mix := nativeJSON[[]model.Track](t, e.do("POST", "/recommend/mix", e.aliceTok,
@@ -43,5 +46,20 @@ func TestNativeRecommend(t *testing.T) {
 	}
 	if !slices.Equal(ids(again.Tracks), ids(daily.Tracks)) {
 		t.Fatal("the daily mix changed between two requests")
+	}
+
+	weekly := nativeJSON[recommend.WeeklyMix](t, e.do("GET", "/recommend/weekly?tz=Asia%2FShanghai", e.aliceTok, nil), 200)
+	monday, err := time.Parse(time.DateOnly, weekly.Week)
+	if err != nil || monday.Weekday() != time.Monday || weekly.CreatedAt == 0 || len(weekly.Tracks) == 0 {
+		t.Fatalf("weekly mix %+v %v", weekly, err)
+	}
+	sameWeek := nativeJSON[recommend.WeeklyMix](t, e.do("GET", "/recommend/weekly?tz=Asia%2FShanghai", e.aliceTok, nil), 200)
+	if sameWeek.Week != weekly.Week || !slices.Equal(ids(sameWeek.Tracks), ids(weekly.Tracks)) {
+		t.Fatal("the weekly mix changed between two requests")
+	}
+
+	picks := nativeJSON[recommend.SongPicks](t, e.do("GET", "/recommend/picks", e.aliceTok, nil), 200)
+	if len(picks.Quick) == 0 || picks.OnRepeat == nil || picks.Rediscover == nil {
+		t.Fatalf("song picks %+v", picks)
 	}
 }

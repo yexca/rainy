@@ -162,41 +162,89 @@ type DailyMixRow struct {
 
 // GetDailyMix returns the user's mix of a local day (ErrNotFound when none was made).
 func (s *Store) GetDailyMix(ctx context.Context, userID, day string) (*DailyMixRow, error) {
-	var row struct {
-		TrackIDs  string `db:"track_ids"`
-		CreatedAt int64  `db:"created_at"`
-	}
-	err := s.db.R.GetContext(ctx, &row, `SELECT track_ids, created_at FROM daily_mixes WHERE user_id = ? AND day = ?`, userID, day)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+	ids, createdAt, err := s.getMix(ctx, dailyMixes, userID, day)
 	if err != nil {
-		return nil, fmt.Errorf("getting daily mix: %w", err)
+		return nil, err
 	}
-	out := &DailyMixRow{Day: day, CreatedAt: row.CreatedAt}
-	if err := json.Unmarshal([]byte(row.TrackIDs), &out.TrackIDs); err != nil {
-		return nil, fmt.Errorf("decoding daily mix: %w", err)
-	}
-	return out, nil
+	return &DailyMixRow{Day: day, TrackIDs: ids, CreatedAt: createdAt}, nil
 }
 
 // SaveDailyMix stores the user's mix of a day unless one already exists (the first one wins),
 // removes the user's mixes created before pruneBefore (unix ms), and returns the stored mix.
 func (s *Store) SaveDailyMix(ctx context.Context, userID string, mix DailyMixRow, pruneBefore int64) (*DailyMixRow, error) {
-	ids := mix.TrackIDs
+	if err := s.saveMix(ctx, dailyMixes, userID, mix.Day, mix.TrackIDs, mix.CreatedAt, pruneBefore); err != nil {
+		return nil, err
+	}
+	return s.GetDailyMix(ctx, userID, mix.Day)
+}
+
+// WeeklyMixRow is a stored weekly mix. Week is the local date of the week's Monday.
+type WeeklyMixRow struct {
+	Week      string
+	TrackIDs  []string
+	CreatedAt int64
+}
+
+// GetWeeklyMix returns the user's mix of a local week (ErrNotFound when none was made).
+func (s *Store) GetWeeklyMix(ctx context.Context, userID, week string) (*WeeklyMixRow, error) {
+	ids, createdAt, err := s.getMix(ctx, weeklyMixes, userID, week)
+	if err != nil {
+		return nil, err
+	}
+	return &WeeklyMixRow{Week: week, TrackIDs: ids, CreatedAt: createdAt}, nil
+}
+
+// SaveWeeklyMix stores the user's mix of a week unless one already exists (the first one
+// wins), removes the user's mixes created before pruneBefore (unix ms), and returns the
+// stored mix.
+func (s *Store) SaveWeeklyMix(ctx context.Context, userID string, mix WeeklyMixRow, pruneBefore int64) (*WeeklyMixRow, error) {
+	if err := s.saveMix(ctx, weeklyMixes, userID, mix.Week, mix.TrackIDs, mix.CreatedAt, pruneBefore); err != nil {
+		return nil, err
+	}
+	return s.GetWeeklyMix(ctx, userID, mix.Week)
+}
+
+// mixTable is a table of stored mixes: one row per user and period.
+type mixTable struct{ name, period, label string }
+
+var (
+	dailyMixes  = mixTable{name: "daily_mixes", period: "day", label: "daily mix"}
+	weeklyMixes = mixTable{name: "weekly_mixes", period: "week", label: "weekly mix"}
+)
+
+func (s *Store) getMix(ctx context.Context, tb mixTable, userID, period string) ([]string, int64, error) {
+	var row struct {
+		TrackIDs  string `db:"track_ids"`
+		CreatedAt int64  `db:"created_at"`
+	}
+	err := s.db.R.GetContext(ctx, &row, `SELECT track_ids, created_at FROM `+tb.name+` WHERE user_id = ? AND `+tb.period+` = ?`, userID, period)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, 0, ErrNotFound
+	}
+	if err != nil {
+		return nil, 0, fmt.Errorf("getting %s: %w", tb.label, err)
+	}
+	var ids []string
+	if err := json.Unmarshal([]byte(row.TrackIDs), &ids); err != nil {
+		return nil, 0, fmt.Errorf("decoding %s: %w", tb.label, err)
+	}
+	return ids, row.CreatedAt, nil
+}
+
+func (s *Store) saveMix(ctx context.Context, tb mixTable, userID, period string, ids []string, createdAt, pruneBefore int64) error {
 	if ids == nil {
 		ids = []string{}
 	}
 	b, err := json.Marshal(ids)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if _, err := s.db.W.ExecContext(ctx, `INSERT INTO daily_mixes (user_id, day, track_ids, created_at) VALUES (?, ?, ?, ?)
-		ON CONFLICT (user_id, day) DO NOTHING`, userID, mix.Day, string(b), mix.CreatedAt); err != nil {
-		return nil, fmt.Errorf("saving daily mix: %w", err)
+	if _, err := s.db.W.ExecContext(ctx, `INSERT INTO `+tb.name+` (user_id, `+tb.period+`, track_ids, created_at) VALUES (?, ?, ?, ?)
+		ON CONFLICT (user_id, `+tb.period+`) DO NOTHING`, userID, period, string(b), createdAt); err != nil {
+		return fmt.Errorf("saving %s: %w", tb.label, err)
 	}
-	if _, err := s.db.W.ExecContext(ctx, `DELETE FROM daily_mixes WHERE user_id = ? AND created_at < ?`, userID, pruneBefore); err != nil {
-		return nil, fmt.Errorf("pruning daily mixes: %w", err)
+	if _, err := s.db.W.ExecContext(ctx, `DELETE FROM `+tb.name+` WHERE user_id = ? AND created_at < ?`, userID, pruneBefore); err != nil {
+		return fmt.Errorf("pruning %s: %w", tb.label, err)
 	}
-	return s.GetDailyMix(ctx, userID, mix.Day)
+	return nil
 }

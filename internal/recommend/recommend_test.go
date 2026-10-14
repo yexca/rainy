@@ -272,6 +272,103 @@ func TestDailyMixColdStart(t *testing.T) {
 	}
 }
 
+// The weekly mix stays the same from Monday to Sunday of the viewer's time zone, changes on
+// Monday, and keeps last week's plays out while the library has other songs.
+func TestWeeklyMix(t *testing.T) {
+	big := map[string]struct {
+		genre string
+		songs int
+	}{}
+	for name, a := range library {
+		big[name] = struct {
+			genre string
+			songs int
+		}{a.genre, 12} // 72 songs: more than a mix holds
+	}
+	e := newEnv(t, big) // Thursday 2026-10-01
+	day := 24 * time.Hour
+	for range 3 {
+		e.play("Alpha 1", 60*day) // a favorite not heard for two months
+	}
+	e.play("Alpha 2", 2*day)
+	e.play("Delta 1", 2*day)
+
+	first, err := e.svc.Weekly(ctx, e.u.ID, time.UTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.Week != "2026-09-28" || len(first.Tracks) != WeeklySize {
+		t.Fatalf("first mix of week %s with %d songs", first.Week, len(first.Tracks))
+	}
+	ids := trackIDs(first.Tracks)
+	if !slices.Contains(ids, e.ids["Alpha 1"]) {
+		t.Fatal("the favorite to rediscover is missing")
+	}
+	if slices.Contains(ids, e.ids["Alpha 2"]) || slices.Contains(ids, e.ids["Delta 1"]) {
+		t.Fatal("a song played two days ago is in the mix")
+	}
+	if by := artistsOf(first.Tracks); len(by) != 6 {
+		t.Fatalf("artists %v", by)
+	}
+
+	e.now = time.Date(2026, 10, 4, 20, 0, 0, 0, time.UTC) // Sunday evening
+	again, err := e.svc.Weekly(ctx, e.u.ID, time.UTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Week != first.Week || again.CreatedAt != first.CreatedAt || !slices.Equal(trackIDs(again.Tracks), ids) {
+		t.Fatal("the mix changed during the week")
+	}
+
+	// Asia/Tokyo is already on Monday.
+	tokyo := time.FixedZone("UTC+9", 9*60*60)
+	next, err := e.svc.Weekly(ctx, e.u.ID, tokyo)
+	if err != nil || next.Week != "2026-10-05" || next.CreatedAt == first.CreatedAt {
+		t.Fatalf("next week's mix %+v %v", next, err)
+	}
+}
+
+// The home page's song shelves: the songs on repeat, favorites to rediscover, and quick picks
+// that repeat neither. A new user only gets quick picks.
+func TestSongPicks(t *testing.T) {
+	e := newEnv(t, library)
+	day := 24 * time.Hour
+	for _, ago := range []time.Duration{2, 3, 4} {
+		e.play("Alpha 1", ago*day)
+	}
+	e.play("Beta 1", 5*day)
+	e.play("Beta 1", 6*day)
+	e.play("Gamma 1", 3*day) // once: not on repeat
+	e.play("Delta 1", 60*day)
+	e.play("Delta 1", 61*day)
+
+	picks, err := e.svc.Picks(ctx, e.u.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := trackTitles(picks.OnRepeat); !slices.Equal(got, []string{"Alpha 1", "Beta 1"}) {
+		t.Fatalf("on repeat %v", got)
+	}
+	if got := trackTitles(picks.Rediscover); !slices.Equal(got, []string{"Delta 1"}) {
+		t.Fatalf("rediscover %v", got)
+	}
+	if len(picks.Quick) != PicksSize {
+		t.Fatalf("quick picks: %d songs", len(picks.Quick))
+	}
+	for _, title := range trackTitles(picks.Quick) {
+		if title == "Alpha 1" || title == "Beta 1" || title == "Delta 1" {
+			t.Fatalf("quick picks repeat %s from another shelf", title)
+		}
+	}
+
+	fresh := newEnv(t, library)
+	picks, err = fresh.svc.Picks(ctx, fresh.u.ID)
+	if err != nil || len(picks.Quick) != PicksSize || picks.OnRepeat == nil || len(picks.OnRepeat) != 0 ||
+		picks.Rediscover == nil || len(picks.Rediscover) != 0 {
+		t.Fatalf("new user: %+v %v", picks, err)
+	}
+}
+
 func trackTitles(ts []model.Track) []string {
 	out := make([]string, len(ts))
 	for i, t := range ts {

@@ -17,8 +17,9 @@ import { formatNumber } from '@/lib/format'
 import { AlbumCard, AlbumCardSkeleton } from '../components/album-card'
 import { ForYou } from '../components/for-you'
 import { HorizontalShelf } from '../components/horizontal-shelf'
+import { SongShelf, SongShelfSkeleton } from '../components/song-shelf'
 import { usePlayCollection } from '../lib/play'
-import { homeQuery } from '../lib/queries'
+import { homeQuery, songPicksQuery } from '../lib/queries'
 
 function greetingKey(hour: number): string {
   if (hour < 5) return 'home.greeting.night'
@@ -50,6 +51,23 @@ function Shelf({
   )
 }
 
+/** "Show others" button of a shelf whose content is picked at random. */
+function RefreshButton({ label, busy, onClick }: { label: string; busy: boolean; onClick: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      disabled={busy}
+      aria-label={label}
+      title={label}
+      className="size-11 rounded-full text-muted-foreground md:size-9"
+    >
+      {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <RefreshCw className="size-4" strokeWidth={1.75} aria-hidden />}
+    </Button>
+  )
+}
+
 function ShelfSkeleton() {
   return (
     <div className="mt-8 md:mt-10" aria-hidden>
@@ -69,6 +87,7 @@ export default function HomePage() {
   const queryClient = useQueryClient()
   const play = usePlayCollection()
   const home = useQuery(homeQuery())
+  const picks = useQuery(songPicksQuery())
   const [hour] = useState(() => new Date().getHours())
   const [refreshingRandom, setRefreshingRandom] = useState(false)
 
@@ -147,29 +166,37 @@ export default function HomePage() {
       ) : (
         <div className="-mt-2">
           <ForYou />
+          {/* Song shelves alternate with the album shelves; a failed request only hides them. */}
+          {picks.isPending ? (
+            <SongShelfSkeleton />
+          ) : (
+            <SongShelf
+              title={t('home.quickPicks')}
+              tracks={picks.data?.quick ?? []}
+              actions={
+                <RefreshButton
+                  label={t('home.refreshPicks')}
+                  busy={picks.isRefetching}
+                  onClick={() => void picks.refetch()}
+                />
+              }
+            />
+          )}
           <Shelf title={t('home.recentlyAdded')} albums={home.data.recentlyAdded} to="/albums?sort=recent" />
+          <SongShelf title={t('home.onRepeat')} tracks={picks.data?.onRepeat ?? []} />
           <Shelf title={t('home.recentlyPlayed')} albums={home.data.recentlyPlayed} to="/albums?sort=played" />
+          <SongShelf title={t('home.rediscover')} tracks={picks.data?.rediscover ?? []} />
           <Shelf title={t('home.mostPlayed')} albums={home.data.mostPlayed} to="/albums?sort=frequent" />
           <Shelf
             title={t('home.discover')}
             albums={home.data.random}
             to="/albums?sort=random"
             actions={
-              <Button
-                variant="ghost"
-                size="icon"
+              <RefreshButton
+                label={t('home.refreshDiscover')}
+                busy={refreshingRandom}
                 onClick={() => void refreshRandom()}
-                disabled={refreshingRandom}
-                aria-label={t('home.refreshDiscover')}
-                title={t('home.refreshDiscover')}
-                className="size-9 rounded-full text-muted-foreground"
-              >
-                {refreshingRandom ? (
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                ) : (
-                  <RefreshCw className="size-4" strokeWidth={1.75} aria-hidden />
-                )}
-              </Button>
+              />
             }
           />
           <Shelf title={t('home.favorites')} albums={home.data.starred} to="/favorites?tab=albums" />

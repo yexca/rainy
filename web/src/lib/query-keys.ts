@@ -21,6 +21,7 @@ export const queryKeys = {
   genres: ['genres'] as const,
   search: (q: string) => ['search', q] as const,
   starred: ['starred'] as const,
+  /** Lists picked at random per request, e.g. the home song picks (`['random', 'picks']`). */
   random: ['random'] as const,
   recentTracks: ['recent-tracks'] as const,
   lyrics: (trackId: string) => ['lyrics', trackId] as const,
@@ -28,7 +29,7 @@ export const queryKeys = {
   queue: ['queue'] as const,
   /** Listening report and history (`['listening', 'report', params]`, `['listening', 'history', range]`). */
   listening: ['listening'] as const,
-  /** Daily mix (`['recommend', 'daily', day, tz]`). */
+  /** Daily and weekly mix (`['recommend', 'daily', day, tz]`, `['recommend', 'weekly', monday, tz]`). */
   recommend: ['recommend'] as const,
   /** `/api/me/scrobbling`. */
   scrobbling: ['scrobbling'] as const,

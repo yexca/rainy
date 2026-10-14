@@ -64,6 +64,8 @@ func TestServiceJSONMatchesTSContract(t *testing.T) {
 		{"ListeningTopEntry", listening.TopEntry{}, `id name artist plays duration coverArt available`},
 		{"ListeningTopTrack", listening.TopTrack{}, `id name artist plays duration coverArt available track`},
 		{"DailyMix", recommend.DailyMix{}, `date createdAt tracks`},
+		{"WeeklyMix", recommend.WeeklyMix{}, `week createdAt tracks`},
+		{"SongPicks", recommend.SongPicks{}, `quick onRepeat rediscover`},
 		{"ScrobbleAccount", scrobble.AccountStatus{}, `service available linked needsRelink username enabled queued lastError
 			lastErrorAt lastSentAt linkedAt`},
 		{"ScrobblingAdmin", scrobble.AdminInfo{}, `lastfm listenBrainz`},

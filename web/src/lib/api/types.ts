@@ -241,6 +241,10 @@ export interface ListeningReport {
 export interface MixInput { seeds: string[]; exclude?: string[]; limit?: number /* ≤ 50, default 10 */ }
 /** The user's daily mix: the same songs all day (`date` is the local day, YYYY-MM-DD). */
 export interface DailyMix { date: string; createdAt: number; tracks: Track[] }
+/** The user's weekly mix: the same songs from Monday to Sunday (`week` is the local date of that Monday). */
+export interface WeeklyMix { week: string; createdAt: number; tracks: Track[] }
+/** Home song shelves (≤ 12 songs each, a song on one shelf only); `quick` and `rediscover` differ on every request. */
+export interface SongPicks { quick: Track[]; onRepeat: Track[]; rediscover: Track[] }
 
 export type ScrobbleService = 'lastfm' | 'listenbrainz'
 export interface ScrobbleAccount {

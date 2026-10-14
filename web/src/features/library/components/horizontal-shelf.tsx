@@ -13,6 +13,8 @@ const ITEM_WIDTH = {
   sm: 'w-[calc((100%-2rem)/3.2)] sm:w-32 md:w-36 lg:w-40',
   /** Wide tiles (genres). */
   lg: 'w-[calc((100%-1rem)/1.6)] sm:w-64 md:w-72',
+  /** Columns of song rows: one and a peek of the next on phones, three side by side on desktops. */
+  column: 'w-[calc((100%-1rem)/1.12)] sm:w-[calc((100%-1rem)/2.1)] lg:w-[calc((100%-2.5rem)/3)]',
 } as const
 
 export interface HorizontalShelfProps {
