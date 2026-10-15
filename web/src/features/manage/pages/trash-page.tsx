@@ -97,7 +97,7 @@ export default function TrashPage() {
         <EmptyState icon={Trash2} art="happy" title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} />
       ) : (
         <div className="grid gap-3">
-          <div className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex h-12 items-center gap-3 bg-background/90 backdrop-blur-xl md:top-(--app-header-h)">
+          <div className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex h-12 items-center gap-3 sticky-surface md:top-(--app-header-h)">
             <Checkbox
               checked={allChecked ? true : selectedIds.length > 0 ? 'indeterminate' : false}
               onCheckedChange={(v) => setSelected(v === true ? new Set(entries.map((e) => e.id)) : new Set())}

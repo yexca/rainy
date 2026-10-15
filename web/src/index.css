@@ -608,6 +608,20 @@
   }
 }
 
+/* Sticky bars inside a page (the selection bar, section headers). Frosted over the page; in
+   immersive mode they are glass like .chrome-bar, so the backdrop shows through. */
+@utility sticky-surface {
+  background-color: color-mix(in oklab, var(--background) 90%, transparent);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+
+  :root[data-immersive] & {
+    background-color: color-mix(in oklab, var(--background) 45%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;

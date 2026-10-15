@@ -25,6 +25,15 @@ Changes through v0.1.2 are summarized in [v0.1.2](v0.1.2.md).
 </details>
 
 <details>
+<summary><strong>Library Management</strong></summary>
+
+- In immersive mode the sticky selection bar on Tracks, the trash bar and the
+  history day headers are glass like the app header, so the cover colours show
+  through them.
+
+</details>
+
+<details>
 <summary><strong>Operations And Deployment</strong></summary>
 
 - Create database-and-key snapshots with `rainy backup create <name>` and
