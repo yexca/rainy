@@ -52,6 +52,7 @@ import type {
   PlayQueue,
   Playlist,
   PlaylistDetail,
+  PlaylistImportPreview,
   RadioStation,
   RenamePlan,
   ScanStatus,
@@ -367,6 +368,9 @@ export const api = {
 
   // ---- §7.4 playlists, queue, radio
   playlists: {
+    previewImport: (body: { text: string; baseDir?: string; libraryId?: number }) =>
+      request<PlaylistImportPreview>('/playlists/import/preview', { method: 'POST', body }),
+    exportUrl: (id: string) => apiUrl(`/playlists/${seg(id)}/export`),
     list: (opts?: CallOptions) => request<Playlist[]>('/playlists', opts),
     create: (body: CreatePlaylistInput) => request<Playlist>('/playlists', { method: 'POST', body }),
     get: (id: string, opts?: CallOptions) => request<PlaylistDetail>(`/playlists/${seg(id)}`, opts),

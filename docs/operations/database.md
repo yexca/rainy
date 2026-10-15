@@ -65,8 +65,34 @@ corruption.
 
 ## Backups
 
-Stop Rainy before copying the database, so `rainy.db` and its WAL form a
-consistent snapshot:
+The maintenance CLI can snapshot application state while Rainy is running:
+
+```sh
+docker compose exec rainy rainy backup create example-backup
+docker compose exec rainy rainy backup verify example-backup
+```
+
+The snapshot is stored in `<data directory>/backups/example-backup/` with
+`rainy.db`, `secret.key`, and `manifest.json`. The database is copied with
+SQLite `VACUUM INTO`, including committed WAL data. The manifest records the
+application version, migration names, file sizes, and SHA-256 hashes. The
+command requires an existing database and key; it never creates a replacement
+key or migrates the source. Choose a new name for every snapshot.
+
+`verify` checks hashes, SQLite integrity and foreign keys, migration
+compatibility, and whether the key decrypts stored credentials. It changes
+neither the running installation nor the snapshot. Snapshots from a newer
+schema require a compatible Rainy binary. Commands stop after ten minutes;
+database files are limited to 16 GiB.
+
+These snapshots contain database state and its key only. Back up music,
+`trash/`, and any required `ytdlp/` files separately. A database snapshot
+does not recreate a deleted music file or the files referenced by trash
+entries. Copy completed snapshots to separate, protected storage; another
+directory on the same disk is not protection against disk failure.
+
+For a backup of the whole data directory, stop Rainy before copying it so
+the database and filesystem state are consistent:
 
 ```sh
 docker compose stop rainy
@@ -87,6 +113,21 @@ similar), especially once managers can edit tags or rename files. Rainy's
 trash and edit history help undo mistakes, but they are not a backup.
 
 ## Restore
+
+For a CLI snapshot:
+
+1. Place its complete directory under `<data directory>/backups/<name>/`
+   and run `rainy backup verify <name>` with a compatible Rainy binary.
+2. Stop the container: `docker compose stop rainy`.
+3. Preserve the current database, any `rainy.db-wal`, `rainy.db-shm` or
+   `rainy.db-journal` files, and `secret.key` in a separate recovery directory.
+   Copy the snapshot's database and key into the data directory together;
+   do not leave a journal from another database beside the restored file.
+4. Restore music and trash from the corresponding filesystem backup when
+   needed. Database library paths must still point to the intended mounts.
+5. Start the container: `docker compose start rainy`.
+
+For a whole-data-directory backup:
 
 1. Stop the container: `docker compose stop rainy`.
 2. Replace the data folder with the backup contents.

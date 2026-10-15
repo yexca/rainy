@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { ListMusic, Plus } from 'lucide-react'
-import { useMemo } from 'react'
+import { FileUp, ListMusic, Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 
@@ -16,6 +16,7 @@ import { AlbumCardSkeleton } from '../components/album-card'
 import { CardGrid } from '../components/card-grid'
 import { PlaylistCard } from '../components/playlist-card'
 import { PlaylistFormDialog } from '../components/playlist-form-dialog'
+import { PlaylistImportDialog } from '../components/playlist-import-dialog'
 import { SectionHeader } from '../components/section-header'
 import { playlistsQuery } from '../lib/queries'
 
@@ -26,6 +27,7 @@ export default function PlaylistsPage() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const creating = params.get('new') === '1'
+  const [importing, setImporting] = useState(false)
   const query = useQuery(playlistsQuery())
 
   const [own, shared] = useMemo(() => {
@@ -58,6 +60,15 @@ export default function PlaylistsPage() {
       {isMobile ? null : t('common:nav.newPlaylist')}
     </Button>
   )
+  const actions = (
+    <div className="flex items-center gap-1">
+      <Button variant="ghost" className="h-11 min-w-11 px-3" onClick={() => setImporting(true)} aria-label={t('playlistFiles.import')}>
+        <FileUp aria-hidden />
+        {!isMobile ? t('playlistFiles.import') : null}
+      </Button>
+      {newButton}
+    </div>
+  )
 
   return (
     <Page>
@@ -65,8 +76,8 @@ export default function PlaylistsPage() {
         title={t('common:nav.playlists')}
         back={isMobile}
         subtitle={query.data ? t('common:count.playlists', { count: query.data.length }) : undefined}
-        navActions={isMobile ? newButton : undefined}
-        actions={isMobile ? undefined : newButton}
+        navActions={isMobile ? actions : undefined}
+        actions={isMobile ? undefined : actions}
       />
 
       {query.isPending ? (
@@ -120,6 +131,7 @@ export default function PlaylistsPage() {
         onOpenChange={setCreating}
         onSaved={(playlist) => navigate(`/playlists/${playlist.id}`)}
       />
+      <PlaylistImportDialog open={importing} onOpenChange={setImporting} onSaved={(playlist) => navigate(`/playlists/${playlist.id}`)} />
     </Page>
   )
 }

@@ -235,6 +235,14 @@ vulnerability.
 
 ## Backup and Removal
 
+The `rainy backup` CLI writes database-and-key snapshots under the data
+directory. These contain account data, sessions, personal listening state,
+library paths and encrypted credentials; the accompanying key can decrypt
+those credentials. Verification runs locally and sends nothing elsewhere.
+Playlist import matches local indexed paths without fetching URLs; exported
+M3U8 files contain song metadata, library-relative paths and track-id hints,
+but no audio or authentication credentials.
+
 Backups of the data folder carry the same sensitivity as the originals,
 including recoverable passwords. Store them encrypted and access-controlled.
 

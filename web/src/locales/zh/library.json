@@ -164,6 +164,28 @@
     "emptyArtists": "还没有收藏的艺人",
     "emptyHint": "点一下星标，把喜欢的音乐都收在这里。"
   },
+  "playlistFiles": {
+    "import": "导入歌单",
+    "export": "导出 M3U8",
+    "description": "将歌单匹配到曲库内的歌曲，确认后创建私人歌单，不会修改音乐文件。",
+    "file": "M3U / M3U8 文件",
+    "fileError": "请选择不超过 512 KiB 的 UTF-8 歌单文件。",
+    "folder": "歌单所在目录（可选）",
+    "folderHint": "如果歌单使用子目录下的相对路径，请填写相对于音乐库的目录。使用音乐库根目录下的路径时留空。不导入绝对路径和网址。",
+    "library": "匹配音乐库",
+    "allLibraries": "所有音乐库",
+    "preview": "预览匹配结果",
+    "summary": "已匹配 {{matched}} 项 · 未匹配 {{skipped}} 项",
+    "showMore": "显示更多条目",
+    "skip": "跳过这 {{count}} 个未匹配条目",
+    "create": "创建歌单",
+    "status": {
+      "matched": "已匹配",
+      "missing": "未找到",
+      "ambiguous": "多个音乐库",
+      "invalid": "不支持的路径"
+    }
+  },
   "playlists": {
     "mine": "我的歌单",
     "shared": "公开歌单",

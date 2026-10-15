@@ -15,7 +15,7 @@ func TestNativeQueue(t *testing.T) {
 		t.Fatalf("empty queue %+v", q)
 	}
 	body := e.do("GET", "/queue", e.aliceTok, nil).Body.String()
-	for _, k := range []string{`"trackIds":[]`, `"currentId":""`, `"positionMs":0`, `"updatedAt":0`, `"tracks":[]`} {
+	for _, k := range []string{`"trackIds":[]`, `"currentId":""`, `"currentIndex":-1`, `"positionMs":0`, `"updatedAt":0`, `"tracks":[]`} {
 		if !strings.Contains(body, k) {
 			t.Errorf("empty queue JSON %s lacks %s", body, k)
 		}
@@ -45,7 +45,7 @@ func TestNativeQueue(t *testing.T) {
 }
 
 // currentIndex (optional) picks which copy of a song queued twice is current; it is kept
-// for Subsonic's getPlayQueueByIndex. An index that does not point at currentId is ignored.
+// for native and Subsonic clients. An index that does not point at currentId is ignored.
 func TestNativeQueueCurrentIndex(t *testing.T) {
 	e := newNativeEnv(t)
 	one, tone := e.id("one"), e.id("tone")
@@ -53,10 +53,7 @@ func TestNativeQueueCurrentIndex(t *testing.T) {
 		t.Helper()
 		nativeExpect(t, e.do("PUT", "/queue", e.aliceTok, map[string]any{
 			"trackIds": []string{one, "", tone, one}, "currentId": one, "positionMs": 1, "currentIndex": idx}), 204)
-		q, err := e.app.Store.GetPlayQueue(t.Context(), e.alice.ID)
-		if err != nil {
-			t.Fatal(err)
-		}
+		q := nativeJSON[queueResponse](t, e.do("GET", "/queue", e.aliceTok, nil), 200)
 		return q.CurrentIndex
 	}
 	if got := put(3); got != 2 { // the empty id is dropped: index 3 → 2

@@ -44,6 +44,10 @@ first account exists).
   on every time update.
 - The queue is saved to `localStorage` immediately and to `/api/queue` after a
   short debounce, so a Subsonic client can resume where the browser stopped.
+  Restoration preserves the current occurrence of a repeated song and adjusts
+  its index when unavailable files are omitted. If the current song is
+  unavailable, playback starts paused at the first playable entry with no
+  carried-over playback position.
 
 Track lists keep only loaded rows in memory; unloaded rows have implicit
 positions. Their virtualizer keys, and the queue's keys, keep stable function

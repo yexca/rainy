@@ -44,9 +44,10 @@ CGO is **disabled** for release builds (`CGO_ENABLED=0`). Do not add CGO depende
 
 ```
 rainy/
-├── cmd/rainy/main.go            entrypoint + small CLI (serve | version | user list | user reset-password)
+├── cmd/rainy/                   entrypoint + maintenance CLI (see backend.md)
 ├── internal/
 │   ├── buildinfo/               Version, Commit, BuildDate (ldflags)
+│   ├── backup/                  database-and-key snapshots and restore checks (§5.19)
 │   ├── config/                  env config
 │   ├── deps/                    blank imports that keep pinned modules in go.mod
 │   ├── db/                      Open, Migrate, migrations/*.sql (embedded), dbtest helper
@@ -206,6 +207,7 @@ type DB struct {
 func Open(path string) (*DB, error) // parent dir must exist; pragmas: journal_mode=WAL, busy_timeout=10000, foreign_keys=ON, synchronous=NORMAL, cache_size=-20000
 func (d *DB) Migrate(ctx context.Context) error
 func (d *DB) Versions(ctx context.Context) ([]string, error) // applied migrations
+func MigrationVersions() ([]string, error) // embedded migration names, ordered; no database opened
 func (d *DB) Tx(ctx context.Context, fn func(tx *sqlx.Tx) error) error // on W; rollback on error/panic
 func (d *DB) Close() error                                              // writer closed last (WAL checkpoint)
 // package dbtest: func New(t testing.TB) *db.DB — temp dir file DB, migrated, closed via t.Cleanup
@@ -507,6 +509,7 @@ GetValue(ctx, key) (string, error); SetValue(ctx, key, value string) error // se
                                      // ValueLastfmAppKey "lastfm.apiKey", ValueLastfmSigningEnc "lastfm.secretEnc" (encrypted)
 
 // Playlists (tracks join non-missing tracks only; create / set / append silently drop unknown track ids)
+PreviewPlaylistImport(ctx, text, baseDir string, libraryID int64) (*PlaylistImportPreview, error) // §7.4; read-only indexed-path matching
 ListPlaylists(ctx, userID string) ([]model.Playlist, error) // own + public
 GetPlaylist(ctx, id string) (*model.Playlist, error)
 PlaylistTracks(ctx, id, userID string) ([]model.Track, error) // playlist order, missing tracks skipped (the "visible" list)
@@ -1109,6 +1112,37 @@ Rules:
   30 days; `Quick` — a **Mix** without seeds that excludes the songs of both. `Rediscover` and `Quick` differ on every
   call; nothing is stored.
 
+### 5.19 backup
+
+`internal/backup` serves the maintenance CLI and depends on `auth`, `db`,
+and `util`; it does not start the application services.
+
+```go
+type File struct { Size int64; SHA256 string } // json size, sha256
+type Manifest struct {
+    Format int; CreatedAt int64; Version string; Migrations []string; Files map[string]File
+} // json format, createdAt, version, migrations, files
+func Create(ctx context.Context, dataDir, name, version string) (*Manifest, error)
+func Verify(ctx context.Context, dataDir, name string) (*Manifest, error)
+```
+
+Names match `[A-Za-z0-9][A-Za-z0-9._-]{0,63}`. Every path stays inside the
+data directory through `SafeJoin` and `EnsureWithinRoot`; inputs are regular
+files. Create exclusively makes `backups/<name>/` (0700), snapshots an existing
+database using read-only-source `VACUUM INTO`, and copies its existing 32-byte
+key. Output files use 0600; a changed or mismatched key fails the operation.
+The format-1 manifest is written last after verification, and failures remove
+only the newly created snapshot directory. Existing snapshots are not overwritten.
+
+Verification checks sizes and SHA-256 hashes, SQLite integrity and foreign keys,
+an applied migration chain that is a nonempty prefix of the embedded chain,
+and decryption of nonempty stored passwords, scrobbling credentials and the
+Last.fm secret. The manifest's migrations must equal the snapshot's migrations.
+It rejects snapshot journals and never applies migrations or restores files.
+Database files are capped at 16 GiB, manifests at 64 KiB, and CLI operations at
+ten minutes with signal cancellation. Music, trash, caches and yt-dlp files
+are outside the snapshot; see [backup and restore](../operations/database.md#backups).
+
 ## 6. Subsonic / OpenSubsonic (`/rest`)
 
 - Routes: `/rest/{method}` and `/rest/{method}.view`, GET, HEAD and POST (`application/x-www-form-urlencoded`,
@@ -1224,18 +1258,39 @@ honoured for managers. `ids` takes at most 1000 ids; without `sort` the result k
 |---|---|---|---|
 | GET | `/api/playlists` | | `Playlist[]` (own + public) |
 | POST | `/api/playlists` | `{name (≤ 200), comment? (≤ 2000), public?, trackIds? (≤ 10000)}` | 201 `Playlist` |
+| POST | `/api/playlists/import/preview` | `{text, baseDir?, libraryId?}` | `PlaylistImportPreview`; reads the index without creating a playlist |
+| GET | `/api/playlists/{id}/export` | | UTF-8 M3U8 attachment; same visibility as the playlist |
 | GET | `/api/playlists/{id}` | | `PlaylistDetail` (`Playlist & {tracks: Track[], readonly: boolean}`) |
 | PUT | `/api/playlists/{id}` | `{name?, comment?, public?}` | `Playlist` |
 | DELETE | `/api/playlists/{id}` | | 204 |
 | POST | `/api/playlists/{id}/tracks` | `{trackIds}` (append) | `Playlist` |
 | PUT | `/api/playlists/{id}/tracks` | `{trackIds}` (replace the visible order, `store.SetPlaylistTracks`) | `Playlist` |
 | DELETE | `/api/playlists/{id}/tracks` | `{positions:number[]}` (indexes into the visible list) | `Playlist` |
-| GET | `/api/queue` | | `{trackIds, currentId, positionMs, changedBy, updatedAt, tracks: Track[]}` (`tracks` without missing ones) |
+| GET | `/api/queue` | | `{trackIds, currentId, currentIndex, positionMs, changedBy, updatedAt, tracks: Track[]}` (`tracks` without missing ones; `currentIndex` indexes the unfiltered `trackIds`, −1 when absent) |
 | PUT | `/api/queue` | `{trackIds (≤ 10000), currentId, positionMs, currentIndex?}` (`currentIndex` picks which copy of a song queued twice is current) | 204 |
 | GET | `/api/radios` | | `RadioStation[]` |
 | POST/PUT/DELETE | `/api/radios`, `/api/radios/{id}` (admin) | `{name, streamUrl, homepageUrl?}` | 201 / 200 `RadioStation`, 204 |
 
 Only the owner (or an admin) may modify a playlist; others get 403. Someone else's private playlist is 404.
+
+Playlist files contain at most 10,000 entries and 512 KiB of UTF-8 text. Import accepts
+M3U/M3U8, a BOM, CRLF, comments, and either path separator. Paths are library-relative,
+case-sensitive exact matches against non-missing indexed tracks, with an optional
+library-relative `baseDir` for a playlist stored in a subfolder. URLs, absolute paths,
+parent traversal and control characters are invalid entries; importing never reads
+media or sends network requests. Omitted `libraryId` (or 0) searches every library;
+an unknown nonzero library is an error. Entries retain file line numbers, order and
+duplicates and report `matched`, `missing`, `ambiguous`, or `invalid`, with an empty
+`trackId` unless matched. The preview includes library ids and names, never host paths.
+The web app requires a fresh preview and explicit acknowledgement of skipped entries
+before creating a private playlist through the existing create endpoint.
+
+Export includes playable entries in order, with duplicates, `#EXTINF` metadata and
+`./`-prefixed library-relative paths. A `#RAINY-TRACK:<id>` comment disambiguates a
+path across libraries when that id still has the same path within the selected scope;
+otherwise import matches by path. Other players ignore the comment. Export contains
+no audio, stream URLs or credentials and requires playlist visibility, not the audio
+download permission. Paths that cannot be represented safely in M3U cause an error.
 
 ### 7.5 Media
 | Method | Path | Query | Response |
@@ -1465,7 +1520,9 @@ export interface Playlist {
   songCount: number; duration: number; createdAt: number; updatedAt: number; coverArt: string
 }
 export interface PlaylistDetail extends Playlist { tracks: Track[]; readonly: boolean }
-export interface PlayQueue { trackIds: string[]; currentId: string; positionMs: number; /** Client name of the last writer. */ changedBy: string; updatedAt: number; tracks: Track[] }
+export interface PlaylistImportEntry { line: number; path: string; status: 'matched' | 'missing' | 'ambiguous' | 'invalid'; trackId: string }
+export interface PlaylistImportPreview { entries: PlaylistImportEntry[]; libraries: { id: number; name: string }[] }
+export interface PlayQueue { trackIds: string[]; currentId: string; currentIndex: number; positionMs: number; /** Client name of the last writer. */ changedBy: string; updatedAt: number; tracks: Track[] }
 export interface RadioStation { id: string; name: string; streamUrl: string; homepageUrl: string; createdAt: number; updatedAt: number }
 export interface LyricsLine { start: number; text: string }   // start ms, -1 unsynced
 export interface Lyrics { synced: boolean; lines: LyricsLine[]; source: 'lrc' | 'embedded' | 'none'; raw: string; offset: number; lang: string }
@@ -1897,8 +1954,6 @@ to Actions, including the lightweight documentation-only plan.
   (missing) track"); purge the missing track first (Doctor → missing files).
 - An intentionally emptied folder that held ≥ 20 tracks keeps its tracks (not marked missing) until the folder itself
   is removed; the scanner logs a warning for it (§5.8).
-- `GET /api/queue` does not return the current index: a web player restoring a queue in which the current song
-  appears twice resumes at its first occurrence.
 - Cover images are not access-checked beyond login: any user who knows a private playlist's cover-art id can fetch
   its mosaic (ids are random 22-char strings and the mosaic only shows album covers). The service worker's
   `rainy-covers` cache survives logout on a shared device.

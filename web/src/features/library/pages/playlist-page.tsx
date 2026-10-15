@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowUpDown, Globe, ListMusic, Lock, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Download, Globe, ListMusic, Lock, Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router'
@@ -56,6 +56,7 @@ function PlaylistActionItems({
   const { t } = useTranslation('library')
   const queue = useCollectionQueueGroups({ kind: 'playlist', id: playlist.id })
   const groups: ActionGroups = playlist.tracks.length > 0 ? [...queue] : []
+  groups.push([{ key: 'export', label: t('playlistFiles.export'), icon: Download, href: api.playlists.exportUrl(playlist.id), download: true }])
   if (editable) {
     groups.push([
       { key: 'details', label: t('playlist.editDetails'), icon: Pencil, deferred: true, onSelect: () => onDialog('details') },

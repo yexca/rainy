@@ -23,6 +23,8 @@ const (
 func (a *API) routesPlaylists(r chi.Router) {
 	r.Get("/playlists", a.plList)
 	r.Post("/playlists", a.plCreate)
+	r.Post("/playlists/import/preview", a.plImportPreview)
+	r.Get("/playlists/{id}/export", a.plExport)
 	r.Get("/playlists/{id}", a.plGet)
 	r.Put("/playlists/{id}", a.plUpdate)
 	r.Delete("/playlists/{id}", a.plDelete)

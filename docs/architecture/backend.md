@@ -14,6 +14,8 @@ This page explains how the pieces fit together.
 ```text
 rainy [serve]                                   start the server
 rainy version                                   print version information
+rainy backup create <name>                       snapshot database and secret.key
+rainy backup verify <name>                       validate a snapshot before restore
 rainy user list                                 list users
 rainy user reset-password <username> <password> set a new password
 ```
@@ -22,11 +24,16 @@ rainy user reset-password <username> <password> set a new password
 from `RAINY_*` environment variables; see
 [Configuration](../operations/configuration.md).
 
+Backup commands operate inside the configured data directory without starting
+services or applying migrations. Snapshot contents, limits, and recovery steps
+are documented in [Database](../operations/database.md#backups).
+
 ## Packages
 
 | Package | Responsibility |
 | --- | --- |
 | `buildinfo` | Version, commit, and build date injected through `-ldflags` |
+| `backup` | Application-state snapshots and restore checks for the maintenance CLI |
 | `config` | Loads `RAINY_*` environment variables and derives data-directory paths |
 | `db` | Opens SQLite, applies embedded migrations; `db/dbtest` gives tests a migrated temporary database |
 | `model` | Shared structs whose JSON form is the native API shape |
@@ -59,7 +66,7 @@ cmd/rainy
 server
 api, subsonic
 app
-manage, scrobble
+manage, scrobble, backup
 scanner
 artwork, auth, listening, recommend, lxmusic
 store, metasearch, transcode, lyrics, ytdlp

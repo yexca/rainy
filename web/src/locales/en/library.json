@@ -168,6 +168,28 @@
     "emptyArtists": "No favorite artists yet",
     "emptyHint": "Tap the star to keep the music you love in one place."
   },
+  "playlistFiles": {
+    "import": "Import playlist",
+    "export": "Export M3U8",
+    "description": "Match a playlist to songs already in your library, then create a private playlist. No music files are changed.",
+    "file": "M3U / M3U8 file",
+    "fileError": "Choose a UTF-8 playlist no larger than 512 KiB.",
+    "folder": "Playlist folder (optional)",
+    "folderHint": "Folder relative to the music library, if the playlist uses paths from a subfolder. Leave empty for paths from the library root. Absolute paths and URLs are not imported.",
+    "library": "Match in library",
+    "allLibraries": "All libraries",
+    "preview": "Preview matches",
+    "summary": "{{matched}} matched · {{skipped}} unmatched",
+    "showMore": "Show more entries",
+    "skip": "Skip the {{count}} unmatched entries",
+    "create": "Create playlist",
+    "status": {
+      "matched": "Matched",
+      "missing": "Not found",
+      "ambiguous": "Multiple libraries",
+      "invalid": "Unsupported path"
+    }
+  },
   "playlists": {
     "mine": "My playlists",
     "shared": "Shared with everyone",

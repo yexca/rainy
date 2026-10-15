@@ -21,10 +21,11 @@ func (a *API) routesQueue(r chi.Router) {
 	r.Put("/queue", a.queuePut)
 }
 
-// queueResponse is `{trackIds, currentId, positionMs, updatedAt, tracks}` (plus changedBy).
+// CurrentIndex refers to TrackIDs, before unknown and missing tracks are filtered.
 type queueResponse struct {
 	model.PlayQueue
-	Tracks []model.Track `json:"tracks"`
+	CurrentIndex int           `json:"currentIndex"`
+	Tracks       []model.Track `json:"tracks"`
 }
 
 func (a *API) queueGet(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +47,7 @@ func (a *API) queueGet(w http.ResponseWriter, r *http.Request) {
 			playable = append(playable, t)
 		}
 	}
-	writeJSON(w, http.StatusOK, queueResponse{PlayQueue: *q, Tracks: playable})
+	writeJSON(w, http.StatusOK, queueResponse{PlayQueue: *q, CurrentIndex: q.CurrentPos(), Tracks: playable})
 }
 
 type queueBody struct {

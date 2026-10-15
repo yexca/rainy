@@ -130,6 +130,31 @@ Detection is conservative: text changes only when the decoded result is
 plausible Chinese or Japanese, so normal Western tags such as `Exémplé` are left
 alone.
 
+## Playlist Files
+
+Choose **Import playlist** on the Playlists page and select a UTF-8
+`.m3u` or `.m3u8` file. Preview the matches, name the playlist, and choose
+**Create playlist**. It is private and contains only the matched songs in
+their original order, including repeated songs. No music files are changed.
+
+Paths must be relative to a music library. If the playlist lives inside a
+subfolder and its entries are relative to that folder, enter the folder in
+**Playlist folder**. Paths from the library root use an empty folder.
+Windows path separators are accepted; absolute paths and URLs are not.
+Matching uses exact paths, including letter case.
+
+The preview identifies missing files, unsupported paths, and paths that match
+more than one library. Choose a library to resolve ambiguous paths and
+preview again. Unmatched entries are skipped only after you acknowledge
+them. Files are limited to 512 KiB and 10,000 entries.
+
+The playlist's **… → Export M3U8** action downloads a list of its playable
+songs, including their library-relative paths. It contains no audio or
+credentials. Keep it relative to the library root when using another player.
+Rainy adds an optional track-id comment so imports into the same instance can
+distinguish identical paths in different libraries; imports elsewhere fall
+back to paths. Other players ignore this comment.
+
 ## Related Docs
 
 - [Management](management.md)

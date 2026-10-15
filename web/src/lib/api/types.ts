@@ -57,7 +57,9 @@ export interface Playlist {
   songCount: number; duration: number; createdAt: number; updatedAt: number; coverArt: string
 }
 export interface PlaylistDetail extends Playlist { tracks: Track[]; readonly: boolean }
-export interface PlayQueue { trackIds: string[]; currentId: string; positionMs: number; /** Client name of the last writer. */ changedBy: string; updatedAt: number; tracks: Track[] }
+export interface PlaylistImportEntry { line: number; path: string; status: 'matched' | 'missing' | 'ambiguous' | 'invalid'; trackId: string }
+export interface PlaylistImportPreview { entries: PlaylistImportEntry[]; libraries: { id: number; name: string }[] }
+export interface PlayQueue { trackIds: string[]; currentId: string; /** Index in trackIds, before unavailable tracks are filtered; -1 when absent. */ currentIndex: number; positionMs: number; /** Client name of the last writer. */ changedBy: string; updatedAt: number; tracks: Track[] }
 export interface RadioStation { id: string; name: string; streamUrl: string; homepageUrl: string; createdAt: number; updatedAt: number }
 export interface LyricsLine { start: number; text: string }   // start ms, -1 unsynced
 export interface Lyrics { synced: boolean; lines: LyricsLine[]; source: 'lrc' | 'embedded' | 'none'; raw: string; offset: number; lang: string }

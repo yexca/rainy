@@ -4,6 +4,8 @@
 //
 //	rainy [serve]                                   start the server (default)
 //	rainy version                                   print version information
+//	rainy backup create <name>                       snapshot database and secret.key
+//	rainy backup verify <name>                       check a snapshot before restore
 //	rainy user list                                 list users
 //	rainy user reset-password <username> <password> set a new password (signs the user out everywhere)
 //
@@ -56,6 +58,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return nil
 	case "user":
 		return userCmd(args, stdout)
+	case "backup":
+		return backupCmd(args, stdout)
 	case "help", "--help", "-h":
 		usage(stdout)
 		return nil
@@ -69,6 +73,8 @@ func usage(w io.Writer) {
 	_, _ = fmt.Fprint(w, `Usage:
   rainy [serve]                                   start the server
   rainy version                                   print version information
+  rainy backup create <name>                       snapshot database and secret.key
+  rainy backup verify <name>                       check a snapshot before restore
   rainy user list                                 list users
   rainy user reset-password <username> <password> set a new password
 

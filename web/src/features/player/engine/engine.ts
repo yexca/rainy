@@ -25,6 +25,7 @@ import { authQueryKey, queryClient } from '@/lib/query-client'
 
 import { canControlVolume, supportsAirPlay } from '../lib/audio-support'
 import { loadQueue, savePosition, saveQueue } from '../lib/queue-storage'
+import { restoreQueue } from '../lib/queue-restore'
 import { replayGainFactor, sliderToGain } from '../lib/replay-gain'
 import { planStream, type StreamPlan } from '../lib/stream'
 import { usePlaybackPrefs, type PlaybackPrefsState } from '../prefs'
@@ -245,9 +246,8 @@ export class PlayerEngine {
         if (saved.userId && saved.userId !== currentUserId()) return this.restoreFromServer()
         const tracks = await this.fetchTracks(saved.ids)
         if (this.disposed || usePlayer.getState().queue.length > 0) return
-        const currentId = saved.ids[saved.index]
-        const index = Math.max(0, tracks.findIndex((t) => t.id === currentId))
-        this.applyRestore(tracks, index, tracks[index]?.id === currentId ? saved.position : 0)
+        const restored = restoreQueue(saved.ids, tracks, saved.ids[saved.index], saved.index, saved.position)
+        this.applyRestore(restored.queue, restored.index, restored.position)
         return
       }
       await this.restoreFromServer()
@@ -261,10 +261,8 @@ export class PlayerEngine {
   private async restoreFromServer(): Promise<void> {
     const remote = await api.queue.get({ signal: this.abort.signal })
     if (this.disposed || usePlayer.getState().queue.length > 0) return
-    const tracks = (remote.tracks ?? []).filter((t) => !t.missing)
-    if (tracks.length === 0) return
-    const found = tracks.findIndex((t) => t.id === remote.currentId)
-    this.applyRestore(tracks, Math.max(0, found), found >= 0 ? remote.positionMs / 1000 : 0)
+    const restored = restoreQueue(remote.trackIds, remote.tracks ?? [], remote.currentId, remote.currentIndex, remote.positionMs / 1000)
+    this.applyRestore(restored.queue, restored.index, restored.position)
   }
 
   private async fetchTracks(ids: string[]): Promise<Track[]> {

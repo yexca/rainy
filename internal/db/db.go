@@ -174,6 +174,19 @@ func (d *DB) Migrate(ctx context.Context) error {
 	return nil
 }
 
+// MigrationVersions lists the migrations supported by this binary without opening a database.
+func MigrationVersions() ([]string, error) {
+	names, err := fs.Glob(migrationFS, "migrations/*.sql")
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(names)
+	for i, name := range names {
+		names[i] = strings.TrimSuffix(filepath.Base(name), ".sql")
+	}
+	return names, nil
+}
+
 // Versions returns the applied migration versions in order.
 func (d *DB) Versions(ctx context.Context) ([]string, error) {
 	var v []string
