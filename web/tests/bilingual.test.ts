@@ -36,12 +36,28 @@ describe('splitBilingualLine', () => {
     })
   })
 
-  it('splits a Latin original followed directly by a bracketed translation', () => {
+  it('splits a Latin or Hangul original followed directly by the translation', () => {
+    assert.deepEqual(splitBilingualLine('사랑해我爱你'), { original: '사랑해', translation: '我爱你' })
+  })
+
+  it('splits a bracketed translation that ends the line and drops the brackets', () => {
+    assert.deepEqual(splitBilingualLine('待ってわかってよ「等一下 拜托你理解我」'), {
+      original: '待ってわかってよ',
+      translation: '等一下 拜托你理解我',
+    })
+    assert.deepEqual(splitBilingualLine('空中散歩のSOS「空中散步的SOS」'), {
+      original: '空中散歩のSOS',
+      translation: '空中散步的SOS',
+    })
     assert.deepEqual(splitBilingualLine('Deserts were oceans once「沙漠曾是海洋」'), {
       original: 'Deserts were oceans once',
-      translation: '「沙漠曾是海洋」',
+      translation: '沙漠曾是海洋',
     })
-    assert.deepEqual(splitBilingualLine('사랑해我爱你'), { original: '사랑해', translation: '我爱你' })
+    assert.deepEqual(splitBilingualLine('「さよなら」と言った『说了再见』'), {
+      original: '「さよなら」と言った',
+      translation: '说了再见',
+    })
+    assert.deepEqual(splitBilingualLine('Hold me tight (抱紧我)'), { original: 'Hold me tight', translation: '抱紧我' })
   })
 
   it('leaves monolingual and ambiguous lines alone', () => {
@@ -52,6 +68,11 @@ describe('splitBilingualLine', () => {
       '君の声が聞こえた我听见了你的声音',
       'Song - 某某 (ソング)',
       '【Singer】',
+      '「我爱你」',
+      '君に言った「愛してる」',
+      'Stay with me (oh yeah)',
+      '我们的歌（副歌）',
+      '待って「」',
       'Baby 我爱你 baby',
       '作词：某某',
       '夢の中へ 夢の中へ',
@@ -82,6 +103,25 @@ describe('analyzeBilingual', () => {
     assert.equal(a.candidates, 4)
     assert.equal(a.timed, 3)
     assert.equal(a.paired, 0)
+  })
+
+  it('detects bracketed translations without counting the title or credit lines against them', () => {
+    const text = [
+      '[00:00.00]Synthetic Song - 某某 (ソング)',
+      '[00:00.21]词：ナナシ',
+      '[00:00.43]曲：ナナシ',
+      '[00:00.64]编曲：ナナシ',
+      '[00:00.86]待ってわかってよ「等一下 拜托你理解我」',
+      '[00:02.23]何でもないから「虽然算不上什么」',
+      '[00:02.96]空中散歩のSOS「空中散步的SOS」',
+    ].join('\n')
+    const a = analyzeBilingual(text)
+    assert.equal(a.detected, true)
+    assert.equal(a.candidates, 4)
+    assert.deepEqual(
+      toPairedLrc(text, a).split('\n').slice(4, 6),
+      ['[00:00.86]待ってわかってよ', '[00:00.86]等一下 拜托你理解我'],
+    )
   })
 
   it('does not flag a Japanese song whose lines only sometimes end in a kanji word', () => {

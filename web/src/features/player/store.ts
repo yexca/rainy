@@ -111,6 +111,9 @@ function shuffleAround(queue: readonly PlayableTrack[], current: PlayableTrack |
   return [current, ...shuffled(queue.filter((t) => t !== current))]
 }
 
+/** The panel shown before Now Playing opened, restored when it closes. */
+let panelBeforeNowPlaying: PlayerPanel = 'none'
+
 function clampIndex(index: number, length: number): number {
   if (length === 0) return -1
   return Math.min(Math.max(index, 0), length - 1)
@@ -363,7 +366,18 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
         set({ infinite, awaitingMore: false })
       },
 
-      setNowPlayingOpen: (nowPlayingOpen) => set({ nowPlayingOpen }),
+      setNowPlayingOpen: (open) => {
+        const { nowPlayingOpen, panel, queue, index } = get()
+        if (open === nowPlayingOpen) return
+        if (open) {
+          // Now Playing opens on the lyrics (radio has none: it keeps the artwork).
+          panelBeforeNowPlaying = panel
+          set({ nowPlayingOpen: true, panel: queue[index]?.isRadio ? panel : 'lyrics' })
+          return
+        }
+        // The side panel / floating window gets its view back unless another one was picked.
+        set({ nowPlayingOpen: false, panel: panel === 'lyrics' ? panelBeforeNowPlaying : panel })
+      },
       setPanel: (panel) => set({ panel }),
 
       restoreQueue: ({ queue, index, shuffle, originalQueue }) => {

@@ -2,7 +2,7 @@
  * Bilingual (original + Chinese translation) lyrics helpers, shared by the lyrics editor and the
  * player (docs/architecture/contract.md §9.5).
  *
- * Two layouts are recognised:
+ * Three layouts are recognised:
  *
  * - **Paired lines** (the stored form): an original line and its translation carry the same LRC
  *   timestamp, original first. The server keeps both lines (and gives untimed lines after a timed
@@ -12,10 +12,14 @@
  *   space, then the Chinese translation — `君の名前を 你的名字`. `splitBilingualLine` finds the
  *   split, `analyzeBilingual` decides whether a whole text uses this layout, and
  *   `toPairedLrc` rewrites timed lines into paired lines.
+ * - **Bracketed** (also common in downloads): the translation ends the line inside brackets —
+ *   `待ってわかってよ「等一下 拜托你理解我」`. It is handled like the space-separated layout, and
+ *   the brackets are dropped from the translation.
  *
  * Detection is deliberately conservative: a line only splits when a non-Chinese part (kana,
  * Hangul, Latin or another alphabet) is followed by a purely Chinese part, and a text only
- * counts as bilingual when most of its non-Chinese lines split that way.
+ * counts as bilingual when most of its non-Chinese lines split that way. Credit lines
+ * (`词：…`, `编曲：…`) do not count.
  *
  * This module has no imports so `node --test` can run its tests directly (web/tests).
  */
@@ -39,6 +43,16 @@ const HAN_G = /\p{Script=Han}/gu
 const OTHER_LETTER_G = /(?![\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}])\p{L}/gu
 /** Opening brackets that often wrap a translation written without a space (`once「…」`). */
 const TRANSLATION_OPEN = /[\p{Script=Han}「『（【《〈]/u
+/** Closing → opening bracket of a translation that ends the line (`original「翻译」`). */
+const TRANSLATION_BRACKETS: Readonly<Record<string, string>> = {
+  '」': '「',
+  '』': '『',
+  '）': '（',
+  ')': '(',
+  '】': '【',
+}
+/** A credit line such as `词：某某` or `编曲: Someone` (a short Chinese label and a colon). */
+const CREDIT_LINE = /^\p{Script=Han}{1,4}\s*[：:]/u
 
 type WordKind = 'zh' | 'neutral' | 'foreign'
 
@@ -96,13 +110,33 @@ export interface BilingualSplit {
   translation: string
 }
 
+/** Whether a line can be an original: it has non-Chinese text and is not a credit line. */
+function isCandidate(text: string): boolean {
+  return hasForeignText(text) && !CREDIT_LINE.test(text)
+}
+
+/** Split `original「中文翻译」`: a purely Chinese bracketed part ends the line. */
+function splitBracketed(text: string): BilingualSplit | null {
+  const open = TRANSLATION_BRACKETS[text.at(-1) ?? '']
+  if (!open) return null
+  const at = text.lastIndexOf(open)
+  if (at <= 0) return null
+  const original = text.slice(0, at).trim()
+  const translation = text.slice(at + 1, -1).trim()
+  if (!translation || !canBeOriginal(original) || !isChineseRun(translation.split(/\s+/u))) return null
+  return { original, translation }
+}
+
 /**
- * Split `original 中文翻译` at the last whitespace after which only Chinese (and punctuation or
- * digits) follows. Returns `null` unless the part before can be an original (kana, Hangul, or
- * letters without Han) and the part after contains Han characters. A Latin or Hangul original may
- * also be followed directly by the translation (`once「…」`). Text must not carry LRC timestamps.
+ * Split `original「中文翻译」` (the translation without its brackets), otherwise `original 中文翻译`
+ * at the last whitespace after which only Chinese (and punctuation or digits) follows. Returns
+ * `null` unless the part before can be an original (kana, Hangul, or letters without Han) and the
+ * part after contains Han characters. A Latin or Hangul original may also be followed directly by
+ * the translation (`사랑해我爱你`). Text must not carry LRC timestamps.
  */
 export function splitBilingualLine(text: string): BilingualSplit | null {
+  const bracketed = splitBracketed(text.trim())
+  if (bracketed) return bracketed
   const tokens = text.trim().split(/\s+/u).filter(Boolean)
   let start = tokens.length
   while (start > 0 && tokenKind(tokens[start - 1]) !== 'foreign') start--
@@ -154,7 +188,7 @@ export interface BilingualAnalysis {
   detected: boolean
   /** Lines that split into original and translation. */
   lines: BilingualLine[]
-  /** Lines with non-Chinese letters (candidates for an original line). */
+  /** Lines with non-Chinese letters that are not credit lines (candidates for an original line). */
   candidates: number
   /** How many of `lines` carry timestamps (the ones `toPairedLrc` rewrites). */
   timed: number
@@ -176,7 +210,7 @@ export function analyzeBilingual(text: string): BilingualAnalysis {
         stampCounts.set(key, (stampCounts.get(key) ?? 0) + 1)
       }
     }
-    if (!hasForeignText(body)) return
+    if (!isCandidate(body)) return
     candidates++
     const split = splitBilingualLine(body)
     if (split) lines.push({ ...split, line: index, timed: stamps !== '' })
@@ -231,7 +265,7 @@ export function groupBilingual(lines: readonly { start: number; text: string }[]
     }
     out.push({ start: line.start, text, translations: [] })
   }
-  const candidates = out.filter((l) => l.translations.length === 0 && hasForeignText(l.text))
+  const candidates = out.filter((l) => l.translations.length === 0 && isCandidate(l.text))
   const splits = candidates.map((l) => splitBilingualLine(l.text))
   const splitCount = splits.filter(Boolean).length
   if (splitCount >= MIN_SPLIT_LINES && splitCount / candidates.length >= MIN_SPLIT_RATIO) {

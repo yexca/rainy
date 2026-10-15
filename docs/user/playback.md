@@ -85,13 +85,15 @@ Inactivity on, music stops while you work in other apps.
 
 ## Lyrics
 
-Open lyrics from Now Playing or the player bar. Synced lyrics (from `.lrc`
+Now Playing opens on the lyrics; the lyrics button switches back to the artwork.
+The player bar opens them in a side panel. Synced lyrics (from `.lrc`
 files or timed embedded lyrics) highlight the current line and scroll with the
 music; tap a line to jump to it. Plain lyrics scroll normally.
 
 Bilingual lyrics show the translation in smaller text under each original
-line. Rainy recognizes two layouts: lines that share a timestamp (original
-first), and lines that hold the original, a space, and the Chinese translation.
+line. Rainy recognizes three layouts: lines that share a timestamp (original
+first), lines that hold the original, a space, and the Chinese translation, and
+lines that end with the translation in brackets (`待ってよ「等一下」`).
 Japanese and Korean lines use matching Japanese or Korean fonts. The translation
 button next to the lyrics button hides or shows translations; the choice is
 remembered in this browser and is also under **Settings → Playback**. Managers can edit

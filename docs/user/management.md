@@ -112,7 +112,8 @@ removes the lyrics.
 ### Bilingual Lyrics
 
 Many downloaded lyrics put the original line and its Chinese translation on one
-line, separated by a space (`君の名前を呼んだ 我呼唤了你的名字`). When you paste
+line, separated by a space (`君の名前を呼んだ 我呼唤了你的名字`) or with the
+translation in brackets at the end (`君の名前を呼んだ「我呼唤了你的名字」`). When you paste
 or type lyrics like this, the Lyrics tab recognizes them and offers to split
 them. **Preview** shows how each line would split, and **Split lines** rewrites
 every timed line as two lines with the same timestamp, original first:
@@ -126,7 +127,9 @@ This is the standard bilingual LRC layout, so Rainy and most Subsonic apps show
 it as an original line with its translation. Nothing changes until you choose
 **Split lines** and save; untimed lines are left as they are. Detection only
 splits a line when a Japanese, Korean, or other non-Chinese part is followed by
-a purely Chinese part, and only when most lines of the text look that way.
+a purely Chinese part, and only when most lines of the text look that way;
+credit lines such as `词：…` do not count. Brackets around a translation are
+dropped.
 
 ## Rename and Organize
 
