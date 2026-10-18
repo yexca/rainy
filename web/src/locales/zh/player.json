@@ -94,6 +94,9 @@
     "removeTrack": "从队列中移除“{{title}}”",
     "reorder": "调整“{{title}}”的顺序"
   },
+  "longTracks": {
+    "skipped_other": "已跳过 {{count}} 首 {{minutes}} 分钟及以上的长音乐"
+  },
   "errors": {
     "playback": "无法播放“{{title}}”",
     "skipping": "将跳到下一首。",

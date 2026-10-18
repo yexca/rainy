@@ -1,7 +1,14 @@
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { canControlVolume, canPlayFormat } from '@/features/player/lib/audio-support'
+import {
+  clampLongTrackMinutes,
+  MAX_LONG_TRACK_MINUTES,
+  MIN_LONG_TRACK_MINUTES,
+} from '@/features/player/lib/long-tracks'
 import { usePlaybackPrefs } from '@/features/player/prefs'
 import { usePlayer } from '@/features/player/store'
 import type { ReplayGainMode, StreamQuality, TranscodeFormat } from '@/features/player/types'
@@ -22,6 +29,8 @@ export function PlaybackSection() {
   const replayGain = usePlaybackPrefs((s) => s.replayGain)
   const preloadNext = usePlaybackPrefs((s) => s.preloadNext)
   const lyricsTranslation = usePlaybackPrefs((s) => s.lyricsTranslation)
+  const skipLongTracks = usePlaybackPrefs((s) => s.skipLongTracks)
+  const longTrackMinutes = usePlaybackPrefs((s) => s.longTrackMinutes)
   const setPrefs = usePlaybackPrefs((s) => s.setPrefs)
   const infinite = usePlayer((s) => s.infinite)
   const toggleInfinite = usePlayer((s) => s.toggleInfinite)
@@ -91,6 +100,32 @@ export function PlaybackSection() {
         <Switch id="settings-infinite" checked={infinite} onCheckedChange={(checked) => checked !== infinite && toggleInfinite()} />
       </SettingsRow>
       <SettingsRow
+        label={t('playback.skipLong')}
+        description={t('playback.skipLongHint', { minutes: longTrackMinutes })}
+        htmlFor="settings-skip-long"
+      >
+        <Switch
+          id="settings-skip-long"
+          checked={skipLongTracks}
+          onCheckedChange={(checked) => setPrefs({ skipLongTracks: checked })}
+        />
+      </SettingsRow>
+      {skipLongTracks ? (
+        <SettingsRow
+          label={t('playback.longMinutes')}
+          description={t('playback.longMinutesHint', { min: MIN_LONG_TRACK_MINUTES, max: MAX_LONG_TRACK_MINUTES })}
+          htmlFor="settings-long-minutes"
+        >
+          {/* Keyed by the saved value so the field resets to it after an edit is committed. */}
+          <LongMinutesInput
+            key={longTrackMinutes}
+            value={longTrackMinutes}
+            unit={t('playback.minutesUnit')}
+            onCommit={(minutes) => setPrefs({ longTrackMinutes: minutes })}
+          />
+        </SettingsRow>
+      ) : null}
+      <SettingsRow
         label={t('playback.lyricsTranslation')}
         description={t('playback.lyricsTranslationHint')}
         htmlFor="settings-lyrics-translation"
@@ -102,5 +137,36 @@ export function PlaybackSection() {
         />
       </SettingsRow>
     </SettingsSection>
+  )
+}
+
+/** Whole-minute field for the long-song limit; saved (clamped) on Enter or when it loses focus. */
+function LongMinutesInput({ value, unit, onCommit }: { value: number; unit: string; onCommit: (minutes: number) => void }) {
+  const [draft, setDraft] = useState(String(value))
+
+  const commit = () => {
+    const minutes = clampLongTrackMinutes(draft === '' ? Number.NaN : Number(draft), value)
+    setDraft(String(minutes))
+    if (minutes !== value) onCommit(minutes)
+  }
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    commit()
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="flex items-center gap-2">
+      <Input
+        id="settings-long-minutes"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value.replace(/\D/g, '').slice(0, 3))}
+        onBlur={commit}
+        inputMode="numeric"
+        autoComplete="off"
+        enterKeyHint="done"
+        className="tnum h-11 w-20 text-right md:h-9"
+      />
+      <span className="text-sm text-muted-foreground">{unit}</span>
+    </form>
   )
 }

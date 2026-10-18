@@ -94,6 +94,10 @@
     "removeTrack": "Remove “{{title}}” from the queue",
     "reorder": "Reorder “{{title}}”"
   },
+  "longTracks": {
+    "skipped_one": "Left out {{count}} song of {{minutes}} min or longer",
+    "skipped_other": "Left out {{count}} songs of {{minutes}} min or longer"
+  },
   "errors": {
     "playback": "Can't play “{{title}}”",
     "skipping": "Skipping to the next song.",

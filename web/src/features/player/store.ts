@@ -11,12 +11,16 @@
  * even when the same track is queued twice (shuffle/unshuffle, removals and drag-and-drop rely
  * on it; see {@link entryKey}).
  */
+import { toast } from 'sonner'
 import { create, type StoreApi, type UseBoundStore } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 import type { Track } from '@/lib/api/types'
+import i18n from '@/lib/i18n'
 
 import { autoEntries, manualInsertAt } from './lib/infinite'
+import { isLongTrack, withoutLongTracks, type LongTrackFilter } from './lib/long-tracks'
+import { longTrackLimit, usePlaybackPrefs } from './prefs'
 import type { PlayableTrack, PlayerPanel, RepeatMode } from './types'
 
 export type { PlayableTrack, PlayerPanel, RepeatMode } from './types'
@@ -49,13 +53,16 @@ export interface PlayerState {
   /** Unshuffled order while `shuffle` is on (same entry objects as `queue`), else null. */
   originalQueue: PlayableTrack[] | null
 
-  /** Replace the queue and start playing. `opts.shuffle` overrides the current shuffle mode. */
+  /**
+   * Replace the queue and start playing. `opts.shuffle` overrides the current shuffle mode.
+   * Long songs are left out (playback pref), except the one at an explicit `startIndex`.
+   */
   playTracks(tracks: readonly PlayableTrack[], startIndex?: number, opts?: { shuffle?: boolean }): void
-  /** Insert right after the current track (starts playback when nothing is loaded). */
-  playNext(tracks: readonly PlayableTrack[]): void
-  /** Append to the queue, before songs infinite mode added (starts playback when nothing is loaded). */
-  addToQueue(tracks: readonly PlayableTrack[]): void
-  /** Append songs picked by infinite mode (marked `autoAdded`; continues playback when the queue had ended). */
+  /** Insert right after the current track (starts playback when nothing is loaded). Returns how many were queued. */
+  playNext(tracks: readonly PlayableTrack[]): number
+  /** Append to the queue, before songs infinite mode added (starts playback when nothing is loaded). Returns how many were queued. */
+  addToQueue(tracks: readonly PlayableTrack[]): number
+  /** Append songs picked by infinite mode (marked `autoAdded`, long songs left out; continues playback when the queue had ended). */
   appendAuto(tracks: readonly PlayableTrack[]): void
   /** Remove the upcoming songs infinite mode added. */
   clearAuto(): void
@@ -119,6 +126,18 @@ function clampIndex(index: number, length: number): number {
   return Math.min(Math.max(index, 0), length - 1)
 }
 
+/** Leaves long songs out per the playback prefs (`lib/long-tracks.ts`) and says how many. */
+function withoutLong(tracks: readonly PlayableTrack[], keep?: number): LongTrackFilter<PlayableTrack> {
+  const prefs = usePlaybackPrefs.getState()
+  const result = withoutLongTracks(tracks, longTrackLimit(prefs), keep)
+  if (result.skipped > 0) {
+    toast(i18n.t('player:longTracks.skipped', { count: result.skipped, minutes: prefs.longTrackMinutes }), {
+      id: 'long-tracks',
+    })
+  }
+  return result
+}
+
 export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerState>()(
   persist(
     (set, get) => ({
@@ -137,11 +156,13 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
 
       playTracks: (tracks, startIndex, opts) => {
         if (tracks.length === 0) return
-        const list = entries(tracks)
+        // The song at an explicit start index was picked by the user, so it stays even when long.
+        const kept = withoutLong(tracks, startIndex === undefined ? undefined : clampIndex(startIndex, tracks.length))
+        const list = entries(kept.tracks)
+        const picked = startIndex === undefined ? undefined : kept.index
         const doShuffle = opts?.shuffle ?? get().shuffle
         if (doShuffle) {
-          const start =
-            startIndex === undefined ? Math.floor(Math.random() * list.length) : clampIndex(startIndex, list.length)
+          const start = picked === undefined ? Math.floor(Math.random() * list.length) : picked
           set({
             queue: shuffleAround(list, list[start]),
             originalQueue: list,
@@ -155,7 +176,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
         set({
           queue: list,
           originalQueue: null,
-          index: clampIndex(startIndex ?? 0, list.length),
+          index: picked ?? 0,
           shuffle: false,
           isPlaying: true,
           awaitingMore: false,
@@ -163,13 +184,13 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       },
 
       playNext: (tracks) => {
-        if (tracks.length === 0) return
+        if (tracks.length === 0) return 0
+        const added = entries(withoutLong(tracks).tracks)
         const { queue, index, originalQueue } = get()
         if (index < 0 || queue.length === 0) {
-          set({ queue: entries(tracks), originalQueue: null, index: 0, isPlaying: true })
-          return
+          set({ queue: added, originalQueue: null, index: 0, isPlaying: true })
+          return added.length
         }
-        const added = entries(tracks)
         const nextQueue = [...queue.slice(0, index + 1), ...added, ...queue.slice(index + 1)]
         let nextOriginal = originalQueue
         if (originalQueue) {
@@ -177,15 +198,16 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
           nextOriginal = [...originalQueue.slice(0, at + 1), ...added, ...originalQueue.slice(at + 1)]
         }
         set({ queue: nextQueue, originalQueue: nextOriginal })
+        return added.length
       },
 
       addToQueue: (tracks) => {
-        if (tracks.length === 0) return
+        if (tracks.length === 0) return 0
         const { queue, index, originalQueue } = get()
-        const added = entries(tracks)
+        const added = entries(withoutLong(tracks).tracks)
         if (index < 0 || queue.length === 0) {
           set({ queue: added, originalQueue: null, index: 0, isPlaying: true })
-          return
+          return added.length
         }
         const at = manualInsertAt(queue, index)
         let nextOriginal = originalQueue
@@ -199,12 +221,17 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
               : [...originalQueue, ...added]
         }
         set({ queue: [...queue.slice(0, at), ...added, ...queue.slice(at)], originalQueue: nextOriginal })
+        return added.length
       },
 
       appendAuto: (tracks) => {
         const { queue, index, originalQueue, awaitingMore, infinite, isPlaying } = get()
         if (!infinite || queue.length === 0) return
-        const added = autoEntries(tracks, queue)
+        const limit = longTrackLimit(usePlaybackPrefs.getState())
+        const added = autoEntries(
+          tracks.filter((t) => !isLongTrack(t, limit)),
+          queue,
+        )
         if (added.length === 0) {
           if (awaitingMore) set({ awaitingMore: false })
           return

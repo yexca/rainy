@@ -50,7 +50,7 @@ export default function FavoritesPage() {
         actions={
           tab === 'songs' && tracks.length > 0 ? (
             <PlayShuffleButtons
-              onPlay={() => usePlayer.getState().playTracks(tracks, 0, { shuffle: false })}
+              onPlay={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
               onShuffle={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: true })}
             />
           ) : undefined

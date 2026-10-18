@@ -80,6 +80,11 @@
     "infiniteHint": "队列快播完时，根据正在播放的歌曲和你的听歌记录，从曲库中自动加入相似歌曲。也可以在播放队列里（∞）开关。循环开启时暂停。",
     "lyricsTranslation": "显示歌词翻译",
     "lyricsTranslationHint": "在双语歌词的每一行下方显示译文。",
+    "skipLong": "跳过长音乐",
+    "skipLongHint": "播放列表或添加到播放队列时，不加入 {{minutes}} 分钟及以上的歌曲，无限模式也不会推荐它们。你单独点播的歌曲照常播放，全是长音乐的列表也会照常加入。",
+    "longMinutes": "长音乐时长",
+    "longMinutesHint": "达到此时长的歌曲视为长音乐（{{min}}–{{max}} 分钟）。",
+    "minutesUnit": "分钟",
     "footer": "播放设置仅保存在此设备上。"
   },
   "install": {

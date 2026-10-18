@@ -1750,7 +1750,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
     nowPlayingOpen: boolean; panel: PlayerPanel
     originalQueue: PlayableTrack[] | null     // unshuffled order while shuffle is on
     playTracks(tracks: readonly PlayableTrack[], startIndex?: number, opts?: { shuffle?: boolean }): void
-    playNext(tracks: readonly PlayableTrack[]): void; addToQueue(tracks: readonly PlayableTrack[]): void // addToQueue: before the upcoming autoAdded entries
+    playNext(tracks: readonly PlayableTrack[]): number; addToQueue(tracks: readonly PlayableTrack[]): number // songs queued; addToQueue: before the upcoming autoAdded entries
     appendAuto(tracks: readonly PlayableTrack[]): void; clearAuto(): void; toggleInfinite(): void       // toggling off runs clearAuto
     play(): void; pause(): void; togglePlay(): void
     next(): void                              // ignores repeat-one; at the end wraps with repeat-all, else stops
@@ -1772,6 +1772,12 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   `/recommend/mix` (seeds: the last 5 distinct non-radio entries up to the current one plus the user's own upcoming ones;
   exclude: the queue, ≤ 500; limit 10) and calls `appendAuto` (duplicates of queued songs dropped); a request that failed
   or added nothing is not repeated until the queue changes, and results for a replaced queue are dropped.
+  Long songs (`lib/long-tracks.ts`): while the playback pref `skipLongTracks` is on (default on; `longTrackMinutes`,
+  whole minutes 1–600, default 10; both in `usePlaybackPrefs`, persisted as `rainy.playback`), `playTracks`, `playNext`
+  and `addToQueue` leave out non-radio songs whose `duration` is at least the limit and toast how many
+  (`player:longTracks.skipped`). The song at an explicit `startIndex` always stays (callers playing a whole list pass
+  `undefined`), and a list whose songs are all long is queued unchanged. `appendAuto` drops long suggestions silently.
+  `restoreQueue` never filters.
   Playback position lives in a separate high-frequency store `usePlayback` (`currentTime, duration, buffered, buffering, seek(t)`; the engine publishes with `update` and registers its seek handler) so lists don't re-render.
 - Shell slots imported from the player feature: `<PlayerDock/>` (tablet/desktop: bottom bar, floating window or floating mini bar; positions itself), `<MiniPlayer/>` (mobile, above tab bar), `<NowPlayingSheet/>`, `<AudioEngine/>` (headless), `<MascotCompanion/>` (tablet/desktop while `mascotCompanion` is on; positions itself above the player chrome).
 - `@/features/player/dock` — `usePlayerDock` zustand store (persisted as `rainy.player-dock`): `mode: 'window' | 'compact' | 'bar'`, `barAutoHide: boolean` (the bar is unpinned), `setMode(mode)`, `setBarAutoHide(b)`. `<PlayerDock/>` mirrors it to `<html data-player-dock="bar|collapsed|window|compact|idle">`, which `index.css` maps to `--player-reserve` (full-width bottom space: sidebar, side panel), `--player-clearance` (`.page-pad`, sticky footers) and `--player-toast-bottom/right`.

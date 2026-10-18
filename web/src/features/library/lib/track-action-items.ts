@@ -72,8 +72,7 @@ export function useTrackActionGroups(tracks: readonly Track[], context?: TrackAc
         label: t('common:actions.playNext'),
         icon: ListStart,
         onSelect: () => {
-          usePlayer.getState().playNext(list)
-          toast(t('common:toast.playingNext', { count: list.length }))
+          toast(t('common:toast.playingNext', { count: usePlayer.getState().playNext(list) }))
         },
       },
       {
@@ -81,8 +80,7 @@ export function useTrackActionGroups(tracks: readonly Track[], context?: TrackAc
         label: t('common:actions.addToQueue'),
         icon: ListEnd,
         onSelect: () => {
-          usePlayer.getState().addToQueue(list)
-          toast(t('common:toast.addedToQueue', { count: list.length }))
+          toast(t('common:toast.addedToQueue', { count: usePlayer.getState().addToQueue(list) }))
         },
       },
     ],

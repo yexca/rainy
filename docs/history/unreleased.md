@@ -12,6 +12,9 @@ Changes through v0.1.2 are summarized in [v0.1.2](v0.1.2.md).
 - Bilingual lyrics also recognize translations in brackets at the end of a
   line (`待ってよ「等一下」`), and credit lines such as `词：…` no longer keep a
   text from counting as bilingual.
+- Long songs (10 minutes or longer by default) are left out when a list is
+  played or queued and from infinite mode's suggestions; the song you pick
+  still plays. Turn it off or change the length in Settings → Playback.
 
 </details>
 

@@ -80,6 +80,11 @@
     "infiniteHint": "When the queue is about to end, keeps adding songs like the ones you are playing, picked from your library and listening history. Also in the queue (∞). Waits while repeat is on.",
     "lyricsTranslation": "Show lyric translations",
     "lyricsTranslationHint": "Shows the translation under each line of bilingual lyrics.",
+    "skipLong": "Skip long songs",
+    "skipLongHint": "Leaves songs of {{minutes}} min or longer out when you play a list or add songs to the queue, and out of infinite mode. A song you pick yourself still plays, and so does a list of only long songs.",
+    "longMinutes": "Long song length",
+    "longMinutesHint": "Songs at least this long count as long ({{min}}–{{max}} minutes).",
+    "minutesUnit": "min",
     "footer": "Playback settings are saved on this device only."
   },
   "install": {

@@ -81,7 +81,7 @@ export default function SongsPage() {
       const tracks = hasNextPage
         ? (await api.tracks.list({ sort, order, starred: starred || undefined, limit: MAX_QUEUE })).items
         : items
-      usePlayer.getState().playTracks(tracks, 0, { shuffle: false })
+      usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })
     } catch (error) {
       toast.error(errorMessage(error, t))
     }

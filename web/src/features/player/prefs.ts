@@ -1,11 +1,13 @@
 /**
  * Client-side playback preferences (persisted in localStorage, per browser): streaming quality,
- * transcode format, ReplayGain, next-track preloading and lyric translations. Edited on the
- * settings page (translations also from the lyrics view), read by the audio engine and lyrics.
+ * transcode format, ReplayGain, next-track preloading, lyric translations and the long-song filter.
+ * Edited on the settings page (translations also from the lyrics view), read by the audio engine,
+ * lyrics and the player store.
  */
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+import { clampLongTrackMinutes, DEFAULT_LONG_TRACK_MINUTES } from './lib/long-tracks'
 import {
   REPLAY_GAIN_MODES,
   STREAM_QUALITIES,
@@ -24,6 +26,10 @@ export interface PlaybackPrefs {
   preloadNext: boolean
   /** Show the translation under bilingual lyric lines. */
   lyricsTranslation: boolean
+  /** Leave songs of `longTrackMinutes` or more out when songs are queued (`lib/long-tracks.ts`). */
+  skipLongTracks: boolean
+  /** Whole minutes, 1–600. */
+  longTrackMinutes: number
 }
 
 export interface PlaybackPrefsState extends PlaybackPrefs {
@@ -37,6 +43,8 @@ export const DEFAULT_PLAYBACK_PREFS: PlaybackPrefs = {
   replayGain: 'off',
   preloadNext: true,
   lyricsTranslation: true,
+  skipLongTracks: true,
+  longTrackMinutes: DEFAULT_LONG_TRACK_MINUTES,
 }
 
 function sanitize(input: Partial<PlaybackPrefs> | undefined): PlaybackPrefs {
@@ -54,7 +62,14 @@ function sanitize(input: Partial<PlaybackPrefs> | undefined): PlaybackPrefs {
     preloadNext: typeof p.preloadNext === 'boolean' ? p.preloadNext : DEFAULT_PLAYBACK_PREFS.preloadNext,
     lyricsTranslation:
       typeof p.lyricsTranslation === 'boolean' ? p.lyricsTranslation : DEFAULT_PLAYBACK_PREFS.lyricsTranslation,
+    skipLongTracks: typeof p.skipLongTracks === 'boolean' ? p.skipLongTracks : DEFAULT_PLAYBACK_PREFS.skipLongTracks,
+    longTrackMinutes: clampLongTrackMinutes(p.longTrackMinutes),
   }
+}
+
+/** The long-song limit in seconds, or 0 while the filter is off. */
+export function longTrackLimit(prefs: Pick<PlaybackPrefs, 'skipLongTracks' | 'longTrackMinutes'>): number {
+  return prefs.skipLongTracks ? prefs.longTrackMinutes * 60 : 0
 }
 
 export const usePlaybackPrefs = create<PlaybackPrefsState>()(
@@ -74,6 +89,8 @@ export const usePlaybackPrefs = create<PlaybackPrefsState>()(
         replayGain: s.replayGain,
         preloadNext: s.preloadNext,
         lyricsTranslation: s.lyricsTranslation,
+        skipLongTracks: s.skipLongTracks,
+        longTrackMinutes: s.longTrackMinutes,
       }),
       merge: (persisted, current) => ({ ...current, ...sanitize(persisted as Partial<PlaybackPrefs>) }),
     },

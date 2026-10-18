@@ -51,7 +51,7 @@ export function SongShelf({ title, tracks, actions }: SongShelfProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => usePlayer.getState().playTracks(tracks, 0, { shuffle: false })}
+            onClick={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
             aria-label={t('home.playSection', { name: title })}
             title={t('home.playSection', { name: title })}
             className="size-11 rounded-full text-primary md:size-9"

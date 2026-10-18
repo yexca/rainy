@@ -78,18 +78,16 @@ export function usePlayCollection() {
         const player = usePlayer.getState()
         switch (mode) {
           case 'play':
-            player.playTracks(tracks, 0, { shuffle: false })
+            player.playTracks(tracks, undefined, { shuffle: false })
             break
           case 'shuffle':
             player.playTracks(tracks, undefined, { shuffle: true })
             break
           case 'next':
-            player.playNext(tracks)
-            toast(t('common:toast.playingNext', { count: tracks.length }))
+            toast(t('common:toast.playingNext', { count: player.playNext(tracks) }))
             break
           case 'queue':
-            player.addToQueue(tracks)
-            toast(t('common:toast.addedToQueue', { count: tracks.length }))
+            toast(t('common:toast.addedToQueue', { count: player.addToQueue(tracks) }))
             break
         }
       } catch (error) {

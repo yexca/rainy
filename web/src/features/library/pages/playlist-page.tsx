@@ -264,7 +264,7 @@ function PlaylistContent({
           <PlayShuffleButtons
             layout={layout}
             disabled={tracks.length === 0 || editing}
-            onPlay={() => usePlayer.getState().playTracks(tracks, 0, { shuffle: false })}
+            onPlay={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
             onShuffle={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: true })}
           />
         )}

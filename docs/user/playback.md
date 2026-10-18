@@ -44,6 +44,10 @@ the Media Session API.
   next** and **Add to queue** from any "…" menu.
 - In **Playing Next**, drag songs to reorder them, remove them, shuffle, change
   the repeat mode, turn infinite mode on or off, or clear the queue.
+- Long songs (10 minutes or longer by default) are left out when you play a
+  list or add several songs, and a message says how many. The song you tap
+  still plays, and a list of only long songs is queued as it is. Turn this
+  off or change the length under **Settings → Playback**.
 - The queue is saved on the device immediately and on the server shortly
   after, so you can reload the page, or continue in a Subsonic app that
   supports play-queue sync, where you left off.
@@ -125,6 +129,7 @@ only.
 | Conversion format | MP3, AAC, or Opus (Opus is replaced by AAC or MP3 where the browser cannot play it) |
 | Volume normalization | Off, Song, or Album, using ReplayGain tags. Not available on iPhone and iPad, where the system controls volume |
 | Preload next song | Buffers the next song for near-gapless playback. Not available on iPhone and iPad |
+| Skip long songs | On by default. Leaves songs of the chosen length (1–600 minutes, 10 by default) or longer out of the queue and out of infinite mode's suggestions |
 
 Formats the browser cannot play, such as APE or DSD, are converted
 automatically even at **Original** quality (at 320 kbps). Conversion needs

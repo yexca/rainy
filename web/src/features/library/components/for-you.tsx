@@ -125,7 +125,7 @@ function MixCard({ tracks, to, icon: Icon, eyebrow, title, openLabel, playLabel,
       action={
         <button
           type="button"
-          onClick={() => usePlayer.getState().playTracks(tracks, 0, { shuffle: false })}
+          onClick={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
           aria-label={playLabel}
           className="relative z-10 grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform outline-none hover:brightness-110 focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-90"
         >
