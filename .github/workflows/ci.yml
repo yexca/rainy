@@ -38,9 +38,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: "24.19.0"
+        uses: ./.github/actions/setup-node
       - name: Run documentation and CI policy checks
         run: make ci-policy
       - name: Select required validation
@@ -62,11 +60,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: "24.19.0"
-      - name: Enable pnpm
-        run: corepack enable
+        uses: ./.github/actions/setup-node
       - name: Run frontend style checks
         run: make ci-style
 
@@ -86,10 +80,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version: "1.26.10"
-          cache: false
+        id: go
+        uses: ./.github/actions/setup-go
       - name: Install ffmpeg for media tests
         if: matrix.check != 'static'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
@@ -98,16 +90,16 @@ jobs:
         uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/pkg/mod
-          key: go-modules-${{ runner.os }}-${{ runner.arch }}-1.26.10-${{ hashFiles('go.mod', 'go.sum', 'Makefile') }}
-          restore-keys: go-modules-${{ runner.os }}-${{ runner.arch }}-1.26.10-
+          key: go-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum', 'Makefile') }}
+          restore-keys: go-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-
       - name: Cache Go compilation and lint results
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.cache/go-build
             ~/.cache/golangci-lint
-          key: go-build-${{ runner.os }}-${{ runner.arch }}-1.26.10-${{ matrix.check }}-${{ hashFiles('**/*.go', 'internal/db/migrations/*.sql', 'go.mod', 'go.sum', 'scripts/golangci-lint.yml', 'Makefile') }}
-          restore-keys: go-build-${{ runner.os }}-${{ runner.arch }}-1.26.10-${{ matrix.check }}-
+          key: go-build-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ matrix.check }}-${{ hashFiles('**/*.go', 'internal/db/migrations/*.sql', 'go.mod', 'go.sum', 'scripts/golangci-lint.yml', 'Makefile') }}
+          restore-keys: go-build-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ matrix.check }}-
       - name: Run backend checks
         run: make ci-backend-${{ matrix.check }}
       - name: Save Go modules from one matrix job
@@ -136,11 +128,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: "24.19.0"
-      - name: Enable pnpm
-        run: corepack enable
+        uses: ./.github/actions/setup-node
       - name: Cache pnpm store
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
@@ -162,9 +150,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: "24.19.0"
+        uses: ./.github/actions/setup-node
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
       - name: Cache production image layers
@@ -198,9 +184,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: "24.19.0"
+        uses: ./.github/actions/setup-node
       - name: Verify all required validation results
         env:
           CI_PLAN: ${{ needs.policy.outputs.plan }}

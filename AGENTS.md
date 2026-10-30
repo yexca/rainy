@@ -1,270 +1,110 @@
 # Agent Guide
 
-Read these first:
+## Start here
 
-- `README.md`
-- `docs/overview.md`
-- `docs/architecture/index.md`
-- `docs/architecture/core-boundaries.md`
-- `docs/architecture/backend.md`
-- `docs/architecture/frontend.md`
-- `docs/development/design.md`
-- `SECURITY.md`
-- `docs/development/security.md`
+Read `README.md`, `docs/overview.md`, `docs/architecture/index.md`,
+`docs/architecture/core-boundaries.md`, `SECURITY.md`, and
+`docs/development/ci.md`. Read the area table below before changing code.
 
-Then read the pages for the change:
-
-| Change | Read |
+| Area | Read first |
 | --- | --- |
-| Schema, Go API, native/Subsonic endpoints, shared types | Relevant sections of `docs/architecture/contract.md` |
-| File mutations, scanning, media | `docs/architecture/library-management.md`, `docs/operations/reliability.md` |
-| Go services and handlers | `docs/development/backend-guidelines.md` |
-| React features and UI | `docs/development/frontend-guidelines.md` |
-| Validation or Actions | `docs/development/testing.md`, `docs/development/ci.md` |
-| Migrations or releases | `docs/development/migrations.md`, `docs/development/commit-and-release.md` |
+| Schema, APIs, shared types | `docs/architecture/contract.md` |
+| Files, scanning, and media | `docs/architecture/library-management.md`, `docs/operations/reliability.md` |
+| Go services and handlers | `docs/architecture/backend.md`, `docs/development/backend-guidelines.md` |
+| React and UI | `docs/architecture/frontend.md`, `docs/development/frontend-guidelines.md`, `docs/development/design.md` |
+| Security and outbound requests | `SECURITY.md`, `docs/development/security.md`, `PRIVACY.md` |
+| Tests | `docs/development/testing.md` |
+| Migrations and releases | `docs/development/migrations.md`, `docs/development/commit-and-release.md` |
 
-`docs/architecture/contract.md` is the precise reference for the schema,
-package APIs, endpoints, shared TypeScript types, and the design system. Keep
-it and the code in sync: when they disagree, fix the code, or update the
-contract in the same change and say so.
+## CodeGraph
 
-If `.codegraph/` exists, use `codegraph_explore` or `codegraph explore` before
-searching or reading code to locate symbols and understand their callers. Use
-direct reads for docs/configuration or details the index does not cover. Do
-not create an index when the repository has none.
+`.codegraph/` is a local CodeGraph index and is ignored by Git. When it exists,
+use `codegraph explore "<question>"` (or the CodeGraph MCP tool) before
+searching for symbols or reading implementation files. Use direct reads for
+docs and configuration. Run `codegraph sync .` after substantial local edits;
+run `codegraph init .` when the index is absent. Never commit the index or its
+runtime files.
 
-## Product Boundaries
+## Architecture boundaries
 
-Critical rule:
+Rainy treats files on disk as the source of truth and the database as their
+index. File changes are explicit, reversible or logged, hold the scanner lock,
+rescan affected paths, and publish a `library` event. Paths are library-
+relative with `/`; construct absolute paths only through `util.SafeJoin` and
+`util.EnsureWithinRoot`. Read-only libraries return `readonly`.
 
-```text
-The music library belongs to the user. Rainy only changes a file when a user
-explicitly asks for that change, and every change stays reversible or logged.
-```
+Track IDs are random and stable across moves, renames, and tag edits. Album,
+artist, and genre IDs are deterministic hashes. Scans must not mark a library
+missing when its root or a large folder is unavailable.
 
-Core boundary:
-
-```text
-The files on disk are the source of truth; the database is an index of them.
-Management features change the files first and then rescan the affected paths.
-```
-
-- A track's identity is its random, stable id. Renames, moves, and tag edits
-  keep the id so stars, play counts, playlists, and bookmarks survive. Album,
-  artist, and genre ids are deterministic hashes; do not introduce a second
-  identity for the same file.
-- Paths stored in the database and exposed by the API are library-relative
-  with `/`. Build absolute paths only through `util.SafeJoin` (plus the
-  symlink-aware `util.EnsureWithinRoot` for file mutations). Never read or write
-  outside a library root or the data directory.
-- Deleting from the app moves files to the trash under the data directory and
-  marks tracks missing; only an explicit purge removes files. Every file
-  mutation holds the scanner's library lock across the change and the
-  following `RescanFiles`, writes an `edit_log` row, and publishes a `library`
-  event. Read-only mounts must fail with the `readonly` error, never silently.
-- A scan must never mass-mark a library missing because a NAS share is offline:
-  a missing, unreadable, or suddenly empty library root or large folder aborts
-  or is skipped instead.
-- The Subsonic/OpenSubsonic API is a compatibility surface for third-party
-  clients. Do not change response shapes, field names, or error codes without
-  checking the OpenSubsonic specification and updating the golden files in
-  `internal/subsonic/testdata`.
-- The native API (`/api`) and `web/src/lib/api/types.ts` are one contract.
-  Change both together.
-
-## Filesystem and Media Boundary
-
-- Tag reading and writing go through `internal/tags` (TagLib compiled to WASM,
-  pure Go). Files TagLib cannot parse fall back to ffprobe/ffmpeg for reading
-  only; do not add write paths that bypass TagLib.
-- ffmpeg, ffprobe, and yt-dlp are invoked with fixed arguments and a context
-  that bounds the run. Local inputs are absolute `file:` URLs; a validated
-  link goes to yt-dlp after `--`. Never pass user input as a command-line
-  option.
-- Uploads stream to the data directory's tmp folder with per-file and
-  per-request limits before being moved into a library; never overwrite an
-  existing file.
-- Mojibake repair is conservative by design: it must never change valid
-  Western text (accented Latin, punctuation, symbols). Add adversarial tests
-  for every heuristic change.
-
-## Outbound Request Boundary
-
-Rainy sends no outbound requests by default. Every outbound feature (online
-metadata lookup, yt-dlp link downloads and updates, lx-music online music,
-Last.fm and ListenBrainz scrobbling) sits behind an administrator setting that
-is off by default, and runs only when a user starts it or, for scrobbling,
-when a user links an account and then plays or stars songs. The full list of
-destinations is in
-[Runtime Topology](docs/architecture/index.md#runtime-topology) and
-`PRIVACY.md`.
-
-For every new or materially changed outbound HTTP path:
-
-- Accept only HTTP(S) URLs and reject embedded credentials.
-- Keep the destination fixed: a built-in public endpoint, or the host the
-  feature validated. Do not follow arbitrary redirects; refuse them or check
-  every hop against the same rule.
-- Requests whose target comes from untrusted input, such as lx-music source
-  scripts and the links they return, must use the guarded transport in
-  `internal/lxmusic`, which checks the URL and every dialled address so DNS
-  rebinding cannot reach loopback, private, or reserved addresses.
-- Bound timeouts, response sizes, and streamed bytes. Large media streams to
-  the data directory's tmp folder, never into memory.
-- Keep credentials and full upstream URLs out of errors, logs, and API
-  responses; name the host instead.
-- Add tests for refused redirects, blocked addresses, response limits, and
-  cancellation, and document the data flow in `PRIVACY.md`.
-
-Each package builds its own client; there is no shared transport, so a new
-path is not covered by another package's checks. A new built-in endpoint
-belongs in `scripts/privacy-allowlist.json`.
-
-## Code Organization
-
-Dependencies point downward:
+The dependency direction is:
 
 ```text
-cmd/rainy -> server -> api / subsonic -> app -> services -> auth / store / tags / events / nowplaying -> db / model / util / config / buildinfo
+cmd/rainy -> server -> api/subsonic -> app -> services -> store/auth/tags/events -> db/model/util/config
 ```
 
-- `services` are `manage`, `scanner`, `artwork`, `transcode`, `lyrics`,
-  `metasearch`, `ytdlp`, `lxmusic`, `scrobble`, `listening`, and `recommend`.
-  A service may use a lower-level service (for example `manage` uses
-  `scanner`), but never imports `app`, `api`, `subsonic`, or `server`.
-- `app` only constructs and wires the services; HTTP packages reach them
-  through `*app.App`.
-- `db`, `model`, `util`, `config`, `buildinfo`, `tags`, `events`, and
-  `nowplaying` import nothing internal.
-- Keep HTTP handlers thin: parse, authorize, call a service or the store,
-  encode. Do not grow unrelated orchestration inside handler files.
-- Frontend features live in `web/src/features/<area>`. Shared code in
-  `web/src/lib`, `components`, `hooks`, `layouts`, and `stores` must not
-  import a feature; features talk through the small shared contracts in
-  [Cross-feature contracts](docs/architecture/contract.md#92-cross-feature-contracts)
-  (`useUI`, `usePlayer`, `TrackActionsMenu`, …).
+HTTP handlers parse, authorize, call a service or store, and encode. Services
+do not import `app`, `api`, `subsonic`, or `server`. The native `/api` contract
+and `web/src/lib/api/types.ts` change together; Subsonic response changes also
+update the golden files in `internal/subsonic/testdata`.
 
-## UI and Test Contracts
+## Filesystem, media, and network rules
 
-- Follow `docs/development/design.md`. Mobile first: check 375px width, iOS
-  safe areas, and 44px touch targets. The player and its queue persist across
-  navigation.
-- Every user-visible string goes through i18next with both `zh` and `en`
-  translations.
-- Tests protect a user-visible behavior, public contract, state transition, or
-  prior regression. Choose the lowest sufficient layer and do not repeat the
-  same assertion at every layer.
-- Test media is synthetic: generate it with `make testdata`
-  (`scripts/gen-testdata.sh`) or build files in `t.TempDir()`. Never commit
-  real music, real library paths, databases, or logs. Tests that need ffmpeg
-  must skip when it is not installed.
-- Prefer accessible roles, names, and labels in browser tests. Do not make
-  utility classes or incidental DOM ancestry a public test contract.
+- Tag reads and writes go through `internal/tags`; ffprobe/ffmpeg are read-only
+  fallbacks. Do not add a write path that bypasses TagLib.
+- Invoke ffmpeg, ffprobe, and yt-dlp with fixed arguments, bounded contexts,
+  absolute local `file:` inputs, and `--` before validated links.
+- Stream uploads through the data tmp directory with per-file and per-request
+  limits. Never overwrite an existing library file.
+- Outbound features are disabled by default and start only from an explicit
+  user action or linked scrobbling account. Accept HTTP(S) without credentials,
+  validate every redirect and dialled address, bound time and response size,
+  and keep credentials, full URLs, and local paths out of public errors.
+- Use `internal/lxmusic`'s guarded transport for untrusted source URLs. Add
+  redirect, private-address, response-limit, and cancellation tests for every
+  new outbound path, and update `PRIVACY.md` and the privacy allowlist when
+  needed.
 
-## Documentation
+## UI and tests
 
-Docs describe the current system and its current decisions, not how it got
-there. Where each topic belongs is in
-[Documentation Rules](docs/README.md#documentation-rules). Public docs are
-written in English; the translated READMEs under `docs/readme/` are the only
-translations.
+Follow `docs/development/design.md`: mobile-first at 375px, safe-area padding,
+44px touch targets, persistent player and queue, and visible keyboard focus.
+Every user-visible string uses i18next with both `zh` and `en` translations.
 
-- Write in present tense. Do not narrate change: no "previously", "no longer",
-  "now", "as before", "was removed", "migration NNNN adds", version-dated
-  asides, PR/issue/commit references, or before/after comparisons.
-- When behavior changes, rewrite the affected section as if it had always been
-  this way instead of appending a paragraph. Search for and remove every
-  statement the change contradicts, including the contract, user pages,
-  operations pages, `PRIVACY.md`, and the translated READMEs.
-- Compatibility that still runs is current behavior. State it as a rule
-  ("`frontend-docs` runs `docs-check`"), not as a story.
-- History belongs only in `docs/history/` (release notes, with pending changes
-  in `unreleased.md`) and in the context of ADRs in `docs/decisions/`. Release
-  notes and `unreleased.md` fold each area's changes under its title; follow
-  [Release Notes](docs/development/commit-and-release.md#release-notes).
-- Reference docs contain no TODOs, plans, roadmaps, ownership assignments, or
-  dated measurement logs.
-- State each rule or fact in one place and link to it instead of restating it.
-  The contract owns precise tables; other pages summarize and link to it.
-- Code comments cite contract sections by number (`contract.md §9.4`). Keep
-  section numbers stable when reorganizing it.
-- When the English README changes, update the translated READMEs in the same
-  change. If a translation cannot be updated, remove the stale passage rather
-  than leave it contradicting the English page.
+Tests protect a user-visible behavior, public contract, state transition,
+security boundary, or regression at the lowest sufficient layer. Use synthetic
+media from `make testdata` or `t.TempDir()`, reserved domains and paths, and
+accessible roles and labels in browser checks. Skip ffmpeg-dependent tests when
+the tool is unavailable.
 
-## Validation Commands
+## Validation and Actions
 
-The `Makefile` is the canonical entry point for repository validation. Prefer
-its targets over reconstructing CI commands by hand, so local checks and GitHub
-Actions exercise the same commands. Use a direct command only when no target
-exists for the required check. `make help` lists the common entry points.
+The Makefile is the CI contract. Use the smallest sufficient target:
 
-- Use the smallest sufficient target: `make docs-check` (or its compatibility
-  alias `frontend-docs`) for public documentation, `make ci-policy` for docs
-  and validation-policy tests, `make ci-style` for web lint, `make ci-backend`
-  for Go behavior, and `make ci-frontend` for web audit, typecheck, tests, and
-  build. Go formatting is part of `ci-backend-static`.
-- Build and run the application with Docker by default. Use
-  `make DOCKER_IMAGE=rainy:dev docker-build smoke` to build the image and
-  exercise it, and `make docker-up` (`RAINY_DEV_MUSIC_PATH` selects the
-  library; `make docker-logs`, `make docker-down`) when a running instance is
-  needed for manual or browser checks. Do not build or start local binaries
-  (`make backend-build`, `make backend-run`, `go run ./cmd/rainy`,
-  `pnpm build`) for this unless the user asks; host-side test and lint targets
-  are fine. Remove any local build output you create (`bin/`, generated
-  `web/dist` files, `coverage.out`).
-- During development, preview the app with the development environment:
-  `make docker-up` builds the current checkout into its own Compose project
-  (named after the checkout directory) and starts it with
-  `RAINY_MODE=development`, which signs the web app in as `RAINY_DEV_USER`
-  (default `dev`, created as an administrator), so no login is needed. Other
-  worktrees run their own previews: give yours a free `RAINY_DEV_PORT` (and,
-  when needed, `RAINY_DEV_DATA_PATH` / `RAINY_DEV_MUSIC_PATH`), never stop,
-  remove, or rebuild another checkout's container, and run `make docker-down`
-  from the same checkout when you are done. Do not start ad-hoc containers or
-  images for previews.
-- Use `make DOCKER_IMAGE=rainy:ci docker-build smoke` (or `make ci-production`)
-  for Dockerfile, entrypoint, or runtime changes.
-- `make ci-local` (alias `make ci`) runs the complete GitHub Actions
-  validation sequence locally.
-- Keep validation proportional. A narrow change does not require all phases;
-  Actions selects affected jobs and keeps the required Core check stable.
-- Before every commit, run `make sensitive-check` and review any findings. It
-  scans tracked changes against `HEAD` plus untracked files, so run it before
-  committing rather than after.
-- Do not bypass the privacy scan with source comments. An approved public
-  endpoint belongs in `scripts/privacy-allowlist.json` with its owner files and
-  a reason, as described in
-  [Before Committing](docs/development/testing.md#before-committing). Review
-  every change to that list.
+- docs: `make docs-check`
+- style: `make ci-style`
+- backend: `make ci-backend`
+- frontend: `make ci-frontend`
+- image/runtime: `make ci-production`
+- complete local validation: `make ci-local` or `make ci`
 
-## Release and Handoff
+GitHub Actions uses the same targets. Toolchain versions come from `.nvmrc` and
+`go.mod` through `.github/actions/setup-node` and `.github/actions/setup-go`.
+Run `make sensitive-check` before handoff or commit and review every finding.
 
-Use the repository's normal signed-commit path. If the 1Password signing agent
-requires approval or is unavailable, stop and ask the user. Do not disable
-commit signing, pass a no-sign flag, replace the configured signer, or
-otherwise bypass the agent. Do not commit unless the user asks.
+## Documentation and releases
 
-Release and migration boundaries are derived from repository state:
+Documentation states current behavior in present tense. Keep one authoritative
+statement for each rule; history belongs in `docs/history/` and ADRs. Update
+the contract and translated user pages when public behavior changes.
 
-- Read `VERSION` for the application version (`v<major>.<minor>.<patch>`); do
-  not hard-code the current release in instructions or infer it from an old
-  release note.
-- Numbered migrations in `internal/db/migrations` are immutable once released.
-  Add the next contiguous number after the highest existing migration for a
-  schema change; never edit an applied migration. Details are in
-  [Migrations](docs/development/migrations.md).
-- A release tag must equal `VERSION`, point at a commit on `main` whose CI
-  succeeded, and have release notes at `docs/history/<tag>.md`. The release
-  workflow publishes multi-arch images to Docker Hub and GHCR, then the GitHub
-  Release. Run `make release-check` before tagging; the steps are in
-  [Commit and release](docs/development/commit-and-release.md).
+Read `VERSION` for release identity. Numbered migrations are immutable after
+release; add the next contiguous number. A release tag equals `VERSION`, points
+to a commit on `main` with successful CI, and has
+`docs/history/<tag>.md`. Follow the signed-commit workflow and do not bypass
+the configured signer. Do not push or publish a PR, issue, or release without
+the user's explicit approval.
 
-Before handoff, run the smallest sufficient targets from
-[Validation Commands](#validation-commands), then `make sensitive-check`.
-
-Public tracked code and docs must use reserved domains (`example.com`,
-`192.0.2.x`), generic paths (`/path/to/music`), and obviously synthetic names.
-Never commit real library paths, server addresses, credentials, or personal
-listening data. Ignore rules are not a secrecy boundary; keep real libraries
-and deployment details outside the repository workspace whenever possible.
+Public tracked examples use reserved domains, generic paths, and synthetic
+identifiers. Never commit credentials, private paths, personal media, logs, or
+databases.

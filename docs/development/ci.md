@@ -1,7 +1,9 @@
 # CI and Release Automation
 
 The [Makefile](../../Makefile) defines validation commands. Actions provisions
-tools, selects the required phases, runs those targets, and records results.
+the Node and Go versions declared by `.nvmrc` and `go.mod` through the local
+composite actions in `.github/actions/`, selects the required phases, runs those
+targets, and records results.
 The working-tree privacy scan (`make sensitive-check`) is a separate pre-commit
 and handoff step that no CI job runs.
 
