@@ -53,7 +53,7 @@ function MiniPlayerPill({ track }: { track: PlayableTrack }) {
           aria-label={t('openNowPlaying')}
           className="flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg text-left outline-none transition-transform duration-150 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring/50"
         >
-          <CoverArt coverArt={track.coverArt} size={40} rounded="md" keepPrevious icon={track.isRadio ? Radio : undefined} />
+          <CoverArt coverArt={track.coverArt} size={40} rounded="md" keepPrevious revealOrigin icon={track.isRadio ? Radio : undefined} />
           <span className="min-w-0 flex-1 leading-tight">
             <span className="block truncate text-[15px] font-medium">{track.title}</span>
             <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">

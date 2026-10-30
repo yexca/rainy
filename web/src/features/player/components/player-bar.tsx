@@ -126,7 +126,7 @@ function NowPlayingInfo({ track, onOpen }: { track: PlayableTrack | undefined; o
         aria-label={t('openNowPlaying')}
         className="group/art relative shrink-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
       >
-        <CoverArt coverArt={track.coverArt} size={56} keepPrevious icon={track.isRadio ? Radio : undefined} />
+        <CoverArt coverArt={track.coverArt} size={56} keepPrevious revealOrigin icon={track.isRadio ? Radio : undefined} />
         <span className="absolute inset-0 grid place-items-center rounded-md bg-black/40 text-white opacity-0 transition-opacity group-hover/art:opacity-100 group-focus-visible/art:opacity-100">
           <Maximize2 className="size-4" />
         </span>

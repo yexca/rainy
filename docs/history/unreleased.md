@@ -18,6 +18,9 @@ Changes through v0.1.2 are summarized in [v0.1.2](v0.1.2.md).
 - Long songs (10 minutes or longer by default) are left out when a list is
   played or queued and from infinite mode's suggestions; the song you pick
   still plays. Turn it off or change the length in Settings → Playback.
+- In immersive mode the next song's colours spread out in a circle from where
+  you clicked or tapped, or from the song's artwork in the player when a song
+  ends on its own, instead of switching at once.
 
 </details>
 

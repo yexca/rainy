@@ -47,6 +47,11 @@ export interface CoverArtProps {
    * one in on top (no placeholder flash between tracks — use for the player's artwork).
    */
   keepPrevious?: boolean
+  /**
+   * The playing song's artwork: immersive mode's colours spread out from it when the song changes
+   * without a press (`data-reveal-origin`, lib/theme-reveal.ts).
+   */
+  revealOrigin?: boolean
   className?: string
   style?: CSSProperties
 }
@@ -69,6 +74,7 @@ export function CoverArt({
   placeholder,
   flat,
   keepPrevious,
+  revealOrigin,
   className,
   style,
 }: CoverArtProps) {
@@ -93,6 +99,7 @@ export function CoverArt({
         className,
       )}
       style={fluid ? style : { width: size, height: size, ...style }}
+      data-reveal-origin={revealOrigin || undefined}
     >
       <div
         aria-hidden

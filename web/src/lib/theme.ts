@@ -15,6 +15,7 @@ import {
   type ResolvedTheme,
   type Style,
 } from '@/lib/theme-styles'
+import { revealColors, skipReveal, trackPresses } from '@/lib/theme-reveal'
 
 export * from '@/lib/theme-styles'
 
@@ -111,13 +112,18 @@ function withoutTransitions(fn: () => void): void {
 
 /** The override applied to `<html>` by the last applyTheme() (its inline properties to remove later). */
 let applied: ThemeOverride | null = null
+/** The last applyTheme() arguments: a reveal paints them once it has captured the old colours. */
+let latest: Parameters<typeof paint> | null = null
 
 /**
  * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser
  * chrome colour. An `override` (immersive mode) replaces the colour tokens and the light / dark
- * choice, and marks `<html data-immersive>`.
+ * choice, and marks `<html data-immersive>`. One override giving way to another (the next cover)
+ * is revealed from the last press or cross-faded (`revealColors`); other changes are instant.
  */
 export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
+  trackPresses()
+  latest = [resolved, style, accent, override]
   const root = document.documentElement
   const dark = override ? override.dark : resolved === 'dark'
   const changed =
@@ -125,23 +131,32 @@ export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent
     root.dataset.style !== style ||
     root.dataset.accent !== accent ||
     applied !== override
-  const apply = () => {
-    if (applied) for (const key of Object.keys(applied.vars)) root.style.removeProperty(key)
-    if (override) for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
-    // The pre-paint <style> in index.html paints <html> in the style's colour; follow the cover.
-    root.style.backgroundColor = override?.vars['--background'] ?? ''
-    // The chrome and the page turn see-through over the cover's backdrop (index.css).
-    root.toggleAttribute('data-immersive', !!override)
-    applied = override
-    root.classList.toggle('dark', dark)
-    root.style.colorScheme = dark ? 'dark' : 'light'
-    root.dataset.style = style
-    root.dataset.chrome = STYLE_CHROME[style]
-    root.dataset.accent = accent
-    for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
-      meta.content = override ? override.themeColor : themeColor(style, resolved)
-    }
+  if (!changed) {
+    paint(resolved, style, accent, override)
+    return
   }
-  if (changed) withoutTransitions(apply)
-  else apply()
+  // The reveal paints the arguments of the latest call, so a later change is never undone by it.
+  if (applied && override && revealColors(() => withoutTransitions(() => latest && paint(...latest)))) return
+  skipReveal()
+  withoutTransitions(() => paint(resolved, style, accent, override))
+}
+
+function paint(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null): void {
+  const root = document.documentElement
+  const dark = override ? override.dark : resolved === 'dark'
+  if (applied) for (const key of Object.keys(applied.vars)) root.style.removeProperty(key)
+  if (override) for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
+  // The pre-paint <style> in index.html paints <html> in the style's colour; follow the cover.
+  root.style.backgroundColor = override?.vars['--background'] ?? ''
+  // The chrome and the page turn see-through over the cover's backdrop (index.css).
+  root.toggleAttribute('data-immersive', !!override)
+  applied = override
+  root.classList.toggle('dark', dark)
+  root.style.colorScheme = dark ? 'dark' : 'light'
+  root.dataset.style = style
+  root.dataset.chrome = STYLE_CHROME[style]
+  root.dataset.accent = accent
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    meta.content = override ? override.themeColor : themeColor(style, resolved)
+  }
 }

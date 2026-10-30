@@ -57,7 +57,10 @@ explains the rules every UI change must keep.
   below pick the highlight: the first becomes a colour wheel, meaning the
   highlight follows the cover too (the style's own colour when there is no
   cover or it is greyscale), and the presets stay fixed highlights over the
-  cover's surfaces. Without a cover the user's theme returns.
+  cover's surfaces. Without a cover the user's theme returns. The next cover's
+  colours never snap in: they spread out in a circle from the button, row, or
+  card just pressed, or from the playing song's artwork when the song changed
+  on its own, and change at once with reduced motion.
   The cover's colours also fill the window as three soft colour fields (its
   own hue, the accent's, and a neighbouring one; radial gradients, no blur
   filters) behind the app, and the chrome is see-through over them: the

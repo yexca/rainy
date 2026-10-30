@@ -14,21 +14,27 @@ const FIELD_CLASSES = [
   '-top-[12vmax] right-[4vmax] size-[62vmax] [animation-delay:-15s]',
 ]
 
+/** The custom property on `<html>` that holds field `i`'s colour. */
+function fieldVar(i: number): string {
+  return `--immersive-field-${i}`
+}
+
 /**
  * The colour fields behind the whole app (radial gradients, no blur filters). The sidebar, the
  * header and the page are see-through over them (`:root[data-immersive]` in index.css). They
- * drift from tablets up while music plays.
+ * drift from tablets up while music plays. Their colours come from `<html>` with the other
+ * tokens, so the next cover's colours reach the fields and the app in the same reveal.
  */
-function Backdrop({ colors }: { colors: readonly string[] }) {
+function Backdrop({ count }: { count: number }) {
   const playing = usePlayer((s) => s.isPlaying)
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {colors.map((color, i) => (
+      {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
           className={cn('absolute max-w-none rounded-full motion-safe:md:animate-blob', FIELD_CLASSES[i % FIELD_CLASSES.length])}
           style={{
-            background: `radial-gradient(closest-side, ${color}, transparent)`,
+            background: `radial-gradient(closest-side, var(${fieldVar(i)}), transparent)`,
             animationPlayState: playing ? 'running' : 'paused',
           }}
         />
@@ -40,7 +46,8 @@ function Backdrop({ colors }: { colors: readonly string[] }) {
 /**
  * Immersive mode (Settings → Appearance): colours the whole app — sidebar, header, player,
  * menus — with the cover of the album / playlist / artist page on screen, or else with the
- * playing track's cover; the previous colours stay while the next cover is sampled. The cover's
+ * playing track's cover; the previous colours stay while the next cover is sampled and then give
+ * way in a reveal (`applyTheme`, lib/theme-reveal.ts). The cover's
  * colours also fill the window as soft colour fields that show through the sidebar, the header
  * and the page. The `original` accent takes the highlight from the cover too; an accent preset
  * keeps its own. Without a cover (or with the mode off) the user's theme applies and nothing is
@@ -57,7 +64,9 @@ export function ImmersiveTheme() {
   const theme = useMemo(() => {
     if (!seeds) return null
     const cover = coverTheme(seeds, resolvedTheme === 'dark')
-    return accent === 'original' ? cover : withoutAccent(cover)
+    const tokens = accent === 'original' ? cover : withoutAccent(cover)
+    const fields = Object.fromEntries(tokens.backdrop.map((color, i) => [fieldVar(i), color]))
+    return { ...tokens, vars: { ...tokens.vars, ...fields } }
   }, [seeds, resolvedTheme, accent])
 
   useEffect(() => {
@@ -66,5 +75,5 @@ export function ImmersiveTheme() {
 
   useEffect(() => () => setOverride(null), [setOverride])
 
-  return theme ? <Backdrop colors={theme.backdrop} /> : null
+  return theme ? <Backdrop count={theme.backdrop.length} /> : null
 }

@@ -315,6 +315,16 @@
 :root[data-immersive] [data-slot="sidebar-inset"] {
   background-color: transparent;
 }
+/* The next cover's colours (lib/theme-reveal.ts): a circle from the last press or the playing */
+/* artwork, drawn by a script animation in place of the default cross-fade, or a slower one.  */
+:root[data-theme-reveal="circle"]::view-transition-old(root),
+:root[data-theme-reveal="circle"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-theme-reveal="fade"]::view-transition-group(root) {
+  animation-duration: 700ms;
+}
 
 /* ------------------------------------------------------------------------------------------ */
 /* Accent presets: <html data-accent="original|rain|rose|violet|emerald|amber|graphite">     */

@@ -166,7 +166,7 @@ export function CompactPlayer({ track }: { track: PlayableTrack }) {
             title={t('dock.openWindow')}
             className="flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1 text-left transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-ring/60 active:bg-foreground/[0.07]"
           >
-            <CoverArt coverArt={track.coverArt} size={44} rounded="md" keepPrevious icon={track.isRadio ? Radio : undefined} />
+            <CoverArt coverArt={track.coverArt} size={44} rounded="md" keepPrevious revealOrigin icon={track.isRadio ? Radio : undefined} />
             <span className="min-w-0 flex-1 leading-tight">
               <Marquee className="text-sm font-semibold">{track.title}</Marquee>
               <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
