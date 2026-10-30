@@ -57,8 +57,10 @@ func ParseM3U(text, baseDir string) ([]M3UEntry, error) {
 	return entries, nil
 }
 
+// playlistRelative refuses URLs (`scheme:/…`), drive letters, absolute paths, parent
+// traversal and control characters. Other colons are file-name characters ("Re:ZERO/01.flac").
 func playlistRelative(p string) bool {
-	if p == "" || strings.HasPrefix(p, "/") || strings.Contains(p, ":") || strings.ContainsFunc(p, unicode.IsControl) {
+	if p == "" || strings.HasPrefix(p, "/") || hasDriveLetter(p) || hasURLScheme(p) || strings.ContainsFunc(p, unicode.IsControl) {
 		return false
 	}
 	for _, part := range strings.Split(p, "/") {
@@ -67,6 +69,21 @@ func playlistRelative(p string) bool {
 		}
 	}
 	return path.Clean(p) != "."
+}
+
+// hasURLScheme reports a leading RFC 3986 scheme followed by ":/", as in web, file and SMB links.
+func hasURLScheme(p string) bool {
+	i := strings.Index(p, ":/")
+	if i < 1 {
+		return false
+	}
+	for j, r := range p[:i] {
+		letter := (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
+		if !letter && (j == 0 || !(r >= '0' && r <= '9' || r == '+' || r == '-' || r == '.')) {
+			return false
+		}
+	}
+	return true
 }
 
 type M3UTrack struct {
@@ -88,7 +105,9 @@ func FormatM3U(tracks []M3UTrack) (string, error) {
 		}, s)
 	}
 	for _, t := range tracks {
-		if !playlistRelative(t.Path) || strings.Contains(t.Path, "\\") || strings.TrimSpace(t.Path) != t.Path {
+		// Checked as written: the "./" prefix keeps a root file such as "A:B.flac" from reading as a drive.
+		if strings.HasPrefix(t.Path, "/") || path.Clean(t.Path) != t.Path || !playlistRelative("./"+t.Path) ||
+			strings.Contains(t.Path, "\\") || strings.TrimSpace(t.Path) != t.Path {
 			return "", fmt.Errorf("a playlist path cannot be represented in M3U")
 		}
 		fmt.Fprintf(&b, "#EXTINF:%.0f,%s - %s\n#RAINY-TRACK:%s\n./%s\n", t.Duration, clean(t.Artist), clean(t.Title), clean(t.ID), t.Path)

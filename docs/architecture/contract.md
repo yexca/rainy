@@ -1276,8 +1276,9 @@ Only the owner (or an admin) may modify a playlist; others get 403. Someone else
 Playlist files contain at most 10,000 entries and 512 KiB of UTF-8 text. Import accepts
 M3U/M3U8, a BOM, CRLF, comments, and either path separator. Paths are library-relative,
 case-sensitive exact matches against non-missing indexed tracks, with an optional
-library-relative `baseDir` for a playlist stored in a subfolder. URLs, absolute paths,
-parent traversal and control characters are invalid entries; importing never reads
+library-relative `baseDir` for a playlist stored in a subfolder. URLs (`scheme:/…`),
+drive letters, absolute paths, parent traversal and control characters are invalid
+entries; any other colon is part of a file name (`Re:ZERO/01.flac`). Importing never reads
 media or sends network requests. Omitted `libraryId` (or 0) searches every library;
 an unknown nonzero library is an error. Entries retain file line numbers, order and
 duplicates and report `matched`, `missing`, `ambiguous`, or `invalid`, with an empty
