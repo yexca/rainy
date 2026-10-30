@@ -44,6 +44,9 @@ the Media Session API.
   next** and **Add to queue** from any "…" menu.
 - In **Playing Next**, drag songs to reorder them, remove them, shuffle, change
   the repeat mode, turn infinite mode on or off, or clear the queue.
+- In the full-screen player on tablets and desktops, the queue button slides
+  the artwork and controls up and opens the queue in a card below them, so the
+  queue and the lyrics can be open at the same time.
 - Long songs (10 minutes or longer by default) are left out when you play a
   list or add several songs, and a message says how many. The song you tap
   still plays, and a list of only long songs is queued as it is. Turn this

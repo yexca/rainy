@@ -1,6 +1,6 @@
 import { ChevronDown, ListMusic, MessageSquareQuote, X } from 'lucide-react'
-import { AnimatePresence, motion, useDragControls, useMotionValue, useTransform, type PanInfo } from 'motion/react'
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
+import { AnimatePresence, LayoutGroup, motion, useDragControls, useMotionValue, useTransform, type PanInfo } from 'motion/react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
@@ -24,6 +24,8 @@ import { NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } 
 import { SheetVolume } from './volume-control'
 
 const SHEET_SPRING = { type: 'spring', stiffness: 380, damping: 40, mass: 0.9 } as const
+/** Stage: the controls moving up for the queue card, and the card itself. */
+const STAGE_SPRING = { type: 'spring', stiffness: 420, damping: 40 } as const
 /** Drag distance / velocity that dismisses the sheet. */
 const DISMISS_OFFSET = 120
 const DISMISS_VELOCITY = 500
@@ -282,8 +284,10 @@ function StageNowPlaying({ track }: { track: PlayableTrack }) {
   const isPlaying = usePlayer((s) => s.isPlaying)
   const palette = useCoverColor(track.coverArt)
   useModalSurface(ref, palette.top)
-  const toggle = (p: PlayerPanel) => setPanel(panel === p ? 'none' : p)
-  const split = panel !== 'none'
+  // Lyrics take the right column (the shared `panel`); the queue is a card under the controls,
+  // independent of it, so both can be open.
+  const lyricsOpen = panel === 'lyrics'
+  const [queueOpen, setQueueOpen] = useState(() => usePlayer.getState().panel === 'queue')
 
   return (
     <motion.div
@@ -312,11 +316,11 @@ function StageNowPlaying({ track }: { track: PlayableTrack }) {
         <div className="flex items-center gap-1">
           <StopTimerButton tone="stage" />
           <PipLyricsButton tone="stage" />
-          {panel === 'lyrics' ? <TranslationToggle track={track} tone="stage" /> : null}
-          <StageToggle active={panel === 'lyrics'} onClick={() => toggle('lyrics')} label={t('lyrics.title')}>
+          {lyricsOpen ? <TranslationToggle track={track} tone="stage" /> : null}
+          <StageToggle active={lyricsOpen} onClick={() => setPanel(lyricsOpen ? 'none' : 'lyrics')} label={t('lyrics.title')}>
             <MessageSquareQuote className="size-[18px]" strokeWidth={1.9} />
           </StageToggle>
-          <StageToggle active={panel === 'queue'} onClick={() => toggle('queue')} label={t('queue.title')}>
+          <StageToggle active={queueOpen} onClick={() => setQueueOpen(!queueOpen)} label={t('queue.title')}>
             <ListMusic className="size-[18px]" strokeWidth={1.9} />
           </StageToggle>
         </div>
@@ -324,32 +328,70 @@ function StageNowPlaying({ track }: { track: PlayableTrack }) {
 
       <div
         className={cn(
-          'relative mx-auto flex min-h-0 w-full flex-1 items-center px-10 pb-10',
-          split ? 'max-w-6xl gap-14' : 'max-w-xl justify-center',
+          'relative mx-auto flex min-h-0 w-full flex-1 px-10 pb-10',
+          lyricsOpen ? 'max-w-6xl gap-14' : 'max-w-xl justify-center',
+          queueOpen ? 'items-stretch' : 'items-center',
         )}
       >
-        <motion.div layout="position" className={cn('flex w-full flex-col', split ? 'max-w-[400px] shrink-0' : 'max-w-[440px]')}>
-          <div className="mx-auto w-[min(100%,calc(100dvh-380px))] min-w-40">
-            <NowPlayingArtwork track={track} playing={isPlaying} />
-          </div>
-          <NowPlayingTitle track={track} className="mt-7" />
-          <div className="mt-4">{track.isRadio ? <LiveProgress tone="sheet" /> : <Scrubber tone="sheet" />}</div>
-          <div className="mt-2 flex items-center justify-between">
-            <ShuffleButton tone="sheet" className="size-10" />
-            <div className="flex items-center gap-4">
-              <PrevButton tone="sheet" />
-              <PlayPauseButton tone="sheet" />
-              <NextButton tone="sheet" />
-            </div>
-            <RepeatButton tone="sheet" className="size-10" />
-          </div>
-          <SheetVolume className="mt-4" />
-          <AirPlayButton className="mx-auto mt-3" />
-        </motion.div>
+        <LayoutGroup>
+          <motion.div
+            layout="position"
+            transition={STAGE_SPRING}
+            className={cn('relative flex w-full flex-col', lyricsOpen ? 'max-w-[400px] shrink-0' : 'max-w-[440px]', queueOpen && 'min-h-0 pt-4')}
+          >
+            {queueOpen ? (
+              <div className="flex items-center gap-4">
+                <motion.div layoutId="stage-artwork" transition={STAGE_SPRING} className="w-20 shrink-0">
+                  <NowPlayingArtwork track={track} playing />
+                </motion.div>
+                <NowPlayingTitle track={track} size="sm" className="min-w-0 flex-1" />
+              </div>
+            ) : (
+              <>
+                <motion.div layoutId="stage-artwork" transition={STAGE_SPRING} className="mx-auto w-[min(100%,calc(100dvh-380px))] min-w-40">
+                  <NowPlayingArtwork track={track} playing={isPlaying} />
+                </motion.div>
+                <NowPlayingTitle track={track} className="mt-7" />
+              </>
+            )}
+            <motion.div layout="position" transition={STAGE_SPRING} className={queueOpen ? 'mt-3' : 'mt-4'}>
+              {track.isRadio ? <LiveProgress tone="sheet" /> : <Scrubber tone="sheet" />}
+              <div className="mt-2 flex items-center justify-between">
+                <ShuffleButton tone="sheet" className="size-10" />
+                <div className="flex items-center gap-4">
+                  <PrevButton tone="sheet" />
+                  <PlayPauseButton tone="sheet" />
+                  <NextButton tone="sheet" />
+                </div>
+                <RepeatButton tone="sheet" className="size-10" />
+              </div>
+              <SheetVolume className={queueOpen ? 'mt-2' : 'mt-4'} />
+              <AirPlayButton className={cn('mx-auto', queueOpen ? 'mt-1' : 'mt-3')} />
+            </motion.div>
 
-        {split ? (
+            <AnimatePresence initial={false} mode="popLayout">
+              {queueOpen ? (
+                <motion.section
+                  key="queue"
+                  aria-label={t('queue.title')}
+                  className="relative isolate mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl pt-4 shadow-2xl shadow-black/40 ring-1 ring-white/15"
+                  initial={{ opacity: 0, y: 48 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 48 }}
+                  transition={STAGE_SPRING}
+                >
+                  {/* Blur on a sibling layer: a backdrop filter on an ancestor would offset the drag overlay. */}
+                  <div aria-hidden className="absolute inset-0 -z-10 bg-black/25 backdrop-blur-2xl" />
+                  <QueueView tone="stage" className="px-2" />
+                </motion.section>
+              ) : null}
+            </AnimatePresence>
+          </motion.div>
+        </LayoutGroup>
+
+        {lyricsOpen ? (
           <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col py-4">
-            <PanelContent panel={panel} track={track} tone="stage" />
+            <PanelContent panel="lyrics" track={track} tone="stage" />
           </div>
         ) : null}
       </div>
