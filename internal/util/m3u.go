@@ -79,7 +79,8 @@ func hasURLScheme(p string) bool {
 	}
 	for j, r := range p[:i] {
 		letter := (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
-		if !letter && (j == 0 || !(r >= '0' && r <= '9' || r == '+' || r == '-' || r == '.')) {
+		if !letter && (j == 0 ||
+			((r < '0' || r > '9') && r != '+' && r != '-' && r != '.')) {
 			return false
 		}
 	}

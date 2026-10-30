@@ -2,7 +2,7 @@ module rainy
 
 go 1.26.0
 
-toolchain go1.26.9
+toolchain go1.26.10
 
 // Navidrome's fork includes non-throwing UTF-8 conversion for the TagLib WASM build.
 replace go.senan.xyz/taglib => github.com/deluan/go-taglib v0.0.0-20260913142955-d55e0c9353cb

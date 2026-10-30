@@ -12,7 +12,7 @@ and lint.
 - Node.js from [`.nvmrc`](../../.nvmrc) with Corepack enabled; use the pnpm
   version pinned in `web/package.json`.
 - Go 1.26 for host-side backend tests and static checks; `go.mod` selects the
-  `go1.26.9` toolchain.
+  `go1.26.10` toolchain.
 
 Documentation and policy checks need only Node, Git, and Make. Development
 works on Windows (PowerShell or Git Bash), macOS, and Linux. Production runs
