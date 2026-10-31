@@ -21,6 +21,7 @@ its areas and folds the changes under them; the format is in
 ## Releases
 
 - [Unreleased changes](unreleased.md)
+- [v0.1.3](v0.1.3.md)
 - [v0.1.2](v0.1.2.md)
 - [v0.1.1](v0.1.1.md)
 - [v0.1.0](v0.1.0.md)
