@@ -20,14 +20,14 @@ func planStatus(plans []RenamePlan) map[string]RenamePlan {
 
 func TestPreviewRename(t *testing.T) {
 	e := newEnv(t)
-	t1 := e.track("The Rainy Days/Blue Skies/01 Blue Skies.opus")
-	t2 := e.track("The Rainy Days/Blue Skies/02 Umbrella.opus")
-	missing := e.track("Static Noise/Unknown Signals/04 Dead Air.ogg")
+	t1 := e.track("Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus")
+	t2 := e.track("Synthetic Artist 3/Synthetic Album 3/02 Synthetic Track 10.opus")
+	missing := e.track("Synthetic Artist 4/Synthetic Album 4/04 Synthetic Track 16.ogg")
 	if err := e.st.MarkTracksMissing(e.ctx, []string{missing.ID}, true); err != nil {
 		t.Fatal(err)
 	}
 	// An existing file that differs only in case from t1's target.
-	if err := os.WriteFile(e.abs("The Rainy Days/Blue Skies/blue skies.opus"), []byte("x"), 0o644); err != nil {
+	if err := os.WriteFile(e.abs("Synthetic Artist 3/Synthetic Album 3/synthetic album 3.opus"), []byte("x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -36,10 +36,10 @@ func TestPreviewRename(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := planStatus(plans)
-	if p := got[t1.ID]; p.Status != PlanConflict || p.To != "The Rainy Days/Blue Skies/Blue Skies.opus" {
+	if p := got[t1.ID]; p.Status != PlanConflict || p.To != "Synthetic Artist 3/Synthetic Album 3/Synthetic Album 3.opus" {
 		t.Errorf("t1 %+v", p)
 	}
-	if p := got[t2.ID]; p.Status != PlanOK || p.From != t2.Path || p.To != "The Rainy Days/Blue Skies/Umbrella.opus" {
+	if p := got[t2.ID]; p.Status != PlanOK || p.From != t2.Path || p.To != "Synthetic Artist 3/Synthetic Album 3/Synthetic Track 10.opus" {
 		t.Errorf("t2 %+v", p)
 	}
 	if p := got[missing.ID]; p.Status != PlanInvalid {
@@ -48,7 +48,7 @@ func TestPreviewRename(t *testing.T) {
 	if p := got["nope"]; p.Status != PlanInvalid {
 		t.Errorf("unknown %+v", p)
 	}
-	if !e.exists(t2.Path) || e.exists("The Rainy Days/Blue Skies/Umbrella.opus") {
+	if !e.exists(t2.Path) || e.exists("Synthetic Artist 3/Synthetic Album 3/Synthetic Track 10.opus") {
 		t.Fatal("preview must not touch files")
 	}
 
@@ -74,12 +74,12 @@ func TestPreviewRename(t *testing.T) {
 
 func TestRenameMovesFilesImagesAndKeepsIDs(t *testing.T) {
 	e := newEnv(t)
-	t1 := e.track("The Rainy Days/Blue Skies/01 Blue Skies.opus")
-	album, _, err := e.st.ListTracks(e.ctx, store.TrackQuery{DirPrefix: "The Rainy Days"})
+	t1 := e.track("Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus")
+	album, _, err := e.st.ListTracks(e.ctx, store.TrackQuery{DirPrefix: "Synthetic Artist 3"})
 	if err != nil || len(album) != 4 {
 		t.Fatalf("fixture: %d tracks, %v", len(album), err)
 	}
-	if err := os.WriteFile(e.abs("The Rainy Days/Blue Skies/.DS_Store"), []byte("junk"), 0o644); err != nil {
+	if err := os.WriteFile(e.abs("Synthetic Artist 3/Synthetic Album 3/.DS_Store"), []byte("junk"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,18 +90,18 @@ func TestRenameMovesFilesImagesAndKeepsIDs(t *testing.T) {
 	if len(res.Errors) != 0 || len(res.Updated) != 4 {
 		t.Fatalf("result %+v", res)
 	}
-	for _, want := range []string{"Moved/Blue Skies/01 - Blue Skies.opus", "Moved/Blue Skies/02 - Umbrella.opus", "Moved/Blue Skies/folder.png"} {
+	for _, want := range []string{"Moved/Synthetic Album 3/01 - Synthetic Album 3.opus", "Moved/Synthetic Album 3/02 - Synthetic Track 10.opus", "Moved/Synthetic Album 3/folder.png"} {
 		if !e.exists(want) {
 			t.Errorf("%s not created", want)
 		}
 	}
-	if e.exists("The Rainy Days") {
+	if e.exists("Synthetic Artist 3") {
 		t.Error("emptied directories must be removed")
 	}
 	if _, err := os.Stat(e.lib.Path); err != nil {
 		t.Fatal("library root removed")
 	}
-	if got := e.track("Moved/Blue Skies/01 - Blue Skies.opus"); got.ID != t1.ID {
+	if got := e.track("Moved/Synthetic Album 3/01 - Synthetic Album 3.opus"); got.ID != t1.ID {
 		t.Errorf("id changed: %s != %s", got.ID, t1.ID)
 	}
 	if acts := e.logActions(t1.ID); !slices.Equal(acts, []string{"rename"}) {
@@ -114,24 +114,24 @@ func TestRenameMovesFilesImagesAndKeepsIDs(t *testing.T) {
 
 func TestRenamePartialDirKeepsImagesAndMovesSidecar(t *testing.T) {
 	e := newEnv(t)
-	dir := "林雨晴/城市夜雨 (2019)"
-	t1 := e.track(dir + "/01 城市夜雨.flac")
+	dir := "示例歌手1/测试专辑2 (2019)"
+	t1 := e.track(dir + "/01 测试专辑2.flac")
 	res, err := e.svc.Rename(e.ctx, e.user, []string{t1.ID}, "{albumartist}/Singles/{title}")
 	if err != nil || len(res.Errors) != 0 {
 		t.Fatalf("%+v %v", res, err)
 	}
-	if !e.exists("林雨晴/Singles/城市夜雨.flac") || !e.exists("林雨晴/Singles/城市夜雨.lrc") {
+	if !e.exists("示例歌手1/Singles/测试专辑2.flac") || !e.exists("示例歌手1/Singles/测试专辑2.lrc") {
 		t.Fatal("track or sidecar not moved")
 	}
-	if e.exists(dir+"/01 城市夜雨.lrc") || !e.exists(dir+"/cover.jpg") || e.exists("林雨晴/Singles/cover.jpg") {
+	if e.exists(dir+"/01 测试专辑2.lrc") || !e.exists(dir+"/cover.jpg") || e.exists("示例歌手1/Singles/cover.jpg") {
 		t.Fatal("images must stay when not every audio file of the folder moves")
 	}
 }
 
 func TestRenameCaseOnly(t *testing.T) {
 	e := newEnv(t)
-	tr := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
-	tr.Title = "SIGNAL 1"
+	tr := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
+	tr.Title = "SYNTHETIC TRACK 13"
 	if err := e.st.UpsertTracks(e.ctx, []model.Track{*tr}); err != nil {
 		t.Fatal(err)
 	}
@@ -139,28 +139,28 @@ func TestRenameCaseOnly(t *testing.T) {
 	if err != nil || len(res.Errors) != 0 || len(res.Updated) != 1 {
 		t.Fatalf("%+v %v", res, err)
 	}
-	entries, _ := os.ReadDir(e.abs("Static Noise/Unknown Signals"))
+	entries, _ := os.ReadDir(e.abs("Synthetic Artist 4/Synthetic Album 4"))
 	found := false
 	for _, en := range entries {
-		if en.Name() == "01 SIGNAL 1.ogg" {
+		if en.Name() == "01 SYNTHETIC TRACK 13.ogg" {
 			found = true
 		}
-		if en.Name() == "01 Signal 1.ogg" {
+		if en.Name() == "01 Synthetic Track 13.ogg" {
 			t.Fatal("old spelling still present")
 		}
 	}
-	if !found || res.Updated[0].Path != "Static Noise/Unknown Signals/01 SIGNAL 1.ogg" {
+	if !found || res.Updated[0].Path != "Synthetic Artist 4/Synthetic Album 4/01 SYNTHETIC TRACK 13.ogg" {
 		t.Fatalf("case-only rename not applied: %+v", res.Updated[0].Path)
 	}
 }
 
 func TestRenameConflictReported(t *testing.T) {
 	e := newEnv(t)
-	t1 := e.track("The Rainy Days/Blue Skies/01 Blue Skies.opus")
+	t1 := e.track("Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus")
 	if err := os.MkdirAll(e.abs("X"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(e.abs("X"), "BLUE SKIES.opus"), []byte("x"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(e.abs("X"), "SYNTHETIC ALBUM 3.opus"), []byte("x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	res, err := e.svc.Rename(e.ctx, e.user, []string{t1.ID}, "X/{title}")

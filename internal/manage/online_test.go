@@ -100,7 +100,7 @@ var onlineSong = lxmusic.Song{
 
 func TestOnlineDownloadFallsBackAndImports(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	requireTags(t, src)
 	e.enableOnline(true, model.LxSourceModeAuto, "")
 	online := &fakeOnline{
@@ -161,7 +161,7 @@ func TestOnlineDownloadFallsBackAndImports(t *testing.T) {
 
 func TestOnlineDownloadFailures(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	online := &fakeOnline{src: src, cands: []lxmusic.Candidate{{ID: "a", Name: "Busy"}, {ID: "b", Name: "HTML"}}, links: map[string]string{"b": "html"}}
 	e.svc.SetOnlineSource(online)
 	req := OnlineDownloadRequest{Songs: []lxmusic.Song{onlineSong}, LibraryID: e.lib.ID}
@@ -203,7 +203,7 @@ func TestOnlineDownloadFailures(t *testing.T) {
 
 func TestOnlineDownloadRefreshesExpiredLinks(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	requireTags(t, src)
 	e.enableOnline(true, model.LxSourceModeAuto, "")
 	req := OnlineDownloadRequest{Songs: []lxmusic.Song{onlineSong}, LibraryID: e.lib.ID, Dir: "Refresh"}

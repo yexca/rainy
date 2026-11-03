@@ -51,7 +51,7 @@ func (e *env) trashEntryFor(trackID string) *model.TrashEntry {
 // other entry's file with it.
 func TestPurgeTrashRereadsEntriesUnderLock(t *testing.T) {
 	e := newEnv(t)
-	rel := "Static Noise/Unknown Signals/01 Signal 1.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"
 	a := e.track(rel)
 	if _, err := e.svc.Delete(e.ctx, e.user, []string{a.ID}); err != nil {
 		t.Fatal(err)
@@ -148,8 +148,8 @@ func TestSharedSidecarStaysWithRemainingFile(t *testing.T) {
 // (restorable, logged).
 func TestSaveFolderImageTrashesReplacedImages(t *testing.T) {
 	e := newEnv(t)
-	dir := "Static Noise/Unknown Signals"
-	tr := e.track(dir + "/01 Signal 1.ogg")
+	dir := "Synthetic Artist 4/Synthetic Album 4"
+	tr := e.track(dir + "/01 Synthetic Track 13.ogg")
 	e.addFile(dir+"/cover.png", "old png cover")
 	e.addFile(dir+"/Cover.jpg", "old jpg cover")
 	img := pngImage(t, 20, 20)
@@ -188,7 +188,7 @@ func TestSaveFolderImageTrashesReplacedImages(t *testing.T) {
 // Renames hand both the old and the new paths to the scanner.
 func TestRenameRescansOldAndNewPaths(t *testing.T) {
 	e := newEnv(t)
-	rel := "Static Noise/Unknown Signals/01 Signal 1.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"
 	tr := e.track(rel)
 	e.sc.calls = nil
 	res, err := e.svc.Rename(e.ctx, e.user, []string{tr.ID}, "Moved/{title}")

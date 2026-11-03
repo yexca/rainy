@@ -51,12 +51,12 @@ var keepNames = new(bool)
 
 func TestUploadToDirNeverOverwrites(t *testing.T) {
 	e := newEnv(t)
-	mp3, err := os.ReadFile(e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3"))
+	mp3, err := os.ReadFile(e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	fields := map[string]string{"libraryId": fmt.Sprint(e.lib.ID), "dir": "Uploads", "organize": "false"}
-	files := []upFile{{`My Album\01 夏日微风.mp3`, mp3}, {"notes.txt", []byte("hi")}, {"../../escape.mp3", mp3}, {"empty.mp3", nil}}
+	files := []upFile{{`My Album\01 测试专辑1.mp3`, mp3}, {"notes.txt", []byte("hi")}, {"../../escape.mp3", mp3}, {"empty.mp3", nil}}
 	res, err := e.svc.Upload(e.ctx, e.user, multipartBody(t, files, fields))
 	if err != nil {
 		t.Fatal(err)
@@ -64,10 +64,10 @@ func TestUploadToDirNeverOverwrites(t *testing.T) {
 	if len(res.Updated) != 2 || len(res.Errors) != 2 {
 		t.Fatalf("result %+v", res)
 	}
-	if !e.exists("Uploads/My Album/01 夏日微风.mp3") || !e.exists("Uploads/escape.mp3") {
+	if !e.exists("Uploads/My Album/01 测试专辑1.mp3") || !e.exists("Uploads/escape.mp3") {
 		t.Fatal("files not placed")
 	}
-	if b, _ := os.ReadFile(e.abs("Uploads/My Album/01 夏日微风.mp3")); !bytes.Equal(b, mp3) {
+	if b, _ := os.ReadFile(e.abs("Uploads/My Album/01 测试专辑1.mp3")); !bytes.Equal(b, mp3) {
 		t.Fatal("content differs")
 	}
 	// Same upload again: a numbered copy, never an overwrite.
@@ -75,7 +75,7 @@ func TestUploadToDirNeverOverwrites(t *testing.T) {
 	if err != nil || len(res.Updated) != 1 {
 		t.Fatalf("%+v %v", res, err)
 	}
-	if res.Updated[0].Path != "Uploads/My Album/01 夏日微风 (1).mp3" {
+	if res.Updated[0].Path != "Uploads/My Album/01 测试专辑1 (1).mp3" {
 		t.Fatalf("path %q", res.Updated[0].Path)
 	}
 	if acts := e.logActions(res.Updated[0].ID); len(acts) != 1 || acts[0] != "upload" {
@@ -112,7 +112,7 @@ func isUnsafe(err error) bool { return err != nil && strings.Contains(err.Error(
 
 func TestUploadOrganize(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	requireTags(t, src)
 	mp3, _ := os.ReadFile(src)
 	fields := map[string]string{"libraryId": fmt.Sprint(e.lib.ID), "organize": "true"}
@@ -120,7 +120,7 @@ func TestUploadOrganize(t *testing.T) {
 	if err != nil || len(res.Errors) != 0 || len(res.Updated) != 1 {
 		t.Fatalf("%+v %v", res, err)
 	}
-	want := filepath.ToSlash("林雨晴/夏日微风/01 夏日微风.mp3")
+	want := filepath.ToSlash("示例歌手1/测试专辑1/01 测试专辑1.mp3")
 	if res.Updated[0].Path != want || !e.exists(want) {
 		t.Fatalf("organized to %q", res.Updated[0].Path)
 	}
@@ -130,7 +130,7 @@ func TestUploadOrganize(t *testing.T) {
 // music is placed the same way; an explicit field still wins.
 func TestUploadOrganizeFollowsSetting(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	requireTags(t, src)
 	mp3, _ := os.ReadFile(src)
 	upload := func(name string, fields map[string]string) string {
@@ -143,7 +143,7 @@ func TestUploadOrganizeFollowsSetting(t *testing.T) {
 		return res.Updated[0].Path
 	}
 
-	if got := upload("a.mp3", map[string]string{"dir": "In"}); got != "In/林雨晴/夏日微风/01 夏日微风.mp3" {
+	if got := upload("a.mp3", map[string]string{"dir": "In"}); got != "In/示例歌手1/测试专辑1/01 测试专辑1.mp3" {
 		t.Errorf("default: placed at %q", got)
 	}
 	if got := upload("b.mp3", map[string]string{"dir": "In", "organize": "false"}); got != "In/b.mp3" {
@@ -158,7 +158,7 @@ func TestUploadOrganizeFollowsSetting(t *testing.T) {
 	if got := upload("c.mp3", map[string]string{"dir": "In"}); got != "In/c.mp3" {
 		t.Errorf("setting off: placed at %q", got)
 	}
-	if got := upload("d.mp3", map[string]string{"dir": "Out", "organize": "true"}); got != "Out/林雨晴/夏日微风/01 夏日微风.mp3" {
+	if got := upload("d.mp3", map[string]string{"dir": "Out", "organize": "true"}); got != "Out/示例歌手1/测试专辑1/01 测试专辑1.mp3" {
 		t.Errorf("explicit true: placed at %q", got)
 	}
 }

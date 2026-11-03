@@ -19,11 +19,11 @@ import (
 // fix deselected) must not purge the whole trash or rewrite every file of the library.
 func TestEmptyListsAreNoOps(t *testing.T) {
 	e := newEnv(t)
-	gone := e.track("Static Noise/Unknown Signals/04 Dead Air.ogg")
+	gone := e.track("Synthetic Artist 4/Synthetic Album 4/04 Synthetic Track 16.ogg")
 	if err := e.st.MarkTracksMissing(e.ctx, []string{gone.ID}, true); err != nil {
 		t.Fatal(err)
 	}
-	trashed := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
+	trashed := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
 	if _, err := e.svc.Delete(e.ctx, e.user, []string{trashed.ID}); err != nil {
 		t.Fatal(err)
 	}
@@ -41,9 +41,9 @@ func TestEmptyListsAreNoOps(t *testing.T) {
 		t.Fatalf("missing track purged by []: %v", err)
 	}
 
-	rel := "林雨晴/夏日微风 (2021)/02 海边的约定.mp3"
+	rel := "示例歌手1/测试专辑1 (2021)/02 测试歌曲1.mp3"
 	requireTags(t, e.abs(rel))
-	bad := gbkMojibake(t, "海边的约定")
+	bad := gbkMojibake(t, "测试歌曲1")
 	if err := tags.Write(e.abs(rel), map[string][]string{"TITLE": {bad}}); err != nil {
 		t.Fatal(err)
 	}
@@ -92,8 +92,8 @@ func TestPatternNeutralizesHiddenAndSystemNames(t *testing.T) {
 // another track of the batch would take its path.
 func TestRenameUnchangedIsNotAConflict(t *testing.T) {
 	e := newEnv(t)
-	keep := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
-	other := e.track("Static Noise/Unknown Signals/02 Signal 2.ogg")
+	keep := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
+	other := e.track("Synthetic Artist 4/Synthetic Album 4/02 Synthetic Track 14.ogg")
 	other.Title, other.TrackNumber = keep.Title, keep.TrackNumber
 	if err := e.st.UpsertTracks(e.ctx, []model.Track{*other}); err != nil {
 		t.Fatal(err)
@@ -190,13 +190,13 @@ func TestSaveFolderImageReplacesCaseVariants(t *testing.T) {
 // anywhere outside the library.
 func TestSidecarSymlinkNotFollowed(t *testing.T) {
 	e := newEnv(t)
-	rel := "Static Noise/Unknown Signals/01 Signal 1.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"
 	tr := e.track(rel)
 	outside := filepath.Join(t.TempDir(), "secret.txt")
 	if err := os.WriteFile(outside, []byte("secret"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Symlink(outside, e.abs("Static Noise/Unknown Signals/01 Signal 1.lrc")); err != nil {
+	if err := os.Symlink(outside, e.abs("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.lrc")); err != nil {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
 	if requireTagsOK(e.abs(rel)) {
@@ -216,8 +216,8 @@ func TestSidecarSymlinkNotFollowed(t *testing.T) {
 	}
 	// A dangling symlink must not be used to create a file outside the library either.
 	target := filepath.Join(t.TempDir(), "created.lrc")
-	rel2 := "Static Noise/Unknown Signals/02 Signal 2.ogg"
-	if err := os.Symlink(target, e.abs("Static Noise/Unknown Signals/02 Signal 2.lrc")); err != nil {
+	rel2 := "Synthetic Artist 4/Synthetic Album 4/02 Synthetic Track 14.ogg"
+	if err := os.Symlink(target, e.abs("Synthetic Artist 4/Synthetic Album 4/02 Synthetic Track 14.lrc")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := e.svc.SetLyrics(e.ctx, e.user, e.track(rel2).ID, "hello", "lrc"); err == nil {
@@ -236,7 +236,7 @@ func requireTagsOK(file string) bool {
 // Lyrics for a track whose file is gone must not create an orphaned sidecar.
 func TestSetLyricsMissingFile(t *testing.T) {
 	e := newEnv(t)
-	rel := "Static Noise/Unknown Signals/03 Interference.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/03 Synthetic Track 15.ogg"
 	tr := e.track(rel)
 	if err := os.Remove(e.abs(rel)); err != nil {
 		t.Fatal(err)
@@ -245,7 +245,7 @@ func TestSetLyricsMissingFile(t *testing.T) {
 	if !errors.Is(err, store.ErrConflict) && !errors.Is(err, store.ErrNotFound) {
 		t.Fatalf("got %v", err)
 	}
-	if e.exists("Static Noise/Unknown Signals/03 Interference.lrc") {
+	if e.exists("Synthetic Artist 4/Synthetic Album 4/03 Synthetic Track 15.lrc") {
 		t.Fatal("orphaned sidecar created")
 	}
 }
@@ -255,7 +255,7 @@ func TestSetLyricsMissingFile(t *testing.T) {
 func TestRescanFolderHoldsLibraryLock(t *testing.T) {
 	e := newEnv(t)
 	e.sc.checkLock = true
-	if err := e.svc.RescanFolder(e.ctx, e.lib.ID, "林雨晴"); err != nil {
+	if err := e.svc.RescanFolder(e.ctx, e.lib.ID, "示例歌手1"); err != nil {
 		t.Fatal(err)
 	}
 	deadline := time.Now().Add(5 * time.Second)
@@ -279,7 +279,7 @@ func TestRescanFolderHoldsLibraryLock(t *testing.T) {
 // unsupported; hidden directories in upload names are neutralized.
 func TestUploadHiddenNames(t *testing.T) {
 	e := newEnv(t)
-	mp3, err := os.ReadFile(e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3"))
+	mp3, err := os.ReadFile(e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -303,7 +303,7 @@ func TestHiddenFolderParamsRejected(t *testing.T) {
 	if err := os.MkdirAll(e.abs(".rainy/trash"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	for _, dir := range []string{".rainy", ".rainy/trash", "林雨晴/@eaDir"} {
+	for _, dir := range []string{".rainy", ".rainy/trash", "示例歌手1/@eaDir"} {
 		if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, dir); !errors.Is(err, store.ErrInvalid) {
 			t.Errorf("list %q: %v", dir, err)
 		}
@@ -311,7 +311,7 @@ func TestHiddenFolderParamsRejected(t *testing.T) {
 			t.Errorf("rescan %q: %v", dir, err)
 		}
 	}
-	mp3, err := os.ReadFile(e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3"))
+	mp3, err := os.ReadFile(e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,7 +327,7 @@ func TestHiddenFolderParamsRejected(t *testing.T) {
 // A library whose folder vanished (unmounted volume) is a conflict, not a server error.
 func TestLibraryRootMissingIsConflict(t *testing.T) {
 	e := newEnv(t)
-	tr := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
+	tr := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
 	lib := *e.lib
 	lib.Path = filepath.Join(t.TempDir(), "unmounted")
 	if err := e.st.UpdateLibrary(e.ctx, &lib); err != nil {
@@ -350,7 +350,7 @@ func TestSymlinkedDirEscapes(t *testing.T) {
 	if err := os.Symlink(outside, e.abs("Escape")); err != nil {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
-	tr := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
+	tr := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
 	plans, err := e.svc.PreviewRename(e.ctx, []string{tr.ID}, "Escape/{title}")
 	if err != nil || plans[0].Status != PlanInvalid {
 		t.Fatalf("rename into symlink: %+v %v", plans, err)
@@ -362,7 +362,7 @@ func TestSymlinkedDirEscapes(t *testing.T) {
 	if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, "Escape"); err == nil {
 		t.Fatal("listing a symlink escape")
 	}
-	mp3, _ := os.ReadFile(e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3"))
+	mp3, _ := os.ReadFile(e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3"))
 	fields := map[string]string{"libraryId": fmt.Sprint(e.lib.ID), "dir": "Escape/sub"}
 	if _, err := e.svc.Upload(e.ctx, e.user, multipartBody(t, []upFile{{"x.mp3", mp3}}, fields)); err == nil {
 		t.Fatal("upload through a symlink escape")
@@ -372,7 +372,7 @@ func TestSymlinkedDirEscapes(t *testing.T) {
 	if err != nil || len(del.Errors) != 0 {
 		t.Fatalf("delete %+v %v", del, err)
 	}
-	dir := e.abs("Static Noise/Unknown Signals")
+	dir := e.abs("Synthetic Artist 4/Synthetic Album 4")
 	if err := os.RemoveAll(dir); err != nil {
 		t.Fatal(err)
 	}

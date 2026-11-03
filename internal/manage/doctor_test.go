@@ -65,8 +65,8 @@ func TestIssues(t *testing.T) {
 	}
 
 	// Duplicates: same normalized artist + title within 2 s.
-	orig := e.track("The Rainy Days/Blue Skies/01 Blue Skies.opus")
-	dup := model.Track{LibraryID: e.lib.ID, Path: "Dupes/blue skies.mp3", Title: "BLUE  SKIES", Artist: "the rainy days",
+	orig := e.track("Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus")
+	dup := model.Track{LibraryID: e.lib.ID, Path: "Dupes/synthetic album 3.mp3", Title: "SYNTHETIC  ALBUM 3", Artist: "synthetic artist 3",
 		Album: "Dupes", AlbumArtist: "x", AlbumID: "d", ArtistID: "a", AlbumArtistID: "x", Duration: orig.Duration + 1.5}
 	far := dup
 	far.Path, far.Duration = "Dupes/long.mp3", orig.Duration+30
@@ -97,10 +97,10 @@ func TestEncodingFromDBFields(t *testing.T) {
 
 func TestEncodingFixRawTags(t *testing.T) {
 	e := newEnv(t)
-	rel := "林雨晴/夏日微风 (2021)/02 海边的约定.mp3"
+	rel := "示例歌手1/测试专辑1 (2021)/02 测试歌曲1.mp3"
 	requireTags(t, e.abs(rel))
 	tr := e.track(rel)
-	bad := gbkMojibake(t, "海边的约定")
+	bad := gbkMojibake(t, "测试歌曲1")
 	if err := tags.Write(e.abs(rel), map[string][]string{"TITLE": {bad}}); err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestEncodingFixRawTags(t *testing.T) {
 	if err != nil || len(prev.Items) != 1 || prev.Result != nil {
 		t.Fatalf("preview %+v %v", prev, err)
 	}
-	if c := prev.Items[0].Changes["TITLE"]; prev.Items[0].Encoding != "gbk" || !slices.Equal(c.New, []string{"海边的约定"}) {
+	if c := prev.Items[0].Changes["TITLE"]; prev.Items[0].Encoding != "gbk" || !slices.Equal(c.New, []string{"测试歌曲1"}) {
 		t.Fatalf("fix %+v", prev.Items[0])
 	}
 	if raw, _ := tags.ReadRaw(e.abs(rel)); raw["TITLE"][0] != bad {
@@ -125,7 +125,7 @@ func TestEncodingFixRawTags(t *testing.T) {
 	if err != nil || res.Result == nil || len(res.Result.Updated) != 1 || len(res.Result.Errors) != 0 {
 		t.Fatalf("apply %+v %v", res, err)
 	}
-	if raw, _ := tags.ReadRaw(e.abs(rel)); raw["TITLE"][0] != "海边的约定" {
+	if raw, _ := tags.ReadRaw(e.abs(rel)); raw["TITLE"][0] != "测试歌曲1" {
 		t.Fatalf("not fixed: %q", raw["TITLE"])
 	}
 	if acts := e.logActions(tr.ID); len(acts) != 1 || acts[0] != "encoding" {
@@ -145,17 +145,17 @@ func TestListFolder(t *testing.T) {
 	if root.Parent != nil || root.Dir != "" || !root.Writable || len(root.Folders) != 8 {
 		t.Fatalf("root %+v", root)
 	}
-	l, err := e.svc.ListFolder(e.ctx, e.lib.ID, "/林雨晴/夏日微风 (2021)/")
+	l, err := e.svc.ListFolder(e.ctx, e.lib.ID, "/示例歌手1/测试专辑1 (2021)/")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if l.Parent == nil || *l.Parent != "林雨晴" || len(l.Folders) != 0 || len(l.Files) != 6 {
+	if l.Parent == nil || *l.Parent != "示例歌手1" || len(l.Folders) != 0 || len(l.Files) != 6 {
 		t.Fatalf("listing %+v", l)
 	}
-	if f := l.Files[0]; f.Name != "01 夏日微风.mp3" || !f.IsAudio || f.TrackID == nil || f.Path != "林雨晴/夏日微风 (2021)/01 夏日微风.mp3" {
+	if f := l.Files[0]; f.Name != "01 测试专辑1.mp3" || !f.IsAudio || f.TrackID == nil || f.Path != "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3" {
 		t.Fatalf("file %+v", f)
 	}
-	art, _ := e.svc.ListFolder(e.ctx, e.lib.ID, "林雨晴")
+	art, _ := e.svc.ListFolder(e.ctx, e.lib.ID, "示例歌手1")
 	if len(art.Files) != 1 || !art.Files[0].IsImage || art.Files[0].TrackID != nil {
 		t.Fatalf("artist dir %+v", art.Files)
 	}
@@ -164,7 +164,7 @@ func TestListFolder(t *testing.T) {
 			t.Errorf("%q accepted", bad)
 		}
 	}
-	if err := e.svc.RescanFolder(e.ctx, e.lib.ID, "林雨晴"); err != nil {
+	if err := e.svc.RescanFolder(e.ctx, e.lib.ID, "示例歌手1"); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -206,8 +206,8 @@ func TestPrepareCover(t *testing.T) {
 
 func TestSetAndRemoveCover(t *testing.T) {
 	e := newEnv(t)
-	dir := "Northern Echo/Aurora Lights/CD1"
-	rel := dir + "/1-01 Polar Night.flac"
+	dir := "Synthetic Artist 1/Synthetic Album 1/CD1"
+	rel := dir + "/1-01 Synthetic Track 1.flac"
 	requireTags(t, e.abs(rel))
 	tr := e.track(rel)
 	if err := os.WriteFile(e.abs(dir+"/Cover.PNG"), pngImage(t, 10, 10), 0o644); err != nil {
