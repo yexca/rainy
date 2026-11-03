@@ -39,8 +39,9 @@ and a yt-dlp install, and closes the database. The Compose file allows
 
 An edit log is an audit record, not a transaction journal capable of undoing
 every interrupted operation. Downloads and other operations interrupted by a
-shutdown or crash do not resume. Inspect the files, trash, and history before
-retrying a failed management operation.
+shutdown or crash do not resume; at the next start Rainy deletes the staged
+uploads and download work directories they left in `<data>/tmp`. Inspect the
+files, trash, and history before retrying a failed management operation.
 
 ## Playback and Optional Services
 

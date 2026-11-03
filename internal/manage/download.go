@@ -27,7 +27,8 @@ import (
 // from yt-dlp's metadata (and a square cover cropped from the thumbnail) through TagLib, and
 // then imports the files exactly like an upload (place): library lock, rescan, one
 // "download" edit_log row per file and a library event. Jobs live in memory; a restart
-// cancels them and New in package ytdlp removes their leftovers.
+// cancels them and New in package ytdlp removes their leftovers (New in this package
+// removes those of online downloads and uploads).
 
 // Downloader runs yt-dlp (implemented by *ytdlp.Service).
 type Downloader interface {

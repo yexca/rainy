@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"rainy/internal/config"
 	"rainy/internal/model"
 	"rainy/internal/store"
 )
@@ -174,4 +175,39 @@ func silentWAV() []byte {
 	_ = binary.Write(&wav, binary.LittleEndian, uint32(16000))
 	wav.Write(make([]byte, 16000))
 	return wav.Bytes()
+}
+
+// A crash leaves staged uploads and online download work directories in <data>/tmp; the
+// next start removes them and nothing else.
+func TestNewRemovesStaleStaging(t *testing.T) {
+	cfg := &config.Config{DataDir: t.TempDir()}
+	if err := cfg.EnsureDirs(); err != nil {
+		t.Fatal(err)
+	}
+	tmp := cfg.TmpDir()
+	write := func(rel string) {
+		t.Helper()
+		p := filepath.Join(tmp, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("upload-123.flac")
+	write("online-job-abc/download.part")
+	write("online-job-def/audio.flac")
+	write("notes.txt")
+
+	New(nil, nil, nil, nil, cfg)
+
+	for _, gone := range []string{"upload-123.flac", "online-job-abc", "online-job-def"} {
+		if _, err := os.Stat(filepath.Join(tmp, gone)); !errors.Is(err, os.ErrNotExist) {
+			t.Errorf("%s survived the restart (err %v)", gone, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(tmp, "notes.txt")); err != nil {
+		t.Errorf("an unrelated file was removed: %v", err)
+	}
 }

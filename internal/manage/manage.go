@@ -26,6 +26,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -67,8 +69,32 @@ type Service struct {
 }
 
 // New creates the manage service.
+//
+// New runs once at startup, before any upload or download can start, and removes the
+// staging files and work directories a crash left in cfg.TmpDir() (see removeStaleWork).
 func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events.Bus, cfg *config.Config) *Service {
+	removeStaleWork(cfg.TmpDir())
 	return newService(st, sc, art, bus, cfg)
+}
+
+// staleWorkPatterns name what this package stages in cfg.TmpDir(): upload files
+// (upload.go) and online download work directories (online.go). Link download work
+// directories ("ytdlp-job-*") are removed by ytdlp.New with the rest of yt-dlp's
+// "ytdlp-*" directories.
+var staleWorkPatterns = []string{"upload-*", "online-job-*"}
+
+// removeStaleWork deletes the staging files and work directories an earlier process left
+// in tmpDir. A normal shutdown removes them itself; a crash or SIGKILL does not, and
+// nothing could resume them.
+func removeStaleWork(tmpDir string) {
+	for _, pattern := range staleWorkPatterns {
+		stale, _ := filepath.Glob(filepath.Join(tmpDir, pattern))
+		for _, p := range stale {
+			if err := os.RemoveAll(p); err != nil {
+				slog.Warn("manage: removing leftover staging data", "name", filepath.Base(p), "err", err)
+			}
+		}
+	}
 }
 
 func newService(st *store.Store, sc fileScanner, art *artwork.Service, bus *events.Bus, cfg *config.Config) *Service {
