@@ -57,7 +57,7 @@ JSON logging; everything else uses the program defaults.
 | --- | --- | --- | --- |
 | `RAINY_ADDRESS` | `0.0.0.0` | same | Listen address |
 | `RAINY_PORT` | `7650` | same | Listen port. The image's built-in health check follows it; the Compose health check always requests port 7650 |
-| `RAINY_DATA_DIR` | `./config` | `/config` | Database, `secret.key`, caches, trash, and upload staging |
+| `RAINY_DATA_DIR` | `./config` | `/config` | Database, `secret.key`, caches, trash, upload staging, and downloads waiting for review |
 | `RAINY_MUSIC_DIR` | `./data` | `/data` | Default library, added automatically on first start when no library exists |
 | `RAINY_SCAN_INTERVAL` | `1h` | same | Default for the `scanInterval` setting; `0` disables periodic scans |
 | `RAINY_SCAN_ON_START` | `true` | same | Run a quick scan at startup |
@@ -125,6 +125,7 @@ that were never saved follow the defaults above.
 /config/cache/artwork/            resized cover cache (safe to delete)
 /config/trash/<libraryId>/...     deleted files, restorable from Library tools → Trash
 /config/tmp/                      upload staging and running downloads (ytdlp-job-*, online-job-*)
+/config/staging/<id>/             downloads waiting in Tracks → Review (audio file and item.json)
 /config/ytdlp/                    yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies
 ```
 

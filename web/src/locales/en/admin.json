@@ -136,6 +136,7 @@
       "transcodeBitrate": "Transcoding bitrate",
       "enableDownloads": "Allow downloads",
       "organizeByTags": "Organize added music by tags",
+      "reviewDownloads": "Review downloads before importing",
       "renamePattern": "Default rename pattern"
     },
     "help": {
@@ -150,6 +151,7 @@
       "transcodeBitrate": "Default bitrate for transcoded streams.",
       "enableDownloads": "Users with the download permission can save original files.",
       "organizeByTags": "Uploads, link downloads and online music are placed by the pattern below, under the folder chosen when adding them. When off, files keep their names in that folder.",
+      "reviewDownloads": "Link downloads and online music wait in Tracks › Review, where their tags can be corrected before they are placed in the library. Each download can still choose otherwise.",
       "renamePattern": "Used by Rename / organize and when added music is organized by tags."
     },
     "intervals": {

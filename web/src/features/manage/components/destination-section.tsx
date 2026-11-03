@@ -1,4 +1,4 @@
-import { FolderOpen, FolderTree, Settings2 } from 'lucide-react'
+import { ClipboardCheck, FolderOpen, FolderTree, Settings2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { useLibraries } from '@/features/admin/queries'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -15,16 +16,18 @@ import { FolderPicker } from './folder-picker'
 
 /**
  * Destination of added music (library and folder; whether files are organized by tags is a
- * server setting, shown here), shared by the Upload, Links and Online tabs. `children` are
- * extra options shown under the destination.
+ * server setting, shown here), shared by the Upload, Links and Online tabs. `review` adds the
+ * switch that holds downloads in Tracks › Review. `children` are extra options shown under
+ * the destination.
  */
-export function DestinationSection({ children }: { children?: ReactNode }) {
+export function DestinationSection({ children, review = false }: { children?: ReactNode; review?: boolean }) {
   const { t } = useTranslation('manage')
   const { libraries, limited } = useLibraries()
   const { isAdmin } = useAuth()
   const dir = useDestination((s) => s.dir)
   const setDir = useDestination((s) => s.setDir)
   const setLibraryId = useDestination((s) => s.setLibraryId)
+  const setReview = useDestination((s) => s.setReview)
   const target = useDestinationTarget()
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -97,6 +100,18 @@ export function DestinationSection({ children }: { children?: ReactNode }) {
           </Button>
         ) : null}
       </div>
+      {review ? (
+        <Label className="flex items-start gap-3 font-normal">
+          <Switch className="mt-0.5" checked={target.review} onCheckedChange={setReview} />
+          <span className="grid gap-1">
+            <span className="flex items-center gap-1.5 text-sm font-medium">
+              <ClipboardCheck className="size-4 text-muted-foreground" strokeWidth={1.75} aria-hidden />
+              {t('review.option')}
+            </span>
+            <span className="text-xs text-muted-foreground">{t('review.optionHint')}</span>
+          </span>
+        </Label>
+      ) : null}
       {children}
 
       <FolderPicker

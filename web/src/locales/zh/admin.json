@@ -136,6 +136,7 @@
       "transcodeBitrate": "转码码率",
       "enableDownloads": "允许下载",
       "organizeByTags": "按标签自动整理新增音乐",
+      "reviewDownloads": "下载后先确认再入库",
       "renamePattern": "默认命名格式"
     },
     "help": {
@@ -150,6 +151,7 @@
       "transcodeBitrate": "转码串流的默认码率。",
       "enableDownloads": "拥有下载权限的用户可以保存原始文件。",
       "organizeByTags": "上传、链接下载和在线音乐会按下方的命名格式，放入添加时所选的文件夹；关闭后文件按原名放入该文件夹。",
+      "reviewDownloads": "链接下载和在线音乐会先放在“曲目 › 待确认”，确认或修正标签后再放入音乐库；每次下载仍可单独选择。",
       "renamePattern": "用于“重命名 / 整理”，以及按标签自动整理新增的音乐。"
     },
     "intervals": {

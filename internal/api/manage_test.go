@@ -164,6 +164,8 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
 		{"GET", "/manage/metadata/cover"}, {"GET", "/manage/downloads"}, {"POST", "/manage/downloads"},
 		{"DELETE", "/manage/downloads/x"}, {"GET", "/manage/placement"},
+		{"GET", "/manage/staging"}, {"PATCH", "/manage/staging/x"}, {"GET", "/manage/staging/x/picture"},
+		{"POST", "/manage/staging/import"}, {"POST", "/manage/staging/discard"},
 	}
 	for _, rt := range manageRoutes {
 		if rec := e.do(rt[0], rt[1], "", nil); rec.Code != http.StatusUnauthorized {
@@ -441,11 +443,14 @@ func TestAdminSettingsAndSystem(t *testing.T) {
 	if !got.OrganizeByTags {
 		t.Fatalf("organizeByTags should be on by default: %+v", got)
 	}
-	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); !p.Organize || p.RenamePattern != got.RenamePattern {
+	if got.ReviewDownloads {
+		t.Fatalf("reviewDownloads should be off by default: %+v", got)
+	}
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); !p.Organize || p.RenamePattern != got.RenamePattern || p.Review {
 		t.Fatalf("placement %+v", p)
 	}
-	mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"organizeByTags": false, "renamePattern": "{artist}/{title}"}), 200)
-	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); p.Organize || p.RenamePattern != "{artist}/{title}" {
+	mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"organizeByTags": false, "renamePattern": "{artist}/{title}", "reviewDownloads": true}), 200)
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); p.Organize || p.RenamePattern != "{artist}/{title}" || !p.Review {
 		t.Fatalf("placement after the change %+v", p)
 	}
 
@@ -463,5 +468,35 @@ func TestAdminSettingsAndSystem(t *testing.T) {
 	}
 	if rec := e.do("POST", "/admin/cache/clear", tok, nil); rec.Code != http.StatusOK {
 		t.Fatalf("cache clear %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestManageStagingEndpoints(t *testing.T) {
+	e := newMgEnv(t)
+	list := mgDecode[struct {
+		Items []manage.StagedItem `json:"items"`
+	}](t, e.do("GET", "/manage/staging", e.mgrTok, nil), 200)
+	if list.Items == nil || len(list.Items) != 0 {
+		t.Fatalf("empty staging list %+v", list)
+	}
+	unknown := "AAAAAAAAAAAAAAAAAAAAAA"
+	if code := mgCode(t, e.do("PATCH", "/manage/staging/"+unknown, e.mgrTok, map[string]any{"tags": map[string]any{"TITLE": []string{"x"}}}), 404); code != "not_found" {
+		t.Errorf("patch unknown: %s", code)
+	}
+	if code := mgCode(t, e.do("GET", "/manage/staging/"+unknown+"/picture", e.mgrTok, nil), 404); code != "not_found" {
+		t.Errorf("picture unknown: %s", code)
+	}
+	if code := mgCode(t, e.do("POST", "/manage/staging/import", e.mgrTok, map[string]any{"ids": []string{}}), 400); code != "bad_request" {
+		t.Errorf("import nothing: %s", code)
+	}
+	if code := mgCode(t, e.do("POST", "/manage/staging/import", e.mgrTok, map[string]any{"ids": []string{unknown}, "onConflict": "replace"}), 400); code != "bad_request" {
+		t.Errorf("unknown policy: %s", code)
+	}
+	res := mgDecode[manage.StagedImportResult](t, e.do("POST", "/manage/staging/import", e.mgrTok, map[string]any{"ids": []string{unknown}}), 200)
+	if len(res.Errors) != 1 || res.Errors[0].ID != unknown || res.Imported == nil || res.Skipped == nil {
+		t.Fatalf("import of an unknown id %+v", res)
+	}
+	if got := mgDecode[map[string]int](t, e.do("POST", "/manage/staging/discard", e.mgrTok, map[string]any{"ids": []string{unknown}}), 200); got["discarded"] != 0 {
+		t.Fatalf("discard %+v", got)
 	}
 }

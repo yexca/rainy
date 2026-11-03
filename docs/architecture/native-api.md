@@ -33,7 +33,7 @@ Three guards protect the routes:
 | Guard | Applies to |
 | --- | --- |
 | Signed-in user | Their profile, password, and API key; browsing, search, streaming, covers, lyrics, favorites, ratings, playlists, queue, radio stations, events, their own listening report and history, mixes, the daily and weekly mixes and song picks, and their own scrobbling accounts |
-| Manager (`canManage` or administrator) | `/api/manage/*`: tags, tag rebuild, covers, lyrics, rename, placement, upload, online metadata lookup, link and online music downloads, delete, trash, missing-track purge, folders, doctor, encoding repair, and history |
+| Manager (`canManage` or administrator) | `/api/manage/*`: tags, tag rebuild, covers, lyrics, rename, placement, upload, online metadata lookup, link and online music downloads, downloads held for review, delete, trash, missing-track purge, folders, doctor, encoding repair, and history |
 | Administrator | `/api/admin/*`: users, libraries, scans, server settings, statistics, system information, cache, yt-dlp and its cookies, scrobbling credentials, and music sources; plus creating, editing, and deleting radio stations under `/api/radios` |
 
 Downloads additionally require the user's download permission (administrators

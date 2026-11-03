@@ -781,7 +781,9 @@ func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events
 `CloseDownloads()` cancels running jobs (called by `App.Close`). Download jobs: `StartDownload`, `DownloadJobs`,
 `RemoveDownload` behind §7.6 `/manage/downloads`. `(*Service).SetOnlineSource(o manage.OnlineSource)` (app passes
 `*lxmusic.Service`) enables `StartOnlineDownload` (§7.6 `/manage/online/downloads`); online jobs share the job list
-(`DownloadJob.Kind` `link` | `online`) but have their own three workers.
+(`DownloadJob.Kind` `link` | `online`) but have their own three workers. Jobs started with review hand their prepared
+files to the staging area (`ListStaged`, `UpdateStaged`, `StagedPicture`, `ImportStaged`, `DiscardStaged` behind §7.6
+`/manage/staging`) instead of `place`.
 The service's other exported methods back the §7.6 endpoints one to one; the HTTP contract is the public surface.
 Rules: every file operation goes through `util.SafeJoin` and `util.EnsureWithinRoot`, holds the scanner's library lock
 (waiting at most 90 s, then `409 conflict`), calls `scanner.RescanFiles` afterwards (old and new paths), writes an
@@ -1338,12 +1340,17 @@ served. Downloads (single files and album zips) need download permission: admin,
 | GET | `/api/manage/metadata/lyrics` | `provider, id` | `MetadataLyrics` (404 when the provider has none) |
 | GET | `/api/manage/metadata/cover` | `url` (a result's `coverUrl`/`thumbUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
 | GET | `/api/manage/downloads` | | `DownloadsStatus` |
-| POST | `/api/manage/downloads` | `{url, libraryId, dir?, organize?, format?: 'best'|'m4a'|'mp3'|'opus', playlist?}` | 202 `DownloadJob` |
+| POST | `/api/manage/downloads` | `{url, libraryId, dir?, organize?, review?, format?: 'best'|'m4a'|'mp3'|'opus', playlist?}` | 202 `DownloadJob` |
 | DELETE | `/api/manage/downloads/{id}` | | 204 (cancels a queued/running job; removes a finished one) |
 | GET | `/api/manage/online` | | `OnlineStatus` |
 | GET | `/api/manage/online/search` | `platform, q, page? (≥1), limit? (≤50, default 30)` | `OnlineSearchResult` |
 | GET | `/api/manage/online/cover` | `url` (a result's `coverUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
-| POST | `/api/manage/online/downloads` | `{songs: OnlineSong[] (1–50), quality?: '128k'|'320k'|'flac'|'flac24bit' (default flac), libraryId, dir?, organize?, lyrics?, cover?}` | 202 `{jobs: DownloadJob[]}` |
+| POST | `/api/manage/online/downloads` | `{songs: OnlineSong[] (1–50), quality?: '128k'|'320k'|'flac'|'flac24bit' (default flac), libraryId, dir?, organize?, review?, lyrics?, cover?}` | 202 `{jobs: DownloadJob[]}` |
+| GET | `/api/manage/staging` | | `{items: StagedItem[]}` (newest first) |
+| PATCH | `/api/manage/staging/{id}` | `{tags?: TagMap, libraryId?, dir?, organize?}` | `StagedItem` (404 for an unknown id) |
+| GET | `/api/manage/staging/{id}/picture` | | embedded picture bytes (404 if none; same headers as `/tracks/{id}/picture`) |
+| POST | `/api/manage/staging/import` | `{ids (1–500), onConflict?: 'keep'|'skip'}` (default keep) | `StagedImportResult` |
+| POST | `/api/manage/staging/discard` | `{ids (1–500)}` | `{discarded:number}` |
 
 Batch endpoints answer 200 with per-item errors; they answer `409 readonly` only when every item failed because the
 library is read-only. Waiting for the library lock gives up after 90 s with `409 conflict`. Deleting moves files to
@@ -1352,7 +1359,8 @@ library is read-only. Waiting for the library lock gives up after 90 s with `409
 sidecar stays with the file that remains. Edit-log `details` per action: `tags` / `lyrics` / `encoding`
 `{"changes":{KEY:{old,new}}}` (+ `target` for lyrics, `encoding` for encoding), `tag_rebuild` `{source}`, `rename`
 `{from,to}`, `restore` `{trashId,from,to}`, `delete` `{trashId,trashPath}` (+ `replacedBy` for replaced folder images),
-`cover` `{op,embedded,folderImage?}`, `upload` `{name,size}`, `download` (below), `purge` `{trashId}` or
+`cover` `{op,embedded,folderImage?}`, `upload` `{name,size}`, `download` (below; `reviewed: true` when imported from
+the staging area), `purge` `{trashId}` or
 `{missing:true}`.
 
 **Imports** (`/upload`, `/downloads`, `/online/downloads`) share one placement rule. `organize` is optional: when a
@@ -1389,6 +1397,24 @@ same source for a new link once, like lx-music — and the job fails with every 
 as same-timestamp lines) and the catalogue cover through TagLib, and imports the file like an upload (not organized:
 `<dir>/<title> - <artists>.<ext>`; organized: the rename pattern) with one `download` edit-log row
 (`{title, source: the song's catalogue page, quality, via: the source name, size}`).
+
+**Staging** (downloads held for review). `review` is optional like `organize`: when a download request leaves it out,
+`settings.reviewDownloads` (default off) decides; the job keeps the value (`DownloadJob.review`) and a retry sends it
+again. A job with review does not import: each prepared file moves into `<data>/staging/<id>/` (assembled under a
+hidden `.new-<id>` name and renamed, so listed items are complete; leftovers are removed at startup) with an `item.json`
+manifest (destination, source, the reported title, who started it, the edit-log details), and the job finishes `done`
+with `stagedIds` (and no `trackIds`). Ids are `util.NewID` values; any other id is unknown (404). `StagedItem.tags` are
+the file's raw tags without `LYRICS`; `target` is where an import would place the file now (the same rule as imports,
+for that one file); `error` says why it cannot be decided (library gone, unreadable file). `conflict.exists` means the
+target name is taken (case-insensitive); `sameSource` lists tracks still in a library that a `download` edit-log row
+with the same `details.source` imported; `similar` lists tracks with the Library Doctor's duplicate key (normalized
+artist + title, duration within 2 s); both at most 5. `PATCH` validates tags like `POST /tags` (`[]` deletes) and writes
+only keys whose values change, through TagLib, and validates a new destination like a download request. `import`
+groups the items by library, folder and `organize` and places each group like an upload (library lock, rescan, one
+`download` edit-log row per file, a `library` event); imported items leave the staging area. With `skip`, an item
+whose target is taken stays staged and is listed in `skipped`; with `keep`, ` (n)` is appended. Failures (unknown id,
+missing library, read-only library) leave the item staged and are listed in `errors` with the staged id. Staged
+items are not part of any library, are visible to every manager, and survive restarts.
 
 Tag keys are TagLib property names, upper-case (`TITLE, ARTIST, ALBUM, ALBUMARTIST, TRACKNUMBER,
 DISCNUMBER, DATE, GENRE, COMPOSER, COMMENT, LYRICS, BPM, COMPILATION, DISCSUBTITLE, …`). `[]` deletes.
@@ -1545,7 +1571,7 @@ export interface TrackTags {
 export interface TagEdit { trackId: string; tags: TagMap }
 export interface ItemError { trackId: string; path: string; error: string }
 export interface BatchResult { updated: Track[]; errors: ItemError[]; untagged?: string[] /*imports: new tracks without an artist or album tag*/ }
-export interface Placement { organize: boolean; renamePattern: string }
+export interface Placement { organize: boolean; renamePattern: string; review: boolean /*settings.reviewDownloads*/ }
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
 export interface FolderEntry { name: string; path: string }
 export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
@@ -1570,8 +1596,9 @@ export type DownloadJobKind = 'link' | 'online'
 export interface DownloadJob {
   id: string; kind: DownloadJobKind; url: string /*online: the song's catalogue page*/; site: '' | DownloadSite; title: string; status: DownloadJobStatus
   phase: '' | 'downloading' | 'processing'; progress: number /*0…1, -1 unknown*/; item: number; items: number
-  speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; format: '' | DownloadFormat
-  playlist: boolean; trackIds: string[]; untagged: string[] /*the trackIds without an artist or album tag*/; errors: ItemError[]
+  speed: number; eta: number; error: string; libraryId: number; dir: string; organize: boolean; review: boolean
+  format: '' | DownloadFormat; playlist: boolean; trackIds: string[]; untagged: string[] /*the trackIds without an artist or album tag*/
+  stagedIds: string[] /*review: the staged items*/; errors: ItemError[]
   createdBy: string; createdAt: number; startedAt: number; finishedAt: number
   online: OnlineJob | null
 }
@@ -1586,6 +1613,16 @@ export interface OnlineSearchResult { items: OnlineSong[]; total: number; page: 
 export interface OnlineStatus { enabled: boolean; sources: number; platforms: { id: OnlinePlatform; qualities: OnlineQualityType[] }[] }
 export interface OnlineJob { song: OnlineSong; quality: OnlineQualityType; got: '' | OnlineQualityType; source: string; lyrics: boolean; cover: boolean }
 export interface DownloadsStatus { enabled: boolean; ready: boolean; sites: { id: DownloadSite; cookies: boolean }[]; jobs: DownloadJob[] }
+export interface StagedItem {
+  id: string; kind: DownloadJobKind; source: string; site: '' | DownloadSite; title: string; name: string
+  format: string; size: number; duration: number; libraryId: number; dir: string; organize: boolean
+  createdBy: string; createdAt: number; tags: TagMap /*without LYRICS*/; hasCover: boolean
+  target: string /*'' with error*/; error: string; conflict: StagedConflict
+}
+export interface StagedConflict { exists: boolean; sameSource: StagedMatch[]; similar: StagedMatch[] }
+export interface StagedMatch { trackId: string; libraryId: number; path: string }
+export type StagedConflictPolicy = 'keep' | 'skip'
+export interface StagedImportResult { imported: string[]; skipped: string[]; errors: { id: string; error: string }[]; updated: Track[]; untagged: string[] }
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -1600,7 +1637,7 @@ export interface ScanStatus {
 export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string; organizeByTags: boolean
-  fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
+  reviewDownloads: boolean; fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean; lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string
   lastfmEnabled: boolean; listenBrainzEnabled: boolean
 }
@@ -1852,12 +1889,15 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 - **PWA**: `vite-plugin-pwa` (generateSW, `registerType: 'prompt'` with an "update available" toast), manifest (name "Rainy", short_name "Rainy", `display: standalone`, theme/background colours for light+dark, icons 64/192/512/maskable + apple-touch-icon 180 and `favicon.ico`, generated by `pnpm generate-pwa-assets` from `public/icon-source.png` (rounded tile) and `public/icon-source-maskable.png` (full bleed), which the precache ignores; `webp` is precached so the mascot art works offline), iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`, `viewport-fit=cover`), navigateFallback `index.html` with denylist `/api`, `/rest`. Runtime caching: `/api/cover/*` CacheFirst (500 entries, 30 days); never cache `/api/stream`, `/api/download`, `/api/events`.
 
 ### 9.5 Management UI
-- **Tracks** (sidebar entry; page title "Tracks") has four route tabs: Metadata, Upload, Links, Online. Upload, Links and
-  Online share the destination (`useDestination`, `DestinationSection`: library and folder, kept while switching tabs)
+- **Tracks** (sidebar entry; page title "Tracks") has five route tabs: Metadata, Upload, Links, Online, Review. Upload,
+  Links and Online share the destination (`useDestination`, `DestinationSection`: library and folder, kept while switching tabs)
   and the server job list (`DownloadJobs`, links on Links, online music on Online; `useJobNotifications` toasts finished
   jobs and refreshes the library). Organizing by tags is not chosen per tab: the three tabs send no `organize`, so
   `settings.organizeByTags` applies to all of them; `DestinationSection` shows the current behaviour and pattern from
-  `GET /manage/placement` (with a link to the server settings for administrators). Tracks that arrive without an artist
+  `GET /manage/placement` (with a link to the server settings for administrators). On Links and Online the destination
+  also has "Review before importing" (initially `placement.review`, changed for the session in `useDestination`), which
+  every download request sends as `review`; a job that staged files shows a "Review" button and `useJobNotifications`
+  toasts with an action to open the Review tab. Tracks that arrive without an artist
   or album tag (`untagged`) are prompted for the same way everywhere (`promptUntagged`): a warning toast with a "Fill in
   tags" action when the batch or job finishes, and a "Fill in tags" button on the upload row / job row; both open the tag
   editor on those tracks.
@@ -1883,6 +1923,14 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   album, duration, the quality badge a download would ask for with all sizes in its title, catalogue page link, a
   download button); "Load more" pages through results (`useInfiniteQuery`, key `['online-search', platform, q]`, not a
   library root). A floating bar downloads the selection (sent in batches of 50).
+- **Review** `/manage/review` (`stagingQuery`, key `['manage', 'staging']`): staged downloads as rows (checkbox, embedded
+  cover from `/manage/staging/{id}/picture`, title — artists · album, the target path or the error, format · size ·
+  duration · kind · age · who, conflict chips: file exists / downloaded before / n similar), a sticky bar (select all,
+  conflict policy keep / skip, remembered; Import; Discard with confirmation), and an edit dialog (`ReviewDialog`;
+  title, artist, album, album artist, track, disc, year or date, genre; library, folder, organize; the current target;
+  the conflicting paths). `lib/review.ts` turns the form into a tag patch that only touches the fields the user changed;
+  Save sends `PATCH` and shows the new target, "Save and import" saves first. Imports toast imported / skipped / failed
+  counts and prompt for untagged tracks (`promptUntagged`).
 - **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (cards with path, counts, writable badge; quick/full scan buttons; live progress via `/api/events`), server settings form, system info (versions, ffmpeg, sizes, clear cache).
   Settings tabs General / yt-dlp / Sources / Scrobbling / System. *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and

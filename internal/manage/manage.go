@@ -66,14 +66,18 @@ type Service struct {
 	downloader Downloader   // yt-dlp; nil until SetDownloader
 	online     OnlineSource // lx-music sources; nil until SetOnlineSource
 	dls        *downloads
+
+	stageMu sync.Mutex // the staging directory (staging.go)
 }
 
 // New creates the manage service.
 //
 // New runs once at startup, before any upload or download can start, and removes the
-// staging files and work directories a crash left in cfg.TmpDir() (see removeStaleWork).
+// staging files and work directories a crash left in cfg.TmpDir() (see removeStaleWork)
+// and half-written items in cfg.StagingDir(). Downloads waiting for review are kept.
 func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events.Bus, cfg *config.Config) *Service {
 	removeStaleWork(cfg.TmpDir())
+	removeStaleStaging(cfg.StagingDir())
 	return newService(st, sc, art, bus, cfg)
 }
 

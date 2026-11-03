@@ -2,6 +2,7 @@ import {
   AudioLines,
   AudioWaveform,
   ChartColumn,
+  ClipboardCheck,
   Disc3,
   Download,
   FolderTree,
@@ -81,6 +82,7 @@ export const TRACKS_SECTION: NavSection = {
     { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
     { to: '/manage/links', labelKey: 'nav.links', icon: Link2 },
     { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
+    { to: '/manage/review', labelKey: 'nav.review', icon: ClipboardCheck },
   ],
 }
 

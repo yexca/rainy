@@ -25,6 +25,7 @@ On the host, these live in the folder configured by `RAINY_DATA_PATH`
 | `ytdlp/` | yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies | Optional; Rainy can install yt-dlp again |
 | `cache/` | Resized cover images | No; rebuilt on demand |
 | `tmp/` | Upload staging and running downloads | No |
+| `staging/` | Downloads waiting in Tracks → Review, with their destination and source | Optional; they can be downloaded again |
 
 The library index (tracks, albums, artists, genres) can be rebuilt by
 rescanning, but favorites, ratings, playlists, play counts, and the edit

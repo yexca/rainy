@@ -245,6 +245,10 @@ func (c *Config) TrashDir() string { return filepath.Join(c.DataDir, "trash") }
 // TmpDir is the upload staging directory.
 func (c *Config) TmpDir() string { return filepath.Join(c.DataDir, "tmp") }
 
+// StagingDir holds downloads waiting for review before they are imported, one directory
+// per item (<StagingDir>/<id>/).
+func (c *Config) StagingDir() string { return filepath.Join(c.DataDir, "staging") }
+
 // YtdlpDir holds the yt-dlp binary Rainy installs, its cache and the encrypted cookies.
 func (c *Config) YtdlpDir() string { return filepath.Join(c.DataDir, "ytdlp") }
 
@@ -253,7 +257,7 @@ func (c *Config) SecretKeyPath() string { return filepath.Join(c.DataDir, "secre
 
 // EnsureDirs creates the data directory layout.
 func (c *Config) EnsureDirs() error {
-	for _, d := range []string{c.DataDir, c.CacheDir(), c.ArtworkCacheDir(), c.TrashDir(), c.TmpDir()} {
+	for _, d := range []string{c.DataDir, c.CacheDir(), c.ArtworkCacheDir(), c.TrashDir(), c.TmpDir(), c.StagingDir()} {
 		if err := os.MkdirAll(d, 0o755); err != nil {
 			return fmt.Errorf("creating %s: %w", d, err)
 		}

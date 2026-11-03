@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CircleAlert, CircleCheck, Download, ExternalLink, ListMusic, LoaderCircle, RotateCw, Tags, X } from 'lucide-react'
+import { CircleAlert, CircleCheck, ClipboardCheck, Download, ExternalLink, ListMusic, LoaderCircle, RotateCw, Tags, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -58,12 +59,13 @@ function DownloadRow({ job, onRemove }: { job: DownloadJob; onRemove: () => void
         const { song, quality, lyrics, cover } = job.online
         await api.manage.online.download({
           songs: [song], quality, lyrics, cover, libraryId: job.libraryId, dir: job.dir || undefined, organize: job.organize,
+          review: job.review,
         })
         return
       }
       await api.manage.downloads.start({
         url: job.url, libraryId: job.libraryId, dir: job.dir || undefined, organize: job.organize,
-        format: job.format || undefined, playlist: job.playlist,
+        format: job.format || undefined, playlist: job.playlist, review: job.review,
       })
     },
     onSuccess: () => {
@@ -74,6 +76,7 @@ function DownloadRow({ job, onRemove }: { job: DownloadJob; onRemove: () => void
   })
   const name = jobName(job)
   const untagged = job.untagged ?? []
+  const staged = job.stagedIds ?? []
 
   return (
     <li className="flex items-center gap-3 px-3 py-2.5">
@@ -95,7 +98,14 @@ function DownloadRow({ job, onRemove }: { job: DownloadJob; onRemove: () => void
           </a>
         </Button>
       ) : null}
-      {job.status === 'done' && untagged.length > 0 ? (
+      {job.status === 'done' && staged.length > 0 ? (
+        <Button asChild variant="outline" size="sm" className="shrink-0 max-sm:h-10">
+          <Link to="/manage/review">
+            <ClipboardCheck />
+            {t('review.open')}
+          </Link>
+        </Button>
+      ) : job.status === 'done' && untagged.length > 0 ? (
         <Button variant="outline" size="sm" className="shrink-0 max-sm:h-10" onClick={() => openTagEditor(untagged)}>
           <Tags />
           {t('untagged.fill')}
@@ -155,7 +165,8 @@ function JobDetail({ job }: { job: DownloadJob }) {
     const eta = job.phase !== 'processing' ? formatEta(job.eta) : ''
     if (eta) parts.push(t('download.eta', { time: eta }))
   } else if (job.status === 'done') {
-    parts.push(t('download.imported', { count: job.trackIds.length }))
+    if (job.stagedIds?.length) parts.push(t('review.waiting', { count: job.stagedIds.length }))
+    if (job.trackIds.length > 0 || !job.stagedIds?.length) parts.push(t('download.imported', { count: job.trackIds.length }))
     if (job.untagged?.length) parts.push(t('untagged.imported', { count: job.untagged.length }))
     if (via) parts.push(via)
     if (job.error) parts.push(job.error)

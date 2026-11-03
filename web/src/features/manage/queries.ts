@@ -20,6 +20,7 @@ export const manageKeys = {
   downloads: ['manage', 'downloads'] as const,
   online: ['manage', 'online'] as const,
   placement: ['manage', 'placement'] as const,
+  staging: ['manage', 'staging'] as const,
   /** Online search results: not a library root, so library events don't refetch them. */
   onlineSearch: (platform: string, q: string) => ['online-search', platform, q] as const,
   /** Paged track table of the library manager (`tracks` root). */
@@ -45,6 +46,12 @@ export const downloadsQuery = queryOptions({
 export const onlineStatusQuery = queryOptions({
   queryKey: manageKeys.online,
   queryFn: ({ signal }) => api.manage.online.status({ signal }),
+})
+
+/** Downloads waiting for review (Tracks › Review). */
+export const stagingQuery = queryOptions({
+  queryKey: manageKeys.staging,
+  queryFn: async ({ signal }) => (await api.manage.staging.list({ signal })).items,
 })
 
 /** Where uploads and downloads go (the server settings, readable by managers). */

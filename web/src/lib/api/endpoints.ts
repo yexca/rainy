@@ -62,9 +62,13 @@ import type {
   SearchResult,
   Settings,
   SongPicks,
+  StagedConflictPolicy,
+  StagedImportResult,
+  StagedItem,
   StarType,
   SystemInfo,
   TagEdit,
+  TagMap,
   Track,
   TrackTags,
   TrashEntry,
@@ -237,6 +241,8 @@ export interface StartDownloadInput {
   format?: DownloadFormat
   /** Download the whole playlist the link belongs to (at most 100 entries). */
   playlist?: boolean
+  /** Hold the files in Tracks › Review instead of importing them. Omit to follow `settings.reviewDownloads`. */
+  review?: boolean
 }
 export interface MetadataSearchParams { provider: MetadataProviderId; q: string; limit?: number; region?: string }
 export interface OnlineSearchParams { platform: OnlinePlatform; q: string; page?: number; limit?: number }
@@ -251,7 +257,11 @@ export interface OnlineDownloadInput {
   lyrics?: boolean
   /** Embed the catalogue's cover. */
   cover?: boolean
+  /** Hold the files in Tracks › Review instead of importing them. Omit to follow `settings.reviewDownloads`. */
+  review?: boolean
 }
+/** Changes to a staged download: tags to write (other keys untouched, `[]` deletes) and its destination. */
+export interface StagedUpdateInput { tags?: TagMap; libraryId?: number; dir?: string; organize?: boolean }
 export interface ImportSourceInput { script?: string; url?: string }
 export interface UpdateSourceInput { enabled?: boolean; allowUpdateAlert?: boolean }
 
@@ -513,6 +523,16 @@ export const api = {
       coverUrl: (url: string) => apiUrl('/manage/online/cover', { url }),
       download: (body: OnlineDownloadInput) =>
         request<{ jobs: DownloadJob[] }>('/manage/online/downloads', { method: 'POST', body }),
+    },
+    /** Downloads waiting for review (jobs started with `review`). */
+    staging: {
+      list: (opts?: CallOptions) => request<{ items: StagedItem[] }>('/manage/staging', opts),
+      update: (id: string, body: StagedUpdateInput) => request<StagedItem>(`/manage/staging/${seg(id)}`, { method: 'PATCH', body }),
+      /** The cover embedded in a staged file (404 when none) — for `<img src>`. */
+      pictureUrl: (id: string, version?: string | number) => apiUrl(`/manage/staging/${seg(id)}/picture`, { v: version }),
+      import: (ids: string[], onConflict: StagedConflictPolicy) =>
+        request<StagedImportResult>('/manage/staging/import', { method: 'POST', body: { ids, onConflict } }),
+      discard: (ids: string[]) => request<{ discarded: number }>('/manage/staging/discard', { method: 'POST', body: { ids } }),
     },
   },
 

@@ -158,7 +158,7 @@ function OnlineSearch() {
       const jobs = []
       for (const part of chunk(list, BATCH)) {
         const res = await api.manage.online.download({
-          songs: part, quality, lyrics, cover, libraryId: target.libraryId, dir: target.dir || undefined,
+          songs: part, quality, lyrics, cover, libraryId: target.libraryId, dir: target.dir || undefined, review: target.review,
         })
         jobs.push(...res.jobs)
       }
@@ -210,6 +210,7 @@ function OnlineSearch() {
     t(`onlineMusic.qualities.${quality}`),
     lyrics ? t('onlineMusic.withLyrics') : '',
     cover ? t('onlineMusic.withCover') : '',
+    target.review ? t('review.optionShort') : '',
   ].filter(Boolean)
 
   return (
@@ -231,7 +232,7 @@ function OnlineSearch() {
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <DestinationSection>
+          <DestinationSection review>
             <div className="grid gap-4 border-t pt-4">
               <div className="grid gap-1.5">
                 <Label className="text-[13px] font-medium text-foreground/75">{t('onlineMusic.quality')}</Label>

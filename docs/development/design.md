@@ -135,7 +135,7 @@ match.
 
 Navigation is tiered so everyday listening stays uncluttered. Managers get
 three sections, each a single sidebar item: **Tracks** (metadata, upload,
-links, online), **Library tools** (folders, doctor, trash, history), and, for
+links, online, review), **Library tools** (folders, doctor, trash, history), and, for
 admins, **Admin** (users, libraries, server settings, and one tab per further
 server settings page: yt-dlp, sources, scrobbling, and system). A section's pages are
 horizontal tabs at the top of each of its pages, so the sidebar never grows a
