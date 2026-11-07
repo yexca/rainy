@@ -15,11 +15,21 @@ import { toast } from 'sonner'
 import { create, type StoreApi, type UseBoundStore } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+import { MOBILE_QUERY } from '@/hooks/use-media-query'
 import type { Track } from '@/lib/api/types'
 import i18n from '@/lib/i18n'
 
 import { autoEntries, manualInsertAt } from './lib/infinite'
 import { isLongTrack, withoutLongTracks, type LongTrackFilter } from './lib/long-tracks'
+import {
+  DEFAULT_NOW_PLAYING_LYRICS,
+  LANDSCAPE_PHONE_QUERY,
+  openingPanel,
+  rememberLyrics,
+  sanitizeNowPlayingLyrics,
+  type NowPlayingLyrics,
+  type NowPlayingSurface,
+} from './lib/now-playing-lyrics'
 import { longTrackLimit, usePlaybackPrefs } from './prefs'
 import type { PlayableTrack, PlayerPanel, RepeatMode } from './types'
 
@@ -50,6 +60,8 @@ export interface PlayerState {
   muted: boolean
   nowPlayingOpen: boolean
   panel: PlayerPanel
+  /** Whether Now Playing opens on the lyrics, per surface (`lib/now-playing-lyrics.ts`). */
+  nowPlayingLyrics: NowPlayingLyrics
   /** Unshuffled order while `shuffle` is on (same entry objects as `queue`), else null. */
   originalQueue: PlayableTrack[] | null
 
@@ -87,7 +99,9 @@ export interface PlayerState {
   toggleShuffle(): void
   cycleRepeat(): void
   toggleInfinite(): void
+  /** Opening shows the lyrics when the surface remembers them; closing restores the previous panel while it is still lyrics. */
   setNowPlayingOpen(open: boolean): void
+  /** Inside Now Playing this also remembers whether the surface shows the lyrics. */
   setPanel(p: PlayerPanel): void
   /** Replace the queue without starting playback (startup restore). */
   restoreQueue(snapshot: QueueSnapshot): void
@@ -116,6 +130,12 @@ function shuffled<T>(items: readonly T[]): T[] {
 function shuffleAround(queue: readonly PlayableTrack[], current: PlayableTrack | undefined): PlayableTrack[] {
   if (!current) return shuffled(queue)
   return [current, ...shuffled(queue.filter((t) => t !== current))]
+}
+
+/** Which Now Playing surface this viewport gets (the same queries as `NowPlayingSheet`). */
+function nowPlayingSurface(): NowPlayingSurface {
+  if (typeof window === 'undefined' || !window.matchMedia) return 'stage'
+  return window.matchMedia(MOBILE_QUERY).matches || window.matchMedia(LANDSCAPE_PHONE_QUERY).matches ? 'sheet' : 'stage'
 }
 
 /** The panel shown before Now Playing opened, restored when it closes. */
@@ -152,6 +172,7 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       muted: false,
       nowPlayingOpen: false,
       panel: 'none',
+      nowPlayingLyrics: DEFAULT_NOW_PLAYING_LYRICS,
       originalQueue: null,
 
       playTracks: (tracks, startIndex, opts) => {
@@ -394,18 +415,25 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       },
 
       setNowPlayingOpen: (open) => {
-        const { nowPlayingOpen, panel, queue, index } = get()
+        const { nowPlayingOpen, panel, queue, index, nowPlayingLyrics } = get()
         if (open === nowPlayingOpen) return
         if (open) {
-          // Now Playing opens on the lyrics (radio has none: it keeps the artwork).
           panelBeforeNowPlaying = panel
-          set({ nowPlayingOpen: true, panel: queue[index]?.isRadio ? panel : 'lyrics' })
+          const showLyrics = nowPlayingLyrics[nowPlayingSurface()]
+          set({ nowPlayingOpen: true, panel: openingPanel(panel, showLyrics, !!queue[index]?.isRadio) })
           return
         }
         // The side panel / floating window gets its view back unless another one was picked.
         set({ nowPlayingOpen: false, panel: panel === 'lyrics' ? panelBeforeNowPlaying : panel })
       },
-      setPanel: (panel) => set({ panel }),
+      setPanel: (panel) => {
+        const { nowPlayingOpen, nowPlayingLyrics } = get()
+        if (!nowPlayingOpen) {
+          set({ panel })
+          return
+        }
+        set({ panel, nowPlayingLyrics: rememberLyrics(nowPlayingLyrics, nowPlayingSurface(), panel) })
+      },
 
       restoreQueue: ({ queue, index, shuffle, originalQueue }) => {
         if (queue.length === 0) {
@@ -446,7 +474,17 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
       version: 1,
       storage: createJSONStorage(() => localStorage),
       // Preferences only; the queue is persisted by the engine (`lib/queue-storage.ts`).
-      partialize: (s) => ({ volume: s.volume, muted: s.muted, repeat: s.repeat, infinite: s.infinite }),
+      partialize: (s) => ({
+        volume: s.volume,
+        muted: s.muted,
+        repeat: s.repeat,
+        infinite: s.infinite,
+        nowPlayingLyrics: s.nowPlayingLyrics,
+      }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PlayerState>
+        return { ...current, ...p, nowPlayingLyrics: sanitizeNowPlayingLyrics(p.nowPlayingLyrics) }
+      },
     },
   ),
 )

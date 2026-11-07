@@ -15,6 +15,9 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   bar still hides and pins as before. The floating mini bar is gone: the
   layout menu offers full screen, floating window, and bottom bar. The corner
   mascot sits on the bar near its right end.
+- The full-screen player remembers whether you left the lyrics open. On
+  phones it starts on the artwork until you open the lyrics; on tablets and
+  desktops it starts on the lyrics until you close them.
 
 </details>
 

@@ -95,7 +95,9 @@ Inactivity on, music stops while you work in other apps.
 
 ## Lyrics
 
-Now Playing opens on the lyrics; the lyrics button switches back to the artwork.
+The lyrics button in Now Playing switches between the lyrics and the artwork.
+Now Playing opens the way you left it: on a phone it starts on the artwork, on a
+larger screen on the lyrics, and each remembers your choice in this browser.
 The player bar opens them in a side panel. Synced lyrics (from `.lrc`
 files or timed embedded lyrics) highlight the current line and scroll with the
 music; tap a line to jump to it. Plain lyrics scroll normally.
