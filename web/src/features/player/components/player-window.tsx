@@ -21,7 +21,7 @@ const FLOATING_SPRING = { type: 'spring', stiffness: 420, damping: 38 } as const
  * Floating Now Playing window (`window` dock mode): a bottom-right card with the artwork
  * backdrop, artwork (springs smaller while paused), title, scrubber, transport, volume and the
  * lyrics / queue toggles, which swap the artwork for the panel. The grabber shrinks it to the
- * mini bar; the header also has the layout menu and full screen. Not modal: the page stays
+ * bottom bar; the header also has the layout menu and full screen. Not modal: the page stays
  * usable and the global shortcuts keep working.
  */
 export function PlayerWindow({ track }: { track: PlayableTrack }) {
@@ -51,7 +51,7 @@ export function PlayerWindow({ track }: { track: PlayableTrack }) {
         </span>
         <button
           type="button"
-          onClick={() => setMode('compact')}
+          onClick={() => setMode('bar')}
           aria-label={t('dock.shrink')}
           title={t('dock.shrink')}
           className="group/grab grid h-8 w-16 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"

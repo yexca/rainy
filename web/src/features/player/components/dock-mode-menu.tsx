@@ -1,4 +1,4 @@
-import { AppWindow, Maximize2, PanelBottom, PictureInPicture2, RectangleHorizontal } from 'lucide-react'
+import { AppWindow, Maximize2, PanelBottom, PictureInPicture2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -24,7 +24,6 @@ const TOOLTIP_QUIET = 400
 
 const MODE_ICONS: Record<DockMode, typeof PanelBottom> = {
   window: AppWindow,
-  compact: RectangleHorizontal,
   bar: PanelBottom,
 }
 
@@ -32,7 +31,7 @@ const MODE_ICONS: Record<DockMode, typeof PanelBottom> = {
 const FULL_SCREEN = 'fullscreen'
 
 /**
- * "Player layout" menu (tablet / desktop): full screen, floating window, floating mini bar or
+ * "Player layout" menu (tablet / desktop), three layouts: full screen, floating window or
  * bottom bar. Full screen opens over the current layout and returns to it on close.
  */
 export function DockModeMenu({

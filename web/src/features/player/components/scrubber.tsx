@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
+import { seekByKey } from '../hooks/seek-by-key'
 import { useSliderDrag } from '../hooks/use-slider-drag'
 import { usePlayback, usePlayer, type PlaybackState } from '../store'
 
 export type PlayerTone = 'sheet' | 'bar'
 
-const KEY_STEP = 5
-const PAGE_STEP = 30
 
 interface ScrubberProps {
   /** `sheet`: light-on-artwork (Now Playing), times below. `bar`: themed, times at the sides. */
@@ -85,19 +84,7 @@ export function Scrubber({ tone, disabled, className }: ScrubberProps) {
   })
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (inactive) return
-    const s = usePlayback.getState()
-    let target: number | null = null
-    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') target = s.currentTime + KEY_STEP
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') target = s.currentTime - KEY_STEP
-    else if (event.key === 'PageUp') target = s.currentTime + PAGE_STEP
-    else if (event.key === 'PageDown') target = s.currentTime - PAGE_STEP
-    else if (event.key === 'Home') target = 0
-    else if (event.key === 'End') target = Math.max(0, s.duration - 1)
-    if (target === null) return
-    event.preventDefault()
-    event.stopPropagation()
-    s.seek(target)
+    if (!inactive) seekByKey(event)
   }
 
   const dragging = drag !== null

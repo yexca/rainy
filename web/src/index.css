@@ -62,14 +62,16 @@
   /* Player chrome + safe areas (docs/architecture/contract.md §9.3). */
   --tabbar-h: 49px;
   --miniplayer-h: 56px;
-  --playerbar-h: 80px;
+  --playerbar-h: 56px;
+  /* The bottom bar floats this far above the bottom edge (and at least this far from the sides). */
+  --playerbar-gap: 1.25rem;
   --player-window-w: 400px;
-  --compact-player-h: 68px;
   /* Tablet/desktop player chrome (defaults = bottom bar; per layout below): full-width bottom
-     space (sidebar, side panel), page clearance (.page-pad) and the toast offsets. */
-  --player-reserve: calc(var(--playerbar-h) + var(--safe-bottom));
-  --player-clearance: var(--player-reserve);
-  --player-toast-bottom: calc(var(--player-reserve) + 16px);
+     space (sidebar, side panel — the bar floats over the content between them, so none),
+     page clearance (.page-pad) and the toast offsets. */
+  --player-reserve: var(--safe-bottom);
+  --player-clearance: calc(var(--playerbar-h) + var(--playerbar-gap) + var(--safe-bottom));
+  --player-toast-bottom: calc(var(--player-clearance) + 12px);
   --player-toast-right: 16px;
   /* Mascot companion: right offset (bottom = --player-clearance). */
   --mascot-right: calc(1rem + var(--safe-right));
@@ -269,7 +271,7 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Player layouts: <html data-player-dock="bar|collapsed|window|compact|idle">               */
+/* Player layouts: <html data-player-dock="bar|collapsed|window|idle">                       */
 /* (features/player/lib/dock.ts). "bar" is the default defined above.                        */
 /* ------------------------------------------------------------------------------------------ */
 :root[data-player-dock="collapsed"],
@@ -278,12 +280,6 @@
   --player-reserve: var(--safe-bottom);
   --player-clearance: var(--safe-bottom);
   --player-toast-bottom: calc(var(--safe-bottom) + 16px);
-}
-:root[data-player-dock="compact"] {
-  --player-reserve: var(--safe-bottom);
-  --player-clearance: calc(var(--compact-player-h) + 1.5rem + var(--safe-bottom));
-  --player-toast-bottom: calc(var(--player-clearance) + 12px);
-  --player-toast-right: calc(1.5rem + var(--safe-right));
 }
 :root[data-player-dock="window"] {
   --mascot-right: calc(var(--player-window-w) + 2.5rem + var(--safe-right));

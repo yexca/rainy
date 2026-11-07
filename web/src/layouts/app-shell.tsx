@@ -49,7 +49,7 @@ const LABEL_RAIL_STYLE = { ...SIDEBAR_STYLE, '--sidebar-width-icon': '5rem' } as
  * The document is the scroll container (native iOS behaviour; use `useWindowVirtualizer`).
  * Player chrome:
  * - `<PlayerDock/>` (≥ 768px) positions itself: the bottom bar (`--playerbar-h` + safe area,
- *   optionally auto-hiding), a floating window or a floating mini bar in the bottom-right corner.
+ *   optionally auto-hiding) or a floating window in the bottom-right corner.
  *   It publishes `<html data-player-dock>`; the sidebar, `.page-pad` and toasts read the space it
  *   reserves from `--player-reserve` / `--player-clearance` (index.css).
  * - `<MascotCompanion/>` (≥ 768px, Settings › Mascot) sits on top of that chrome in the

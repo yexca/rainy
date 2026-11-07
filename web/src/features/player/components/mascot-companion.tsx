@@ -19,7 +19,7 @@ const POSES: MascotPose[] = ['idle', 'listening', 'sleeping']
  * She listens while music plays, waves when paused and dozes off after a while. Clicking her
  * shows a short line; the × hides her (Settings › Mascot brings her back).
  *
- * Sits on top of the player chrome: `--player-clearance` above the bottom bar or the mini bar,
+ * Sits on top of the player chrome: `--player-clearance` above the bottom bar,
  * and beside the floating window (`--mascot-right`, index.css).
  */
 export function MascotCompanion() {
