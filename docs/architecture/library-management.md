@@ -122,6 +122,26 @@ song's catalogue page, the quality, and the source, and a library event.
 Existing files are never overwritten. See
 [contract §5.15](contract.md#515-lxmusic).
 
+## Review Before Importing
+
+A link or online download started with `review` (the administrator setting
+`reviewDownloads`, off by default, decides when the request does not say) is
+prepared the same way but not imported: each file moves into
+`<data>/staging/<id>/` next to an `item.json` manifest holding its destination
+and edit-log details, and the job finishes with the item ids. Managers see
+these items in **Tracks → Review**, with the tags read from the file, the
+path an import would use now, and possible duplicates: a file already at that
+path, tracks an earlier download from the same source imported (from the edit
+log), and tracks with the Library Doctor's duplicate key (artist, title, and a
+duration within 2 seconds). Correcting tags writes them into the staged file
+through TagLib; the library, folder, and `organize` flag can change too.
+Importing places the items exactly like an upload, grouped by destination:
+library lock, rescan, a `download` edit-log row marked `reviewed`, and a
+library event. When the target exists, `keep` (the default) adds ` (n)` and
+`skip` leaves the item staged; library files are never overwritten. Staged
+items survive restarts and use data-directory space until they are imported
+or discarded; a half-written item is removed at startup.
+
 ## Encoding Repair
 
 Many older Chinese and Japanese files store GBK, Big5, or Shift-JIS text in tags

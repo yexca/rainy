@@ -31,9 +31,12 @@ const (
 // staged is an uploaded file waiting in the tmp dir.
 type staged struct {
 	name  string // client-supplied relative name (sanitized, "/"-separated)
-	tmp   string // abs path in cfg.TmpDir()
+	tmp   string // abs path in cfg.TmpDir() (or of a staged download)
 	size  int64
 	title string // downloads: the title reported by the site (edit log)
+
+	skipExisting bool  // place: fail with errExists instead of adding " (n)"
+	err          error // place: why the file was not placed
 }
 
 // uploadForm is the parsed multipart request.
@@ -99,7 +102,8 @@ func (s *Service) Upload(ctx context.Context, u *model.User, mr *multipart.Reade
 // (" (1)" is appended). It holds the library lock across the moves and the rescan, writes
 // one edit_log row per placed file (action, with details(f)), adds the new tracks to
 // res.Updated (and those without an artist or album tag to res.Untagged) and publishes a
-// library event. Placed files get f.tmp = "". Only a failure
+// library event. Placed files get f.tmp = ""; the others get f.err (errExists when
+// f.skipExisting and the target is taken). Only a failure
 // to decide the targets or to take the lock is returned; per-file failures go to res.
 func (s *Service) place(ctx context.Context, u *model.User, lib *model.Library, baseDir string, organize bool,
 	files []staged, res *BatchResult, action string, details func(f *staged) map[string]any) error {
@@ -126,21 +130,30 @@ func (s *Service) place(ctx context.Context, u *model.User, lib *model.Library, 
 		rel := targets[i]
 		abs, err := libPath(lib.Path, rel)
 		if err != nil {
+			f.err = err
 			res.fail("", f.name, err)
+			continue
+		}
+		if f.skipExisting && idx.taken(abs) {
+			f.err = errExists
+			res.fail("", f.name, fmt.Errorf("%s: %w", rel, errExists))
 			continue
 		}
 		abs = idx.unique(abs)
 		if err := os.MkdirAll(filepath.Dir(abs), 0o755); err != nil {
-			res.fail("", f.name, fsErr(rel, err))
+			f.err = fsErr(rel, err)
+			res.fail("", f.name, f.err)
 			continue
 		}
 		if err := util.EnsureWithinRoot(lib.Path, abs); err != nil {
+			f.err = err
 			res.fail("", f.name, err)
 			continue
 		}
 		if err := moveFile(f.tmp, abs); err != nil {
 			removeEmptyDirs(lib.Path, filepath.Dir(abs)) // folders created for nothing
-			res.fail("", f.name, fsErr(rel, err))
+			f.err = fsErr(rel, err)
+			res.fail("", f.name, f.err)
 			continue
 		}
 		_ = os.Chmod(abs, 0o644)

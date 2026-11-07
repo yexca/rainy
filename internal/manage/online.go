@@ -26,8 +26,8 @@ import (
 // tried in the order the settings give, until one yields a file that is really audio),
 // downloads it into a private work directory under <data>/tmp, writes title, artists,
 // album, lyrics and cover through TagLib, and imports the file exactly like an upload
-// (place): library lock, rescan, a "download" edit_log row and a library event. Existing
-// files are never overwritten.
+// (place): library lock, rescan, a "download" edit_log row and a library event — or, with
+// review, holds it in the staging area (staging.go). Existing files are never overwritten.
 
 // OnlineSource is the part of *lxmusic.Service online downloads use.
 type OnlineSource interface {
@@ -57,6 +57,7 @@ type OnlineDownloadRequest struct {
 	LibraryID int64          `json:"libraryId"`
 	Dir       string         `json:"dir"`
 	Organize  *bool          `json:"organize"` // omitted: settings.OrganizeByTags decides
+	Review    *bool          `json:"review"`   // hold the files for review; omitted: settings.ReviewDownloads decides
 	Lyrics    bool           `json:"lyrics"`   // embed the catalogue's lyrics (and translation)
 	Cover     bool           `json:"cover"`    // embed the catalogue's cover
 }
@@ -109,7 +110,7 @@ func (s *Service) StartOnlineDownload(ctx context.Context, u *model.User, req On
 		return nil, err
 	}
 
-	organize := s.organize(ctx, req.Organize)
+	organize, review := s.organize(ctx, req.Organize), s.review(ctx, req.Review)
 
 	s.dls.mu.Lock()
 	if pending := s.pendingLocked(JobKindOnline); pending+len(req.Songs) > maxPendingOnline {
@@ -123,7 +124,8 @@ func (s *Service) StartOnlineDownload(ctx context.Context, u *model.User, req On
 		j := &downloadJob{
 			DownloadJob: DownloadJob{
 				ID: util.NewID(), Kind: JobKindOnline, URL: song.PageURL, Title: song.Title, Status: JobQueued, ETA: -1,
-				LibraryID: lib.ID, Dir: baseDir, Organize: organize, TrackIDs: []string{}, Untagged: []string{}, Errors: []ItemError{},
+				LibraryID: lib.ID, Dir: baseDir, Organize: organize, Review: review, TrackIDs: []string{}, Untagged: []string{},
+				StagedIDs: []string{}, Errors: []ItemError{},
 				CreatedBy: u.Username, CreatedAt: util.NowMs(),
 				Online: &OnlineJob{Song: song, Quality: req.Quality, Lyrics: req.Lyrics, Cover: req.Cover},
 			},
@@ -211,15 +213,11 @@ func (s *Service) runOnline(j *downloadJob) {
 	s.dls.mu.Unlock()
 	res := newBatch()
 	files := []staged{{name: onlineName(song, filepath.Ext(path)), tmp: path, size: fi.Size(), title: song.Title}}
-	placeErr := s.place(j.ctx, j.user, j.lib, j.Dir, j.Organize, files, res, "download", func(f *staged) map[string]any {
+	ids, stagedIDs, placeErr := s.importOrStage(j, files, res, func(f *staged) map[string]any {
 		return map[string]any{"title": song.Title, "source": song.PageURL, "quality": info.Got, "via": info.Source, "size": f.size}
 	})
-	ids := make([]string, 0, len(res.Updated))
-	for _, t := range res.Updated {
-		ids = append(ids, t.ID)
-	}
 	status, msg := JobDone, ""
-	if len(ids) == 0 {
+	if len(ids) == 0 && len(stagedIDs) == 0 {
 		status = JobError
 		switch {
 		case placeErr != nil:
@@ -231,7 +229,7 @@ func (s *Service) runOnline(j *downloadJob) {
 		}
 	}
 	s.updateJob(j, func(d *DownloadJob) {
-		d.TrackIDs, d.Untagged, d.Errors = ids, append([]string{}, res.Untagged...), res.Errors
+		d.TrackIDs, d.Untagged, d.StagedIDs, d.Errors = ids, append([]string{}, res.Untagged...), stagedIDs, res.Errors
 	})
 	s.finishJob(j, status, msg)
 }

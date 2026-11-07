@@ -736,5 +736,63 @@
       "target_embedded": "内嵌标签",
       "target_lrc": ".lrc 文件"
     }
+  },
+  "review": {
+    "subtitle": "下载完成、等待确认标签后再放入音乐库的歌曲。",
+    "summary_other": "{{count}} 首待确认 · {{size}}",
+    "option": "确认后入库",
+    "optionHint": "下载的歌曲会先放在“曲目 › 待确认”，确认或修正标签后再放入音乐库。",
+    "optionShort": "确认后入库",
+    "open": "去确认",
+    "waiting_other": "{{count}} 首待确认",
+    "downloaded_other": "已下载「{{name}}」（{{count}} 首），等待确认",
+    "emptyTitle": "没有待确认的下载",
+    "emptyDescription": "开启“确认后入库”的下载会先放在这里，确认后再加入音乐库。",
+    "selectHint": "选择要入库或丢弃的下载",
+    "policy": "已有同名文件时",
+    "policies": {
+      "keep": "保留两者",
+      "skip": "跳过"
+    },
+    "import": "入库",
+    "importOne": "将「{{name}}」入库",
+    "imported_other": "已将 {{count}} 首加入音乐库",
+    "skipped_other": "{{count}} 首未入库",
+    "skippedHint": "目标位置已有同名文件。可修改标签或文件夹，或选择“保留两者”。",
+    "failed_other": "{{count}} 首入库失败",
+    "discard": "丢弃",
+    "discardTitle_other": "丢弃 {{count}} 首下载？",
+    "discardDescription": "下载的文件会被删除，不会加入音乐库。",
+    "discarded_other": "已丢弃 {{count}} 首",
+    "edit": "确认标签",
+    "editTitle": "入库前确认",
+    "save": "保存",
+    "saveAndImport": "保存并入库",
+    "multiHint": "多个值用 ; 分隔",
+    "target": "将放入",
+    "targetAfterSave": "将放入（修改保存前）",
+    "conflictsTitle": "可能重复",
+    "conflicts": {
+      "exists": "同名文件已存在",
+      "existsHint": "目标文件夹已有同名文件。“保留两者”会在新文件名后加“(1)”；“跳过”则把下载留在这里。",
+      "sameSource": "曾下载过",
+      "sameSourceHint": "之前从同一来源下载的歌曲：",
+      "similar_other": "{{count}} 首相似歌曲",
+      "similarHint": "艺人、标题相同且时长相近的歌曲："
+    },
+    "kinds": {
+      "link": "链接下载",
+      "online": "在线音乐"
+    },
+    "fields": {
+      "title": "标题",
+      "artist": "艺人",
+      "album": "专辑",
+      "albumArtist": "专辑艺人",
+      "track": "音轨号",
+      "disc": "碟号",
+      "date": "年份或日期",
+      "genre": "流派"
+    }
   }
 }

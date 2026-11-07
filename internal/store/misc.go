@@ -254,6 +254,16 @@ func (s *Store) ListEditLog(ctx context.Context, trackID string, offset, limit i
 	return out, total, nil
 }
 
+// DownloadedTrackIDs returns the tracks that "download" edit-log rows with details.source
+// = source imported, newest first and at most limit (> 0), without duplicates.
+func (s *Store) DownloadedTrackIDs(ctx context.Context, source string, limit int) ([]string, error) {
+	var ids []string
+	err := s.db.R.SelectContext(ctx, &ids, `SELECT track_id FROM edit_log
+		WHERE action = 'download' AND track_id <> '' AND json_valid(details) AND json_extract(details, '$.source') = ?
+		GROUP BY track_id ORDER BY MAX(created_at) DESC, track_id LIMIT ?`, source, limit)
+	return ids, err
+}
+
 // ---- trash
 
 const trashCols = `id, library_id, original_path, trash_path, size, title, artist, album, track_id, deleted_by, deleted_at`

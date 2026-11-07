@@ -174,6 +174,7 @@ The data folder (`/config` in Docker) contains:
 | `trash/` | Music files deleted through Rainy, until the trash is emptied |
 | `cache/` | Resized cover images |
 | `tmp/` | Uploads and downloads in progress |
+| `staging/` | Downloads waiting for review: the audio file, its destination, the source link or catalogue page, and who started the download, until it is imported or discarded |
 | `ytdlp/` | The yt-dlp program installed by an administrator, its cache, and the encrypted sign-in cookies (`cookies/`) |
 
 Passwords are encrypted rather than hashed because the Subsonic token protocol

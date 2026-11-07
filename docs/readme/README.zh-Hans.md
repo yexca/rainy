@@ -37,7 +37,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 - **常见格式都能播**：MP3、FLAC、AAC/M4A/ALAC、OGG Vorbis、Opus、WAV、AIFF、APE、WavPack、WMA、DSD（DSF/DFF）等。原始音质直连播放并支持拖动进度，也可以用 ffmpeg 实时转码为 MP3、Opus 或 AAC。
 - **兼容现有客户端**：实现 Subsonic API 1.16.1 和 OpenSubsonic 扩展，Symfonium、Amperfy、play:Sub、Feishin、Tempo、DSub 等客户端可以直接使用；支持密码、令牌和 API 密钥三种认证方式。
 - **值得安装的播放器**：网页端可安装为 PWA，手机上有 iOS 风格的「正在播放」页面、同步歌词、可拖动排序的队列、锁屏和耳机控制（Media Session）、iOS 上的 AirPlay、浅色/深色主题，界面支持中英文。
-- **在浏览器里管理曲库**：单曲或批量编辑标签（先预览再应用）、封面、内嵌或 `.lrc` 歌词、按规则重命名/整理、上传、通过 yt-dlp 从 YouTube 和哔哩哔哩链接下载（可选）、通过兼容 lx music 的音源在线搜索并下载歌曲（可选）、可还原的回收站、曲库体检和完整的修改历史。
+- **在浏览器里管理曲库**：单曲或批量编辑标签（先预览再应用）、封面、内嵌或 `.lrc` 歌词、按规则重命名/整理、上传、通过 yt-dlp 从 YouTube 和哔哩哔哩链接下载（可选）、通过兼容 lx music 的音源在线搜索并下载歌曲（可选，下载后可先确认标签再入库）、可还原的回收站、曲库体检和完整的修改历史。
 - **对中文曲库友好**：扫描时自动修复 GBK、Big5、Shift-JIS 编码造成的乱码，也可以一键以 UTF-8 永久写回；中文艺人名按拼音首字母归类。
 - **你的收听统计**：像 Last.fm 一样的个人收听报表和播放记录，附带月度和年度回顾，还可以把网页端和 Subsonic 客户端的播放记录同步到 Last.fm 和 ListenBrainz（可选）。
 - **为你推荐**：每日推荐、每周推荐、首页的歌曲推荐，以及队列快播完时自动续上相似歌曲的无限模式，全部在你的服务器上根据你自己的曲库和播放记录计算，不向外发送任何数据。
@@ -72,7 +72,7 @@ Rainy 是一个内嵌 React 网页端的 Go 程序，以单个 Docker 镜像发�
 
 | 主机路径 | 容器路径 | 内容 | 权限 |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、yt-dlp 及加密保存的 Cookie | 可写；默认 root；非零 PUID 时调整所有权 |
+| `RAINY_DATA_PATH`（默认 `./config`） | `/config` | 数据库 `rainy.db`、密钥 `secret.key`、封面缓存、回收站、上传暂存、待确认的下载、yt-dlp 及加密保存的 Cookie | 可写；默认 root；非零 PUID 时调整所有权 |
 | `RAINY_MUSIC_PATH`（默认 `./data`） | `/data` | 你的音乐 | 播放只需可读；**要在网页里改标签、换封面、重命名、上传、删除，就必须可写** |
 
 把应用数据放在 `/data`、音乐放在 `/music` 的安装，需要把 `RAINY_DATA_DIR` 和 `RAINY_MUSIC_DIR` 设为这两个路径，或按[挂载路径说明](../operations/docker.md#upgrading-the-mount-layout)改用上面的挂载方式。

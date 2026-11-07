@@ -361,6 +361,7 @@ type Settings struct {
 	TranscodeBitrate      int    `json:"transcodeBitrate"`  // kbps
 	RenamePattern         string `json:"renamePattern"`     // see docs/architecture/contract.md §7.6
 	OrganizeByTags        bool   `json:"organizeByTags"`    // place uploads and downloads by RenamePattern unless the request says otherwise
+	ReviewDownloads       bool   `json:"reviewDownloads"`   // hold link and online downloads for review before importing them unless the request says otherwise
 	FixEncodingOnScan     bool   `json:"fixEncodingOnScan"` // repair GBK/Big5/SJIS mojibake when reading
 	EnableDownloads       bool   `json:"enableDownloads"`
 	OnlineMetadata        bool   `json:"onlineMetadata"`        // allow managers to search online catalogues (outbound requests)
@@ -479,6 +480,7 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		TranscodeBitrate:      192,
 		RenamePattern:         "{albumartist}/{album}/[{disc}-]{track:2} {title}",
 		OrganizeByTags:        true,
+		ReviewDownloads:       false,
 		FixEncodingOnScan:     true,
 		EnableDownloads:       true,
 		OnlineMetadata:        false,

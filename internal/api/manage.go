@@ -53,6 +53,7 @@ func (a *API) routesManage(r chi.Router) {
 	r.Get("/online/search", a.manageOnlineSearch)
 	r.Get("/online/cover", a.manageOnlineCover)
 	r.Post("/online/downloads", a.manageOnlineDownload)
+	a.routesStaging(r)
 }
 
 // maxUploadRequest caps a whole upload request (the per-file limit is
@@ -298,15 +299,17 @@ func (a *API) manageRename(w http.ResponseWriter, r *http.Request) {
 	writeBatch(w, r, res, err)
 }
 
-// placement tells managers (who cannot read the settings) where uploads and downloads go.
+// placement tells managers (who cannot read the settings) where uploads and downloads go
+// and whether downloads are held for review.
 type placement struct {
 	Organize      bool   `json:"organize"`
 	RenamePattern string `json:"renamePattern"`
+	Review        bool   `json:"review"`
 }
 
 func (a *API) managePlacement(w http.ResponseWriter, r *http.Request) {
 	set := a.app.Settings(r.Context())
-	writeJSON(w, http.StatusOK, placement{Organize: set.OrganizeByTags, RenamePattern: set.RenamePattern})
+	writeJSON(w, http.StatusOK, placement{Organize: set.OrganizeByTags, RenamePattern: set.RenamePattern, Review: set.ReviewDownloads})
 }
 
 func (a *API) manageUpload(w http.ResponseWriter, r *http.Request) {

@@ -57,7 +57,8 @@ Docker image for `linux/amd64` and `linux/arm64`.
   preview-before-apply tools, cover art, embedded or `.lrc` lyrics,
   rename/organize by pattern, uploads, optional downloads from YouTube and
   bilibili links through yt-dlp, optional online music search and downloads
-  through lx-music compatible music sources, a restorable trash, a library
+  through lx-music compatible music sources (optionally held for review before
+  they are imported), a restorable trash, a library
   doctor, and a complete edit history.
 - **Friendly to CJK libraries.** Mojibake from legacy GBK, Big5, and Shift-JIS
   tags is repaired when reading and can be written back as UTF-8. Chinese artist
@@ -125,7 +126,7 @@ install the web app as a PWA.
 
 | Host path | Container path | Purpose | Back up? |
 | --- | --- | --- | --- |
-| `RAINY_DATA_PATH` (default `./config`) | `/config` | SQLite database, `secret.key`, cover cache, trash, upload staging, and yt-dlp with its encrypted cookies | Yes |
+| `RAINY_DATA_PATH` (default `./config`) | `/config` | SQLite database, `secret.key`, cover cache, trash, upload staging, downloads waiting for review, and yt-dlp with its encrypted cookies | Yes |
 | `RAINY_MUSIC_PATH` (default `./data`) | `/data` | Your music library; writable when you use management features | Yes, with your NAS backup tools |
 
 `secret.key` encrypts stored passwords, scrobbling credentials, and yt-dlp

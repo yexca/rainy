@@ -82,6 +82,7 @@ export const routes: RouteObject[] = [
                       { path: 'upload', lazy: page(() => import('@/features/manage/pages/upload-page')) },
                       { path: 'links', lazy: page(() => import('@/features/manage/pages/links-page')) },
                       { path: 'online', lazy: page(() => import('@/features/manage/pages/online-page')) },
+                      { path: 'review', lazy: page(() => import('@/features/manage/pages/review-page')) },
                       { path: 'doctor', lazy: page(() => import('@/features/manage/pages/doctor-page')) },
                       { path: 'trash', lazy: page(() => import('@/features/manage/pages/trash-page')) },
                       { path: 'history', lazy: page(() => import('@/features/manage/pages/history-page')) },

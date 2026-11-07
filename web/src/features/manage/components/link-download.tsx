@@ -38,6 +38,8 @@ export interface LinkDownloadProps {
   libraryId: number
   dir: string
   invalidDir: boolean
+  /** Hold the files in Tracks › Review instead of importing them. */
+  review: boolean
 }
 
 /**
@@ -45,7 +47,7 @@ export interface LinkDownloadProps {
  * bilibili video with yt-dlp and imports it like an upload (same destination, organized by
  * tags when the server setting says so). Jobs run on the server, so they keep going when the page is closed.
  */
-export function LinkDownload({ libraryId, dir, invalidDir }: LinkDownloadProps) {
+export function LinkDownload({ libraryId, dir, invalidDir, review }: LinkDownloadProps) {
   const { t } = useTranslation('manage')
   const { isAdmin } = useAuth()
   const queryClient = useQueryClient()
@@ -57,7 +59,7 @@ export function LinkDownload({ libraryId, dir, invalidDir }: LinkDownloadProps) 
   useJobNotifications(status.data?.jobs)
 
   const start = useMutation({
-    mutationFn: () => api.manage.downloads.start({ url, libraryId, dir: dir || undefined, format, playlist }),
+    mutationFn: () => api.manage.downloads.start({ url, libraryId, dir: dir || undefined, format, playlist, review }),
     onSuccess: (job) => {
       setUrl('')
       queryClient.setQueryData<DownloadsStatus>(manageKeys.downloads, (prev) => (prev ? { ...prev, jobs: [job, ...prev.jobs] } : prev))

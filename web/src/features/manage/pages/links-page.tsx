@@ -23,8 +23,8 @@ export default function LinksPage() {
       </PageHeader>
 
       <PageColumn>
-        <DestinationSection />
-        <LinkDownload libraryId={target.libraryId} dir={target.dir} invalidDir={target.invalidDir} />
+        <DestinationSection review />
+        <LinkDownload libraryId={target.libraryId} dir={target.dir} invalidDir={target.invalidDir} review={target.review} />
       </PageColumn>
     </Page>
   )

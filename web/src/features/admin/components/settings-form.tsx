@@ -35,6 +35,7 @@ const schema = z.object({
   transcodeBitrate: z.number().int().min(32).max(512),
   renamePattern: z.string().trim().min(1, 'settings.validation.required').regex(/\{[a-z]+(:\d+)?\}/, 'settings.validation.pattern'),
   organizeByTags: z.boolean(),
+  reviewDownloads: z.boolean(),
   fixEncodingOnScan: z.boolean(),
   enableDownloads: z.boolean(),
   onlineMetadata: z.boolean(),
@@ -186,6 +187,9 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       <Section title={t('settings.sections.organize')}>
         <Row label={t('settings.fields.organizeByTags')} description={t('settings.help.organizeByTags')} inline>
           <Controller control={control} name="organizeByTags" render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
+        </Row>
+        <Row label={t('settings.fields.reviewDownloads')} description={t('settings.help.reviewDownloads')} inline>
+          <Controller control={control} name="reviewDownloads" render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />} />
         </Row>
         <Row label={t('settings.fields.renamePattern')} description={t('settings.help.renamePattern')} error={err(errors.renamePattern?.message)} stacked>
           <div className="grid gap-2">

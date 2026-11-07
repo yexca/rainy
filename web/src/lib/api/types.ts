@@ -85,7 +85,10 @@ export interface BatchResult {
   untagged?: string[]               // imports only: ids of the new tracks without an artist or album tag
 }
 /** Where uploads and downloads go (readable by managers, unlike `Settings`). */
-export interface Placement { organize: boolean; renamePattern: string }
+export interface Placement {
+  organize: boolean; renamePattern: string
+  review: boolean                   // settings.reviewDownloads: downloads wait in Tracks › Review unless a request says otherwise
+}
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
 export interface FolderEntry { name: string; path: string }
 export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
@@ -118,9 +121,11 @@ export interface DownloadJob {
   speed: number; eta: number        // bytes per second; seconds, -1 = unknown
   error: string                     // failure, or what failed for some entries of a finished job
   libraryId: number; dir: string; organize: boolean
+  review: boolean                   // the files wait for review (stagedIds) instead of being imported
   format: '' | DownloadFormat; playlist: boolean   // link jobs only
   trackIds: string[]
   untagged: string[]                // the trackIds imported without an artist or album tag
+  stagedIds: string[]               // review: the staged items the job left in Tracks › Review
   errors: ItemError[]; createdBy: string; createdAt: number; startedAt: number; finishedAt: number
   online: OnlineJob | null                         // online jobs only
 }
@@ -152,6 +157,35 @@ export interface DownloadsStatus {
   sites: { id: DownloadSite; cookies: boolean }[]
   jobs: DownloadJob[]                            // newest first
 }
+/** A download waiting for review (`/api/manage/staging`). */
+export interface StagedItem {
+  id: string; kind: DownloadJobKind
+  source: string                    // the link, or the song's catalogue page
+  site: '' | DownloadSite
+  title: string                     // as the site or catalogue reported it
+  name: string                      // library-relative name when not organized
+  format: string; size: number; duration: number
+  libraryId: number; dir: string; organize: boolean
+  createdBy: string; createdAt: number
+  tags: TagMap                      // without LYRICS
+  hasCover: boolean
+  target: string                    // where an import would put it now ('' with `error`)
+  error: string
+  conflict: StagedConflict
+}
+export interface StagedConflict {
+  exists: boolean                   // a file already has the target name
+  sameSource: StagedMatch[]         // tracks downloaded from the same source before
+  similar: StagedMatch[]            // tracks with the same artist and title and about the same duration
+}
+export interface StagedMatch { trackId: string; libraryId: number; path: string }
+/** What to do when a staged item's target already exists: import as "name (n)", or leave it staged. */
+export type StagedConflictPolicy = 'keep' | 'skip'
+export interface StagedImportResult {
+  imported: string[]; skipped: string[]   // staged ids imported / left staged because the target exists
+  errors: { id: string; error: string }[] // left staged
+  updated: Track[]; untagged: string[]
+}
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
@@ -167,6 +201,7 @@ export interface Settings {
   scanInterval: string; genreSeparators: string; ignoredArticles: string; coverArtFiles: string
   transcodeFormat: 'mp3' | 'opus' | 'aac'; transcodeBitrate: number; renamePattern: string
   organizeByTags: boolean           // place uploads and downloads by renamePattern (a request's `organize` overrides it)
+  reviewDownloads: boolean          // hold link and online downloads for review (a request's `review` overrides it)
   fixEncodingOnScan: boolean; enableDownloads: boolean; onlineMetadata: boolean; onlineMetadataChinaIp: boolean
   ytdlpEnabled: boolean
   lxSourcesEnabled: boolean; lxSourceMode: LxSourceMode; lxSourceId: string

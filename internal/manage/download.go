@@ -26,8 +26,10 @@ import (
 // A job runs yt-dlp in a private work directory under <data>/tmp, writes the tags derived
 // from yt-dlp's metadata (and a square cover cropped from the thumbnail) through TagLib, and
 // then imports the files exactly like an upload (place): library lock, rescan, one
-// "download" edit_log row per file and a library event. Jobs live in memory; a restart
-// cancels them and New in package ytdlp removes their leftovers.
+// "download" edit_log row per file and a library event — or, with review, holds them in
+// the staging area until a manager imports them (staging.go). Jobs live in memory; a restart
+// cancels them and New in package ytdlp removes their leftovers (New in this package
+// removes those of online downloads and uploads).
 
 // Downloader runs yt-dlp (implemented by *ytdlp.Service).
 type Downloader interface {
@@ -62,6 +64,7 @@ type DownloadRequest struct {
 	LibraryID int64  `json:"libraryId"`
 	Dir       string `json:"dir"`
 	Organize  *bool  `json:"organize"` // omitted: settings.OrganizeByTags decides
+	Review    *bool  `json:"review"`   // hold the files for review; omitted: settings.ReviewDownloads decides
 	Format    string `json:"format"`   // best (default) | m4a | mp3 | opus
 	Playlist  bool   `json:"playlist"` // download the whole playlist the link belongs to
 }
@@ -90,10 +93,12 @@ type DownloadJob struct {
 	LibraryID  int64       `json:"libraryId"`
 	Dir        string      `json:"dir"`
 	Organize   bool        `json:"organize"`
+	Review     bool        `json:"review"` // the files are held for review (staging.go) instead of imported
 	Format     string      `json:"format"`
 	Playlist   bool        `json:"playlist"`
 	TrackIDs   []string    `json:"trackIds"`
-	Untagged   []string    `json:"untagged"` // the TrackIDs imported without an artist or album tag
+	Untagged   []string    `json:"untagged"`  // the TrackIDs imported without an artist or album tag
+	StagedIDs  []string    `json:"stagedIds"` // review: the staged items waiting for review
 	Errors     []ItemError `json:"errors"`
 	CreatedBy  string      `json:"createdBy"`
 	CreatedAt  int64       `json:"createdAt"`
@@ -178,8 +183,9 @@ func (s *Service) StartDownload(ctx context.Context, u *model.User, req Download
 	j := &downloadJob{
 		DownloadJob: DownloadJob{
 			ID: util.NewID(), Kind: JobKindLink, URL: target.URL, Site: target.Site, Status: JobQueued, Progress: 0, ETA: -1,
-			LibraryID: lib.ID, Dir: baseDir, Organize: s.organize(ctx, req.Organize), Format: req.Format, Playlist: req.Playlist,
-			TrackIDs: []string{}, Untagged: []string{}, Errors: []ItemError{}, CreatedBy: u.Username, CreatedAt: util.NowMs(),
+			LibraryID: lib.ID, Dir: baseDir, Organize: s.organize(ctx, req.Organize), Review: s.review(ctx, req.Review),
+			Format: req.Format, Playlist: req.Playlist, TrackIDs: []string{}, Untagged: []string{}, StagedIDs: []string{},
+			Errors: []ItemError{}, CreatedBy: u.Username, CreatedAt: util.NowMs(),
 		},
 		target: target, user: u, lib: lib, ctx: jctx, cancel: cancel,
 	}
@@ -238,6 +244,7 @@ func (s *Service) DownloadJobs() []DownloadJob {
 		d := s.dls.jobs[i].DownloadJob
 		d.TrackIDs = append([]string{}, d.TrackIDs...)
 		d.Untagged = append([]string{}, d.Untagged...)
+		d.StagedIDs = append([]string{}, d.StagedIDs...)
 		d.Errors = append([]ItemError{}, d.Errors...)
 		if d.Online != nil {
 			o := *d.Online
@@ -373,17 +380,13 @@ func (s *Service) runDownload(j *downloadJob) {
 	res := newBatch()
 	files := prepareDownloads(items, j.Playlist, res)
 	source := j.URL
-	placeErr := s.place(j.ctx, j.user, j.lib, j.Dir, j.Organize, files, res, "download", func(f *staged) map[string]any {
+	ids, stagedIDs, placeErr := s.importOrStage(j, files, res, func(f *staged) map[string]any {
 		d := map[string]any{"source": source, "size": f.size}
 		if f.title != "" {
 			d["title"] = f.title
 		}
 		return d
 	})
-	ids := make([]string, 0, len(res.Updated))
-	for _, t := range res.Updated {
-		ids = append(ids, t.ID)
-	}
 	var msgs []string
 	if placeErr != nil {
 		msgs = append(msgs, errorText(placeErr))
@@ -392,16 +395,37 @@ func (s *Service) runDownload(j *downloadJob) {
 		msgs = append(msgs, errorText(fromYtdlp(dlErr)))
 	}
 	status := JobDone
-	if len(ids) == 0 {
+	if len(ids) == 0 && len(stagedIDs) == 0 {
 		status = JobError
 		if len(msgs) == 0 && len(res.Errors) > 0 {
 			msgs = append(msgs, res.Errors[0].Error)
 		}
 	}
 	s.updateJob(j, func(d *DownloadJob) {
-		d.TrackIDs, d.Untagged, d.Errors = ids, append([]string{}, res.Untagged...), res.Errors
+		d.TrackIDs, d.Untagged, d.StagedIDs, d.Errors = ids, append([]string{}, res.Untagged...), stagedIDs, res.Errors
 	})
 	s.finishJob(j, status, strings.Join(msgs, "; "))
+}
+
+// importOrStage imports the prepared files of a job (place), or holds them for review when
+// the job says so (stageFiles). It returns the new track ids and the staged item ids.
+func (s *Service) importOrStage(j *downloadJob, files []staged, res *BatchResult, details func(f *staged) map[string]any) ([]string, []string, error) {
+	if j.Review {
+		return []string{}, nonNilIDs(s.stageFiles(j, files, res, details)), nil
+	}
+	err := s.place(j.ctx, j.user, j.lib, j.Dir, j.Organize, files, res, "download", details)
+	ids := make([]string, 0, len(res.Updated))
+	for _, t := range res.Updated {
+		ids = append(ids, t.ID)
+	}
+	return ids, []string{}, err
+}
+
+func nonNilIDs(ids []string) []string {
+	if ids == nil {
+		return []string{}
+	}
+	return ids
 }
 
 // prepareDownloads writes Rainy's tags and cover into the downloaded files (through TagLib)

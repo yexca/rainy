@@ -5,7 +5,8 @@ Library managers and administrators can change the music library from the
 **Library tools**, and (for administrators) **Admin**. Each entry's pages are
 tabs at the top of the page. **Tracks** has **Metadata** (the track table and
 tag editor), **Upload** (files from this device), **Links** (YouTube and
-bilibili), and **Online** (online music); **Library tools** has **Folders**,
+bilibili), **Online** (online music), and **Review** (downloads waiting to be
+checked); **Library tools** has **Folders**,
 **Doctor**, **Trash**, and **History**; **Admin** has **Users**,
 **Libraries**, and the server settings: **Settings**, **yt-dlp**,
 **Sources**, **Scrobbling**, and **System**. On phones the **Manage** tab
@@ -257,6 +258,26 @@ source in its menu.
 > any public internet address and receives the songs you download. Rainy
 > limits its run time and network access (never your local network), but not
 > its memory use. Import only scripts you trust.
+
+## Review Downloads Before Importing
+
+Turn on **Review before importing** in the destination box of the Links or
+Online tab (an administrator sets the default with **Review downloads before
+importing** in **Admin → Settings**) to check downloads before they reach the
+library. Finished downloads then wait in **Tracks → Review** instead of being
+added. Each one shows where it would be added and warns about possible
+duplicates: a file with the same name already in the folder, an earlier
+download from the same link or page, or tracks with the same artist and title
+and about the same length.
+
+Select a download to correct its title, artists, album, album artist, track
+and disc numbers, year, and genre, or to change its folder and whether it is
+organized by tags; **Save** shows the new path. **Import** adds the selected
+downloads like any other added music. When a file with the same name exists,
+**Keep both** adds ` (1)` to the new name and **Skip** leaves the download in
+Review; existing files are never overwritten. **Discard** deletes downloads you
+don't want. Waiting downloads survive a server restart and take space in the
+data directory until they are imported or discarded.
 
 ## Trash
 

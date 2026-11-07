@@ -745,5 +745,72 @@
       "target_embedded": "Embedded tag",
       "target_lrc": ".lrc file"
     }
+  },
+  "review": {
+    "subtitle": "Downloads waiting for you to check their tags before they are added to the library.",
+    "summary_one": "{{count}} download waiting · {{size}}",
+    "summary_other": "{{count}} downloads waiting · {{size}}",
+    "option": "Review before importing",
+    "optionHint": "Downloads wait in Tracks › Review, where you can correct their tags before they are added to the library.",
+    "optionShort": "review first",
+    "open": "Review",
+    "waiting_one": "{{count}} waiting for review",
+    "waiting_other": "{{count}} waiting for review",
+    "downloaded_one": "Downloaded “{{name}}”; it is waiting for review",
+    "downloaded_other": "Downloaded {{count}} tracks from “{{name}}”; they are waiting for review",
+    "emptyTitle": "Nothing to review",
+    "emptyDescription": "Downloads started with “Review before importing” wait here until you add them to the library.",
+    "selectHint": "Select downloads to import or discard",
+    "policy": "When the file already exists",
+    "policies": {
+      "keep": "Keep both",
+      "skip": "Skip"
+    },
+    "import": "Import",
+    "importOne": "Import “{{name}}”",
+    "imported_one": "Added {{count}} track to the library",
+    "imported_other": "Added {{count}} tracks to the library",
+    "skipped_one": "{{count}} download was not imported",
+    "skipped_other": "{{count}} downloads were not imported",
+    "skippedHint": "A file with the same name already exists. Change its tags or folder, or choose “Keep both”.",
+    "failed_one": "{{count}} download could not be imported",
+    "failed_other": "{{count}} downloads could not be imported",
+    "discard": "Discard",
+    "discardTitle_one": "Discard {{count}} download?",
+    "discardTitle_other": "Discard {{count}} downloads?",
+    "discardDescription": "The downloaded files are deleted and are not added to the library.",
+    "discarded_one": "Discarded {{count}} download",
+    "discarded_other": "Discarded {{count}} downloads",
+    "edit": "Check tags",
+    "editTitle": "Check before importing",
+    "save": "Save",
+    "saveAndImport": "Save and import",
+    "multiHint": "Separate several with ;",
+    "target": "Will be added as",
+    "targetAfterSave": "Will be added as (before your changes are saved)",
+    "conflictsTitle": "Possible duplicates",
+    "conflicts": {
+      "exists": "File exists",
+      "existsHint": "A file with this name is already in the folder. “Keep both” adds “(1)” to the new name; “Skip” leaves the download here.",
+      "sameSource": "Downloaded before",
+      "sameSourceHint": "Earlier downloads from the same link:",
+      "similar_one": "{{count}} similar track",
+      "similar_other": "{{count}} similar tracks",
+      "similarHint": "Tracks with the same artist and title and about the same length:"
+    },
+    "kinds": {
+      "link": "Link",
+      "online": "Online music"
+    },
+    "fields": {
+      "title": "Title",
+      "artist": "Artist",
+      "album": "Album",
+      "albumArtist": "Album artist",
+      "track": "Track number",
+      "disc": "Disc number",
+      "date": "Year or date",
+      "genre": "Genre"
+    }
   }
 }
