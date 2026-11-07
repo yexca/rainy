@@ -13,7 +13,8 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   the full-screen player or the title for the floating window; click the
   progress line to jump to that point, and hover it to preview the time. The
   bar still hides and pins as before. The floating mini bar is gone: the
-  layout menu offers full screen, floating window, and bottom bar.
+  layout menu offers full screen, floating window, and bottom bar. The corner
+  mascot sits on the bar near its right end.
 
 </details>
 

@@ -211,8 +211,8 @@ rain-blue tile.
   have their own. Covers that are still loading keep the plain gradient, so the
   mascot never flashes in before real art. The lock screen and notifications
   (Media Session) show the same placeholder for songs without a cover.
-- **Corner companion.** She sits on top of the player chrome (above the bottom
-  bar, beside the floating window) and follows playback: listening
+- **Corner companion.** She sits on top of the player chrome (on the floating bottom
+  bar near its right end, beside the floating window) and follows playback: listening
   while music plays, waving when paused, asleep after two minutes. Clicking her
   shows a short line; the × hides her. She never appears on phones, where the
   tab bar and mini player already fill the bottom edge.

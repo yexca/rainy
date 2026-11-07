@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, Pin } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { useEffect, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
@@ -68,6 +68,32 @@ function useSidebarGapWidth(): number {
 }
 
 /**
+ * Publishes `--playerbar-inset-right` on `<html>`: how far the floating pill's right end sits
+ * from its slot's right edge (gap + safe area + centring), so the mascot companion can sit on
+ * the pill instead of beside it (`--mascot-right` in index.css). Removed on unmount.
+ */
+function usePublishBarInset(slotRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const slot = slotRef.current
+    const pill = slot?.querySelector<HTMLElement>('[role="region"]')
+    if (!slot || !pill) return
+    const root = document.documentElement
+    const measure = () => {
+      const inset = slot.getBoundingClientRect().right - pill.getBoundingClientRect().right
+      root.style.setProperty('--playerbar-inset-right', `${Math.max(0, Math.round(inset))}px`)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(slot)
+    observer.observe(pill)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--playerbar-inset-right')
+    }
+  }, [slotRef])
+}
+
+/**
  * Bottom bar slot, over the content between the sidebar and the side panel. Its handle (a tab above the bar) holds a collapse / expand chevron and a pin.
  * Unpinned (auto-hide, NetEase style) the bar slides below the viewport and only the handle
  * stays; hovering the handle or the bottom edge, or tabbing into the bar, peeks it up until the
@@ -79,6 +105,7 @@ function BarSlot({ autoHide }: { autoHide: boolean }) {
   const setBarAutoHide = usePlayerDock((s) => s.setBarAutoHide)
   const sidebarWidth = useSidebarGapWidth()
   const slotRef = useRef<HTMLDivElement>(null)
+  usePublishBarInset(slotRef)
   const menuOpen = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [peek, setPeek] = useState(false)

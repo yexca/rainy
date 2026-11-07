@@ -281,6 +281,10 @@
   --player-clearance: var(--safe-bottom);
   --player-toast-bottom: calc(var(--safe-bottom) + 16px);
 }
+:root[data-player-dock="bar"] {
+  /* On the floating pill, near its right end (the pill is narrower than wide content areas). */
+  --mascot-right: calc(var(--playerbar-inset-right, var(--playerbar-gap)) + 1.5rem);
+}
 :root[data-player-dock="window"] {
   --mascot-right: calc(var(--player-window-w) + 2.5rem + var(--safe-right));
   /* Beside the window; overlapping it only when the viewport is too narrow for a toast. */
