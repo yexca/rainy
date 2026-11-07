@@ -3,6 +3,15 @@
 Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
 
 <details>
+<summary><strong>Playback And The Web Player</strong></summary>
+
+- In immersive mode, the next song's colours fade in across the whole window
+  in a slower, softer cross-fade instead of spreading out from a tap, click,
+  or the artwork. Taps and clicks still work while the colours fade.
+
+</details>
+
+<details>
 <summary><strong>Library Management</strong></summary>
 
 - Link and online music downloads can wait in the new **Tracks → Review** tab

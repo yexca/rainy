@@ -315,15 +315,16 @@
 :root[data-immersive] [data-slot="sidebar-inset"] {
   background-color: transparent;
 }
-/* The next cover's colours (lib/theme-reveal.ts): a circle from the last press or the playing */
-/* artwork, drawn by a script animation in place of the default cross-fade, or a slower one.  */
-:root[data-theme-reveal="circle"]::view-transition-old(root),
-:root[data-theme-reveal="circle"]::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
+/* The next cover's colours (lib/theme-reveal.ts): the whole window cross-fades, slower and    */
+/* softer than the default. The snapshot lets presses through, so the next press still lands. */
+:root[data-theme-reveal]::view-transition {
+  pointer-events: none;
 }
-:root[data-theme-reveal="fade"]::view-transition-group(root) {
-  animation-duration: 700ms;
+:root[data-theme-reveal]::view-transition-group(root),
+:root[data-theme-reveal]::view-transition-old(root),
+:root[data-theme-reveal]::view-transition-new(root) {
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ------------------------------------------------------------------------------------------ */
