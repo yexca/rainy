@@ -499,6 +499,54 @@
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     background-color: var(--background);
+    /* The page always keeps room for its scrollbar, so short and long pages line up and fixed
+       chrome (player bar, side panel, toasts) ends at the same edge. Overlay scrollbars (phones,
+       tablets, macOS by default) take no room, so nothing is reserved there. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Radix scroll locking (dialogs, menus, sheets) measures that reserved gutter as a scrollbar and
+     pads <body> by it; the gutter already holds the width, so the page would shift left. */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
+  /* Scrollbars with a mouse or trackpad: a thin rounded thumb on a clear track, stronger on hover
+     (docs/development/design.md, Scrollbars). `scrollbar-none` hides one. Chromium and Safari draw
+     the ::-webkit-scrollbar parts (the standard properties would switch them off); Firefox uses
+     the standard ones and darkens the thumb on hover itself. Touch devices keep overlay bars. */
+  @media (hover: hover) and (pointer: fine) {
+    @supports not selector(::-webkit-scrollbar) {
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+      background-color: transparent;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background-color: transparent;
+    }
+    ::-webkit-scrollbar-button {
+      display: none;
+    }
+    ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 9999px;
+      background-clip: padding-box;
+      background-color: color-mix(in oklab, var(--foreground) 22%, transparent);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: color-mix(in oklab, var(--foreground) 38%, transparent);
+    }
+    ::-webkit-scrollbar-thumb:active {
+      background-color: color-mix(in oklab, var(--foreground) 48%, transparent);
+    }
   }
 
   /* Lyric lines carry a language hint (lib/lyrics/bilingual guessLang) so Japanese and Korean
@@ -633,6 +681,7 @@
   }
 }
 
+/* Hides a scroller's bar (horizontal shelves, tabs, breadcrumbs, lyrics). */
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -640,11 +689,6 @@
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-@utility scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent) transparent;
 }
 
 /* iOS-style hairlines (0.5px on retina). Colour: --hairline-color (default --border). */

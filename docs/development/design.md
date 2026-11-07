@@ -182,6 +182,14 @@ reading layout.
   background with a strong backdrop blur and a subtle border on larger screens.
   Phones, including landscape phones up to 540 px high, use opaque surfaces to
   keep native scrolling smooth. Backdrop filters never animate.
+- Scrollbars, with a mouse or trackpad, are a thin rounded thumb on a clear
+  track in the foreground colour, stronger on hover, in every scroll area
+  (base styles in `index.css`). The page always reserves its scrollbar's
+  width (`scrollbar-gutter: stable`), so content and fixed chrome keep the
+  same right edge on short and long pages and while a dialog or menu locks
+  scrolling. Touch devices keep the system's overlay scrollbars and reserve
+  nothing. Hide a scroller's bar with `scrollbar-none` (horizontal shelves,
+  tabs, breadcrumbs, lyrics); do not restyle one bar on its own.
 - Motion uses `motion/react` springs and honours the user's reduced-motion
   preference. Mobile presses scale down slightly for feedback.
 - Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke.
