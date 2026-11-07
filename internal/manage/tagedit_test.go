@@ -49,11 +49,11 @@ func TestTagDiff(t *testing.T) {
 
 func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	e := newEnv(t)
-	rel := "Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac"
+	rel := "Synthetic Artist 1/Synthetic Album 1/CD1/1-01 Synthetic Track 1.flac"
 	requireTags(t, e.abs(rel))
 	tr := e.track(rel)
 	res, err := e.svc.SaveTags(e.ctx, e.user, []TagEdit{
-		{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Polar Night (Remaster)"}, "comment": {"edited"}, "DISCSUBTITLE": {}}},
+		{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Synthetic Track 1 (Remaster)"}, "comment": {"edited"}, "DISCSUBTITLE": {}}},
 		{TrackID: "does-not-exist", Tags: TagMap{"TITLE": {"x"}}},
 	})
 	if err != nil {
@@ -66,13 +66,13 @@ func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(raw["TITLE"], []string{"Polar Night (Remaster)"}) || !slices.Equal(raw["COMMENT"], []string{"edited"}) {
+	if !slices.Equal(raw["TITLE"], []string{"Synthetic Track 1 (Remaster)"}) || !slices.Equal(raw["COMMENT"], []string{"edited"}) {
 		t.Fatalf("tags not written: %v", raw)
 	}
 	if len(raw["DISCSUBTITLE"]) != 0 {
 		t.Fatalf("DISCSUBTITLE not deleted: %v", raw["DISCSUBTITLE"])
 	}
-	if !slices.Equal(raw["ARTIST"], []string{"Northern Echo"}) {
+	if !slices.Equal(raw["ARTIST"], []string{"Synthetic Artist 1"}) {
 		t.Fatalf("untouched key changed: %v", raw["ARTIST"])
 	}
 	entries, total, err := e.st.ListEditLog(e.ctx, tr.ID, 0, 10)
@@ -85,7 +85,7 @@ func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	if err := json.Unmarshal(entries[0].Details, &details); err != nil {
 		t.Fatal(err)
 	}
-	if c := details.Changes["TITLE"]; !slices.Equal(c.Old, []string{"Polar Night"}) || !slices.Equal(c.New, []string{"Polar Night (Remaster)"}) {
+	if c := details.Changes["TITLE"]; !slices.Equal(c.Old, []string{"Synthetic Track 1"}) || !slices.Equal(c.New, []string{"Synthetic Track 1 (Remaster)"}) {
 		t.Fatalf("details %s", entries[0].Details)
 	}
 	if len(e.sc.calls) != 1 || e.sc.calls[0][0] != rel {
@@ -93,7 +93,7 @@ func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	}
 
 	// Saving identical values writes nothing and logs nothing.
-	if _, err := e.svc.SaveTags(e.ctx, e.user, []TagEdit{{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Polar Night (Remaster)"}}}}); err != nil {
+	if _, err := e.svc.SaveTags(e.ctx, e.user, []TagEdit{{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Synthetic Track 1 (Remaster)"}}}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, total, _ := e.st.ListEditLog(e.ctx, tr.ID, 0, 10); total != 1 {
@@ -104,14 +104,14 @@ func TestSaveTagsWritesFileAndLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !tt.Writable || tt.File.Format != "flac" || tt.File.Size == 0 || !slices.Equal(tt.Tags["TITLE"], []string{"Polar Night (Remaster)"}) || tt.Lrc != nil {
+	if !tt.Writable || tt.File.Format != "flac" || tt.File.Size == 0 || !slices.Equal(tt.Tags["TITLE"], []string{"Synthetic Track 1 (Remaster)"}) || tt.Lrc != nil {
 		t.Fatalf("track tags %+v", tt)
 	}
 }
 
 func TestRebuildTagsLogsAndKeepsTrackID(t *testing.T) {
 	e := newEnv(t)
-	rel := "Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac"
+	rel := "Synthetic Artist 1/Synthetic Album 1/CD1/1-01 Synthetic Track 1.flac"
 	tr := e.track(rel)
 	before, err := tags.ReadRaw(e.abs(rel))
 	if err != nil {
@@ -139,13 +139,13 @@ func TestRebuildTagsLogsAndKeepsTrackID(t *testing.T) {
 
 func TestSetLyricsSidecarAndEmbedded(t *testing.T) {
 	e := newEnv(t)
-	rel := "林雨晴/城市夜雨 (2019)/03 末班车.flac"
+	rel := "示例歌手1/测试专辑2 (2019)/03 测试歌曲7.flac"
 	tr := e.track(rel)
-	lrc := "林雨晴/城市夜雨 (2019)/03 末班车.lrc"
-	if _, err := e.svc.SetLyrics(e.ctx, e.user, tr.ID, "[00:01.00]末班车\r\n", "lrc"); err != nil {
+	lrc := "示例歌手1/测试专辑2 (2019)/03 测试歌曲7.lrc"
+	if _, err := e.svc.SetLyrics(e.ctx, e.user, tr.ID, "[00:01.00]测试歌曲7\r\n", "lrc"); err != nil {
 		t.Fatal(err)
 	}
-	if b, err := os.ReadFile(e.abs(lrc)); err != nil || string(b) != "[00:01.00]末班车\n" {
+	if b, err := os.ReadFile(e.abs(lrc)); err != nil || string(b) != "[00:01.00]测试歌曲7\n" {
 		t.Fatalf("lrc %q %v", b, err)
 	}
 	if _, err := e.svc.SetLyrics(e.ctx, e.user, tr.ID, "  ", "lrc"); err != nil {
@@ -180,9 +180,9 @@ func TestSetLyricsSidecarAndEmbedded(t *testing.T) {
 
 func TestReadonlyErrors(t *testing.T) {
 	e := newEnv(t)
-	rel := "林雨晴/城市夜雨 (2019)/01 城市夜雨.flac"
+	rel := "示例歌手1/测试专辑2 (2019)/01 测试专辑2.flac"
 	tr := e.track(rel)
-	lrc := e.abs("林雨晴/城市夜雨 (2019)/01 城市夜雨.lrc")
+	lrc := e.abs("示例歌手1/测试专辑2 (2019)/01 测试专辑2.lrc")
 	if err := os.Chmod(lrc, 0o444); err != nil {
 		t.Fatal(err)
 	}

@@ -27,21 +27,21 @@ func TestWithRealScanner(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx := context.Background()
-	rel := "The Rainy Days/Blue Skies/01 Blue Skies.opus"
+	rel := "Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus"
 	tr := e.track(rel)
-	if tr.Title != "Blue Skies" {
+	if tr.Title != "Synthetic Album 3" {
 		t.Fatalf("scanned title %q", tr.Title)
 	}
 
 	// Tag edit → the rescan updates the row (same id).
-	res, err := e.svc.SaveTags(ctx, e.user, []TagEdit{{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Blue Skies (Edit)"}}}})
-	if err != nil || len(res.Errors) != 0 || res.Updated[0].Title != "Blue Skies (Edit)" || res.Updated[0].ID != tr.ID {
+	res, err := e.svc.SaveTags(ctx, e.user, []TagEdit{{TrackID: tr.ID, Tags: TagMap{"TITLE": {"Synthetic Album 3 (Edit)"}}}})
+	if err != nil || len(res.Errors) != 0 || res.Updated[0].Title != "Synthetic Album 3 (Edit)" || res.Updated[0].ID != tr.ID {
 		t.Fatalf("save tags %+v %v", res, err)
 	}
 
 	// Rename keeps the id.
 	res, err = e.svc.Rename(ctx, e.user, []string{tr.ID}, "{albumartist}/{album}/{title}")
-	if err != nil || len(res.Errors) != 0 || res.Updated[0].Path != "The Rainy Days/Blue Skies/Blue Skies (Edit).opus" || res.Updated[0].ID != tr.ID {
+	if err != nil || len(res.Errors) != 0 || res.Updated[0].Path != "Synthetic Artist 3/Synthetic Album 3/Synthetic Album 3 (Edit).opus" || res.Updated[0].ID != tr.ID {
 		t.Fatalf("rename %+v %v", res, err)
 	}
 	if _, err := e.st.GetTrackByPath(ctx, e.lib.ID, rel); !errors.Is(err, store.ErrNotFound) {
@@ -66,10 +66,10 @@ func TestWithRealScanner(t *testing.T) {
 	}
 
 	// Upload → scanned immediately with real metadata.
-	up := multipartBody(t, []upFile{{"x.flac", mustRead(t, e.abs("Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac"))}},
+	up := multipartBody(t, []upFile{{"x.flac", mustRead(t, e.abs("Synthetic Artist 1/Synthetic Album 1/CD1/1-01 Synthetic Track 1.flac"))}},
 		map[string]string{"libraryId": "1", "dir": "Incoming", "organize": "false"})
 	res, err = e.svc.Upload(ctx, e.user, up)
-	if err != nil || len(res.Updated) != 1 || res.Updated[0].Title != "Polar Night" || res.Updated[0].Path != "Incoming/x.flac" {
+	if err != nil || len(res.Updated) != 1 || res.Updated[0].Title != "Synthetic Track 1" || res.Updated[0].Path != "Incoming/x.flac" {
 		t.Fatalf("upload %+v %v", res, err)
 	}
 	if len(res.Untagged) != 0 {

@@ -112,7 +112,7 @@ func wideJPEG(t *testing.T, w, h int) []byte {
 
 func TestDownloadImportsLikeAnUpload(t *testing.T) {
 	e := newEnv(t)
-	src := e.abs("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	src := e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	requireTags(t, src)
 	e.enableDownloads(true)
 	dl := &fakeDownloader{src: src, thumb: wideJPEG(t, 320, 180), items: []ytdlp.Item{{

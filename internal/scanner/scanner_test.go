@@ -170,24 +170,24 @@ func TestScanTestLibrary(t *testing.T) {
 	}
 
 	// CJK metadata, embedded cover, "N/M" numbers.
-	tr := e.byPath("林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
-	if tr.Title != "夏日微风" || tr.Artist != "林雨晴" || tr.Album != "夏日微风" || tr.Year != 2021 ||
+	tr := e.byPath("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
+	if tr.Title != "测试专辑1" || tr.Artist != "示例歌手1" || tr.Album != "测试专辑1" || tr.Year != 2021 ||
 		tr.TrackNumber != 1 || tr.TrackTotal != 6 || !tr.HasCover || tr.Genre != "Mandopop" || tr.Codec != "mp3" || tr.Duration <= 0 {
 		t.Errorf("CJK mp3: %+v", tr)
 	}
 	// Japanese m4a + genre split on "/".
-	tr = e.byPath("星野ミライ/雨上がりの空/01 雨上がりの空.m4a")
-	if tr.Title != "雨上がりの空" || !reflect.DeepEqual(tr.Genres, []string{"J-Pop", "Anime"}) || !tr.HasLrc || tr.Codec != "mp4/aac" {
+	tr = e.byPath("テスト歌手1/テストアルバム1/01 テストアルバム1.m4a")
+	if tr.Title != "テストアルバム1" || !reflect.DeepEqual(tr.Genres, []string{"J-Pop", "Anime"}) || !tr.HasLrc || tr.Codec != "mp4/aac" {
 		t.Errorf("Japanese m4a: title=%q genres=%v lrc=%v codec=%q", tr.Title, tr.Genres, tr.HasLrc, tr.Codec)
 	}
 	// Sidecar and embedded lyrics.
-	if tr := e.byPath("林雨晴/城市夜雨 (2019)/01 城市夜雨.flac"); !tr.HasLrc || !reflect.DeepEqual(tr.Genres, []string{"Pop", "Rock"}) || tr.Year != 2019 {
+	if tr := e.byPath("示例歌手1/测试专辑2 (2019)/01 测试专辑2.flac"); !tr.HasLrc || !reflect.DeepEqual(tr.Genres, []string{"Pop", "Rock"}) || tr.Year != 2019 {
 		t.Errorf("flac with lrc: lrc=%v genres=%v year=%d", tr.HasLrc, tr.Genres, tr.Year)
 	}
-	if tr := e.byPath("林雨晴/城市夜雨 (2019)/03 末班车.flac"); tr.HasLrc || !strings.Contains(tr.Lyrics, "窗外的灯") || !tr.HasLyrics {
+	if tr := e.byPath("示例歌手1/测试专辑2 (2019)/03 测试歌曲7.flac"); tr.HasLrc || !strings.Contains(tr.Lyrics, "内嵌歌词") || !tr.HasLyrics {
 		t.Errorf("embedded lyrics: lrc=%v lyrics=%q", tr.HasLrc, tr.Lyrics)
 	}
-	if tr := e.byPath("林雨晴/城市夜雨 (2019)/04 伞下.flac"); tr.HasLrc || tr.HasLyrics {
+	if tr := e.byPath("示例歌手1/测试专辑2 (2019)/04 测试歌曲8.flac"); tr.HasLrc || tr.HasLyrics {
 		t.Errorf("no lyrics expected: %+v", tr)
 	}
 	// Untagged fallbacks.
@@ -196,34 +196,34 @@ func TestScanTestLibrary(t *testing.T) {
 		t.Errorf("untagged: %+v", tr)
 	}
 	// Multi-disc album with embedded PNG.
-	al := e.album("Aurora Lights")
+	al := e.album("Synthetic Album 1")
 	if al.DiscCount != 2 || al.SongCount != 6 || al.Year != 2020 || al.CoverTrackID == "" || al.CoverPath != "" {
 		t.Errorf("multi-disc album: %+v", al)
 	}
-	if tr := e.byPath("Northern Echo/Aurora Lights/CD2/2-01 Solar Wind.flac"); tr.DiscNumber != 2 || tr.DiscTotal != 2 ||
-		tr.DiscSubtitle != "Dawn" || tr.TrackNumber != 1 || tr.TrackTotal != 3 || tr.OriginalYear != 2018 {
+	if tr := e.byPath("Synthetic Artist 1/Synthetic Album 1/CD2/2-01 Synthetic Track 4.flac"); tr.DiscNumber != 2 || tr.DiscTotal != 2 ||
+		tr.DiscSubtitle != "Synthetic Disc 2" || tr.TrackNumber != 1 || tr.TrackTotal != 3 || tr.OriginalYear != 2018 {
 		t.Errorf("disc 2 track: %+v", tr)
 	}
 	// Compilation.
-	al = e.album("Summer Hits 2024")
+	al = e.album("Synthetic Album 2 2024")
 	if !al.Compilation || al.AlbumArtist != "Various Artists" || al.SongCount != 5 {
 		t.Errorf("compilation: %+v", al)
 	}
-	appears, err := e.st.AlbumsAppearsOn(e.ctx, e.byPath("Various Artists/Summer Hits 2024/03 Heatwave.mp3").ArtistID, "")
+	appears, err := e.st.AlbumsAppearsOn(e.ctx, e.byPath("Various Artists/Synthetic Album 2 2024/03 Synthetic Track 7.mp3").ArtistID, "")
 	if err != nil || len(appears) != 1 || appears[0].ID != al.ID {
 		t.Errorf("appears on: %v %v", appears, err)
 	}
 	// Folder covers, artist image, album without art.
-	if al := e.album("城市夜雨"); !strings.HasSuffix(filepath.ToSlash(al.CoverPath), "城市夜雨 (2019)/cover.jpg") {
+	if al := e.album("测试专辑2"); !strings.HasSuffix(filepath.ToSlash(al.CoverPath), "测试专辑2 (2019)/cover.jpg") {
 		t.Errorf("cover.jpg not detected: %q", al.CoverPath)
 	}
-	if al := e.album("Blue Skies"); !strings.HasSuffix(al.CoverPath, "folder.png") || al.CoverTrackID != "" {
+	if al := e.album("Synthetic Album 3"); !strings.HasSuffix(al.CoverPath, "folder.png") || al.CoverTrackID != "" {
 		t.Errorf("folder.png not detected: %+v", al)
 	}
-	if al := e.album("Unknown Signals"); al.CoverPath != "" || al.CoverTrackID != "" {
+	if al := e.album("Synthetic Album 4"); al.CoverPath != "" || al.CoverTrackID != "" {
 		t.Errorf("album without art: %+v", al)
 	}
-	ar, err := e.st.GetArtist(e.ctx, e.byPath("林雨晴/夏日微风 (2021)/01 夏日微风.mp3").AlbumArtistID, "")
+	ar, err := e.st.GetArtist(e.ctx, e.byPath("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3").AlbumArtistID, "")
 	if err != nil || !strings.HasSuffix(ar.ImagePath, "artist.jpg") || ar.AlbumCount != 2 {
 		t.Errorf("artist image: %+v %v", ar, err)
 	}
@@ -286,7 +286,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 	ctx := e.ctx
 
 	// Touching a file re-reads it.
-	rel := "Static Noise/Unknown Signals/02 Signal 2.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/02 Synthetic Track 14.ogg"
 	orig := e.byPath(rel)
 	later := time.Now().Add(time.Minute)
 	if err := os.Chtimes(e.abs(rel), later, later); err != nil {
@@ -307,7 +307,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 	if err := e.st.SetStarred(ctx, u.ID, "track", []string{orig.ID}, true); err != nil {
 		t.Fatal(err)
 	}
-	newRel := "Static Noise/Moved Here/renamed.ogg"
+	newRel := "Synthetic Artist 4/Moved Here/renamed.ogg"
 	if err := os.MkdirAll(filepath.Dir(e.abs(newRel)), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -326,7 +326,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 	}
 
 	// Deleting marks missing; restoring brings the same id back.
-	del := "Nature Sounds/Field Recordings/01 Forest Rain.wav"
+	del := "Synthetic Artist 5/Synthetic Album 5/01 Synthetic Track 17.wav"
 	delTrack := e.byPath(del)
 	tmp := filepath.Join(t.TempDir(), "keep.wav")
 	if err := os.Rename(e.abs(del), tmp); err != nil {
@@ -352,7 +352,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 	}
 
 	// Swapping two files keeps one row per path.
-	a, b := "Nature Sounds/Field Recordings/02 Mountain Stream.wav", "Nature Sounds/Field Recordings/03 Night Crickets.wav"
+	a, b := "Synthetic Artist 5/Synthetic Album 5/02 Synthetic Track 18.wav", "Synthetic Artist 5/Synthetic Album 5/03 Synthetic Track 19.wav"
 	tmp2 := e.abs(a) + ".tmp"
 	for _, mv := range [][2]string{{e.abs(a), tmp2}, {e.abs(b), e.abs(a)}, {tmp2, e.abs(b)}} {
 		if err := os.Rename(mv[0], mv[1]); err != nil {
@@ -360,7 +360,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 		}
 	}
 	e.run(false)
-	if ta, tb := e.byPath(a), e.byPath(b); ta.Title != "Night Crickets" || tb.Title != "Mountain Stream" {
+	if ta, tb := e.byPath(a), e.byPath(b); ta.Title != "Synthetic Track 19" || tb.Title != "Synthetic Track 18" {
 		t.Fatalf("swap: %q %q", ta.Title, tb.Title)
 	}
 	if n := len(e.tracks("")); n != visibleTracks {
@@ -378,7 +378,7 @@ func TestTouchMoveDeleteRestore(t *testing.T) {
 	}
 
 	// .rainyignore excludes a folder.
-	if err := os.WriteFile(e.abs("Nature Sounds/.rainyignore"), nil, 0o644); err != nil {
+	if err := os.WriteFile(e.abs("Synthetic Artist 5/.rainyignore"), nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if st := e.run(false); st.Removed != 3 {
@@ -411,10 +411,10 @@ func TestLibraryUnavailable(t *testing.T) {
 	if n := len(e.tracks("")); n != visibleTracks {
 		t.Fatalf("tracks marked missing while offline: %d left", n)
 	}
-	if al := e.album("城市夜雨"); al.CoverPath == "" {
+	if al := e.album("测试专辑2"); al.CoverPath == "" {
 		t.Fatal("cover path cleared while the library was offline")
 	}
-	if ar, _ := e.st.GetArtist(e.ctx, e.album("城市夜雨").AlbumArtistID, ""); ar == nil || ar.ImagePath == "" {
+	if ar, _ := e.st.GetArtist(e.ctx, e.album("测试专辑2").AlbumArtistID, ""); ar == nil || ar.ImagePath == "" {
 		t.Fatal("artist image cleared while the library was offline")
 	}
 	// Back online: nothing changed.
@@ -516,25 +516,25 @@ func TestRescanFiles(t *testing.T) {
 	ctx := e.ctx
 
 	// File changed (tag edit) → new title, album refreshed.
-	rel := "The Rainy Days/Blue Skies/02 Umbrella.opus"
+	rel := "Synthetic Artist 3/Synthetic Album 3/02 Synthetic Track 10.opus"
 	orig := e.byPath(rel)
-	if err := tags.Write(e.abs(rel), map[string][]string{"TITLE": {"Umbrella (Edit)"}, "ALBUM": {"Blue Skies Deluxe"}}); err != nil {
+	if err := tags.Write(e.abs(rel), map[string][]string{"TITLE": {"Synthetic Track 10 (Edit)"}, "ALBUM": {"Synthetic Album 3 Deluxe"}}); err != nil {
 		t.Fatal(err)
 	}
 	got, err := e.sc.RescanFiles(ctx, e.lib.ID, []string{rel})
-	if err != nil || len(got) != 1 || got[0].ID != orig.ID || got[0].Title != "Umbrella (Edit)" || got[0].Album != "Blue Skies Deluxe" {
+	if err != nil || len(got) != 1 || got[0].ID != orig.ID || got[0].Title != "Synthetic Track 10 (Edit)" || got[0].Album != "Synthetic Album 3 Deluxe" {
 		t.Fatalf("RescanFiles(changed): %+v %v", got, err)
 	}
-	deluxe := e.album("Blue Skies Deluxe")
+	deluxe := e.album("Synthetic Album 3 Deluxe")
 	if deluxe.SongCount != 1 || !strings.HasSuffix(deluxe.CoverPath, "folder.png") {
 		t.Fatalf("new album: %+v", deluxe)
 	}
-	if al := e.album("Blue Skies"); al.SongCount != 3 {
+	if al := e.album("Synthetic Album 3"); al.SongCount != 3 {
 		t.Fatalf("old album not refreshed: %+v", al)
 	}
 
 	// Renamed, caller already updated the path.
-	newRel := "The Rainy Days/Blue Skies/Umbrella renamed.opus"
+	newRel := "Synthetic Artist 3/Synthetic Album 3/Synthetic Track 10 renamed.opus"
 	if err := os.Rename(e.abs(rel), e.abs(newRel)); err != nil {
 		t.Fatal(err)
 	}
@@ -547,7 +547,7 @@ func TestRescanFiles(t *testing.T) {
 	}
 
 	// Renamed without UpdateTrackPath → move detection among the given paths.
-	third := "The Rainy Days/Blue Skies/sub/third name.opus"
+	third := "Synthetic Artist 3/Synthetic Album 3/sub/third name.opus"
 	if err := os.MkdirAll(filepath.Dir(e.abs(third)), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -560,7 +560,7 @@ func TestRescanFiles(t *testing.T) {
 	}
 
 	// Deleted → missing; new file → added.
-	got, err = e.sc.RescanFiles(ctx, e.lib.ID, []string{"The Rainy Days/Blue Skies/01 Blue Skies.opus"})
+	got, err = e.sc.RescanFiles(ctx, e.lib.ID, []string{"Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus"})
 	if err != nil || len(got) != 1 {
 		t.Fatal(err)
 	}
@@ -568,8 +568,8 @@ func TestRescanFiles(t *testing.T) {
 	if err := os.Remove(e.abs(blue.Path)); err != nil {
 		t.Fatal(err)
 	}
-	copyRel := "The Rainy Days/Blue Skies/copy.opus"
-	data, _ := os.ReadFile(e.abs("The Rainy Days/Blue Skies/04 Don't Stop the Rain.opus"))
+	copyRel := "Synthetic Artist 3/Synthetic Album 3/copy.opus"
+	data, _ := os.ReadFile(e.abs("Synthetic Artist 3/Synthetic Album 3/04 Synthetic Track 12.opus"))
 	if err := os.WriteFile(e.abs(copyRel), data, 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -582,7 +582,7 @@ func TestRescanFiles(t *testing.T) {
 	}
 
 	// Sidecar lyrics path re-evaluates has_lrc of its audio file.
-	lrcRel := "The Rainy Days/Blue Skies/copy.lrc"
+	lrcRel := "Synthetic Artist 3/Synthetic Album 3/copy.lrc"
 	if err := os.WriteFile(e.abs(lrcRel), []byte("[00:00.00]x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -602,15 +602,15 @@ func TestRescanFiles(t *testing.T) {
 func TestRescanDir(t *testing.T) {
 	e := newEnv(t)
 	e.run(false)
-	dir := "Static Noise/Unknown Signals"
-	cover, err := os.ReadFile(e.abs("林雨晴/城市夜雨 (2019)/cover.jpg"))
+	dir := "Synthetic Artist 4/Synthetic Album 4"
+	cover, err := os.ReadFile(e.abs("示例歌手1/测试专辑2 (2019)/cover.jpg"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(e.abs(dir+"/Front.JPG"), cover, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Remove(e.abs(dir + "/04 Dead Air.ogg")); err != nil {
+	if err := os.Remove(e.abs(dir + "/04 Synthetic Track 16.ogg")); err != nil {
 		t.Fatal(err)
 	}
 	sub, cancel := e.bus.Subscribe()
@@ -618,7 +618,7 @@ func TestRescanDir(t *testing.T) {
 	if err := e.sc.RescanDir(e.ctx, e.lib.ID, dir); err != nil {
 		t.Fatal(err)
 	}
-	al := e.album("Unknown Signals")
+	al := e.album("Synthetic Album 4")
 	if !strings.HasSuffix(al.CoverPath, "Front.JPG") || al.SongCount != 3 {
 		t.Fatalf("RescanDir: %+v", al)
 	}
@@ -630,10 +630,10 @@ func TestRescanDir(t *testing.T) {
 		t.Fatalf("tracks: %d", n)
 	}
 	// A vanished sub-directory marks its tracks missing (root still fine).
-	if err := os.RemoveAll(e.abs("Nature Sounds")); err != nil {
+	if err := os.RemoveAll(e.abs("Synthetic Artist 5")); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.sc.RescanDir(e.ctx, e.lib.ID, "Nature Sounds"); err != nil {
+	if err := e.sc.RescanDir(e.ctx, e.lib.ID, "Synthetic Artist 5"); err != nil {
 		t.Fatal(err)
 	}
 	if n := len(e.tracks("")); n != visibleTracks-4 {
@@ -645,7 +645,7 @@ func TestRescanDir(t *testing.T) {
 // each keep their own id: the file that kept its name takes over the id of that name.
 func TestMoveDuplicatesKeepTheirIDs(t *testing.T) {
 	e := newEnv(t)
-	data, err := os.ReadFile(e.abs("Static Noise/Unknown Signals/01 Signal 1.ogg"))
+	data, err := os.ReadFile(e.abs("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -693,19 +693,19 @@ func TestMoveDuplicatesKeepTheirIDs(t *testing.T) {
 }
 
 // RescanDir must only consider tracks inside the exact directory: SQLite's LIKE is
-// case-insensitive, and on Linux "Nature Sounds" and "nature sounds" are different folders.
+// case-insensitive, and on Linux "Synthetic Artist 5" and "synthetic artist 5" are different folders.
 func TestRescanDirIsCaseExact(t *testing.T) {
 	e := newEnv(t)
 	e.run(false)
-	other := model.Track{LibraryID: e.lib.ID, Path: "nature sounds/elsewhere.wav", Title: "Elsewhere",
+	other := model.Track{LibraryID: e.lib.ID, Path: "synthetic artist 5/elsewhere.wav", Title: "Elsewhere",
 		Album: "Other", Artist: "Other", AlbumArtist: "Other", Size: 1, Mtime: 1}
 	if err := e.st.UpsertTracks(e.ctx, []model.Track{other}); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.sc.RescanDir(e.ctx, e.lib.ID, "Nature Sounds"); err != nil {
+	if err := e.sc.RescanDir(e.ctx, e.lib.ID, "Synthetic Artist 5"); err != nil {
 		t.Fatal(err)
 	}
-	if tr := e.byPath("nature sounds/elsewhere.wav"); tr.Missing {
+	if tr := e.byPath("synthetic artist 5/elsewhere.wav"); tr.Missing {
 		t.Fatal("RescanDir marked a track of a differently-cased folder missing")
 	}
 	// Tracks of a directory whose name merely starts with the scanned one are untouched too.
@@ -738,7 +738,7 @@ func TestBackslashNamesSkipped(t *testing.T) {
 }
 
 func TestMatchHelpers(t *testing.T) {
-	for dir, want := range map[string]bool{"CD1": true, "Disc 2": true, "disk-3": true, "CD 1 - Live": true, "21": false, "Aurora Lights": false, "CDs": false} {
+	for dir, want := range map[string]bool{"CD1": true, "Disc 2": true, "disk-3": true, "CD 1 - Live": true, "21": false, "Synthetic Album 1": false, "CDs": false} {
 		if discDirRe.MatchString(dir) != want {
 			t.Errorf("discDirRe(%q) != %v", dir, want)
 		}
@@ -777,16 +777,16 @@ func TestOfflineLinkedShareKeepsTracksAndCovers(t *testing.T) {
 	}
 	base := t.TempDir()
 	root := filepath.Join(base, "music")
-	copyDir(t, filepath.Join(src, "Static Noise"), filepath.Join(root, "Static Noise"))
-	share := filepath.Join(base, "nas", "林雨晴")
-	copyDir(t, filepath.Join(src, "林雨晴"), share)
-	linkDir(t, share, filepath.Join(root, "林雨晴"))
+	copyDir(t, filepath.Join(src, "Synthetic Artist 4"), filepath.Join(root, "Synthetic Artist 4"))
+	share := filepath.Join(base, "nas", "示例歌手1")
+	copyDir(t, filepath.Join(src, "示例歌手1"), share)
+	linkDir(t, share, filepath.Join(root, "示例歌手1"))
 	e := newEnvAt(t, root)
 	e.run(false)
 	if n := len(e.tracks("")); n != 15 {
 		t.Fatalf("initial scan: %d tracks, want 15", n)
 	}
-	city := e.album("城市夜雨")
+	city := e.album("测试专辑2")
 	artist, err := e.st.GetArtist(e.ctx, city.AlbumArtistID, "")
 	if err != nil || city.CoverPath == "" || artist.ImagePath == "" {
 		t.Fatalf("initial covers: album %q artist %q %v", city.CoverPath, artist.ImagePath, err)
@@ -801,7 +801,7 @@ func TestOfflineLinkedShareKeepsTracksAndCovers(t *testing.T) {
 		if st.Removed != 0 || len(e.tracks("only")) != 0 {
 			t.Fatalf("share offline (full=%v): removed=%d missing=%d; want tracks left alone", full, st.Removed, len(e.tracks("only")))
 		}
-		a := e.album("城市夜雨")
+		a := e.album("测试专辑2")
 		ar, _ := e.st.GetArtist(e.ctx, city.AlbumArtistID, "")
 		if a.CoverPath != city.CoverPath || a.UpdatedAt != city.UpdatedAt || ar.ImagePath != artist.ImagePath {
 			t.Fatalf("share offline (full=%v): cover %q → %q, artist image %q → %q", full, city.CoverPath, a.CoverPath, artist.ImagePath, ar.ImagePath)
@@ -821,7 +821,7 @@ func TestOfflineLinkedShareKeepsTracksAndCovers(t *testing.T) {
 // the live track's plays, stars and playlist entries end up on a missing row.
 func TestMovePrefersJustVanishedOverMissing(t *testing.T) {
 	e := newEnv(t)
-	data, err := os.ReadFile(e.abs("Static Noise/Unknown Signals/01 Signal 1.ogg"))
+	data, err := os.ReadFile(e.abs("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -860,7 +860,7 @@ func TestMovePrefersJustVanishedOverMissing(t *testing.T) {
 // plays, stars and playlist entries) is marked missing.
 func TestMoveOntoMissingRowPathKeepsLiveID(t *testing.T) {
 	e := newEnv(t)
-	data, err := os.ReadFile(e.abs("Static Noise/Unknown Signals/01 Signal 1.ogg"))
+	data, err := os.ReadFile(e.abs("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -930,7 +930,7 @@ func TestMoveOntoMissingRowPathKeepsLiveID(t *testing.T) {
 // that are removed, are handled normally.
 func TestEmptiedLargeDirIsTreatedAsOffline(t *testing.T) {
 	e := newEnv(t)
-	data, err := os.ReadFile(e.abs("Static Noise/Unknown Signals/01 Signal 1.ogg"))
+	data, err := os.ReadFile(e.abs("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -950,8 +950,8 @@ func TestEmptiedLargeDirIsTreatedAsOffline(t *testing.T) {
 		t.Fatal(err)
 	}
 	// A small folder emptied at the same time is a normal deletion.
-	for _, n := range []string{"01 Signal 1.ogg", "02 Signal 2.ogg", "03 Interference.ogg", "04 Dead Air.ogg"} {
-		if err := os.Remove(e.abs("Static Noise/Unknown Signals/" + n)); err != nil {
+	for _, n := range []string{"01 Synthetic Track 13.ogg", "02 Synthetic Track 14.ogg", "03 Synthetic Track 15.ogg", "04 Synthetic Track 16.ogg"} {
+		if err := os.Remove(e.abs("Synthetic Artist 4/Synthetic Album 4/" + n)); err != nil {
 			t.Fatal(err)
 		}
 	}

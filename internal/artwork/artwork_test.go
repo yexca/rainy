@@ -117,8 +117,8 @@ func TestAlbumTrackArtistCovers(t *testing.T) {
 	ctx := f.ctx
 
 	// Folder image: original bytes at size 0, resized JPEG otherwise.
-	city := f.album(t, "城市夜雨")
-	orig, err := os.ReadFile(filepath.Join(f.root, "林雨晴", "城市夜雨 (2019)", "cover.jpg"))
+	city := f.album(t, "测试专辑2")
+	orig, err := os.ReadFile(filepath.Join(f.root, "示例歌手1", "测试专辑2 (2019)", "cover.jpg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestAlbumTrackArtistCovers(t *testing.T) {
 	}
 
 	// Embedded 1200px PNG (multi-disc album).
-	aurora := f.album(t, "Aurora Lights")
+	aurora := f.album(t, "Synthetic Album 1")
 	img, err = f.art.Get(ctx, aurora.CoverArt, 0)
 	if err != nil || img.ContentType != "image/png" {
 		t.Fatalf("embedded original: %v %v", err, img)
@@ -160,11 +160,11 @@ func TestAlbumTrackArtistCovers(t *testing.T) {
 	}
 
 	// Track with embedded art; track without → album folder cover; bare ids.
-	mp3 := f.track(t, "林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	mp3 := f.track(t, "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	if _, err := f.art.Get(ctx, mp3.CoverArt, 64); err != nil || mp3.CoverArt[:3] != "tr-" {
 		t.Fatalf("track cover %q: %v", mp3.CoverArt, err)
 	}
-	flac := f.track(t, "林雨晴/城市夜雨 (2019)/02 霓虹.flac")
+	flac := f.track(t, "示例歌手1/测试专辑2 (2019)/02 测试歌曲6.flac")
 	if img, err := f.art.Get(ctx, util.CoverArtID("tr", flac.ID, 1), 0); err != nil || !bytes.Equal(img.Data, orig) {
 		t.Fatalf("track → album fallback: %v", err)
 	}
@@ -177,15 +177,15 @@ func TestAlbumTrackArtistCovers(t *testing.T) {
 
 	// Artists: artist.jpg; fallback to an album cover; none.
 	lin, _ := f.st.GetArtist(ctx, mp3.AlbumArtistID, "")
-	artistJPG, _ := os.ReadFile(filepath.Join(f.root, "林雨晴", "artist.jpg"))
+	artistJPG, _ := os.ReadFile(filepath.Join(f.root, "示例歌手1", "artist.jpg"))
 	if img, err := f.art.Get(ctx, lin.CoverArt, 0); err != nil || !bytes.Equal(img.Data, artistJPG) {
 		t.Fatalf("artist image: %v", err)
 	}
-	echo := f.track(t, "Northern Echo/Aurora Lights/CD1/1-01 Polar Night.flac")
+	echo := f.track(t, "Synthetic Artist 1/Synthetic Album 1/CD1/1-01 Synthetic Track 1.flac")
 	if _, err := f.art.Get(ctx, util.CoverArtID("ar", echo.AlbumArtistID, 1), 64); err != nil {
 		t.Fatalf("artist → album fallback: %v", err)
 	}
-	noise := f.track(t, "Static Noise/Unknown Signals/01 Signal 1.ogg")
+	noise := f.track(t, "Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
 	if _, err := f.art.Get(ctx, util.CoverArtID("ar", noise.AlbumArtistID, 1), 64); !errors.Is(err, artwork.ErrNotFound) {
 		t.Fatalf("artist without art: %v", err)
 	}
@@ -199,7 +199,7 @@ func TestAlbumTrackArtistCovers(t *testing.T) {
 	}
 
 	// Editing the folder image changes the result (cache keyed by file identity).
-	coverPath := filepath.Join(f.root, "林雨晴", "城市夜雨 (2019)", "cover.jpg")
+	coverPath := filepath.Join(f.root, "示例歌手1", "测试专辑2 (2019)", "cover.jpg")
 	var buf bytes.Buffer
 	red := image.NewRGBA(image.Rect(0, 0, 400, 200))
 	for i := range red.Pix {
@@ -242,15 +242,15 @@ func TestCorruptImagesFallBack(t *testing.T) {
 	ctx := f.ctx
 	garbage := []byte("this is not an image, just a truncated download")
 
-	aurora := f.album(t, "Aurora Lights") // embedded PNG, no folder image
-	bad := filepath.Join(f.root, "Northern Echo", "Aurora Lights", "cover.jpg")
+	aurora := f.album(t, "Synthetic Album 1") // embedded PNG, no folder image
+	bad := filepath.Join(f.root, "Synthetic Artist 1", "Synthetic Album 1", "cover.jpg")
 	if err := os.WriteFile(bad, garbage, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := f.st.SetAlbumCoverPath(ctx, aurora.ID, bad); err != nil {
 		t.Fatal(err)
 	}
-	aurora = f.album(t, "Aurora Lights")
+	aurora = f.album(t, "Synthetic Album 1")
 	for _, size := range []int{0, 128} {
 		img, err := f.art.Get(ctx, aurora.CoverArt, size)
 		if err != nil {
@@ -261,11 +261,11 @@ func TestCorruptImagesFallBack(t *testing.T) {
 		}
 	}
 
-	blue := f.album(t, "Blue Skies") // folder.png only
-	if err := os.WriteFile(filepath.Join(f.root, "The Rainy Days", "Blue Skies", "folder.png"), garbage, 0o644); err != nil {
+	blue := f.album(t, "Synthetic Album 3") // folder.png only
+	if err := os.WriteFile(filepath.Join(f.root, "Synthetic Artist 3", "Synthetic Album 3", "folder.png"), garbage, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	track := f.track(t, "The Rainy Days/Blue Skies/01 Blue Skies.opus")
+	track := f.track(t, "Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus")
 	for _, id := range []string{blue.CoverArt, track.CoverArt, blue.ID} {
 		for _, size := range []int{0, 64} {
 			if img, err := f.art.Get(ctx, id, size); !errors.Is(err, artwork.ErrNotFound) {
@@ -284,12 +284,12 @@ func TestPlaylistMosaic(t *testing.T) {
 	}
 	var ids []string
 	for _, rel := range []string{
-		"林雨晴/夏日微风 (2021)/01 夏日微风.mp3",
-		"林雨晴/夏日微风 (2021)/02 海边的约定.mp3", // same album: counted once
-		"林雨晴/城市夜雨 (2019)/01 城市夜雨.flac",
-		"Static Noise/Unknown Signals/01 Signal 1.ogg", // no art: skipped
-		"星野ミライ/雨上がりの空/01 雨上がりの空.m4a",
-		"The Rainy Days/Blue Skies/01 Blue Skies.opus",
+		"示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3",
+		"示例歌手1/测试专辑1 (2021)/02 测试歌曲1.mp3", // same album: counted once
+		"示例歌手1/测试专辑2 (2019)/01 测试专辑2.flac",
+		"Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg", // no art: skipped
+		"テスト歌手1/テストアルバム1/01 テストアルバム1.m4a",
+		"Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus",
 	} {
 		ids = append(ids, f.track(t, rel).ID)
 	}
@@ -325,7 +325,7 @@ func TestPlaylistMosaic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	first, _ := f.art.Get(ctx, f.track(t, "林雨晴/夏日微风 (2021)/01 夏日微风.mp3").CoverArt, 0)
+	first, _ := f.art.Get(ctx, f.track(t, "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3").CoverArt, 0)
 	if !bytes.Equal(single.Data, first.Data) {
 		t.Fatal("single-album playlist should use that album's cover")
 	}
@@ -341,7 +341,7 @@ func TestPlaylistMosaic(t *testing.T) {
 
 func TestConcurrentGets(t *testing.T) {
 	f := setup(t)
-	city := f.album(t, "城市夜雨")
+	city := f.album(t, "测试专辑2")
 	var wg sync.WaitGroup
 	results := make([][]byte, 16)
 	for i := range results {
@@ -413,11 +413,11 @@ func TestFindFolderImage(t *testing.T) {
 func TestArtistFallbackSkipsUnusableAlbumCovers(t *testing.T) {
 	f := setup(t)
 	ctx := f.ctx
-	mp3 := f.track(t, "林雨晴/夏日微风 (2021)/01 夏日微风.mp3")
+	mp3 := f.track(t, "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3")
 	if err := f.st.SetArtistImagePath(ctx, mp3.AlbumArtistID, ""); err != nil {
 		t.Fatal(err)
 	}
-	bad := filepath.Join(f.root, "林雨晴", "夏日微风 (2021)", "cover.jpg")
+	bad := filepath.Join(f.root, "示例歌手1", "测试专辑1 (2021)", "cover.jpg")
 	if err := os.WriteFile(bad, []byte("not an image"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -427,7 +427,7 @@ func TestArtistFallbackSkipsUnusableAlbumCovers(t *testing.T) {
 	if _, err := f.st.DB().W.ExecContext(ctx, `UPDATE albums SET cover_track_id = '' WHERE id = ?`, mp3.AlbumID); err != nil {
 		t.Fatal(err)
 	}
-	orig, err := os.ReadFile(filepath.Join(f.root, "林雨晴", "城市夜雨 (2019)", "cover.jpg"))
+	orig, err := os.ReadFile(filepath.Join(f.root, "示例歌手1", "测试专辑2 (2019)", "cover.jpg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -452,17 +452,17 @@ func TestPlaylistMosaicFollowsFallbackCovers(t *testing.T) {
 	if err := f.st.CreateUser(ctx, u); err != nil {
 		t.Fatal(err)
 	}
-	cityDir := "林雨晴/城市夜雨 (2019)"
+	cityDir := "示例歌手1/测试专辑2 (2019)"
 	var ids, flacs []string
 	for _, rel := range []string{
-		"林雨晴/夏日微风 (2021)/01 夏日微风.mp3",
-		cityDir + "/01 城市夜雨.flac",
-		"星野ミライ/雨上がりの空/01 雨上がりの空.m4a",
-		"The Rainy Days/Blue Skies/01 Blue Skies.opus",
+		"示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3",
+		cityDir + "/01 测试专辑2.flac",
+		"テスト歌手1/テストアルバム1/01 テストアルバム1.m4a",
+		"Synthetic Artist 3/Synthetic Album 3/01 Synthetic Album 3.opus",
 	} {
 		ids = append(ids, f.track(t, rel).ID)
 	}
-	for _, n := range []string{"01 城市夜雨.flac", "02 霓虹.flac", "03 末班车.flac", "04 伞下.flac", "05 天亮以前.flac"} {
+	for _, n := range []string{"01 测试专辑2.flac", "02 测试歌曲6.flac", "03 测试歌曲7.flac", "04 测试歌曲8.flac", "05 测试歌曲9.flac"} {
 		flacs = append(flacs, cityDir+"/"+n)
 	}
 	pl := &model.Playlist{Name: "mix", OwnerID: u.ID}

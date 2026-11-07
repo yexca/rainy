@@ -11,7 +11,7 @@ import (
 
 func TestDeleteRestoreRoundTripKeepsID(t *testing.T) {
 	e := newEnv(t)
-	rel := "林雨晴/城市夜雨 (2019)/02 霓虹.flac"
+	rel := "示例歌手1/测试专辑2 (2019)/02 测试歌曲6.flac"
 	tr := e.track(rel)
 	if err := e.st.SetStarred(e.ctx, e.user.ID, "track", []string{tr.ID}, true); err != nil {
 		t.Fatal(err)
@@ -21,7 +21,7 @@ func TestDeleteRestoreRoundTripKeepsID(t *testing.T) {
 	if err != nil || len(res.Errors) != 0 || len(res.Updated) != 1 || !res.Updated[0].Missing {
 		t.Fatalf("delete: %+v %v", res, err)
 	}
-	if e.exists(rel) || e.exists("林雨晴/城市夜雨 (2019)/02 霓虹.lrc") {
+	if e.exists(rel) || e.exists("示例歌手1/测试专辑2 (2019)/02 测试歌曲6.lrc") {
 		t.Fatal("file or sidecar still in the library")
 	}
 	trash, err := e.svc.ListTrash(e.ctx)
@@ -53,7 +53,7 @@ func TestDeleteRestoreRoundTripKeepsID(t *testing.T) {
 	if err != nil || len(res.Errors) != 0 {
 		t.Fatalf("restore: %+v %v", res, err)
 	}
-	if !e.exists(rel) || !e.exists("林雨晴/城市夜雨 (2019)/02 霓虹.lrc") {
+	if !e.exists(rel) || !e.exists("示例歌手1/测试专辑2 (2019)/02 测试歌曲6.lrc") {
 		t.Fatal("file not restored")
 	}
 	got := e.track(rel)
@@ -77,7 +77,7 @@ func TestDeleteRestoreRoundTripKeepsID(t *testing.T) {
 
 func TestDeleteUniqueTrashNamesAndRestoreConflict(t *testing.T) {
 	e := newEnv(t)
-	rel := "Static Noise/Unknown Signals/01 Signal 1.ogg"
+	rel := "Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg"
 	tr := e.track(rel)
 	orig, _ := os.ReadFile(e.abs(rel))
 	if _, err := e.svc.Delete(e.ctx, e.user, []string{tr.ID}); err != nil {
@@ -126,9 +126,9 @@ func TestDeleteUniqueTrashNamesAndRestoreConflict(t *testing.T) {
 
 func TestPurgeTrashAndMissing(t *testing.T) {
 	e := newEnv(t)
-	a := e.track("Static Noise/Unknown Signals/01 Signal 1.ogg")
-	b := e.track("Static Noise/Unknown Signals/02 Signal 2.ogg")
-	c := e.track("Static Noise/Unknown Signals/03 Interference.ogg")
+	a := e.track("Synthetic Artist 4/Synthetic Album 4/01 Synthetic Track 13.ogg")
+	b := e.track("Synthetic Artist 4/Synthetic Album 4/02 Synthetic Track 14.ogg")
+	c := e.track("Synthetic Artist 4/Synthetic Album 4/03 Synthetic Track 15.ogg")
 	if _, err := e.svc.Delete(e.ctx, e.user, []string{a.ID, b.ID}); err != nil {
 		t.Fatal(err)
 	}
