@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useImeValue } from '@/hooks/use-ime-value'
 import type { SortOrder, TrackSort } from '@/lib/api/endpoints'
 import { api } from '@/lib/api/endpoints'
 import type { LibraryInfo } from '@/lib/api/types'
@@ -56,6 +57,7 @@ export function ManageToolbar({
 }: ManageToolbarProps) {
   const { t } = useTranslation('manage')
   const [search, setSearch] = useState(filters.q)
+  const searchIme = useImeValue(search, setSearch)
   const [prevQ, setPrevQ] = useState(filters.q)
   if (filters.q !== prevQ) {
     // URL changed from elsewhere (back button, chip removal) — follow it.
@@ -88,8 +90,9 @@ export function ManageToolbar({
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchIme.value}
+            onChange={(e) => searchIme.change(e.target.value, e.nativeEvent)}
+            {...searchIme.handlers}
             placeholder={t('filters.search')}
             aria-label={t('filters.search')}
             className="h-10 rounded-lg pl-9 md:h-9"

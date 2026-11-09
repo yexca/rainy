@@ -22,6 +22,17 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
 </details>
 
 <details>
+<summary><strong>Library Browsing And Search</strong></summary>
+
+- Search no longer runs on a Chinese or Japanese input method's reading
+  (pinyin, kana) while you type. The reading stays in the field, and the
+  search starts once you pick the text. Escape cancels the reading instead of
+  clearing the search. The track search, album and artist pickers on the
+  Tracks page, and the playlist filter behave the same way.
+
+</details>
+
+<details>
 <summary><strong>Library Management</strong></summary>
 
 - Link and online music downloads can wait in the new **Tracks → Review** tab

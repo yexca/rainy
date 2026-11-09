@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/hooks/use-auth'
+import { useImeValue } from '@/hooks/use-ime-value'
 import { api } from '@/lib/api/endpoints'
 import type { Playlist } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -76,6 +77,7 @@ function PlaylistPicker({
   const user = useCurrentUser()
   const queryClient = useQueryClient()
   const [filter, setFilter] = useState('')
+  const filterIme = useImeValue(filter, setFilter)
   const playlists = useQuery(playlistsQuery())
 
   const own = useMemo(
@@ -109,8 +111,9 @@ function PlaylistPicker({
           <span className="sr-only">{t('library:playlist.filter')}</span>
           <input
             type="search"
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
+            value={filterIme.value}
+            onChange={(event) => filterIme.change(event.target.value, event.nativeEvent)}
+            {...filterIme.handlers}
             placeholder={t('library:playlist.filter')}
             className="h-10 w-full rounded-xl bg-muted pr-3 pl-9 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/50 md:h-9 md:text-sm"
           />

@@ -8,6 +8,7 @@ import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useImeValue } from '@/hooks/use-ime-value'
 import { api } from '@/lib/api/endpoints'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ export function EntityCombobox({ kind, value, valueLabel, onChange, placeholder,
   const { t } = useTranslation('manage')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const searchIme = useImeValue(search, setSearch)
   const q = useDeferredValue(search.trim())
 
   const query = useQuery({
@@ -59,7 +61,12 @@ export function EntityCombobox({ kind, value, valueLabel, onChange, placeholder,
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) min-w-64 p-0" align="start">
         <Command shouldFilter={false}>
-          <CommandInput value={search} onValueChange={setSearch} placeholder={t('filters.searchPlaceholder')} />
+          <CommandInput
+            value={searchIme.value}
+            onValueChange={(next) => searchIme.change(next)}
+            {...searchIme.handlers}
+            placeholder={t('filters.searchPlaceholder')}
+          />
           <CommandList>
             {query.isPending ? (
               <div className="flex justify-center py-6">

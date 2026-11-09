@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useImeValue } from '@/hooks/use-ime-value'
+import { isImeKeyEvent } from '@/lib/ime'
 import { cn } from '@/lib/utils'
 
 export interface SearchFieldProps {
@@ -19,7 +21,8 @@ export interface SearchFieldProps {
 
 /**
  * iOS-style search field: rounded grey capsule with a magnifier and a clear button; on phones a
- * "Cancel" button slides in while focused.
+ * "Cancel" button slides in while focused. `onChange` receives committed text only: an IME
+ * reading (pinyin, kana) stays in the field until the input method commits it.
  */
 export function SearchField({
   value,
@@ -33,7 +36,8 @@ export function SearchField({
 }: SearchFieldProps) {
   const { t } = useTranslation()
   const [focused, setFocused] = useState(false)
-  const showCancel = !!onCancel && (focused || value.length > 0)
+  const ime = useImeValue(value, onChange)
+  const showCancel = !!onCancel && (focused || ime.value.length > 0)
 
   return (
     <form
@@ -41,6 +45,7 @@ export function SearchField({
       className={cn('flex items-center gap-2', className)}
       onSubmit={(event) => {
         event.preventDefault()
+        if (ime.isComposing()) return
         onSubmit?.(value)
         // Hide the on-screen keyboard after "Search" on phones.
         const input = event.currentTarget.querySelector('input')
@@ -63,20 +68,22 @@ export function SearchField({
           autoCapitalize="none"
           spellCheck={false}
           autoFocus={autoFocus}
-          value={value}
+          value={ime.value}
           placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => ime.change(event.target.value, event.nativeEvent)}
+          {...ime.handlers}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onKeyDown={(event) => {
-            if (event.key === 'Escape' && value) {
+            // Escape inside an input method cancels the reading, not the search.
+            if (event.key === 'Escape' && value && !isImeKeyEvent(event.nativeEvent)) {
               event.preventDefault()
               onChange('')
             }
           }}
           className="h-9 w-full min-w-0 appearance-none rounded-[10px] bg-secondary pr-9 pl-9 text-[17px] outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40 md:h-10 md:rounded-xl md:pl-10 md:text-[15px] dark:bg-secondary/80 [&::-webkit-search-cancel-button]:hidden"
         />
-        {value ? (
+        {ime.value ? (
           <button
             type="button"
             aria-label={t('common:actions.clear')}
