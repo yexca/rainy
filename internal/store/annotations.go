@@ -10,6 +10,39 @@ import (
 	"rainy/internal/util"
 )
 
+type annotationQuerier interface {
+	SelectContext(context.Context, any, string, ...any) error
+}
+
+func annotationTable(itemType string) string {
+	switch itemType {
+	case "track":
+		return "tracks"
+	case "album":
+		return "albums"
+	case "artist":
+		return "artists"
+	default:
+		return ""
+	}
+}
+
+func existingAnnotationIDs(ctx context.Context, q annotationQuerier, itemType string, ids []string) (map[string]struct{}, error) {
+	table := annotationTable(itemType)
+	if table == "" || len(ids) == 0 {
+		return map[string]struct{}{}, nil
+	}
+	got := make([]string, 0, len(ids))
+	if err := q.SelectContext(ctx, &got, `SELECT id FROM `+table+` WHERE id IN (`+placeholders(len(ids))+`)`, anys(ids)...); err != nil {
+		return nil, err
+	}
+	valid := make(map[string]struct{}, len(got))
+	for _, id := range got {
+		valid[id] = struct{}{}
+	}
+	return valid, nil
+}
+
 // SetStarred stars or unstars items of one type for a user. Re-starring keeps the original
 // starred_at.
 func (s *Store) SetStarred(ctx context.Context, userID, itemType string, ids []string, starred bool) error {
@@ -26,6 +59,15 @@ func (s *Store) SetStarred(ctx context.Context, userID, itemType string, ids []s
 		at = &now
 	}
 	return s.db.Tx(ctx, func(tx *sqlx.Tx) error {
+		valid, err := existingAnnotationIDs(ctx, tx, itemType, ids)
+		if err != nil {
+			return err
+		}
+		for _, id := range ids {
+			if _, ok := valid[id]; !ok {
+				return fmt.Errorf("%w: %s %s", ErrNotFound, itemType, id)
+			}
+		}
 		stmt, err := tx.PreparexContext(ctx, `INSERT INTO annotations (user_id, item_type, item_id, starred_at)
 			VALUES (?, ?, ?, ?)
 			ON CONFLICT (user_id, item_type, item_id) DO UPDATE SET starred_at =
@@ -51,9 +93,18 @@ func (s *Store) SetRating(ctx context.Context, userID, itemType, id string, rati
 	if rating < 0 || rating > 5 {
 		return fmt.Errorf("%w: rating %d (want 0-5)", ErrInvalid, rating)
 	}
-	_, err := s.db.W.ExecContext(ctx, `INSERT INTO annotations (user_id, item_type, item_id, rating) VALUES (?, ?, ?, ?)
-		ON CONFLICT (user_id, item_type, item_id) DO UPDATE SET rating = excluded.rating`, userID, itemType, id, rating)
-	return err
+	return s.db.Tx(ctx, func(tx *sqlx.Tx) error {
+		valid, err := existingAnnotationIDs(ctx, tx, itemType, []string{id})
+		if err != nil {
+			return err
+		}
+		if _, ok := valid[id]; !ok {
+			return fmt.Errorf("%w: %s %s", ErrNotFound, itemType, id)
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO annotations (user_id, item_type, item_id, rating) VALUES (?, ?, ?, ?)
+			ON CONFLICT (user_id, item_type, item_id) DO UPDATE SET rating = excluded.rating`, userID, itemType, id, rating)
+		return err
+	})
 }
 
 // RecordPlay registers a completed play at `at` (unix ms, 0 = now): play_count+1 and

@@ -83,8 +83,8 @@ out of every API response, log line, and error message.
 
 - Build every absolute path with `util.SafeJoin(root, rel)`. It rejects
   absolute input, `..`, NUL bytes, and anything outside the root. Use the
-  symlink-aware helpers (`EnsureWithinRoot`, `IsWithin`) before reading or
-  moving images and other files found by pattern.
+  symlink-aware helper `EnsureWithinRoot` before reading or moving images and
+  other files found by pattern.
 - Never touch files outside a library root or the data directory. A library
   may not overlap the data directory or another library.
 - Hold the scanner's library lock across a mutation and its rescan, write an

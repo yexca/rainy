@@ -93,7 +93,7 @@ rainy/
 - Durations: `float64` seconds in DB/model/JSON (Subsonic: integer seconds, rounded).
 - Paths in the DB/API are **library-relative with forward slashes**. Convert with
   `filepath.ToSlash`/`filepath.FromSlash`; build absolute paths only via `util.SafeJoin(root, rel)`,
-  which rejects anything escaping the root (`..`, absolute input, NUL); file mutations also call the
+  which rejects anything escaping the root (`..`, absolute input, NUL); serving or mutating files also calls the
   symlink-aware `util.EnsureWithinRoot(root, abs)`.
 - The server may run on Windows during development — never hardcode `/` for OS paths.
 - Logging: `log/slog` (JSON handler in docker, text handler in dev). No `fmt.Println`.
@@ -126,7 +126,7 @@ Environment variables (all optional):
 | `RAINY_ADDRESS` | `0.0.0.0` | listen address |
 | `RAINY_PORT` | `7650` | listen port |
 | `RAINY_DATA_DIR` | `./config` (docker: `/config`) | DB, secret key, caches, trash |
-| `RAINY_MUSIC_DIR` | `./data` (docker: `/data`) | default library; created as library #1 on first start if no library exists |
+| `RAINY_MUSIC_DIR` | `./data` (docker: `/data`) | default library; created as library #1 on first start when the path exists and does not overlap the data directory |
 | `RAINY_SCAN_INTERVAL` | `1h` | periodic quick scan (Go duration, also `d` days such as `1d12h`); `0` disables. Default for the DB setting `scanInterval` |
 | `RAINY_SCAN_ON_START` | `true` | quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | ffmpeg binary |
@@ -460,8 +460,8 @@ Search(ctx, SearchQuery) (*SearchResult, error) // every token must match search
                                      // a limit <= 0 returns no items of that kind; slices never nil
 
 // Annotations & plays (itemType: "track"|"album"|"artist")
-SetStarred(ctx, userID, itemType string, ids []string, starred bool) error
-SetRating(ctx, userID, itemType, id string, rating int) error   // 0 clears
+SetStarred(ctx, userID, itemType string, ids []string, starred bool) error // unknown ids → ErrNotFound; batch is atomic
+SetRating(ctx, userID, itemType, id string, rating int) error   // 0 clears; unknown id → ErrNotFound
 RecordPlay(ctx, userID, trackID string, at int64, client string) error // +1 play_count & played_at on track, its album, its artist;
                                      // insert play_history with the track's title/artist/album/album artist/ids/duration snapshot
 RecentlyPlayedTracks(ctx, userID string, limit int) ([]model.Track, error)
@@ -695,6 +695,9 @@ both old and new paths on renames. Scans stop promptly when their context is can
 Behaviour: walk each library (skip `util.IsHiddenOrSystem` names, dirs containing a `.rainyignore`
 file), audio files only; quick scan re-reads only when size/mtime differ or track missing; full scan
 re-reads everything. Worker pool (NumCPU) reads tags; single writer upserts in batches of 200.
+The scanner may index a linked NAS subtree so an unavailable share does not erase its indexed tracks;
+media and artwork reads reject a link that resolves outside the configured library root, so configure a
+NAS share as a library root when its files must be playable.
 Unseen tracks → `missing=1` (deleted files are marked missing, never purged by a scan). Moved-file detection
 after the walk: a new file matching a vanished track by size + duration (±1 s) + title reuses that track id (path
 updated); files keeping their name are matched first, and a track that vanished in this scan beats an older missing
@@ -802,7 +805,7 @@ type App struct {
     DevUserID string // the RAINY_MODE=development account; "" in production
 }
 func New(ctx context.Context, cfg *config.Config) (*App, error) // EnsureDirs, open+migrate DB, key, tags.SetFFmpeg, services,
-                                                                 // default library from RAINY_MUSIC_DIR when none exists
+                                                                 // default library from RAINY_MUSIC_DIR when none exists and the path passes library boundary checks
 func (a *App) DefaultSettings() model.Settings                  // model.DefaultSettings(cfg.ScanInterval)
 func (a *App) Settings(ctx context.Context) model.Settings       // store.GetSettings with defaults (errors logged → defaults)
 func (a *App) Close() error // stops downloads, the scrobble sender, source scripts and a running yt-dlp install, then closes the DB
@@ -1254,6 +1257,8 @@ honoured for managers. `ids` takes at most 1000 ids; without `sort` the result k
 | POST | `/api/star` | `{type:'track'|'album'|'artist', ids:string[], starred:boolean}` | 204 |
 | POST | `/api/rating` | `{type, id, rating:0-5}` | 204 |
 | POST | `/api/scrobble` | `{trackId, submission:boolean, time?:number /*ms, 0 = now*/, player?:string /*default "web"*/}` | 204 (submission → `scrobble.Played`, else now playing + `scrobble.NowPlaying`; starring tracks → `scrobble.Loved`, §5.16) |
+
+Star and rating requests reject unknown item ids with `404` and leave annotations unchanged.
 
 ### 7.4 Playlists & queue & radio
 | Method | Path | Body | Response |
@@ -2010,9 +2015,7 @@ to Actions, including the lightweight documentation-only plan.
   (missing) track"); purge the missing track first (Doctor → missing files).
 - An intentionally emptied folder that held ≥ 20 tracks keeps its tracks (not marked missing) until the folder itself
   is removed; the scanner logs a warning for it (§5.8).
-- Cover images are not access-checked beyond login: any user who knows a private playlist's cover-art id can fetch
-  its mosaic (ids are random 22-char strings and the mosaic only shows album covers). The service worker's
-  `rainy-covers` cache survives logout on a shared device.
+- The service worker's `rainy-covers` cache survives logout on a shared device.
 - WAV files whose only tags are LIST/INFO chunks with a wrongly declared encoding can read as lossy U+FFFD values,
   which `FixMojibake` cannot repair. A tag rebuild (`POST /api/manage/tags/rebuild`, §5.7) replaces such fields from
   readable indexed fallbacks and fails without touching the original when none exists; rewritten INFO text may be

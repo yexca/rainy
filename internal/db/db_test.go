@@ -130,12 +130,13 @@ func TestListeningMigrationBackfill(t *testing.T) {
 	d := dbtest.New(t)
 	// Turn the migrated database back into a 0003 one.
 	for _, stmt := range []string{
+		`DROP TABLE weekly_mixes`, `DROP TABLE daily_mixes`,
 		`DROP TABLE scrobble_queue`, `DROP TABLE scrobble_accounts`, `DROP INDEX idx_play_history_user_track`,
 		`ALTER TABLE play_history DROP COLUMN title`, `ALTER TABLE play_history DROP COLUMN artist`,
 		`ALTER TABLE play_history DROP COLUMN album`, `ALTER TABLE play_history DROP COLUMN album_artist`,
 		`ALTER TABLE play_history DROP COLUMN artist_id`, `ALTER TABLE play_history DROP COLUMN album_id`,
 		`ALTER TABLE play_history DROP COLUMN duration`,
-		`DELETE FROM schema_migrations WHERE version = '0004_listening'`,
+		`DELETE FROM schema_migrations WHERE version IN ('0004_listening', '0005_daily_mixes', '0006_weekly_mixes')`,
 		`INSERT INTO libraries (id, name, path, created_at, updated_at) VALUES (1, 'Music', '/path/to/music', 1, 1)`,
 		`INSERT INTO users (id, username, password_enc, created_at, updated_at) VALUES ('u', 'u', 'x', 1, 1)`,
 		`INSERT INTO tracks (id, library_id, path, dir, filename, suffix, size, mtime, title, album, artist, album_artist,
@@ -169,5 +170,16 @@ func TestListeningMigrationBackfill(t *testing.T) {
 	}
 	if rows[1].Title != "" || rows[1].Duration != 0 {
 		t.Fatalf("purged track got a snapshot: %+v", rows[1])
+	}
+}
+
+func TestMigrateRejectsNonPrefixSchema(t *testing.T) {
+	ctx := context.Background()
+	d := dbtest.New(t)
+	if _, err := d.W.ExecContext(ctx, `DELETE FROM schema_migrations WHERE version = '0005_daily_mixes'`); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Migrate(ctx); err == nil {
+		t.Fatal("Migrate accepted a schema with a missing migration")
 	}
 }

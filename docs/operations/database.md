@@ -40,10 +40,12 @@ sign-in cookies must be pasted again.
 
 ## Migrations on Startup
 
-Every start applies any new embedded migrations before the server listens.
-Each migration runs in its own transaction; a failure rolls it back and stops
-startup with an error that names the migration. Restore your backup or run the
-previous image in that case. Migration rules for contributors are in
+Every start verifies that the recorded schema is a known contiguous prefix of the
+embedded migrations, rejects a database from a newer or incomplete schema, and
+applies any remaining migrations before the server listens. Each migration runs in
+its own transaction; a failure rolls it back and stops startup with an error that
+names the migration. Restore your backup or run the previous image in that case.
+Migration rules for contributors are in
 [Migrations](../development/migrations.md).
 
 ## Connection Settings
