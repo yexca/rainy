@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, Pin } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { useEffect, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 import { usePlayerDock } from '../dock'
 import { dockAttribute } from '../lib/dock'
 import { useCurrentTrack, usePlayer } from '../store'
-import { CompactPlayer } from './compact-player'
 import { PlayerBar } from './player-bar'
 import { PlayerWindow } from './player-window'
 
@@ -20,8 +19,8 @@ const HANDLE_BUTTON =
 
 /**
  * Tablet / desktop player chrome (docs/architecture/contract.md §9.4), mounted once by the shell:
- * the bottom bar (pinned or auto-hiding), the floating window or the floating mini bar, as
- * chosen in the layout menu (`usePlayerDock`). Full-screen Now Playing covers all of them.
+ * the bottom bar (pinned or auto-hiding) or the floating window, as chosen in the layout menu
+ * (`usePlayerDock`). Full-screen Now Playing covers both.
  *
  * Publishes `<html data-player-dock>` so `index.css` can size the space the chrome reserves
  * (`--player-reserve`, `--player-clearance`, toast offsets) for the sidebar, `.page-pad` & co.
@@ -45,19 +44,57 @@ export function PlayerDock() {
 
   return (
     <AnimatePresence>
-      {track && !nowPlayingOpen ? (
-        mode === 'window' ? (
-          <PlayerWindow key="window" track={track} />
-        ) : (
-          <CompactPlayer key="compact" track={track} />
-        )
-      ) : null}
+      {track && !nowPlayingOpen ? <PlayerWindow key="window" track={track} /> : null}
     </AnimatePresence>
   )
 }
 
 /**
- * Bottom bar slot. Its handle (a tab above the bar) holds a collapse / expand chevron and a pin.
+ * Width of the space the sidebar takes (its `sidebar-gap`, which follows collapse / expand and
+ * the style's rail), so the floating bar can centre itself over the content. 0 without one.
+ */
+function useSidebarGapWidth(): number {
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    const gap = document.querySelector<HTMLElement>('[data-slot="sidebar-gap"]')
+    if (!gap) return
+    const measure = () => setWidth(gap.getBoundingClientRect().width)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(gap)
+    return () => observer.disconnect()
+  }, [])
+  return width
+}
+
+/**
+ * Publishes `--playerbar-inset-right` on `<html>`: how far the floating pill's right end sits
+ * from its slot's right edge (gap + safe area + centring), so the mascot companion can sit on
+ * the pill instead of beside it (`--mascot-right` in index.css). Removed on unmount.
+ */
+function usePublishBarInset(slotRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const slot = slotRef.current
+    const pill = slot?.querySelector<HTMLElement>('[role="region"]')
+    if (!slot || !pill) return
+    const root = document.documentElement
+    const measure = () => {
+      const inset = slot.getBoundingClientRect().right - pill.getBoundingClientRect().right
+      root.style.setProperty('--playerbar-inset-right', `${Math.max(0, Math.round(inset))}px`)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(slot)
+    observer.observe(pill)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--playerbar-inset-right')
+    }
+  }, [slotRef])
+}
+
+/**
+ * Bottom bar slot, over the content between the sidebar and the side panel. Its handle (a tab above the bar) holds a collapse / expand chevron and a pin.
  * Unpinned (auto-hide, NetEase style) the bar slides below the viewport and only the handle
  * stays; hovering the handle or the bottom edge, or tabbing into the bar, peeks it up until the
  * pointer / focus leaves. The chevron hides or shows the bar right away (hiding a pinned bar
@@ -66,7 +103,9 @@ export function PlayerDock() {
 function BarSlot({ autoHide }: { autoHide: boolean }) {
   const { t } = useTranslation('player')
   const setBarAutoHide = usePlayerDock((s) => s.setBarAutoHide)
+  const sidebarWidth = useSidebarGapWidth()
   const slotRef = useRef<HTMLDivElement>(null)
+  usePublishBarInset(slotRef)
   const menuOpen = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [peek, setPeek] = useState(false)
@@ -144,7 +183,9 @@ function BarSlot({ autoHide }: { autoHide: boolean }) {
     <div
       ref={slotRef}
       data-slot="player-bar"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40"
+      // Over the content only (Apple Music): from the sidebar's edge to the side panel's.
+      className="pointer-events-none fixed right-(--player-panel-w,0px) bottom-0 z-40 transition-[right] duration-200 ease-out"
+      style={{ left: sidebarWidth }}
       onPointerEnter={autoHide ? onPointerEnter : undefined}
       onPointerLeave={autoHide ? onPointerLeave : undefined}
       onFocus={autoHide ? onFocus : undefined}
@@ -154,7 +195,8 @@ function BarSlot({ autoHide }: { autoHide: boolean }) {
       {autoHide ? <div aria-hidden className="pointer-events-auto absolute inset-x-0 bottom-0 h-1.5" /> : null}
       <div
         className={cn(
-          'group/dock pointer-events-auto relative transition-transform duration-300 ease-out motion-reduce:transition-none',
+          // Floating: the gap around the bar lets the page through; hiding moves the gap out too.
+          'group/dock relative pr-[calc(var(--playerbar-gap)+var(--safe-right))] pb-[calc(var(--playerbar-gap)+var(--safe-bottom))] pl-[calc(var(--playerbar-gap)+var(--safe-left))] transition-transform duration-300 ease-out motion-reduce:transition-none [&>*]:pointer-events-auto',
           hidden && 'translate-y-full',
         )}
       >

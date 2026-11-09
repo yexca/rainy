@@ -77,7 +77,6 @@ export function NowPlayingArtwork({ track, playing, className }: { track: Playab
         priority
         flat
         keepPrevious
-        revealOrigin
         rounded="xl"
         icon={track.isRadio ? Radio : undefined}
         alt={track.album || track.title}

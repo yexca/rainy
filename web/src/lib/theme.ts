@@ -15,7 +15,7 @@ import {
   type ResolvedTheme,
   type Style,
 } from '@/lib/theme-styles'
-import { revealColors, skipReveal, trackPresses } from '@/lib/theme-reveal'
+import { revealColors, skipReveal } from '@/lib/theme-reveal'
 
 export * from '@/lib/theme-styles'
 
@@ -119,10 +119,9 @@ let latest: Parameters<typeof paint> | null = null
  * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser
  * chrome colour. An `override` (immersive mode) replaces the colour tokens and the light / dark
  * choice, and marks `<html data-immersive>`. One override giving way to another (the next cover)
- * is revealed from the last press or cross-faded (`revealColors`); other changes are instant.
+ * cross-fades (`revealColors`); other changes are instant.
  */
 export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
-  trackPresses()
   latest = [resolved, style, accent, override]
   const root = document.documentElement
   const dark = override ? override.dark : resolved === 'dark'

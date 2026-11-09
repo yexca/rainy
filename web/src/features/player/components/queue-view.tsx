@@ -167,7 +167,7 @@ function SortableQueue({ entries, offset, tone }: { entries: PlayableTrack[]; of
   return (
     <div
       ref={scrollRef}
-      className="scrollbar-thin relative min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-6"
+      className="relative min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-6"
       aria-label={t('queue.playingNext')}
     >
       <DndContext

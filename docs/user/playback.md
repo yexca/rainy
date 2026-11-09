@@ -9,14 +9,17 @@ installed as an app (PWA).
   up to open **Now Playing**, and drag down to close it.
 - **On tablets and desktops**, the **Player layout** button picks how the
   player sits on the page; the choice is saved in this browser:
-  - **Bottom bar** (the default) spans the bottom of the window. Open the queue
-    or lyrics in a side panel, or expand to the full-screen player. The tab
-    above the bar hides it, and its pin chooses between keeping the bar open
-    and hiding it until the pointer reaches the bottom edge.
+  - **Bottom bar** (the default) spans the bottom of the window, laid out like
+    the Apple Music web player: playback controls on the left, the current
+    song in the middle, and lyrics, queue, volume, and the layout menu on the
+    right. Click the artwork to open the full-screen player, or the title to
+    switch to the floating window. Click anywhere on the thin progress line
+    under the title to jump there; hovering shows the time at the pointer.
+    Open the queue or lyrics in a side panel. The tab above the bar hides it,
+    and its pin chooses between keeping the bar open and hiding it until the
+    pointer reaches the bottom edge.
   - **Floating window** is a small Now Playing window in the bottom-right
-    corner.
-  - **Floating mini bar** is a compact bar in the bottom-right corner; drag
-    across it to seek.
+    corner. Its grabber shrinks it back to the bottom bar.
   - **Full-screen player** opens Now Playing over the page and returns to the
     chosen layout when closed.
 
@@ -92,7 +95,9 @@ Inactivity on, music stops while you work in other apps.
 
 ## Lyrics
 
-Now Playing opens on the lyrics; the lyrics button switches back to the artwork.
+The lyrics button in Now Playing switches between the lyrics and the artwork.
+Now Playing opens the way you left it: on a phone it starts on the artwork, on a
+larger screen on the lyrics, and each remembers your choice in this browser.
 The player bar opens them in a side panel. Synced lyrics (from `.lrc`
 files or timed embedded lyrics) highlight the current line and scroll with the
 music; tap a line to jump to it. Plain lyrics scroll normally.

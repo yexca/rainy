@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 
 import { usePlayerDock } from '../dock'
 import { useCoverColor } from '../hooks/use-cover-color'
+import { LANDSCAPE_PHONE_QUERY } from '../lib/now-playing-lyrics'
 import { useCurrentTrack, usePlayer } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
 import { LiveProgress } from './live-badge'
@@ -29,7 +30,6 @@ const STAGE_SPRING = { type: 'spring', stiffness: 420, damping: 40 } as const
 /** Drag distance / velocity that dismisses the sheet. */
 const DISMISS_OFFSET = 120
 const DISMISS_VELOCITY = 500
-const LANDSCAPE_PHONE = '(orientation: landscape) and (max-height: 540px)'
 /** Desktop queue / lyrics side panel width (docs/architecture/contract.md §9.4; keep in sync with `w-[360px]`). */
 const SIDE_PANEL_WIDTH = 360
 
@@ -41,7 +41,7 @@ const SIDE_PANEL_WIDTH = 360
 export function NowPlayingSheet() {
   const isMobile = useIsMobile()
   // Phones in landscape are wider than the mobile breakpoint but still get the sheet.
-  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE)
+  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY)
   const sheet = isMobile || landscapePhone
   const open = usePlayer((s) => s.nowPlayingOpen)
   const track = useCurrentTrack()
@@ -134,7 +134,7 @@ function MobileNowPlaying({ track }: { track: PlayableTrack }) {
   const radius = useTransform(y, [0, 80], [0, 32])
   const panel = usePlayer((s) => s.panel)
   const isPlaying = usePlayer((s) => s.isPlaying)
-  const landscape = useMediaQuery(LANDSCAPE_PHONE)
+  const landscape = useMediaQuery(LANDSCAPE_PHONE_QUERY)
   const palette = useCoverColor(track.coverArt)
   useModalSurface(ref, palette.top)
   const offscreen = typeof window === 'undefined' ? 1000 : window.innerHeight + 40

@@ -16,6 +16,8 @@ export interface TrackActionsMenuProps {
   align?: 'start' | 'center' | 'end'
   /** Custom trigger element (rendered `asChild`). */
   trigger?: ReactElement
+  /** Called when the menu opens or closes (e.g. to keep an auto-hiding player bar up). */
+  onOpenChange?: (open: boolean) => void
 }
 
 /** The action groups for `tracks`, rendered for the surrounding menu (dropdown / context / sheet). */
@@ -29,7 +31,7 @@ export function TrackActionItems({ tracks, context }: { tracks: readonly Track[]
  * sheet on phones. Play next, Add to queue, Add to playlist, Remove from playlist (playlist
  * context), Go to album / artist, Favorite, Download, Edit tags (managers).
  */
-export function TrackActionsMenu({ tracks, context, className, align = 'end', trigger }: TrackActionsMenuProps) {
+export function TrackActionsMenu({ tracks, context, className, align = 'end', trigger, onOpenChange }: TrackActionsMenuProps) {
   const { t } = useTranslation()
   if (tracks.length === 0) return null
   const first = tracks[0]
@@ -41,6 +43,7 @@ export function TrackActionsMenu({ tracks, context, className, align = 'end', tr
       className={className}
       align={align}
       trigger={trigger}
+      onOpenChange={onOpenChange}
       sheetHeader={
         <ActionSheetHeader
           art={<CoverArt coverArt={first.coverArt} size={48} />}

@@ -24,6 +24,11 @@ and 1280 px widths, iOS safe areas, 44 px touch targets, visible keyboard
 focus, reduced motion, and light/dark themes. Reserve space through the
 player layout variables so content stays reachable.
 
+Text fields that act while the user types (search, filters, pickers) pass
+their value through `useImeValue` (`web/src/hooks/use-ime-value.ts`), so an
+IME reading such as pinyin or kana stays in the field and only committed text
+reaches queries, URLs, and filters.
+
 Every visible string uses i18next and both `en` and `zh` translations.
 Tags, lyrics, names, and filenames remain untrusted text rendered through
 React. Permission guards in the backend remain authoritative.

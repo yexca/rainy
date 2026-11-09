@@ -62,14 +62,16 @@
   /* Player chrome + safe areas (docs/architecture/contract.md §9.3). */
   --tabbar-h: 49px;
   --miniplayer-h: 56px;
-  --playerbar-h: 80px;
+  --playerbar-h: 56px;
+  /* The bottom bar floats this far above the bottom edge (and at least this far from the sides). */
+  --playerbar-gap: 1.25rem;
   --player-window-w: 400px;
-  --compact-player-h: 68px;
   /* Tablet/desktop player chrome (defaults = bottom bar; per layout below): full-width bottom
-     space (sidebar, side panel), page clearance (.page-pad) and the toast offsets. */
-  --player-reserve: calc(var(--playerbar-h) + var(--safe-bottom));
-  --player-clearance: var(--player-reserve);
-  --player-toast-bottom: calc(var(--player-reserve) + 16px);
+     space (sidebar, side panel — the bar floats over the content between them, so none),
+     page clearance (.page-pad) and the toast offsets. */
+  --player-reserve: var(--safe-bottom);
+  --player-clearance: calc(var(--playerbar-h) + var(--playerbar-gap) + var(--safe-bottom));
+  --player-toast-bottom: calc(var(--player-clearance) + 12px);
   --player-toast-right: 16px;
   /* Mascot companion: right offset (bottom = --player-clearance). */
   --mascot-right: calc(1rem + var(--safe-right));
@@ -269,7 +271,7 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Player layouts: <html data-player-dock="bar|collapsed|window|compact|idle">               */
+/* Player layouts: <html data-player-dock="bar|collapsed|window|idle">                       */
 /* (features/player/lib/dock.ts). "bar" is the default defined above.                        */
 /* ------------------------------------------------------------------------------------------ */
 :root[data-player-dock="collapsed"],
@@ -279,11 +281,9 @@
   --player-clearance: var(--safe-bottom);
   --player-toast-bottom: calc(var(--safe-bottom) + 16px);
 }
-:root[data-player-dock="compact"] {
-  --player-reserve: var(--safe-bottom);
-  --player-clearance: calc(var(--compact-player-h) + 1.5rem + var(--safe-bottom));
-  --player-toast-bottom: calc(var(--player-clearance) + 12px);
-  --player-toast-right: calc(1.5rem + var(--safe-right));
+:root[data-player-dock="bar"] {
+  /* On the floating pill, near its right end (the pill is narrower than wide content areas). */
+  --mascot-right: calc(var(--playerbar-inset-right, var(--playerbar-gap)) + 1.5rem);
 }
 :root[data-player-dock="window"] {
   --mascot-right: calc(var(--player-window-w) + 2.5rem + var(--safe-right));
@@ -315,15 +315,16 @@
 :root[data-immersive] [data-slot="sidebar-inset"] {
   background-color: transparent;
 }
-/* The next cover's colours (lib/theme-reveal.ts): a circle from the last press or the playing */
-/* artwork, drawn by a script animation in place of the default cross-fade, or a slower one.  */
-:root[data-theme-reveal="circle"]::view-transition-old(root),
-:root[data-theme-reveal="circle"]::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
+/* The next cover's colours (lib/theme-reveal.ts): the whole window cross-fades, slower and    */
+/* softer than the default. The snapshot lets presses through, so the next press still lands. */
+:root[data-theme-reveal]::view-transition {
+  pointer-events: none;
 }
-:root[data-theme-reveal="fade"]::view-transition-group(root) {
-  animation-duration: 700ms;
+:root[data-theme-reveal]::view-transition-group(root),
+:root[data-theme-reveal]::view-transition-old(root),
+:root[data-theme-reveal]::view-transition-new(root) {
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -498,6 +499,54 @@
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     background-color: var(--background);
+    /* The page always keeps room for its scrollbar, so short and long pages line up and fixed
+       chrome (player bar, side panel, toasts) ends at the same edge. Overlay scrollbars (phones,
+       tablets, macOS by default) take no room, so nothing is reserved there. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Radix scroll locking (dialogs, menus, sheets) measures that reserved gutter as a scrollbar and
+     pads <body> by it; the gutter already holds the width, so the page would shift left. */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
+  /* Scrollbars with a mouse or trackpad: a thin rounded thumb on a clear track, stronger on hover
+     (docs/development/design.md, Scrollbars). `scrollbar-none` hides one. Chromium and Safari draw
+     the ::-webkit-scrollbar parts (the standard properties would switch them off); Firefox uses
+     the standard ones and darkens the thumb on hover itself. Touch devices keep overlay bars. */
+  @media (hover: hover) and (pointer: fine) {
+    @supports not selector(::-webkit-scrollbar) {
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+      background-color: transparent;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background-color: transparent;
+    }
+    ::-webkit-scrollbar-button {
+      display: none;
+    }
+    ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 9999px;
+      background-clip: padding-box;
+      background-color: color-mix(in oklab, var(--foreground) 22%, transparent);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: color-mix(in oklab, var(--foreground) 38%, transparent);
+    }
+    ::-webkit-scrollbar-thumb:active {
+      background-color: color-mix(in oklab, var(--foreground) 48%, transparent);
+    }
   }
 
   /* Lyric lines carry a language hint (lib/lyrics/bilingual guessLang) so Japanese and Korean
@@ -632,6 +681,7 @@
   }
 }
 
+/* Hides a scroller's bar (horizontal shelves, tabs, breadcrumbs, lyrics). */
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -639,11 +689,6 @@
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-@utility scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent) transparent;
 }
 
 /* iOS-style hairlines (0.5px on retina). Colour: --hairline-color (default --border). */

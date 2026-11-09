@@ -79,7 +79,7 @@ explains the rules every UI change must keep.
 
 | Width | Navigation | Player |
 | --- | --- | --- |
-| 1024 px and wider | App header, left sidebar (208 px) below it, collapsible to icons | 80 px bottom player bar |
+| 1024 px and wider | App header, left sidebar (208 px) below it, collapsible to icons | Floating 56 px player bar over the content |
 | 768 to 1023 px | App header, collapsed icon sidebar | Bottom player bar |
 | Below 768 px | Glass app header, 49 px bottom tab bar plus the safe area | Floating 56 px mini player above the tab bar |
 
@@ -182,6 +182,14 @@ reading layout.
   background with a strong backdrop blur and a subtle border on larger screens.
   Phones, including landscape phones up to 540 px high, use opaque surfaces to
   keep native scrolling smooth. Backdrop filters never animate.
+- Scrollbars, with a mouse or trackpad, are a thin rounded thumb on a clear
+  track in the foreground colour, stronger on hover, in every scroll area
+  (base styles in `index.css`). The page always reserves its scrollbar's
+  width (`scrollbar-gutter: stable`), so content and fixed chrome keep the
+  same right edge on short and long pages and while a dialog or menu locks
+  scrolling. Touch devices keep the system's overlay scrollbars and reserve
+  nothing. Hide a scroller's bar with `scrollbar-none` (horizontal shelves,
+  tabs, breadcrumbs, lyrics); do not restyle one bar on its own.
 - Motion uses `motion/react` springs and honours the user's reduced-motion
   preference. Mobile presses scale down slightly for feedback.
 - Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke.
@@ -211,8 +219,8 @@ rain-blue tile.
   have their own. Covers that are still loading keep the plain gradient, so the
   mascot never flashes in before real art. The lock screen and notifications
   (Media Session) show the same placeholder for songs without a cover.
-- **Corner companion.** She sits on top of the player chrome (above the bottom
-  bar or mini bar, beside the floating window) and follows playback: listening
+- **Corner companion.** She sits on top of the player chrome (on the floating bottom
+  bar near its right end, beside the floating window) and follows playback: listening
   while music plays, waving when paused, asleep after two minutes. Clicking her
   shows a short line; the × hides her. She never appears on phones, where the
   tab bar and mini player already fill the bottom edge.
@@ -252,11 +260,17 @@ The player is Rainy's signature surface. Changes must keep this behavior:
   translation toggle sits beside the lyrics toggle while lyrics are open.
 - **Queue.** "Playing Next" supports drag-to-reorder, shuffle, repeat, and
   clear.
-- **Desktop player bar.** Artwork, title and artist links, and a star on the
-  left; transport and scrubber in the center; lyrics, floating
-  (picture-in-picture) lyrics, queue, the auto-stop timer, volume, the layout
-  menu, and expand on the right. Queue and lyrics
-  open in a 360 px side panel.
+- **Desktop player bar.** Laid out like the Apple Music web player: a 56 px
+  glass pill floating above the bottom edge, centred over the content (the
+  sidebar and side panel run to the bottom beside it). Transport on the left;
+  in the middle a small artwork, the left-aligned title over "artist — album",
+  a star and the "…" menu, with the progress line running underneath; lyrics,
+  floating (picture-in-picture) lyrics, queue, the auto-stop timer, volume,
+  and the layout menu on the right. Clicking the artwork opens full-screen Now
+  Playing; clicking the title switches to the floating window. The mouse
+  seeks to wherever it presses on the progress, hovering previews that time,
+  and the elapsed and remaining times show while the song area is hovered.
+  Queue and lyrics open in a 360 px side panel.
 - **Auto-stop timer.** One timer button (player bar from 1024 px, Now
   Playing, floating window) opens a small panel: a tab per mode, a line saying
   what the mode does, the times to pick from, and a field for any number of
@@ -264,16 +278,15 @@ The player is Rainy's signature surface. Changes must keep this behavior:
   nothing was operated for that long and stays on until turned off. The button is tinted while a mode is on, and the panel
   shows what is running with a way to turn it off. When the timer stops the
   music, a message stays on screen until it is closed or playback resumes.
-- **Player layouts (tablet and desktop).** The layout menu lists four options,
-  top to bottom: full screen, a floating window, a floating mini bar (both in
-  the bottom-right corner), and the bottom bar; full screen covers any of the
-  others and returns to it on close. The bottom bar's handle holds a chevron
+- **Player layouts (tablet and desktop).** The layout menu lists three
+  options, top to bottom: full screen, a floating window in the bottom-right
+  corner, and the bottom bar; full screen covers either of the others and
+  returns to it on close. The bottom bar's handle holds a chevron
   and a pin. Unpinned, the bar auto-hides like NetEase Cloud Music: it slides
   away, leaving the handle, and comes back on hover. The chevron hides or shows
   it right away; the pin keeps it open. The floating window is a
   compact Now Playing (artwork backdrop, transport, volume, lyrics and queue
-  inside it). The mini bar shows artwork, title, play/pause, and next, opens
-  the window on tap, and scrubs when dragged sideways. Layout-dependent spacing
+  inside it); its grabber shrinks it back to the bottom bar. Layout-dependent spacing
   uses `--player-reserve` and `--player-clearance`, never `--playerbar-h`.
 - **Keyboard.** Space plays or pauses, ←/→ seek 5 seconds, Shift+←/→ change
   track, and M mutes. Ctrl/⌘+K opens Quick actions.

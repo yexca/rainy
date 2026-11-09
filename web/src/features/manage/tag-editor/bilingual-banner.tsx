@@ -41,7 +41,7 @@ export function BilingualBanner({ analysis, onSplit, onDismiss, disabled }: Bili
       </div>
 
       {preview ? (
-        <ol className="scrollbar-thin mt-3 max-h-60 divide-y divide-border/60 overflow-y-auto rounded-md border bg-background/80">
+        <ol className="mt-3 max-h-60 divide-y divide-border/60 overflow-y-auto rounded-md border bg-background/80">
           {shown.map((line) => (
             <li key={line.line} className="grid gap-0.5 px-3 py-2">
               <span className="flex items-baseline gap-2">

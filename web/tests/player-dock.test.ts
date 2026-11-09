@@ -2,11 +2,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { compactScrubTarget, DOCK_MODES, dockAttribute, sanitizeDockPrefs } from '../src/features/player/lib/dock.ts'
+import { DOCK_MODES, dockAttribute, pointerRatio, sanitizeDockPrefs } from '../src/features/player/lib/dock.ts'
 
 describe('DOCK_MODES', () => {
   it('lists the layouts in menu order, below full screen', () => {
-    assert.deepEqual([...DOCK_MODES], ['window', 'compact', 'bar'])
+    assert.deepEqual([...DOCK_MODES], ['window', 'bar'])
   })
 })
 
@@ -19,33 +19,30 @@ describe('sanitizeDockPrefs', () => {
     })
     assert.deepEqual(sanitizeDockPrefs(null), { mode: 'bar', barAutoHide: false })
   })
+
+  it('moves the retired floating mini bar to the bottom bar and keeps its pin', () => {
+    assert.deepEqual(sanitizeDockPrefs({ mode: 'compact' as never, barAutoHide: true }), { mode: 'bar', barAutoHide: true })
+  })
 })
 
 describe('dockAttribute', () => {
-  it('reserves the bar unless it auto-hides, and nothing for an idle floating player', () => {
+  it('reserves the bar unless it auto-hides, and nothing for an idle floating window', () => {
     assert.equal(dockAttribute({ mode: 'bar', barAutoHide: false }, false), 'bar')
     assert.equal(dockAttribute({ mode: 'bar', barAutoHide: true }, true), 'collapsed')
-    assert.equal(dockAttribute({ mode: 'compact', barAutoHide: true }, true), 'compact')
     assert.equal(dockAttribute({ mode: 'window', barAutoHide: false }, true), 'window')
     assert.equal(dockAttribute({ mode: 'window', barAutoHide: false }, false), 'idle')
   })
 })
 
-describe('compactScrubTarget', () => {
-  it('moves 20 % of the track per full-width drag', () => {
-    // 300 s track → 60 s per 390 px.
-    assert.equal(compactScrubTarget(100, 195, 390, 300), 130)
-    assert.equal(compactScrubTarget(100, -390, 390, 300), 40)
+describe('pointerRatio', () => {
+  it('maps the pointer to its position along the track', () => {
+    assert.equal(pointerRatio(150, 100, 200), 0.25)
+    assert.equal(pointerRatio(300, 100, 200), 1)
   })
 
-  it('spans at least 20 seconds and at most 10 minutes', () => {
-    assert.equal(compactScrubTarget(10, 100, 100, 30), 30)
-    assert.equal(compactScrubTarget(0, 100, 100, 7200), 600)
-  })
-
-  it('clamps to the track and ignores unknown durations', () => {
-    assert.equal(compactScrubTarget(290, 390, 390, 300), 300)
-    assert.equal(compactScrubTarget(5, -390, 390, 300), 0)
-    assert.equal(compactScrubTarget(5, 50, 390, 0), 0)
+  it('clamps outside the track and ignores an empty one', () => {
+    assert.equal(pointerRatio(40, 100, 200), 0)
+    assert.equal(pointerRatio(400, 100, 200), 1)
+    assert.equal(pointerRatio(150, 100, 0), 0)
   })
 })

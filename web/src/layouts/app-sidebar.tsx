@@ -282,7 +282,7 @@ export function AppSidebar({
           <QuickActionsField className="w-full" />
         </div>
       </Fold>
-      <SidebarContent className={cn('scrollbar-thin pt-1', labelRail && 'group-data-[collapsible=icon]:overflow-auto')}>
+      <SidebarContent className={cn('pt-1', labelRail && 'group-data-[collapsible=icon]:overflow-auto')}>
         <NavGroup label={t('nav.library')} items={LIBRARY_NAV} itemClass={itemClass} />
         <PlaylistsGroup itemClass={itemClass} />
         {isManager ? <ManageGroup isAdmin={isAdmin} itemClass={itemClass} /> : null}

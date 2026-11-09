@@ -41,15 +41,14 @@
   "layout": {
     "title": "Player layout",
     "bar": "Bottom bar",
-    "window": "Floating window",
-    "compact": "Floating mini bar"
+    "window": "Floating window"
   },
   "dock": {
     "hideBar": "Hide player bar",
     "showBar": "Show player bar",
     "pinBar": "Keep player bar open",
     "unpinBar": "Auto-hide player bar",
-    "shrink": "Shrink to mini bar",
+    "shrink": "Shrink to the bottom bar",
     "openWindow": "Open player window"
   },
   "idle": {
