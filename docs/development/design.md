@@ -156,14 +156,15 @@ right edges across every tab of a section:
 | Page | Width | Used by |
 | --- | --- | --- |
 | Full width (`<Page>`) | The whole content area | Library browsing, collections, detail pages, and listening reports |
-| Centered (`<Page centered>`) | Centered up to 1152 px (`--page-max-w`, `72rem`) | Management (Tracks, Library tools), Admin, and Settings |
+| Centered (`<Page centered>`) | Centered up to 1152 px (`--page-max-w`, `72rem`) | Management (Tracks, Library tools), Admin, Settings, and About |
 
-Sticky top bars and selection bars bleed across the full content pane through
-`.bleed-x` while keeping their controls aligned to the page column. Multi-section
+Sticky top bars and collection selection bars bleed across the full content pane
+through `.bleed-x` while keeping their controls aligned to the page column; the
+Tracks › Metadata selection bar stays within the table column. Multi-section
 forms and settings stack with 32 px (`gap-8`) between sections. Do not add
 page-level `max-w-*` or `mx-auto` wrappers; pick one of the two `<Page>` widths.
-Full-page empty, error, and status states stay centered, and About keeps its own
-two-column reading layout.
+Full-page empty, error, and status states stay centered, and About keeps its
+two-column reading layout inside the centered column.
 
 ## Typography and Density
 

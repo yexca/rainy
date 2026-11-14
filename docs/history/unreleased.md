@@ -56,10 +56,9 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   the Links and Online tabs can change it per session.
 - At startup Rainy removes staged uploads and online download work
   directories that a crash left in `<data>/tmp`.
-- **Tracks**, **Library tools**, **Admin**, and **Settings** share one centered
-  column across every tab so page titles, section tabs, tables, and forms keep
-  matching left and right edges on wide screens while sticky bars span the full
-  pane.
+- **Tracks**, **Library tools**, **Admin**, **Settings**, and **About** share one
+  centered column across every tab so page titles, section tabs, tables, and
+  forms keep matching left and right edges on wide screens.
 - **Library tools → Folders** uses a split directory tree and breadcrumb browser
   that groups subfolders, playable audio tracks with multi-select tag actions,
   artwork thumbnails, and `.lrc` / text files with built-in image and text
