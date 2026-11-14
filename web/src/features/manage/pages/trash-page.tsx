@@ -72,7 +72,7 @@ export default function TrashPage() {
   const allChecked = entries.length > 0 && selectedIds.length === entries.length
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('trash.title')}
         subtitle={entries.length > 0 ? t('trash.summary', { count: entries.length, size: formatBytes(totalSize) }) : t('trash.subtitle')}

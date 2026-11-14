@@ -149,20 +149,21 @@ The CSS variables `--tabbar-h`, `--miniplayer-h`, `--playerbar-h`, and
 
 ### Page Width
 
-Every page uses `<Page>` with `<PageHeader>` first. The title, subtitle, and
-section tabs always run full width and start at the page gutter, so they never
-move when switching tabs. The body takes one of two widths:
+Every page uses `<Page>` with `<PageHeader>` first. Each page picks one of two
+widths so the title, subtitle, section tabs, and body share the same left and
+right edges across every tab of a section:
 
-| Body | Width | Used by |
+| Page | Width | Used by |
 | --- | --- | --- |
-| Full width (default) | The whole content area | Collections and grids, track tables, lists, and dashboards: library pages, Tracks › Metadata, Library tools, Admin › Users and Libraries |
-| Column (`<PageColumn>`) | Up to 768 px (`max-w-3xl`), 32 px between sections | Forms, settings, and single-task tools: Settings, Admin › Server settings, Tracks › Upload, Online, and Links |
+| Full width (`<Page>`) | The whole content area | Library browsing, collections, detail pages, and listening reports |
+| Centered (`<Page centered>`) | Centered up to 1152 px (`--page-max-w`, `72rem`) | Management (Tracks, Library tools), Admin, and Settings |
 
-A column is left-aligned under the title, never centered, so its left edge
-matches the header and its full-width sibling tabs. Do not add page-level
-`max-w-*` or `mx-auto` wrappers; pick one of the two widths. Full-page empty,
-error, and status states stay centered, and About keeps its own two-column
-reading layout.
+Sticky top bars and selection bars bleed across the full content pane through
+`.bleed-x` while keeping their controls aligned to the page column. Multi-section
+forms and settings stack with 32 px (`gap-8`) between sections. Do not add
+page-level `max-w-*` or `mx-auto` wrappers; pick one of the two `<Page>` widths.
+Full-page empty, error, and status states stay centered, and About keeps its own
+two-column reading layout.
 
 ## Typography and Density
 

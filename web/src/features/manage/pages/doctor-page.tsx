@@ -73,7 +73,7 @@ export default function DoctorPage() {
   const totalIssues = summary.data ? ISSUE_TYPES.reduce((n, k) => n + (summary.data[k] ?? 0), 0) : 0
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('doctor.title')}
         subtitle={summary.data ? (totalIssues === 0 ? t('doctor.healthy') : t('doctor.issueCount', { count: totalIssues })) : t('doctor.subtitle')}

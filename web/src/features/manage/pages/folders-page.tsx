@@ -159,7 +159,7 @@ export default function FoldersPage() {
   )
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={title}
         subtitle={data && !data.writable ? <ReadonlyBadge /> : t('folders.subtitle')}

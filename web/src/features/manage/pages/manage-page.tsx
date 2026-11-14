@@ -290,7 +290,7 @@ export default function ManagePage() {
     )
   } else {
     content = (
-      <div ref={listRef} role="grid" aria-rowcount={total} aria-multiselectable className="bleed-x px-[calc(var(--page-px)-0.5rem)]">
+      <div ref={listRef} role="grid" aria-rowcount={total} aria-multiselectable className="-mx-2">
         <TrackTableRows
           columns={columns}
           items={virtualItems}
@@ -321,7 +321,7 @@ export default function ManagePage() {
   ]
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('title')}
         subtitle={first.data ? t('table.count', { count: total, formatted: formatNumber(total) }) : undefined}
