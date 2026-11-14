@@ -304,7 +304,7 @@ func TestHiddenFolderParamsRejected(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, dir := range []string{".rainy", ".rainy/trash", "示例歌手1/@eaDir"} {
-		if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, dir); !errors.Is(err, store.ErrInvalid) {
+		if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, dir, e.user.ID); !errors.Is(err, store.ErrInvalid) {
 			t.Errorf("list %q: %v", dir, err)
 		}
 		if err := e.svc.RescanFolder(e.ctx, e.lib.ID, dir); !errors.Is(err, store.ErrInvalid) {
@@ -337,7 +337,7 @@ func TestLibraryRootMissingIsConflict(t *testing.T) {
 	if err != nil || len(res.Errors) != 1 || !strings.Contains(res.Errors[0].Error, "not accessible") {
 		t.Fatalf("%+v %v", res, err)
 	}
-	if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, ""); !errors.Is(err, store.ErrConflict) {
+	if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, "", e.user.ID); !errors.Is(err, store.ErrConflict) {
 		t.Fatalf("list: %v", err)
 	}
 }
@@ -359,7 +359,7 @@ func TestSymlinkedDirEscapes(t *testing.T) {
 	if err != nil || len(res.Errors) != 1 || !e.exists(tr.Path) {
 		t.Fatalf("rename: %+v %v", res, err)
 	}
-	if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, "Escape"); err == nil {
+	if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, "Escape", e.user.ID); err == nil {
 		t.Fatal("listing a symlink escape")
 	}
 	mp3, _ := os.ReadFile(e.abs("示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3"))

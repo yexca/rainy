@@ -1335,6 +1335,8 @@ served. Downloads (single files and album zips) need download permission: admin,
 | POST | `/api/manage/trash/purge` | `{ids?}` (omit = empty trash) | `{purged:number}` |
 | POST | `/api/manage/missing/purge` | `{trackIds?}` (omit = all missing) | `{purged:number}` |
 | GET | `/api/manage/folders` | `libraryId, dir` | `FolderListing` |
+| GET | `/api/manage/folders/file` | `libraryId, path, v?` | raster image bytes (≤ 32 MiB; `nosniff`, sandbox CSP, `ETag`) |
+| GET | `/api/manage/folders/text` | `libraryId, path` | `FolderTextPreview` (`.lrc/.txt/.cue/.log/.md/.nfo/.m3u/.m3u8`, ≤ 256 KiB, decoded via `lyrics.DecodeText`) |
 | POST | `/api/manage/folders/rescan` | `{libraryId, dir}` | 202 `{"status":"accepted"}` |
 | GET | `/api/manage/issues/summary` | | `Record<IssueType, number>` |
 | GET | `/api/manage/issues` | `type, offset, limit` | `Page<Issue>` |
@@ -1578,9 +1580,10 @@ export interface ItemError { trackId: string; path: string; error: string }
 export interface BatchResult { updated: Track[]; errors: ItemError[]; untagged?: string[] /*imports: new tracks without an artist or album tag*/ }
 export interface Placement { organize: boolean; renamePattern: string; review: boolean /*settings.reviewDownloads*/ }
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
-export interface FolderEntry { name: string; path: string }
-export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
+export interface FolderEntry { name: string; path: string; trackCount: number; hasSubfolders: boolean }
+export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null; track: Track | null }
 export interface FolderListing { libraryId: number; dir: string; parent: string | null; writable: boolean; folders: FolderEntry[]; files: FileEntry[] }
+export interface FolderTextPreview { name: string; path: string; size: number; mtime: number; content: string; truncated: boolean }
 export type IssueType = 'missing_tags' | 'no_cover' | 'duplicates' | 'missing_files' | 'encoding'
 export interface Issue { key: string; type: IssueType; message: string; tracks: Track[]; album?: Album }
 export interface EncodingFix { trackId: string; path: string; encoding: string; changes: Record<string, { old: string[]; new: string[] }> }
@@ -1937,7 +1940,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   the conflicting paths). `lib/review.ts` turns the form into a tag patch that only touches the fields the user changed;
   Save sends `PATCH` and shows the new target, "Save and import" saves first. Imports toast imported / skipped / failed
   counts and prompt for untagged tracks (`promptUntagged`).
-- **Folder browser**, **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
+- **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`), **Doctor** (issue summary cards → lists with quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (cards with path, counts, writable badge; quick/full scan buttons; live progress via `/api/events`), server settings form, system info (versions, ffmpeg, sizes, clear cache).
   Settings tabs General / yt-dlp / Sources / Scrobbling / System. *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and
   `listenBrainzEnabled` switches (saved immediately), the Last.fm API key and write-only shared secret with a link to create an

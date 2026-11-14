@@ -14,6 +14,7 @@ export const manageKeys = {
   all: ['manage'] as const,
   trash: ['manage', 'trash'] as const,
   folders: (libraryId: number, dir: string) => ['manage', 'folders', libraryId, dir] as const,
+  folderText: (libraryId: number, path: string) => ['manage', 'folder-text', libraryId, path] as const,
   issuesSummary: ['manage', 'issues', 'summary'] as const,
   issues: (type: IssueType) => ['manage', 'issues', 'list', type] as const,
   log: (trackId: string) => ['manage', 'log', trackId] as const,

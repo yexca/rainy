@@ -60,5 +60,9 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   column across every tab so page titles, section tabs, tables, and forms keep
   matching left and right edges on wide screens while sticky bars span the full
   pane.
+- **Library tools → Folders** uses a split directory tree and breadcrumb browser
+  that groups subfolders, playable audio tracks with multi-select tag actions,
+  artwork thumbnails, and `.lrc` / text files with built-in image and text
+  previews.
 
 </details>
