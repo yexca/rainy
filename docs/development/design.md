@@ -35,7 +35,7 @@ explains the rules every UI change must keep.
   are used when the system has them. Keep each style's light and dark blocks
   complete so no token leaks from another style.
 - **A style is more than colours.** Each one also picks its layout (see
-  [Layout](#layout): where the chrome sits, how Quick actions shows, and what
+  [Layout](#layout): where the chrome sits, how Search & quick actions shows, and what
   the collapsed sidebar looks like) and
   whether it starts in immersive mode (only `apple` does). Entering `apple`
   turns immersive mode on and leaving it turns it off; between the other
@@ -85,33 +85,36 @@ explains the rules every UI change must keep.
 
 A full-width app header runs across the top at every width. From tablets up
 it uses the sidebar's colours: the sidebar toggle and the logo on the left; on
-the right, a round tray of quick controls (Quick actions; appearance with theme,
+the right, a round tray of quick controls (Search; appearance with theme,
 style, accent and language), a divider, and the account menu (avatar, plus the
 name and role on desktops). Settings and About sit in the sidebar footer. Phones
-get a glass bar matching the tab bar: the logo on the left, and Quick actions,
+get a glass bar matching the tab bar: the logo on the left, and Search,
 the appearance button and the account avatar on the right (44 px targets).
-Page top bars stick right below the header.
+The mobile bottom tab bar holds **Home**, **Playlists**, **Library**, and
+**Manage** (for managers). Page top bars stick right below the header.
 
 That is the `anthropic` layout. From tablets up each style arranges the same
 controls its own way; phones always get the glass header above.
 
-| Style | Chrome | Quick actions | Collapsed sidebar |
+| Style | Chrome | Search & quick actions | Collapsed sidebar |
 | --- | --- | --- | --- |
-| `anthropic` | App header | Lightning icon in the tray | Icons |
-| `openai` | Sidebar | Field under the logo | Icons |
-| `apple` | Sidebar | Lightning icon beside the account | Icons |
-| `google-md` | App header | Field in the middle of the header | 80 px rail with labels |
+| `anthropic` | App header | Search icon in the tray + pill on Home | Icons |
+| `openai` | Sidebar | Search field under the logo | Icons |
+| `apple` | Sidebar | Search icon beside the account + pill on Home | Icons |
+| `google-md` | App header | Search field in the middle of the header | 80 px rail with labels |
 
 - **Sidebar chrome** has no app header. The sidebar reaches the top of the
   window with the toggle and the logo above its groups, and its bottom-left
   corner holds the account row (avatar, name and role; the menu opens upwards)
-  with the appearance button, and Quick actions when it is an icon, beside it,
+  with the appearance button, and Search when it is an icon, beside it,
   in place of Settings and About (both are in the account menu). On the icon
   rail they stack, the avatar at the bottom. Page top bars stick to the top of
   the window.
-- **The Quick actions field** is a rounded, search-like button showing the
-  palette's placeholder and the shortcut. It opens the same palette as the
-  icon; on a collapsed sidebar only its icon stays.
+- **The search field** is a rounded pill button showing a search icon,
+  placeholder, and keyboard shortcut. It opens the same Spotlight palette as
+  the icon; on a collapsed sidebar only its icon stays. When the active style
+  uses icon chrome on desktop (`apple`, `anthropic`), Home also renders a
+  search pill in its top-right actions beside Shuffle.
 - **The rail with labels** (Material) shows each item as its icon on a pill,
   filled while active or hovered, with the label on a line below; it scrolls
   when the items do not fit.
@@ -123,15 +126,13 @@ position and size but never colours. The Appearance panel stays open across
 every style: when its button moves to the other chrome, the panel closes while
 the chrome slides and opens again from the new button.
 
-The Quick actions icon is a lightning bolt so it is not mistaken for library
-search, and the field names pages and actions rather than songs; the tooltip
-names the shortcut, Ctrl+K (⌘K on Apple
-devices), which opens it from anywhere. It opens a command palette — a centered
-dialog from tablets up, a bottom sheet on phones — that filters playback
-controls (while something is queued), library pages and playlists, the manager
-and admin pages the user may open, and personal settings. Typed text also offers
-a library search, ranked below the matching actions so Enter opens the best
-match.
+The Search button and field name the shortcut, Ctrl+K (⌘K on Apple devices),
+which opens the Spotlight palette from anywhere — a centered dialog from
+tablets up, a bottom sheet on phones. When idle, it lists recent searches,
+playback controls (while something is queued), library pages and playlists,
+the manager and admin pages the user may open, and personal settings. Typing
+searches songs, albums, artists, and playlists live alongside matching pages
+and actions, and offers a link to the full `/search?q=` results page.
 
 Navigation is tiered so everyday listening stays uncluttered. Managers get
 three sections, each a single sidebar item: **Tracks** (metadata, upload,
@@ -289,7 +290,7 @@ The player is Rainy's signature surface. Changes must keep this behavior:
   inside it); its grabber shrinks it back to the bottom bar. Layout-dependent spacing
   uses `--player-reserve` and `--player-clearance`, never `--playerbar-h`.
 - **Keyboard.** Space plays or pauses, ←/→ seek 5 seconds, Shift+←/→ change
-  track, and M mutes. Ctrl/⌘+K opens Quick actions.
+  track, and M mutes. Ctrl/⌘+K opens Search & quick actions.
 - **Continuity.** The next track preloads shortly before the end; Media Session
   exposes artwork and transport controls; plays are scrobbled after half the
   track or 4 minutes; playback errors show a toast and skip ahead.

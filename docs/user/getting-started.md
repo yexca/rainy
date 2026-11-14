@@ -22,15 +22,17 @@ If the library stays empty, see
 
 ## 3. Explore
 
-- **Home** shows **Made for You** (your daily and weekly mix), shelves of songs
-  picked for you, and recently added, recently played, most played, random
-  (**Discover**), and favorite albums; see
-  [Listening](listening.md#songs-on-the-home-page).
-- **Library** (on phones) or the sidebar (on tablets and desktops) leads to
-  albums, artists, songs, genres, favorites, playlists, your listening report,
-  and radio.
-- **Search** finds artists, albums, and songs; it ignores case, accents, and
-  full-width characters.
+- **Home** shows **Made for You** (your daily and weekly mix, plus last month's
+  recap in the first week of the month), **Picked for You** songs, recently
+  played albums, albums added in the last two weeks, and random (**Discover**)
+  albums; see [Listening](listening.md#songs-on-the-home-page).
+- **Playlists** and **Library** (on phones) or the sidebar (on tablets and
+  desktops) lead to playlists, albums, artists, songs, favorites, your
+  listening report, and radio. Filter albums and songs by genre from their
+  toolbars.
+- **Search** (top right on Home, the search button in the bar, or Ctrl+K / ⌘K)
+  finds songs, albums, artists, playlists, and pages; it ignores case, accents,
+  and full-width characters.
 
 Tap an album to play it, or use the "…" menu on any track to play it next, add
 it to the queue or a playlist, go to its album or artist, add it to favorites,

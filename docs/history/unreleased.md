@@ -24,6 +24,19 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
 <details>
 <summary><strong>Library Browsing And Search</strong></summary>
 
+- **Home** is calmer and more focused: **Made for You** shows your daily mix,
+  weekly mix, and first-week monthly recap as horizontal poster cards; song
+  recommendations share one **Picked for You** shelf with **Quick picks**, **On
+  repeat**, and **Rediscover** pills beside the title; and **Recently added**
+  shows only albums imported in the last 14 days, above **Discover** and below
+  **Recently played**.
+- **Search** (`Ctrl+K` / `⌘K`, the search pill on Home, or the search button in
+  the bar) combines live song, album, artist, and playlist results with page
+  navigation and playback controls, with a link to the full `/search` results
+  page.
+- **Playlists** moves into the phone tab bar (**Home · Playlists · Library**),
+  and **Genres** is replaced by genre filters in the **Albums** and **Songs**
+  toolbars (`/genres` links redirect to **Albums**).
 - Search no longer runs on a Chinese or Japanese input method's reading
   (pinyin, kana) while you type. The reading stays in the field, and the
   search starts once you pick the text. Escape cancels the reading instead of

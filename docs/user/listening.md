@@ -84,9 +84,10 @@ belongs to.
 
 ## Songs on the Home Page
 
-Below **Made for You**, the home page mixes shelves of songs in between the
-album shelves. Tap a song to play its shelf from there, or the play button
-beside the title to start from the top.
+Below **Made for You**, **Picked for You** offers a song shelf above the album
+shelves, with pills beside the title to switch between modes. Tap a song to
+play the active mode from there, or the play button beside the title to start
+from the top.
 
 - **Quick picks**: a dozen songs that suit what you have been playing, by your
   top artists of the last 90 days and artists like them. The refresh button
@@ -98,8 +99,8 @@ beside the title to start from the top.
 
 Quick picks and Rediscover are picked again each time the home page loads.
 
-A song appears on one shelf only, and a shelf with nothing to show is hidden,
-so a new user sees just Quick picks, drawn from the whole library.
+A song appears in one mode only, and modes without songs are hidden, so a new
+user sees **Quick picks** directly, drawn from the whole library.
 
 Recommendations use only your own library and plays on the server. See also
 [infinite mode](playback.md#infinite-mode).

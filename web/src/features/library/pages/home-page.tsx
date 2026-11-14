@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Disc3, FolderUp, Loader2, RefreshCw, Shuffle } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Disc3, FolderUp, RefreshCw, Shuffle } from 'lucide-react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -11,15 +11,26 @@ import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
-import type { Album } from '@/lib/api/types'
-import { formatNumber } from '@/lib/format'
+import { useIsMobile } from '@/hooks/use-media-query'
+import { useTheme } from '@/hooks/use-theme'
+import { QuickActionsField } from '@/layouts/quick-actions'
+import type { Album, SongPicks } from '@/lib/api/types'
+import { STYLE_QUICK_ACTIONS } from '@/lib/theme-styles'
+import { cn } from '@/lib/utils'
 
-import { AlbumCard, AlbumCardSkeleton } from '../components/album-card'
+import { AlbumCard, AlbumCardSkeleton, type AlbumCardSubtitle } from '../components/album-card'
 import { ForYou } from '../components/for-you'
 import { HorizontalShelf } from '../components/horizontal-shelf'
 import { SongShelf, SongShelfSkeleton } from '../components/song-shelf'
+import { availablePickModes, recentAlbums, resolvePickMode, type PickMode } from '../lib/home'
 import { usePlayCollection } from '../lib/play'
 import { homeQuery, songPicksQuery } from '../lib/queries'
+
+const PICK_LABEL_KEYS: Record<PickMode, string> = {
+  quick: 'home.quickPicks',
+  onRepeat: 'home.onRepeat',
+  rediscover: 'home.rediscover',
+}
 
 function greetingKey(hour: number): string {
   if (hour < 5) return 'home.greeting.night'
@@ -38,14 +49,14 @@ function Shelf({
   title: string
   albums: Album[]
   to?: string
-  subtitle?: 'artist' | 'year' | 'artistYear'
+  subtitle?: AlbumCardSubtitle
   actions?: ReactNode
 }) {
   if (albums.length === 0) return null
   return (
     <HorizontalShelf title={title} to={to} actions={actions}>
-      {albums.map((album, i) => (
-        <AlbumCard key={album.id} album={album} subtitle={subtitle} priority={i < 4} />
+      {albums.map((album) => (
+        <AlbumCard key={album.id} album={album} subtitle={subtitle} />
       ))}
     </HorizontalShelf>
   )
@@ -57,13 +68,13 @@ function RefreshButton({ label, busy, onClick }: { label: string; busy: boolean;
     <Button
       variant="ghost"
       size="icon"
-      onClick={onClick}
       disabled={busy}
+      onClick={onClick}
       aria-label={label}
       title={label}
-      className="size-11 rounded-full text-muted-foreground md:size-9"
+      className="size-11 rounded-full text-muted-foreground hover:text-foreground md:size-9"
     >
-      {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <RefreshCw className="size-4" strokeWidth={1.75} aria-hidden />}
+      <RefreshCw className={cn('size-4', busy && 'animate-spin')} strokeWidth={1.75} aria-hidden />
     </Button>
   )
 }
@@ -74,16 +85,94 @@ function ShelfSkeleton() {
       <Skeleton className="mb-4 h-6 w-44" />
       <div className="flex gap-4 overflow-hidden md:gap-5">
         {Array.from({ length: 7 }, (_, i) => (
-          <AlbumCardSkeleton key={i} className="w-[calc((100%-1rem)/2.3)] shrink-0 sm:w-[calc((100%-2rem)/3.3)] md:w-44 lg:w-48" />
+          <AlbumCardSkeleton
+            key={i}
+            className="w-[calc((100%-1rem)/2.3)] shrink-0 sm:w-[calc((100%-2rem)/3.3)] md:w-44 lg:w-48"
+          />
         ))}
       </div>
     </div>
   )
 }
 
+/**
+ * Consolidated song-picks shelf: one 4-row horizontal song grid with lightweight inline pills
+ * beside the heading (`Quick picks · On repeat · Rediscover`) when multiple modes have songs.
+ */
+function PickedSongs({
+  data,
+  isPending,
+  isRefetching,
+  onRefresh,
+}: {
+  data: SongPicks | undefined
+  isPending: boolean
+  isRefetching: boolean
+  onRefresh: () => void
+}) {
+  const { t } = useTranslation('library')
+  const [selected, setSelected] = useState<PickMode>('quick')
+  const modes = useMemo(() => availablePickModes(data), [data])
+  const active = resolvePickMode(selected, modes)
+
+  if (isPending) return <SongShelfSkeleton />
+  if (!data || !active) return null
+
+  const tracks = data[active]
+  const activeLabel = t(PICK_LABEL_KEYS[active])
+  const showTabs = modes.length > 1
+
+  return (
+    <SongShelf
+      title={showTabs ? t('home.pickedSongs') : activeLabel}
+      playLabel={activeLabel}
+      tracks={tracks}
+      tabs={
+        showTabs ? (
+          <div
+            role="tablist"
+            aria-label={t('home.pickedSongs')}
+            className="inline-flex items-center gap-0.5 rounded-full bg-muted/70 p-0.5"
+          >
+            {modes.map((mode) => {
+              const isSelected = mode === active
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => setSelected(mode)}
+                  className={cn(
+                    'relative rounded-full px-3 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                    // Expand touch hit area to >= 44px height on mobile while keeping a slim capsule visually.
+                    'after:absolute after:-inset-y-2 after:inset-x-0 md:after:hidden',
+                    isSelected
+                      ? 'bg-background text-foreground shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {t(PICK_LABEL_KEYS[mode])}
+                </button>
+              )
+            })}
+          </div>
+        ) : undefined
+      }
+      actions={
+        active !== 'onRepeat' ? (
+          <RefreshButton label={t('home.refreshPicks')} busy={isRefetching} onClick={onRefresh} />
+        ) : undefined
+      }
+    />
+  )
+}
+
 export default function HomePage() {
   const { t } = useTranslation('library')
   const { user, isManager, isAdmin } = useAuth()
+  const isMobile = useIsMobile()
+  const { style } = useTheme()
   const queryClient = useQueryClient()
   const play = usePlayCollection()
   const home = useQuery(homeQuery())
@@ -93,8 +182,9 @@ export default function HomePage() {
 
   const name = user?.displayName.trim() || user?.username || ''
   const title = t(greetingKey(hour), { name })
-  const stats = home.data?.stats
   const empty = !!home.data && home.data.stats.tracks === 0
+  const chromeHasField = STYLE_QUICK_ACTIONS[style] === 'field'
+  const recentAdded = useMemo(() => recentAlbums(home.data?.recentlyAdded ?? []), [home.data?.recentlyAdded])
 
   const refreshRandom = async () => {
     setRefreshingRandom(true)
@@ -110,31 +200,39 @@ export default function HomePage() {
       <PageHeader
         title={title}
         bar={false}
-        subtitle={
-          stats && stats.tracks > 0
-            ? t('home.stats', {
-                songs: formatNumber(stats.tracks),
-                albums: formatNumber(stats.albums),
-                artists: formatNumber(stats.artists),
-              })
-            : undefined
-        }
-        actions={
+        titleAction={
           empty || !home.data ? undefined : (
             <Button
+              variant="secondary"
+              size="icon"
               onClick={() => void play({ kind: 'library' }, 'shuffle')}
-              className="h-11 gap-2 rounded-full px-5 font-semibold shadow-sm active:scale-[0.97] md:h-9"
+              aria-label={t('home.shuffleAll')}
+              title={t('home.shuffleAll')}
+              className="size-11 rounded-full active:scale-[0.95]"
             >
               <Shuffle className="size-4" strokeWidth={2} aria-hidden />
-              {t('home.shuffleAll')}
             </Button>
+          )
+        }
+        actions={
+          isMobile || empty || !home.data ? undefined : (
+            <div className="flex items-center gap-2">
+              {chromeHasField ? null : <QuickActionsField appearance="page" className="w-56 lg:w-64" />}
+              <Button
+                variant="secondary"
+                onClick={() => void play({ kind: 'library' }, 'shuffle')}
+                className="h-9 gap-2 rounded-full px-4 font-medium active:scale-[0.97]"
+              >
+                <Shuffle className="size-4" strokeWidth={1.9} aria-hidden />
+                {t('home.shuffleAll')}
+              </Button>
+            </div>
           )
         }
       />
 
       {home.isPending ? (
         <>
-          <ShelfSkeleton />
           <ShelfSkeleton />
           <ShelfSkeleton />
         </>
@@ -167,27 +265,14 @@ export default function HomePage() {
       ) : (
         <div className="-mt-2">
           <ForYou />
-          {/* Song shelves alternate with the album shelves; a failed request only hides them. */}
-          {picks.isPending ? (
-            <SongShelfSkeleton />
-          ) : (
-            <SongShelf
-              title={t('home.quickPicks')}
-              tracks={picks.data?.quick ?? []}
-              actions={
-                <RefreshButton
-                  label={t('home.refreshPicks')}
-                  busy={picks.isRefetching}
-                  onClick={() => void picks.refetch()}
-                />
-              }
-            />
-          )}
-          <Shelf title={t('home.recentlyAdded')} albums={home.data.recentlyAdded} to="/albums?sort=recent" />
-          <SongShelf title={t('home.onRepeat')} tracks={picks.data?.onRepeat ?? []} />
+          <PickedSongs
+            data={picks.data}
+            isPending={picks.isPending}
+            isRefetching={picks.isRefetching}
+            onRefresh={() => void picks.refetch()}
+          />
           <Shelf title={t('home.recentlyPlayed')} albums={home.data.recentlyPlayed} to="/albums?sort=played" />
-          <SongShelf title={t('home.rediscover')} tracks={picks.data?.rediscover ?? []} />
-          <Shelf title={t('home.mostPlayed')} albums={home.data.mostPlayed} to="/albums?sort=frequent" />
+          <Shelf title={t('home.recentlyAdded')} albums={recentAdded} to="/albums?sort=recent" />
           <Shelf
             title={t('home.discover')}
             albums={home.data.random}
@@ -200,7 +285,6 @@ export default function HomePage() {
               />
             }
           />
-          <Shelf title={t('home.favorites')} albums={home.data.starred} to="/favorites?tab=albums" />
         </div>
       )}
     </Page>

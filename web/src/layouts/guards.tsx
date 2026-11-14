@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { Navigate, Outlet, useLocation, useParams } from 'react-router'
 
 import { ErrorState } from '@/components/error-state'
 import { Logo } from '@/components/logo'
@@ -67,4 +67,10 @@ export function RequireManager() {
 export function RequireAdmin() {
   const { isAdmin } = useAuth()
   return isAdmin ? <Outlet /> : <ForbiddenPage />
+}
+
+/** Redirects `/genres/:name` links to the Albums page filtered by genre. */
+export function GenreRedirect() {
+  const { name } = useParams()
+  return <Navigate to={name ? `/albums?genre=${encodeURIComponent(name)}` : '/albums'} replace />
 }
