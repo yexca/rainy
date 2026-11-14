@@ -43,13 +43,9 @@
     "revokeTitle": "Revoke the API key?",
     "invalidateWarning": "Apps using the current key will stop working until you enter a new one.",
     "passwordNote": "Apps without API key support can sign in with your username and password instead.",
-    "clients": "Recommended apps",
-    "clientsHint": "Enter the server address, then your username and password or API key.",
-    "platform": {
-      "ios": "iPhone & iPad",
-      "android": "Android",
-      "desktop": "Desktop"
-    }
+    "clients": "OpenSubsonic apps",
+    "clientsHint": "Enter the server address, then your username and password or API key. Browse compatible apps on Navidrome’s directory.",
+    "browseApps": "View compatible apps"
   },
   "appearance": {
     "title": "Appearance",
