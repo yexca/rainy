@@ -117,7 +117,10 @@ func (a *API) albumZipEntries(ctx context.Context, album *model.Album, tracks []
 	base := commonDir(dirs)
 	names := zipNames{}
 	entries := make([]zipEntry, 0, len(tracks)+1)
-	add := func(abs, rel string) {
+	add := func(root, abs, rel string) {
+		if root == "" || !util.IsWithin(root, abs) || util.EnsureWithinRoot(root, abs) != nil {
+			return
+		}
 		fi, err := os.Stat(abs)
 		if err != nil || !fi.Mode().IsRegular() {
 			return
@@ -138,8 +141,12 @@ func (a *API) albumZipEntries(ctx context.Context, album *model.Album, tracks []
 			slog.Warn("album zip: unsafe track path", "track", t.ID, "err", err)
 			continue
 		}
+		if err := util.EnsureWithinRoot(lib.Path, abs); err != nil {
+			slog.Warn("album zip: track path resolves outside its library", "track", t.ID, "err", err)
+			continue
+		}
 		before := len(entries)
-		add(abs, t.Path)
+		add(lib.Path, abs, t.Path)
 		if len(entries) == before {
 			slog.Warn("album zip: file missing, skipped", "track", t.ID, "path", t.Path)
 			continue
@@ -149,7 +156,7 @@ func (a *API) albumZipEntries(ctx context.Context, album *model.Album, tracks []
 			relBase, absBase := strings.TrimSuffix(t.Path, path.Ext(t.Path)), strings.TrimSuffix(lyrics.LrcPath(abs), ".lrc")
 			for _, ext := range []string{".lrc", ".LRC"} {
 				before := len(entries)
-				if add(absBase+ext, relBase+ext); len(entries) > before {
+				if add(lib.Path, absBase+ext, relBase+ext); len(entries) > before {
 					break
 				}
 			}
@@ -167,7 +174,8 @@ func (a *API) albumZipEntries(ctx context.Context, album *model.Album, tracks []
 // folderImageEntry returns the zip entry of the album's folder image, when it exists and
 // lives inside the album's library folder.
 func folderImageEntry(album *model.Album, lib *model.Library, names zipNames, top string) (zipEntry, bool) {
-	if album.CoverPath == "" || lib == nil || !util.IsWithin(lib.Path, album.CoverPath) {
+	if album.CoverPath == "" || lib == nil || !util.IsWithin(lib.Path, album.CoverPath) ||
+		util.EnsureWithinRoot(lib.Path, album.CoverPath) != nil {
 		return zipEntry{}, false
 	}
 	fi, err := os.Stat(album.CoverPath)

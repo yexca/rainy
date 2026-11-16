@@ -76,6 +76,14 @@
       "reason": "Public homepage of Navidrome, the project Rainy is compared with."
     },
     {
+      "url": "https://www.navidrome.org/apps/",
+      "files": [
+        "web/src/features/settings/components/subsonic-section.tsx",
+        "docs/user/clients.md"
+      ],
+      "reason": "Public Navidrome directory of Subsonic and OpenSubsonic compatible apps, linked from Settings -> Apps and the client guide; a link the user opens, never requested by the server."
+    },
+    {
       "url": "https://github.com/navidrome/navidrome",
       "files": [
         "web/src/features/settings/pages/about-page.tsx"

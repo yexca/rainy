@@ -42,7 +42,7 @@ export default function LastfmCallbackPage() {
   }, [link, token])
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('scrobbling.callbackTitle')} back="/settings/scrobbling" />
       {!token || link.isError ? (
         <div className="grid justify-items-center gap-4">

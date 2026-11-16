@@ -99,9 +99,6 @@ ones. Import only scripts you trust.
 
 ## Known Limitations
 
-- Cover images are checked for sign-in, not for per-playlist access. The cover
-  mosaic of someone else's private playlist is visible to a signed-in user who
-  knows its random ID.
 - The service worker's cover cache survives sign-out on a shared device. Use a
   private browser profile on shared computers.
 

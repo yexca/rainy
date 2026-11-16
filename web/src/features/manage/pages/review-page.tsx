@@ -96,7 +96,7 @@ export default function ReviewPage() {
     })
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('title')}
         subtitle={items.length > 0 ? t('review.summary', { count: items.length, size: formatBytes(totalSize) }) : t('review.subtitle')}

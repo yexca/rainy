@@ -21,6 +21,10 @@ const ROWS = 4
 
 export interface SongShelfProps {
   title: string
+  /** Accessible name for the "Play section" button when `tabs` switches sub-modes. */
+  playLabel?: string
+  /** Inline mode switcher rendered beside the title. */
+  tabs?: ReactNode
   tracks: Track[]
   /** Extra header controls, before the play button. */
   actions?: ReactNode
@@ -31,7 +35,7 @@ export interface SongShelfProps {
  * plays the shelf from that song; the header button plays it from the top. Renders nothing
  * without songs.
  */
-export function SongShelf({ title, tracks, actions }: SongShelfProps) {
+export function SongShelf({ title, playLabel, tabs, tracks, actions }: SongShelfProps) {
   const { t } = useTranslation('library')
   const columns = useMemo(() => {
     const out: Track[][] = []
@@ -41,9 +45,11 @@ export function SongShelf({ title, tracks, actions }: SongShelfProps) {
   const play = useCallback((index: number) => usePlayer.getState().playTracks(tracks, index), [tracks])
 
   if (tracks.length === 0) return null
+  const sectionName = playLabel ?? title
   return (
     <HorizontalShelf
       title={title}
+      tabs={tabs}
       itemSize="column"
       actions={
         <>
@@ -52,8 +58,8 @@ export function SongShelf({ title, tracks, actions }: SongShelfProps) {
             variant="ghost"
             size="icon"
             onClick={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
-            aria-label={t('home.playSection', { name: title })}
-            title={t('home.playSection', { name: title })}
+            aria-label={t('home.playSection', { name: sectionName })}
+            title={t('home.playSection', { name: sectionName })}
             className="size-11 rounded-full text-primary md:size-9"
           >
             <Play className="size-4" fill="currentColor" strokeWidth={0} aria-hidden />

@@ -37,6 +37,8 @@ func (a *API) routesManage(r chi.Router) {
 	r.Post("/trash/purge", a.managePurgeTrash)
 	r.Post("/missing/purge", a.managePurgeMissing)
 	r.Get("/folders", a.manageFolders)
+	r.Get("/folders/file", a.manageFolderFile)
+	r.Get("/folders/text", a.manageFolderText)
 	r.Post("/folders/rescan", a.manageRescanFolder)
 	r.Get("/issues/summary", a.manageIssueSummary)
 	r.Get("/issues", a.manageIssues)
@@ -393,12 +395,43 @@ func (a *API) managePurgeMissing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) manageFolders(w http.ResponseWriter, r *http.Request) {
-	listing, err := a.app.Manage.ListFolder(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("dir"))
+	listing, err := a.app.Manage.ListFolder(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("dir"), userFrom(r).ID)
 	if err != nil {
 		writeManageErr(w, r, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, listing)
+}
+
+func (a *API) manageFolderFile(w http.ResponseWriter, r *http.Request) {
+	data, ctype, size, mtime, err := a.app.Manage.FolderImage(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("path"))
+	if err != nil {
+		writeManageErr(w, r, err)
+		return
+	}
+	etag := `W/"` + strconv.FormatInt(size, 16) + `-` + strconv.FormatInt(mtime, 16) + `"`
+	h := w.Header()
+	h.Set("Content-Type", pictureContentType(ctype))
+	h.Set("ETag", etag)
+	h.Set("Cache-Control", "private, no-cache")
+	h.Set("X-Content-Type-Options", "nosniff")
+	h.Set("Content-Security-Policy", "default-src 'none'; sandbox")
+	if r.Header.Get("If-None-Match") == etag {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	h.Set("Content-Length", strconv.Itoa(len(data)))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(data)
+}
+
+func (a *API) manageFolderText(w http.ResponseWriter, r *http.Request) {
+	preview, err := a.app.Manage.FolderText(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("path"))
+	if err != nil {
+		writeManageErr(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, preview)
 }
 
 func (a *API) manageRescanFolder(w http.ResponseWriter, r *http.Request) {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChartColumn, ChevronRight, Disc3, ListMusic, MicVocal, Music, Radio, Settings, Shapes, Star, type LucideIcon } from 'lucide-react'
+import { ChartColumn, ChevronRight, Disc3, MicVocal, Music, Radio, Settings, Star, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -19,11 +19,9 @@ interface Section {
 }
 
 const SECTIONS: readonly Section[] = [
-  { to: '/playlists', labelKey: 'common:nav.playlists', icon: ListMusic },
   { to: '/artists', labelKey: 'common:nav.artists', icon: MicVocal },
   { to: '/albums', labelKey: 'common:nav.albums', icon: Disc3 },
   { to: '/songs', labelKey: 'common:nav.songs', icon: Music },
-  { to: '/genres', labelKey: 'common:nav.genres', icon: Shapes },
   { to: '/favorites', labelKey: 'common:nav.favorites', icon: Star },
   { to: '/listening', labelKey: 'common:nav.listening', icon: ChartColumn },
   { to: '/radio', labelKey: 'common:nav.radio', icon: Radio },

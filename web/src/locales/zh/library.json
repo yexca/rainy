@@ -14,20 +14,18 @@
       "evening": "晚上好",
       "night": "夜深了"
     },
-    "stats": "{{songs}} 首歌曲 · {{albums}} 张专辑 · {{artists}} 位艺人",
     "shuffleAll": "随机播放全部",
     "recentlyAdded": "最近添加",
     "recentlyPlayed": "最近播放",
-    "mostPlayed": "最常播放",
     "discover": "发现",
     "refreshDiscover": "换一批",
-    "favorites": "收藏的专辑",
     "emptyTitle": "资料库还是空的",
     "emptyManager": "上传一些音乐，或者把音乐库指向你的音乐文件夹并开始扫描。",
     "emptyListener": "管理员向资料库添加音乐后，就会显示在这里。",
     "upload": "上传音乐",
     "scanLibrary": "音乐库与扫描",
     "forYou": "为你推荐",
+    "pickedSongs": "精选歌曲",
     "quickPicks": "猜你喜欢",
     "refreshPicks": "换一批",
     "onRepeat": "最近常听",
@@ -45,7 +43,8 @@
     "placeholder": "艺人、歌曲、专辑",
     "recent": "最近搜索",
     "removeRecent": "从最近搜索中移除“{{term}}”",
-    "browse": "浏览流派",
+    "idleTitle": "搜索你的曲库",
+    "idleHint": "查找曲库中的歌曲、专辑和艺人。",
     "artists": "艺人",
     "albums": "专辑",
     "songs": "歌曲",
@@ -89,11 +88,6 @@
       "frequent": "最常播放",
       "played": "最近播放",
       "starred": "最近收藏"
-    },
-    "genre": {
-      "name": "名称",
-      "songs": "歌曲最多",
-      "albums": "专辑最多"
     }
   },
   "filter": {
@@ -139,21 +133,10 @@
     "count_other": "{{formatted}} 首歌曲",
     "emptyTitle": "还没有歌曲",
     "emptyDescription": "扫描音乐库后，歌曲会显示在这里。",
+    "emptyFilteredTitle": "没有符合条件的歌曲",
+    "emptyFilteredDescription": "试试去掉一些筛选条件。",
     "emptyFavoritesTitle": "还没有收藏的歌曲",
     "emptyFavoritesDescription": "点一下歌曲旁的星标，就能把它加入收藏。"
-  },
-  "genres": {
-    "count_other": "{{formatted}} 个流派",
-    "emptyTitle": "还没有流派",
-    "emptyDescription": "流派信息来自音乐文件的标签。"
-  },
-  "genre": {
-    "albums": "专辑",
-    "songs": "歌曲",
-    "noAlbums": "这个流派下没有专辑",
-    "noSongs": "这个流派下没有歌曲",
-    "notFound": "找不到这个流派",
-    "backToGenres": "前往流派"
   },
   "favorites": {
     "songs": "歌曲",

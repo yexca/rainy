@@ -26,8 +26,8 @@ missing tracks is an explicit management operation.
 ## Filesystem Effects
 
 Database and API file paths are library-relative with `/`. Resolve absolute
-paths through `util.SafeJoin`; use symlink-aware `util.EnsureWithinRoot` for
-mutations. File access stays inside a library root or the data directory.
+paths through `util.SafeJoin`; use symlink-aware `util.EnsureWithinRoot` before
+serving or mutating files. File access stays inside a library root or the data directory.
 
 Every mutation holds the scanner's library lock across the change and its
 targeted rescan, records an `edit_log` entry, and publishes a `library` event.

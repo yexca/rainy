@@ -304,9 +304,16 @@ tool that fixes it:
 
 ## Folders
 
-**Library tools → Folders** browses the files on disk, shows which files are
-not scanned yet, and can rescan a single folder, open its tracks in the tag
-editor, or upload into it.
+**Library tools → Folders** browses each library's directory tree on disk. A
+collapsible folder tree and breadcrumb bar navigate nested directories; each
+folder groups subfolders, audio tracks, artwork images, lyrics or text files,
+and other files. Indexed tracks play directly from the folder or subfolder, open
+in the tag editor, and support multi-select tag edits, cover updates, rename /
+organize, and moving files to the trash. Audio files that have not been scanned
+appear with a warning badge and a one-click folder rescan. Artwork thumbnails
+and `.lrc`, `.txt`, `.cue`, `.log`, `.md`, `.nfo`, and `.m3u` files open in a
+built-in preview dialog, and **Upload here** jumps to **Tracks → Upload** with
+the current folder selected.
 
 ## History
 

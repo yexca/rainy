@@ -43,13 +43,9 @@
     "revokeTitle": "撤销 API 密钥？",
     "invalidateWarning": "正在使用当前密钥的客户端将无法连接，需要重新填写新密钥。",
     "passwordNote": "不支持 API 密钥的客户端可以直接使用用户名和密码登录。",
-    "clients": "推荐客户端",
-    "clientsHint": "填写服务器地址，再输入用户名和密码（或 API 密钥）即可。",
-    "platform": {
-      "ios": "iPhone 与 iPad",
-      "android": "Android",
-      "desktop": "桌面端"
-    }
+    "clients": "支持 OpenSubsonic 的软件",
+    "clientsHint": "填写服务器地址，再输入用户名和密码（或 API 密钥）即可。可在 Navidrome 的应用目录中查看兼容软件。",
+    "browseApps": "查看兼容软件"
   },
   "appearance": {
     "title": "外观",
@@ -97,7 +93,7 @@
   },
   "shortcuts": {
     "title": "键盘快捷键",
-    "quickActions": "快捷操作",
+    "quickActions": "搜索与快捷操作",
     "playPause": "播放 / 暂停",
     "seek": "后退 / 快进 5 秒",
     "previous": "上一首",

@@ -14,6 +14,8 @@ export interface PageHeaderProps {
   subtitle?: ReactNode
   /** Primary actions: right of the title on desktop, below it on mobile. */
   actions?: ReactNode
+  /** Compact control aligned inline to the right of the heading on mobile. */
+  titleAction?: ReactNode
   /** Compact icon buttons in the top bar (iOS nav bar on mobile, sticky bar on desktop). */
   navActions?: ReactNode
   /** Back button: `true` = history back (falls back to Home), a string = link target. */
@@ -46,6 +48,7 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  titleAction,
   navActions,
   back,
   bar = true,
@@ -166,14 +169,17 @@ export function PageHeader({
           bar ? 'pt-1 md:pt-2' : 'pt-12 md:pt-14',
         )}
       >
-        <div className="min-w-0">
-          <h1
-            ref={titleRef}
-            className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
-          >
-            {title}
-          </h1>
-          {subtitle ? <div className="mt-1 text-[15px] text-muted-foreground md:text-sm">{subtitle}</div> : null}
+        <div className={cn('min-w-0', titleAction && 'flex items-center justify-between gap-3 md:block')}>
+          <div className="min-w-0">
+            <h1
+              ref={titleRef}
+              className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
+            >
+              {title}
+            </h1>
+            {subtitle ? <div className="mt-1 text-[15px] text-muted-foreground md:text-sm">{subtitle}</div> : null}
+          </div>
+          {titleAction ? <div className="shrink-0 md:hidden">{titleAction}</div> : null}
         </div>
         {actions ? <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0">{actions}</div> : null}
       </div>

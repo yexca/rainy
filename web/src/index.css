@@ -82,8 +82,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
 
-  /* Horizontal page gutter (see .page-x / .bleed-x). */
+  /* Horizontal page gutter and centered-page max width (see .page-x / .bleed-x / .page-centered). */
   --page-px: 1rem;
+  --page-max-w: 72rem;
 
   color-scheme: light;
 }
@@ -632,14 +633,33 @@
 
 /* Horizontal page gutter (+ landscape safe areas). `<Page>` applies it. */
 @utility page-x {
-  padding-left: calc(var(--page-px) + var(--safe-left));
-  padding-right: calc(var(--page-px) + var(--safe-right));
+  padding-left: var(--page-gutter-l, calc(var(--page-px) + var(--safe-left)));
+  padding-right: var(--page-gutter-r, calc(var(--page-px) + var(--safe-right)));
 }
 
 /* Full-bleed child of a .page-x container (sticky bars, horizontal scrollers, hero art). */
 @utility bleed-x {
-  margin-left: calc(-1 * (var(--page-px) + var(--safe-left)));
-  margin-right: calc(-1 * (var(--page-px) + var(--safe-right)));
+  margin-left: calc(-1 * var(--page-gutter-l, calc(var(--page-px) + var(--safe-left))));
+  margin-right: calc(-1 * var(--page-gutter-r, calc(var(--page-px) + var(--safe-right))));
+}
+
+/* Centered page frame (`<Page centered>`): queries the pane width from tablets up so `.page-x`
+   centres up to `--page-max-w` while `.bleed-x` bars still span the full pane. */
+@utility page-frame {
+  @media (width >= 48rem) {
+    container-type: inline-size;
+  }
+}
+
+@utility page-centered {
+  @media (width >= 48rem) {
+    --page-gutter-l: calc(
+      max(var(--page-px), (100cqw - var(--safe-left) - var(--safe-right) - var(--page-max-w)) / 2) + var(--safe-left)
+    );
+    --page-gutter-r: calc(
+      max(var(--page-px), (100cqw - var(--safe-left) - var(--safe-right) - var(--page-max-w)) / 2) + var(--safe-right)
+    );
+  }
 }
 
 /* Translucent "glass" surface (tab bar, mini player, collapsed nav bars); softens hairlines. */

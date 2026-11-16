@@ -10,7 +10,7 @@ import { FullscreenLoader } from '@/components/spinner'
 import { NotFoundPage, RouteErrorPage } from '@/components/status-pages'
 import { AppShell } from '@/layouts/app-shell'
 import { AuthLayout } from '@/layouts/auth-layout'
-import { GuestOnly, RequireAdmin, RequireAuth, RequireManager } from '@/layouts/guards'
+import { GenreRedirect, GuestOnly, RequireAdmin, RequireAuth, RequireManager } from '@/layouts/guards'
 import { RootLayout } from '@/layouts/root-layout'
 
 type PageModule = { default: ComponentType }
@@ -60,8 +60,8 @@ export const routes: RouteObject[] = [
                   { path: 'artists', lazy: page(() => import('@/features/library/pages/artists-page')) },
                   { path: 'artists/:id', lazy: page(() => import('@/features/library/pages/artist-page')) },
                   { path: 'songs', lazy: page(() => import('@/features/library/pages/songs-page')) },
-                  { path: 'genres', lazy: page(() => import('@/features/library/pages/genres-page')) },
-                  { path: 'genres/:name', lazy: page(() => import('@/features/library/pages/genre-page')) },
+                  { path: 'genres', element: <Navigate to="/albums" replace /> },
+                  { path: 'genres/:name', element: <GenreRedirect /> },
                   { path: 'favorites', lazy: page(() => import('@/features/library/pages/favorites-page')) },
                   { path: 'playlists', lazy: page(() => import('@/features/library/pages/playlists-page')) },
                   { path: 'playlists/:id', lazy: page(() => import('@/features/library/pages/playlist-page')) },

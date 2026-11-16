@@ -216,7 +216,7 @@ func libPath(root, rel string) (string, error) {
 			return "", err
 		}
 		// Typically the library root itself is gone (unmounted volume, deleted folder).
-		return "", fmt.Errorf("%w: the library folder %s is not accessible (%v)", store.ErrConflict, root, err)
+		return "", fmt.Errorf("%w: the library folder is not accessible", store.ErrConflict)
 	}
 	return abs, nil
 }

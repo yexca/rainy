@@ -58,7 +58,7 @@ JSON logging; everything else uses the program defaults.
 | `RAINY_ADDRESS` | `0.0.0.0` | same | Listen address |
 | `RAINY_PORT` | `7650` | same | Listen port. The image's built-in health check follows it; the Compose health check always requests port 7650 |
 | `RAINY_DATA_DIR` | `./config` | `/config` | Database, `secret.key`, caches, trash, upload staging, and downloads waiting for review |
-| `RAINY_MUSIC_DIR` | `./data` | `/data` | Default library, added automatically on first start when no library exists |
+| `RAINY_MUSIC_DIR` | `./data` | `/data` | Default library, added automatically on first start when no library exists and the path does not overlap the data directory |
 | `RAINY_SCAN_INTERVAL` | `1h` | same | Default for the `scanInterval` setting; `0` disables periodic scans |
 | `RAINY_SCAN_ON_START` | `true` | same | Run a quick scan at startup |
 | `RAINY_FFMPEG_PATH` | `ffmpeg` | same (bundled) | ffmpeg binary used for transcoding and tag fallbacks |

@@ -74,7 +74,6 @@ export default function PlaylistsPage() {
     <Page>
       <PageHeader
         title={t('common:nav.playlists')}
-        back={isMobile}
         subtitle={query.data ? t('common:count.playlists', { count: query.data.length }) : undefined}
         navActions={isMobile ? actions : undefined}
         actions={isMobile ? undefined : actions}

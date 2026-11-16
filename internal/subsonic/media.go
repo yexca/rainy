@@ -36,6 +36,10 @@ func (a *API) trackPath(q *request, t *model.Track) (string, error) {
 		slog.Warn("subsonic: unsafe track path", "track", t.ID, "path", t.Path, "err", err)
 		return "", errNotFound("Song file")
 	}
+	if err := util.EnsureWithinRoot(lib.Path, abs); err != nil {
+		slog.Warn("subsonic: track path resolves outside its library", "track", t.ID, "path", t.Path, "err", err)
+		return "", errNotFound("Song file")
+	}
 	return abs, nil
 }
 
@@ -118,12 +122,12 @@ func serveFile(q *request, abs, contentType, attachment string) error {
 		if errors.Is(err, os.ErrNotExist) {
 			return errNotFound("Song file")
 		}
-		return fmt.Errorf("opening %s: %w", abs, err)
+		return errNotFound("Song file")
 	}
 	defer func() { _ = f.Close() }()
 	fi, err := f.Stat()
 	if err != nil {
-		return err
+		return errNotFound("Song file")
 	}
 	if fi.IsDir() {
 		return errNotFound("Song file")
@@ -396,6 +400,15 @@ func (a *API) getCoverArt(q *request) (*Response, error) {
 		return nil, err
 	}
 	size = min(max(size, 0), maxCoverSize)
+	if kind, playlistID, _ := util.SplitCoverArtID(id); kind == util.CoverKindPlaylist || kind == "" {
+		if p, err := a.app.Store.GetPlaylist(q.ctx, playlistID); err == nil {
+			if !canReadPlaylist(p, q.user) {
+				return nil, errNotFound("Cover art")
+			}
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return nil, err
+		}
+	}
 	img, err := a.app.Artwork.Get(q.ctx, id, size)
 	cache := "public, max-age=86400"
 	switch {

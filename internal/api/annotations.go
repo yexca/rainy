@@ -85,6 +85,7 @@ func (a *API) annRating(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, r, badRequest("rating must be between 0 and 5"))
 		return
 	}
+	body.ID = strings.TrimSpace(body.ID)
 	if err := a.app.Store.SetRating(r.Context(), userFrom(r).ID, body.Type, body.ID, body.Rating); err != nil {
 		writeErr(w, r, err)
 		return

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 
-import { Page, PageColumn } from '@/components/page'
+import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -69,12 +69,12 @@ export default function UploadPage() {
   }
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('title')} subtitle={t('upload.subtitle')}>
         <TracksTabs />
       </PageHeader>
 
-      <PageColumn>
+      <div className="grid gap-8">
         <DestinationSection />
 
         <section
@@ -138,7 +138,7 @@ export default function UploadPage() {
         </section>
 
         <UploadQueue />
-      </PageColumn>
+      </div>
     </Page>
   )
 }

@@ -90,9 +90,10 @@ export interface Placement {
   review: boolean                   // settings.reviewDownloads: downloads wait in Tracks › Review unless a request says otherwise
 }
 export interface RenamePlan { trackId: string; from: string; to: string; status: 'ok' | 'unchanged' | 'conflict' | 'invalid'; message?: string }
-export interface FolderEntry { name: string; path: string }
-export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null }
+export interface FolderEntry { name: string; path: string; trackCount: number; hasSubfolders: boolean }
+export interface FileEntry { name: string; path: string; size: number; mtime: number; isAudio: boolean; isImage: boolean; trackId: string | null; track: Track | null }
 export interface FolderListing { libraryId: number; dir: string; parent: string | null; writable: boolean; folders: FolderEntry[]; files: FileEntry[] }
+export interface FolderTextPreview { name: string; path: string; size: number; mtime: number; content: string; truncated: boolean }
 export type IssueType = 'missing_tags' | 'no_cover' | 'duplicates' | 'missing_files' | 'encoding'
 export interface Issue { key: string; type: IssueType; message: string; tracks: Track[]; album?: Album }
 export interface EncodingFix { trackId: string; path: string; encoding: string; changes: Record<string, { old: string[]; new: string[] }> }
