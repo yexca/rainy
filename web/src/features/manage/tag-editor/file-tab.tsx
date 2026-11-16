@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { Lock } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -72,7 +73,7 @@ function FileCard({ item }: { item: TrackTags }) {
   )
 }
 
-function channelsLabel(n: number, t: (key: string, o?: Record<string, unknown>) => string): string {
+function channelsLabel(n: number, t: TFunction<'manage'>): string {
   if (n === 1) return t('file.mono')
   if (n === 2) return t('file.stereo')
   return n > 0 ? t('file.channelsN', { count: n }) : '—'

@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type { TFunction } from 'i18next'
 import {
   ArchiveRestore,
   ArrowRight,
@@ -253,8 +254,6 @@ function LogEntry({ entry, onFilter }: { entry: EditLogEntry; onFilter?: (trackI
   )
 }
 
-type TFunction = (key: string, options?: Record<string, unknown>) => string
-
 /** Known `details` keys of the edit log (see the manage service) with readable labels / values. */
 const FIELD_ORDER = ['op', 'embedded', 'folderImage', 'target', 'encoding', 'name', 'title', 'source', 'quality', 'via', 'size', 'missing']
 const FIELD_KEYS = new Set(FIELD_ORDER)
@@ -264,7 +263,7 @@ function fieldRank(key: string): number {
   return i < 0 ? FIELD_ORDER.length : i
 }
 
-function describeField(key: string, value: string, t: TFunction): { label: string; value: string; mono?: boolean } {
+function describeField(key: string, value: string, t: TFunction<'manage'>): { label: string; value: string; mono?: boolean } {
   if (!FIELD_KEYS.has(key)) return { label: key, value }
   const label = t(`history.fields.${key}`)
   const yesNo = (v: string) => (v === 'true' ? t('history.values.yes') : v === 'false' ? t('history.values.no') : v)
