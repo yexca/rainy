@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useParams } from 'react-router'
 
-import { Page, PageColumn } from '@/components/page'
+import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader } from '@/components/spinner'
 import { useAuth } from '@/hooks/use-auth'
@@ -90,12 +90,12 @@ export default function SettingsPage() {
   const tab: Tab = param ?? 'account'
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('title')} subtitle={t('subtitle')}>
         <SectionTabs section={SETTINGS_SECTION} />
       </PageHeader>
       {user ? (
-        <PageColumn>
+        <div className="grid gap-8">
           {tab === 'account' ? (
             <>
               <ProfileSection user={user} />
@@ -120,7 +120,7 @@ export default function SettingsPage() {
           ) : (
             <ScrobblingSection />
           )}
-        </PageColumn>
+        </div>
       ) : (
         <PageLoader />
       )}

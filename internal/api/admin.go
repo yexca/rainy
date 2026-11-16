@@ -333,19 +333,19 @@ func (a *API) validateLibraryPath(ctx context.Context, p string, id int64) (stri
 	}
 	abs, err := filepath.Abs(p)
 	if err != nil {
-		return "", badRequest("invalid path: %v", err)
+		return "", badRequest("invalid path")
 	}
 	abs = filepath.Clean(abs)
 	fi, err := os.Stat(abs)
 	if err != nil || !fi.IsDir() {
-		return "", badRequest("%s does not exist or is not a directory (inside docker, use the container path of a mounted volume, e.g. /music)", abs)
+		return "", badRequest("path does not exist or is not a directory (inside docker, use the container path of a mounted volume, e.g. /music)")
 	}
 	overlaps := func(x, y string) bool {
 		x, y = canonicalPath(x), canonicalPath(y)
 		return util.IsWithin(x, y) || util.IsWithin(y, x)
 	}
 	if overlaps(abs, a.app.Cfg.DataDir) {
-		return "", badRequest("a library cannot overlap the data directory (%s)", a.app.Cfg.DataDir)
+		return "", badRequest("a library cannot overlap the data directory")
 	}
 	libs, err := a.app.Store.ListLibraries(ctx)
 	if err != nil {
@@ -353,7 +353,7 @@ func (a *API) validateLibraryPath(ctx context.Context, p string, id int64) (stri
 	}
 	for _, l := range libs {
 		if l.ID != id && overlaps(abs, l.Path) {
-			return "", newError(http.StatusConflict, CodeConflict, "the folder overlaps library %q (%s); libraries cannot be nested", l.Name, l.Path)
+			return "", newError(http.StatusConflict, CodeConflict, "the folder overlaps another library; libraries cannot be nested")
 		}
 	}
 	return abs, nil

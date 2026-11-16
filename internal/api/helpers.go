@@ -122,11 +122,13 @@ func errorFrom(err error) (status int, code, msg string) {
 	case errors.Is(err, store.ErrNotFound), errors.Is(err, artwork.ErrNotFound):
 		return http.StatusNotFound, CodeNotFound, "not found"
 	case errors.Is(err, store.ErrConflict), errors.Is(err, scanner.ErrScanInProgress):
-		return http.StatusConflict, CodeConflict, err.Error()
+		return http.StatusConflict, CodeConflict, "the requested operation conflicts with the current server state"
 	case errors.Is(err, syscall.EROFS), errors.Is(err, fs.ErrPermission):
 		return http.StatusConflict, CodeReadonly,
-			"the music folder is read-only or not writable by the server; mount it read-write to edit files (" + err.Error() + ")"
-	case errors.Is(err, store.ErrInvalid), errors.Is(err, auth.ErrValidation), errors.Is(err, util.ErrUnsafePath):
+			"the music folder is read-only or not writable by the server; mount it read-write to edit files"
+	case errors.Is(err, util.ErrUnsafePath):
+		return http.StatusBadRequest, CodeBadRequest, "invalid or unsafe path"
+	case errors.Is(err, store.ErrInvalid), errors.Is(err, auth.ErrValidation):
 		return http.StatusBadRequest, CodeBadRequest, err.Error()
 	case errors.Is(err, auth.ErrInvalidCredentials):
 		return http.StatusUnauthorized, CodeUnauthorized, err.Error()

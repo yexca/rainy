@@ -8,7 +8,6 @@
     "albums": "Albums",
     "artists": "Artists",
     "songs": "Songs",
-    "genres": "Genres",
     "favorites": "Favorites",
     "playlists": "Playlists",
     "radio": "Radio",
@@ -90,13 +89,20 @@
     "listener": "Listener"
   },
   "quickActions": {
-    "label": "Quick actions",
-    "description": "Jump to a page, control playback or search the library.",
-    "placeholder": "Search pages and actions…",
-    "empty": "No matching actions",
-    "searchFor": "Search the library for “{{query}}”",
+    "label": "Search",
+    "description": "Search songs, albums, artists, or jump to a page and control playback.",
+    "placeholder": "Search songs, albums, artists, or pages…",
+    "fieldPlaceholder": "Search music…",
+    "empty": "No matches found",
+    "recent": "Recent searches",
+    "removeRecent": "Remove “{{term}}”",
+    "seeAllResults": "See all results for “{{query}}”",
     "groups": {
       "playback": "Playback",
+      "songs": "Songs",
+      "albums": "Albums",
+      "artists": "Artists",
+      "pages": "Pages & actions",
       "manage": "Manage"
     },
     "play": "Play",

@@ -11,7 +11,9 @@ const ITEM_WIDTH = {
   md: 'w-[calc((100%-1rem)/2.3)] sm:w-[calc((100%-2rem)/3.3)] md:w-44 lg:w-48',
   /** Artist circles. */
   sm: 'w-[calc((100%-2rem)/3.2)] sm:w-32 md:w-36 lg:w-40',
-  /** Wide tiles (genres). */
+  /** Editorial feature posters ("Made for You"). */
+  poster: 'w-[calc((100%-1rem)/1.32)] sm:w-64 md:w-72 lg:w-80',
+  /** Wide tiles. */
   lg: 'w-[calc((100%-1rem)/1.6)] sm:w-64 md:w-72',
   /** Columns of song rows: one and a peek of the next on phones, three side by side on desktops. */
   column: 'w-[calc((100%-1rem)/1.12)] sm:w-[calc((100%-1rem)/2.1)] lg:w-[calc((100%-2.5rem)/3)]',
@@ -19,11 +21,14 @@ const ITEM_WIDTH = {
 
 export interface HorizontalShelfProps {
   title: ReactNode
+  /** Inline filter/mode pills rendered beside the section heading. */
+  tabs?: ReactNode
   /** "See all" target. */
   to?: string
   /** Extra header controls. */
   actions?: ReactNode
   itemSize?: keyof typeof ITEM_WIDTH
+  id?: string
   children: ReactNode
   className?: string
 }
@@ -32,9 +37,10 @@ export interface HorizontalShelfProps {
  * A titled, horizontally scrolling row with snap points (Apple Music shelves). It bleeds to the
  * screen edges on phones; on desktop, hover reveals previous / next page buttons.
  */
-export function HorizontalShelf({ title, to, actions, itemSize = 'md', children, className }: HorizontalShelfProps) {
+export function HorizontalShelf({ title, tabs, to, actions, itemSize = 'md', id, children, className }: HorizontalShelfProps) {
   const { t } = useTranslation()
-  const headingId = useId()
+  const generatedId = useId()
+  const headingId = id ?? generatedId
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
   const [edges, setEdges] = useState({ start: true, end: true })
 
@@ -64,7 +70,7 @@ export function HorizontalShelf({ title, to, actions, itemSize = 'md', children,
 
   return (
     <section aria-labelledby={headingId} className={cn('mt-8 first:mt-2 md:mt-10', className)}>
-      <SectionHeader id={headingId} title={title} to={to} actions={actions} />
+      <SectionHeader id={headingId} title={title} tabs={tabs} to={to} actions={actions} />
       <div className="group/shelf relative">
         <div
           ref={setScroller}

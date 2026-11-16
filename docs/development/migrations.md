@@ -20,10 +20,11 @@ The chain has no baseline or squashed schema: a fresh database applies every
 file from `0001_init.sql` on.
 
 `db.Migrate` runs at every startup (and before CLI commands such as
-`rainy user list`). It sorts the embedded files by name, skips versions already
-recorded in `schema_migrations`, and applies each remaining file in its own
-write transaction together with the row that records it. A failed migration
-rolls back completely and stops startup with its version in the error.
+`rainy user list`). It sorts the embedded files by name, requires
+`schema_migrations` to contain a known contiguous prefix, rejects a database from
+a newer or incomplete schema, and applies each remaining file in its own write
+transaction together with the row that records it. A failed migration rolls back
+completely and stops startup with its version in the error.
 
 The version stored in `schema_migrations` is the file name without `.sql`.
 

@@ -14,20 +14,18 @@
       "evening": "Good evening",
       "night": "Up late?"
     },
-    "stats": "{{songs}} songs · {{albums}} albums · {{artists}} artists",
     "shuffleAll": "Shuffle all",
     "recentlyAdded": "Recently added",
     "recentlyPlayed": "Recently played",
-    "mostPlayed": "Most played",
     "discover": "Discover",
     "refreshDiscover": "Show other albums",
-    "favorites": "Favorite albums",
     "emptyTitle": "Your library is empty",
     "emptyManager": "Upload some music or point a library at your music folder and run a scan.",
     "emptyListener": "Music will show up here once an administrator adds some to the library.",
     "upload": "Upload music",
     "scanLibrary": "Libraries & scan",
     "forYou": "Made for You",
+    "pickedSongs": "Picked for You",
     "quickPicks": "Quick picks",
     "refreshPicks": "Show other songs",
     "onRepeat": "On repeat",
@@ -45,7 +43,8 @@
     "placeholder": "Artists, songs, albums",
     "recent": "Recent searches",
     "removeRecent": "Remove “{{term}}” from recent searches",
-    "browse": "Browse genres",
+    "idleTitle": "Search your library",
+    "idleHint": "Find songs, albums, and artists across your music.",
     "artists": "Artists",
     "albums": "Albums",
     "songs": "Songs",
@@ -89,11 +88,6 @@
       "frequent": "Most played",
       "played": "Recently played",
       "starred": "Recently favorited"
-    },
-    "genre": {
-      "name": "Name",
-      "songs": "Most songs",
-      "albums": "Most albums"
     }
   },
   "filter": {
@@ -142,22 +136,10 @@
     "count_other": "{{formatted}} songs",
     "emptyTitle": "No songs yet",
     "emptyDescription": "Songs appear here once your library has been scanned.",
+    "emptyFilteredTitle": "No matching songs",
+    "emptyFilteredDescription": "Try removing a filter.",
     "emptyFavoritesTitle": "No favorite songs",
     "emptyFavoritesDescription": "Tap the star on a song to add it to your favorites."
-  },
-  "genres": {
-    "count_one": "{{formatted}} genre",
-    "count_other": "{{formatted}} genres",
-    "emptyTitle": "No genres yet",
-    "emptyDescription": "Genres come from the tags of your music files."
-  },
-  "genre": {
-    "albums": "Albums",
-    "songs": "Songs",
-    "noAlbums": "No albums in this genre",
-    "noSongs": "No songs in this genre",
-    "notFound": "Genre not found",
-    "backToGenres": "Go to genres"
   },
   "favorites": {
     "songs": "Songs",

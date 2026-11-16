@@ -17,9 +17,7 @@ import {
   MicVocal,
   Music,
   Radio,
-  Search,
   Settings,
-  Shapes,
   ShieldCheck,
   SlidersHorizontal,
   Star,
@@ -43,11 +41,9 @@ export interface NavItem {
 
 export const LIBRARY_NAV: readonly NavItem[] = [
   { to: '/', labelKey: 'nav.home', icon: House, end: true },
-  { to: '/search', labelKey: 'nav.search', icon: Search },
   { to: '/albums', labelKey: 'nav.albums', icon: Disc3 },
   { to: '/artists', labelKey: 'nav.artists', icon: MicVocal },
   { to: '/songs', labelKey: 'nav.songs', icon: Music },
-  { to: '/genres', labelKey: 'nav.genres', icon: Shapes },
   { to: '/favorites', labelKey: 'nav.favorites', icon: Star },
   { to: '/listening', labelKey: 'nav.listening', icon: ChartColumn },
   { to: '/radio', labelKey: 'nav.radio', icon: Radio },
@@ -127,13 +123,13 @@ export interface TabItem extends NavItem {
 /** Mobile bottom tab bar. */
 export const TABS: readonly TabItem[] = [
   { to: '/', labelKey: 'nav.home', icon: House, end: true, match: ['/'] },
+  { to: '/playlists', labelKey: 'nav.playlists', icon: ListMusic, match: ['/playlists'] },
   {
     to: '/library',
     labelKey: 'nav.library',
     icon: LibraryBig,
-    match: ['/library', '/albums', '/artists', '/songs', '/genres', '/favorites', '/listening', '/playlists', '/radio', '/settings', '/about'],
+    match: ['/library', '/albums', '/artists', '/songs', '/favorites', '/listening', '/radio', '/settings', '/about'],
   },
-  { to: '/search', labelKey: 'nav.search', icon: Search, match: ['/search'] },
   // Phones have no sidebar: this tab holds Tracks and links to the library tools and admin pages.
   { to: '/manage', labelKey: 'nav.manage', icon: Wrench, end: true, match: ['/manage', '/admin'], managersOnly: true },
 ]

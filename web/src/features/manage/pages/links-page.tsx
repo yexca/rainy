@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { Page, PageColumn } from '@/components/page'
+import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 
 import { DestinationSection } from '../components/destination-section'
@@ -17,15 +17,15 @@ export default function LinksPage() {
   const target = useDestinationTarget()
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('title')} subtitle={t('download.pageSubtitle')}>
         <TracksTabs />
       </PageHeader>
 
-      <PageColumn>
+      <div className="grid gap-8">
         <DestinationSection review />
         <LinkDownload libraryId={target.libraryId} dir={target.dir} invalidDir={target.invalidDir} review={target.review} />
-      </PageColumn>
+      </div>
     </Page>
   )
 }

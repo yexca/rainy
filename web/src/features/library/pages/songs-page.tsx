@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Music, Star } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,11 +16,11 @@ import { api, type SortOrder, type TrackSort } from '@/lib/api/endpoints'
 import { errorMessage } from '@/lib/errors'
 import { formatNumber } from '@/lib/format'
 
-import { FilterChip, ListToolbar, SortMenu, type SortOption } from '../components/list-toolbar'
+import { ChoiceFilter, FilterChip, ListToolbar, SortMenu, type SortOption } from '../components/list-toolbar'
 import { PlayShuffleButtons } from '../components/play-shuffle-buttons'
 import { TrackList, TrackListSkeleton } from '../components/track-list'
 import { MAX_QUEUE, usePlayCollection } from '../lib/play'
-import { tracksInfiniteQuery, useFlattenedPages } from '../lib/queries'
+import { genresQuery, tracksInfiniteQuery, useFlattenedPages } from '../lib/queries'
 
 const SORTS: readonly TrackSort[] = ['title', 'artist', 'album', 'recent', 'year', 'duration', 'frequent', 'played', 'starred']
 const DEFAULT_ORDER: Partial<Record<TrackSort, SortOrder>> = {
@@ -45,6 +45,7 @@ export default function SongsPage() {
   const orderParam = params.get('order')
   const order: SortOrder = orderParam === 'asc' || orderParam === 'desc' ? orderParam : (DEFAULT_ORDER[sort] ?? 'asc')
   const starred = params.get('starred') === '1'
+  const genre = params.get('genre')
 
   const update = useCallback(
     (patch: Record<string, string | null>) => {
@@ -68,7 +69,12 @@ export default function SongsPage() {
     [t],
   )
 
-  const query = useInfiniteQuery(tracksInfiniteQuery({ sort, order, starred: starred || undefined }))
+  const genres = useQuery(genresQuery())
+  const genreNames = useMemo(() => (genres.data ?? []).filter((g) => g.songCount > 0).map((g) => g.name), [genres.data])
+
+  const query = useInfiniteQuery(
+    tracksInfiniteQuery({ sort, order, starred: starred || undefined, genre: genre ?? undefined }),
+  )
   const { items, total } = useFlattenedPages(query.data, query.hasNextPage)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
   const loadMore = useCallback(() => {
@@ -79,7 +85,15 @@ export default function SongsPage() {
   const playAll = async () => {
     try {
       const tracks = hasNextPage
-        ? (await api.tracks.list({ sort, order, starred: starred || undefined, limit: MAX_QUEUE })).items
+        ? (
+            await api.tracks.list({
+              sort,
+              order,
+              starred: starred || undefined,
+              genre: genre ?? undefined,
+              limit: MAX_QUEUE,
+            })
+          ).items
         : items
       usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })
     } catch (error) {
@@ -87,20 +101,33 @@ export default function SongsPage() {
     }
   }
 
+  const shuffleAll = async () => {
+    if (starred && genre) {
+      try {
+        const tracks = hasNextPage
+          ? (await api.tracks.list({ sort, order, starred: true, genre, limit: MAX_QUEUE })).items
+          : items
+        usePlayer.getState().playTracks(tracks, undefined, { shuffle: true })
+      } catch (error) {
+        toast.error(errorMessage(error, t))
+      }
+      return
+    }
+    if (starred) void play({ kind: 'starred' }, 'shuffle')
+    else if (genre) void play({ kind: 'genre', name: genre }, 'shuffle')
+    else void play({ kind: 'library' }, 'shuffle')
+  }
+
+  const filtered = starred || genre !== null
+  const emptyFavoritesOnly = starred && genre === null
+
   return (
     <Page>
       <PageHeader
         title={t('common:nav.songs')}
         back={isMobile}
         subtitle={query.data ? t('songs.count', { count: total, formatted: formatNumber(total) }) : undefined}
-        actions={
-          items.length > 0 ? (
-            <PlayShuffleButtons
-              onPlay={playAll}
-              onShuffle={() => (starred ? play({ kind: 'starred' }, 'shuffle') : play({ kind: 'library' }, 'shuffle'))}
-            />
-          ) : undefined
-        }
+        actions={items.length > 0 ? <PlayShuffleButtons onPlay={playAll} onShuffle={shuffleAll} /> : undefined}
       />
       <ListToolbar>
         <SortMenu
@@ -117,6 +144,15 @@ export default function SongsPage() {
         >
           {t('filter.favorites')}
         </FilterChip>
+        {genreNames.length > 0 ? (
+          <ChoiceFilter
+            label={t('filter.genre')}
+            value={genre}
+            options={genreNames}
+            onChange={(value) => update({ genre: value })}
+            allLabel={t('filter.allGenres')}
+          />
+        ) : null}
       </ListToolbar>
 
       {query.isPending ? (
@@ -127,11 +163,23 @@ export default function SongsPage() {
         <EmptyState
           icon={Music}
           art="empty"
-          title={starred ? t('songs.emptyFavoritesTitle') : t('songs.emptyTitle')}
-          description={starred ? t('songs.emptyFavoritesDescription') : t('songs.emptyDescription')}
+          title={
+            emptyFavoritesOnly
+              ? t('songs.emptyFavoritesTitle')
+              : filtered
+                ? t('songs.emptyFilteredTitle')
+                : t('songs.emptyTitle')
+          }
+          description={
+            emptyFavoritesOnly
+              ? t('songs.emptyFavoritesDescription')
+              : filtered
+                ? t('songs.emptyFilteredDescription')
+                : t('songs.emptyDescription')
+          }
           action={
-            starred ? (
-              <Button variant="outline" onClick={() => update({ starred: null })}>
+            filtered ? (
+              <Button variant="outline" onClick={() => update({ starred: null, genre: null })}>
                 {t('filter.reset')}
               </Button>
             ) : null

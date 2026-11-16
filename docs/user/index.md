@@ -12,7 +12,7 @@ app, update these pages in the same change.
   playback settings.
 - [Listening report, mixes, and scrobbling](listening.md): your listening
   statistics and monthly recaps, play history, the daily and weekly mix, the
-  home page's song shelves, and sending plays to Last.fm or ListenBrainz.
+  home page's song picks, and sending plays to Last.fm or ListenBrainz.
 - [Management](management.md): tag editing, covers, lyrics, rename and
   organize, upload, trash, the doctor, and history.
 - [Clients](clients.md): Subsonic and OpenSubsonic apps and API keys.
@@ -25,8 +25,8 @@ Both places also pick the theme (light, dark, or system), one of four styles
 **Original** accent follows the style. A style also sets the layout: on tablets
 and desktops Apple and OpenAI have no bar across the top and keep your account
 and the appearance button in the bottom-left corner of the sidebar, OpenAI and
-Google MD show Quick actions as a search-like field, and Google MD labels the
-icons of the collapsed sidebar. The **Immersive** switch next to the accent
+Google MD show Search as a field in the sidebar or header, and Google MD labels
+the icons of the collapsed sidebar. The **Immersive** switch next to the accent
 colour, on by default in Apple, colours the whole app — sidebar, player, and
 menus — with the album, playlist, or artist on screen, or with the song playing
 on other pages; the cover's colours glow softly behind the sidebar, the header,
@@ -35,8 +35,9 @@ Immersive off every page keeps the style's own look. While it is on, the first
 accent swatch takes the highlight from the cover too, and the other swatches
 keep a highlight colour of your choice.
 
-**Quick actions** (Ctrl+K, or ⌘K on a Mac) jumps to a page, controls playback,
-or searches the library.
+**Search** (the search field or button, or Ctrl+K / ⌘K on a Mac) finds songs,
+albums, artists, and playlists right away, controls playback, or jumps to a
+page.
 
 Rainy's mascot appears on empty, error, and sign-in pages and keeps you company
 in the bottom-right corner on tablets and desktops. The **Mascot** section of
