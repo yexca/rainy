@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Clock, SearchX, X } from 'lucide-react'
-import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { Clock, Search, SearchX, X } from 'lucide-react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
@@ -12,21 +12,19 @@ import { Button } from '@/components/ui/button'
 import { usePlayer } from '@/features/player/store'
 import { useIsMobile } from '@/hooks/use-media-query'
 import type { Track } from '@/lib/api/types'
+import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSearches } from '@/lib/recent-searches'
 import { cn } from '@/lib/utils'
 
 import { AlbumCard } from '../components/album-card'
 import { ArtistCard } from '../components/artist-card'
-import { GenreTile } from '../components/genre-tile'
 import { HorizontalShelf } from '../components/horizontal-shelf'
 import { SearchField } from '../components/search-field'
 import { SectionHeader } from '../components/section-header'
 import { TrackList, TrackListSkeleton } from '../components/track-list'
-import { genresQuery, searchQuery } from '../lib/queries'
-import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSearches } from '../lib/recent-searches'
+import { searchQuery } from '../lib/queries'
 
 const DEBOUNCE_MS = 250
 const SONGS_COLLAPSED = 8
-const BROWSE_GENRES = 12
 
 export default function SearchPage() {
   const { t } = useTranslation('library')
@@ -70,7 +68,7 @@ export default function SearchPage() {
 
   return (
     <Page>
-      <PageHeader title={t('common:nav.search')}>
+      <PageHeader title={t('common:nav.search')} back>
         <SearchField
           value={input}
           onChange={setInput}
@@ -159,67 +157,51 @@ function SongResults({ tracks }: { tracks: Track[] }) {
 function SearchIdle({ onPick }: { onPick: (value: string) => void }) {
   const { t } = useTranslation('library')
   const recent = useRecentSearches()
-  const genres = useQuery(genresQuery())
-  const browse = useMemo(
-    () => [...(genres.data ?? [])].sort((a, b) => b.songCount - a.songCount).slice(0, BROWSE_GENRES),
-    [genres.data],
-  )
+
+  if (recent.length === 0) {
+    return <EmptyState icon={Search} size="compact" title={t('search.idleTitle')} description={t('search.idleHint')} />
+  }
 
   return (
-    <>
-      {recent.length > 0 ? (
-        <section className="mb-8">
-          <SectionHeader
-            title={t('search.recent')}
-            actions={
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearRecentSearches}
-                className="text-primary hover:bg-primary/10 hover:text-primary"
-              >
-                {t('common:actions.clear')}
-              </Button>
-            }
-          />
-          <ul className="bleed-x md:mx-0">
-            {recent.map((term) => (
-              <li
-                key={term}
-                className="hairline-inset page-x flex items-center [--hairline-inset:calc(var(--page-px)+var(--safe-left)+2.25rem)] md:px-0 md:[--hairline-inset:2.25rem]"
-              >
-                <button
-                  type="button"
-                  onClick={() => onPick(term)}
-                  className="flex h-12 min-w-0 flex-1 items-center gap-3 text-left text-[17px] outline-none hover:text-primary focus-visible:text-primary md:h-11 md:text-sm"
-                >
-                  <Clock className="size-5 shrink-0 text-muted-foreground md:size-4" strokeWidth={1.75} aria-hidden />
-                  <span className="truncate">{term}</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label={t('search.removeRecent', { term })}
-                  onClick={() => removeRecentSearch(term)}
-                  className="-mr-2 grid size-11 place-items-center rounded-full text-muted-foreground hover:text-foreground md:size-9"
-                >
-                  <X className="size-4" aria-hidden />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {browse.length > 0 ? (
-        <section>
-          <SectionHeader title={t('search.browse')} to="/genres" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
-            {browse.map((genre) => (
-              <GenreTile key={genre.id} genre={genre} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-    </>
+    <section className="mb-8">
+      <SectionHeader
+        title={t('search.recent')}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearRecentSearches}
+            className="text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            {t('common:actions.clear')}
+          </Button>
+        }
+      />
+      <ul className="bleed-x md:mx-0">
+        {recent.map((term) => (
+          <li
+            key={term}
+            className="hairline-inset page-x flex items-center [--hairline-inset:calc(var(--page-px)+var(--safe-left)+2.25rem)] md:px-0 md:[--hairline-inset:2.25rem]"
+          >
+            <button
+              type="button"
+              onClick={() => onPick(term)}
+              className="flex h-12 min-w-0 flex-1 items-center gap-3 text-left text-[17px] outline-none hover:text-primary focus-visible:text-primary md:h-11 md:text-sm"
+            >
+              <Clock className="size-5 shrink-0 text-muted-foreground md:size-4" strokeWidth={1.75} aria-hidden />
+              <span className="truncate">{term}</span>
+            </button>
+            <button
+              type="button"
+              aria-label={t('search.removeRecent', { term })}
+              onClick={() => removeRecentSearch(term)}
+              className="-mr-2 grid size-11 place-items-center rounded-full text-muted-foreground hover:text-foreground md:size-9"
+            >
+              <X className="size-4" aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

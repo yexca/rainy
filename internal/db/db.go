@@ -142,8 +142,17 @@ func (d *DB) Migrate(ctx context.Context) error {
 	sort.Strings(names)
 
 	var applied []string
-	if err := d.W.SelectContext(ctx, &applied, `SELECT version FROM schema_migrations`); err != nil {
+	if err := d.W.SelectContext(ctx, &applied, `SELECT version FROM schema_migrations ORDER BY version`); err != nil {
 		return fmt.Errorf("reading schema_migrations: %w", err)
+	}
+	if len(applied) > len(names) {
+		return fmt.Errorf("database schema is newer than this binary; use a compatible Rainy version")
+	}
+	for i, version := range applied {
+		known := strings.TrimSuffix(filepath.Base(names[i]), ".sql")
+		if version != known {
+			return fmt.Errorf("database schema is newer than this binary; use a compatible Rainy version")
+		}
 	}
 	done := make(map[string]bool, len(applied))
 	for _, v := range applied {

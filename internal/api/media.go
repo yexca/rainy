@@ -20,6 +20,7 @@ import (
 
 	"rainy/internal/lyrics"
 	"rainy/internal/model"
+	"rainy/internal/store"
 	"rainy/internal/transcode"
 	"rainy/internal/util"
 )
@@ -48,7 +49,15 @@ func (a *API) mediaTrackPath(ctx context.Context, t *model.Track) (string, error
 	if err != nil {
 		return "", fmt.Errorf("library of track %s: %w", t.ID, err)
 	}
-	return util.SafeJoin(lib.Path, t.Path)
+	abs, err := util.SafeJoin(lib.Path, t.Path)
+	if err != nil {
+		return "", errFileMissing
+	}
+	if err := util.EnsureWithinRoot(lib.Path, abs); err != nil {
+		slog.Warn("media: track path resolves outside its library", "track", t.ID, "path", t.Path, "err", err)
+		return "", errFileMissing
+	}
+	return abs, nil
 }
 
 // mediaTrack loads the track of the {trackId} URL parameter and its file path.
@@ -247,6 +256,17 @@ func snapCoverSize(size int) int {
 
 func (a *API) mediaCover(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "coverArtId")
+	if kind, playlistID, _ := util.SplitCoverArtID(id); kind == util.CoverKindPlaylist || kind == "" {
+		if p, err := a.app.Store.GetPlaylist(r.Context(), playlistID); err == nil {
+			if !canViewPlaylist(userFrom(r), p) {
+				writeErr(w, r, notFound("cover art not found"))
+				return
+			}
+		} else if !errors.Is(err, store.ErrNotFound) {
+			writeErr(w, r, err)
+			return
+		}
+	}
 	img, err := a.app.Artwork.Get(r.Context(), id, snapCoverSize(queryInt(r, "size", 0)))
 	if err != nil {
 		writeErr(w, r, err)

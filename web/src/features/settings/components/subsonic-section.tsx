@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Laptop, Smartphone, TabletSmartphone, TriangleAlert } from 'lucide-react'
+import { ExternalLink, KeyRound, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -23,11 +23,7 @@ import { authQueryKey } from '@/lib/query-client'
 
 import { CopyField, SettingsRow, SettingsSection } from './settings-ui'
 
-const CLIENTS = [
-  { platform: 'ios', icon: Smartphone, apps: ['Amperfy', 'play:Sub', 'Substreamer'] },
-  { platform: 'android', icon: TabletSmartphone, apps: ['Symfonium', 'Tempo', 'Ultrasonic'] },
-  { platform: 'desktop', icon: Laptop, apps: ['Feishin', 'Supersonic', 'Sonixd'] },
-] as const
+const OPENSUBSONIC_APPS_URL = 'https://www.navidrome.org/apps/'
 
 /** Connection details for Subsonic / OpenSubsonic apps + API key management. */
 export function SubsonicSection({ user }: { user: User }) {
@@ -127,21 +123,14 @@ export function SubsonicSection({ user }: { user: User }) {
         </div>
       ) : null}
 
-      <div className="px-4 py-4">
-        <p className="text-[15px] font-medium md:text-sm">{t('subsonic.clients')}</p>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{t('subsonic.clientsHint')}</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {CLIENTS.map(({ platform, icon: Icon, apps }) => (
-            <div key={platform} className="rounded-lg border bg-muted/30 px-3 py-2.5">
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <Icon className="size-3.5" aria-hidden />
-                {t(`subsonic.platform.${platform}`)}
-              </p>
-              <p className="mt-1 text-sm">{apps.join(' · ')}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <SettingsRow label={t('subsonic.clients')} description={t('subsonic.clientsHint')} stacked>
+        <Button variant="outline" size="sm" className="min-h-11 sm:min-h-0" asChild>
+          <a href={OPENSUBSONIC_APPS_URL} target="_blank" rel="noreferrer noopener">
+            {t('subsonic.browseApps')}
+            <ExternalLink aria-hidden />
+          </a>
+        </Button>
+      </SettingsRow>
 
       <AlertDialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
         <AlertDialogContent>

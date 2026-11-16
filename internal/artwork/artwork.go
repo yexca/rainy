@@ -376,7 +376,7 @@ func (s *Service) insideLibrary(ctx context.Context, abs string) bool {
 		return false
 	}
 	for _, l := range libs {
-		if util.IsWithin(l.Path, abs) {
+		if util.IsWithin(l.Path, abs) && util.EnsureWithinRoot(l.Path, abs) == nil {
 			return true
 		}
 	}
@@ -391,6 +391,9 @@ func (s *Service) embeddedSource(ctx context.Context, t *model.Track) (*source, 
 	}
 	abs, err := util.SafeJoin(lib.Path, t.Path)
 	if err != nil {
+		return nil, ErrNotFound
+	}
+	if err := util.EnsureWithinRoot(lib.Path, abs); err != nil {
 		return nil, ErrNotFound
 	}
 	return &source{

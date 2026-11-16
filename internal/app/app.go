@@ -9,6 +9,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 
 	"rainy/internal/artwork"
@@ -29,6 +31,7 @@ import (
 	"rainy/internal/store"
 	"rainy/internal/tags"
 	"rainy/internal/transcode"
+	"rainy/internal/util"
 	"rainy/internal/ytdlp"
 )
 
@@ -135,7 +138,7 @@ func build(ctx context.Context, cfg *config.Config, d *db.DB) (*App, error) {
 }
 
 // ensureDefaultLibrary creates library #1 from cfg.MusicDir when no library exists and the
-// directory exists.
+// directory exists without overlapping the data directory.
 func (a *App) ensureDefaultLibrary(ctx context.Context) error {
 	libs, err := a.Store.ListLibraries(ctx)
 	if err != nil {
@@ -156,6 +159,10 @@ func (a *App) ensureDefaultLibrary(ctx context.Context) error {
 		slog.Warn("music path is not a directory; no library created", "path", a.Cfg.MusicDir)
 		return nil
 	}
+	if pathsOverlap(a.Cfg.MusicDir, a.Cfg.DataDir) {
+		slog.Warn("music directory overlaps the data directory; no library created", "path", a.Cfg.MusicDir)
+		return nil
+	}
 	name := filepath.Base(a.Cfg.MusicDir)
 	if name == "" || name == "." || name == string(filepath.Separator) {
 		name = "Music"
@@ -166,6 +173,24 @@ func (a *App) ensureDefaultLibrary(ctx context.Context) error {
 	}
 	slog.Info("created default library", "id", lib.ID, "name", lib.Name, "path", lib.Path)
 	return nil
+}
+
+func pathsOverlap(a, b string) bool {
+	canonical := func(p string) string {
+		if abs, err := filepath.Abs(p); err == nil {
+			p = abs
+		}
+		if real, err := filepath.EvalSymlinks(p); err == nil {
+			p = real
+		}
+		p = filepath.Clean(p)
+		if runtime.GOOS == "windows" {
+			p = strings.ToLower(p)
+		}
+		return p
+	}
+	a, b = canonical(a), canonical(b)
+	return util.IsWithin(a, b) || util.IsWithin(b, a)
 }
 
 // DefaultSettings returns the settings defaults for this configuration.

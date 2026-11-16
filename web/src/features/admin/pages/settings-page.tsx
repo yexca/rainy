@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useParams, useSearchParams } from 'react-router'
 
 import { ErrorState } from '@/components/error-state'
-import { Page, PageColumn } from '@/components/page'
+import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader } from '@/components/spinner'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -43,7 +43,7 @@ export default function ServerSettingsPage() {
   const tab: Tab = param ?? 'general'
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={tab === 'general' ? t('settings.title') : t(`common:nav.${tab}`)}
         subtitle={t('settings.subtitle')}
@@ -52,7 +52,7 @@ export default function ServerSettingsPage() {
         <SectionTabs section={ADMIN_SECTION} />
       </PageHeader>
 
-      <PageColumn>
+      <div className="grid gap-8">
         {tab === 'general' ? (
           settings.data ? (
             <SettingsForm initial={settings.data} />
@@ -70,7 +70,7 @@ export default function ServerSettingsPage() {
         ) : (
           <SystemInfo />
         )}
-      </PageColumn>
+      </div>
     </Page>
   )
 }

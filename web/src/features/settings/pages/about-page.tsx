@@ -59,9 +59,9 @@ const focusRing = 'outline-none focus-visible:ring-[3px] focus-visible:ring-ring
 export default function AboutPage() {
   const { t } = useTranslation('settings')
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('aboutPage.title')} back />
-      <div className="grid max-w-5xl gap-x-12 gap-y-8 pb-4 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)]">
+      <div className="grid gap-x-12 gap-y-8 pb-4 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)]">
         <Sleeve />
         <div className="min-w-0">
           <p className="max-w-2xl text-lg leading-8 font-medium tracking-tight sm:text-xl sm:leading-9">{t('aboutPage.intro')}</p>

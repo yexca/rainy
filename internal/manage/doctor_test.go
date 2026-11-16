@@ -138,29 +138,29 @@ func TestEncodingFixRawTags(t *testing.T) {
 
 func TestListFolder(t *testing.T) {
 	e := newEnv(t)
-	root, err := e.svc.ListFolder(e.ctx, 0, "")
+	root, err := e.svc.ListFolder(e.ctx, 0, "", e.user.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if root.Parent != nil || root.Dir != "" || !root.Writable || len(root.Folders) != 8 {
 		t.Fatalf("root %+v", root)
 	}
-	l, err := e.svc.ListFolder(e.ctx, e.lib.ID, "/示例歌手1/测试专辑1 (2021)/")
+	l, err := e.svc.ListFolder(e.ctx, e.lib.ID, "/示例歌手1/测试专辑1 (2021)/", e.user.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if l.Parent == nil || *l.Parent != "示例歌手1" || len(l.Folders) != 0 || len(l.Files) != 6 {
 		t.Fatalf("listing %+v", l)
 	}
-	if f := l.Files[0]; f.Name != "01 测试专辑1.mp3" || !f.IsAudio || f.TrackID == nil || f.Path != "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3" {
+	if f := l.Files[0]; f.Name != "01 测试专辑1.mp3" || !f.IsAudio || f.TrackID == nil || f.Track == nil || f.Path != "示例歌手1/测试专辑1 (2021)/01 测试专辑1.mp3" {
 		t.Fatalf("file %+v", f)
 	}
-	art, _ := e.svc.ListFolder(e.ctx, e.lib.ID, "示例歌手1")
+	art, _ := e.svc.ListFolder(e.ctx, e.lib.ID, "示例歌手1", e.user.ID)
 	if len(art.Files) != 1 || !art.Files[0].IsImage || art.Files[0].TrackID != nil {
 		t.Fatalf("artist dir %+v", art.Files)
 	}
 	for _, bad := range []string{"../x", "nope"} {
-		if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, bad); err == nil {
+		if _, err := e.svc.ListFolder(e.ctx, e.lib.ID, bad, e.user.ID); err == nil {
 			t.Errorf("%q accepted", bad)
 		}
 	}

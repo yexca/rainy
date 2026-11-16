@@ -35,7 +35,7 @@ export function TrackTableHeader({ columns, sort, order, onSort, checked, onChec
   return (
     <div
       role="row"
-      className="grid h-9 items-center gap-x-3 px-2 text-xs font-medium text-muted-foreground"
+      className="-mx-2 grid h-9 items-center gap-x-3 px-2 text-xs font-medium text-muted-foreground"
       style={gridTemplate(columns)}
     >
       <div role="columnheader" className="flex justify-center">

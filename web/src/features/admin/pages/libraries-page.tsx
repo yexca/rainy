@@ -57,7 +57,7 @@ export default function LibrariesPage() {
   const add = () => setEditing({ library: null })
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('libraries.title')}
         subtitle={t('libraries.subtitle')}

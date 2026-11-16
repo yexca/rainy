@@ -8,7 +8,6 @@
     "albums": "专辑",
     "artists": "艺人",
     "songs": "歌曲",
-    "genres": "流派",
     "favorites": "收藏",
     "playlists": "歌单",
     "radio": "电台",
@@ -90,13 +89,20 @@
     "listener": "听众"
   },
   "quickActions": {
-    "label": "快捷操作",
-    "description": "跳转页面、控制播放或搜索资料库。",
-    "placeholder": "搜索页面和操作…",
-    "empty": "没有匹配的操作",
-    "searchFor": "在资料库中搜索“{{query}}”",
+    "label": "搜索",
+    "description": "搜索歌曲、专辑、艺人，或跳转页面与控制播放。",
+    "placeholder": "搜索歌曲、专辑、艺人或页面…",
+    "fieldPlaceholder": "搜索音乐…",
+    "empty": "没有找到匹配项",
+    "recent": "最近搜索",
+    "removeRecent": "移除“{{term}}”",
+    "seeAllResults": "查看“{{query}}”的全部结果",
     "groups": {
       "playback": "播放",
+      "songs": "歌曲",
+      "albums": "专辑",
+      "artists": "艺人",
+      "pages": "页面与操作",
       "manage": "管理"
     },
     "play": "播放",

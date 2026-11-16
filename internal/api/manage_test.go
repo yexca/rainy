@@ -159,6 +159,7 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"POST", "/manage/rename/preview"}, {"POST", "/manage/rename"}, {"POST", "/manage/upload"},
 		{"POST", "/manage/delete"}, {"GET", "/manage/trash"}, {"POST", "/manage/trash/restore"},
 		{"POST", "/manage/trash/purge"}, {"POST", "/manage/missing/purge"}, {"GET", "/manage/folders"},
+		{"GET", "/manage/folders/file"}, {"GET", "/manage/folders/text"},
 		{"POST", "/manage/folders/rescan"}, {"GET", "/manage/issues/summary"}, {"GET", "/manage/issues"},
 		{"POST", "/manage/encoding"}, {"GET", "/manage/log"}, {"GET", "/manage/unknown"},
 		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
@@ -255,11 +256,42 @@ func TestManageEndpoints(t *testing.T) {
 		t.Fatal(got)
 	}
 	listing := mgDecode[manage.FolderListing](t, e.do("GET", "/manage/folders?libraryId=1", tok, nil), 200)
-	if len(listing.Folders) != 1 || listing.Folders[0].Name != "Artist" || !listing.Writable {
+	if len(listing.Folders) != 1 || listing.Folders[0].Name != "Artist" || !listing.Folders[0].HasSubfolders || !listing.Writable {
 		t.Fatalf("listing %+v", listing)
 	}
 	if code := mgCode(t, e.do("GET", "/manage/folders?libraryId=1&dir=../..", tok, nil), 400); code != CodeBadRequest {
 		t.Fatal(code)
+	}
+	if code := mgCode(t, e.do("GET", "/manage/folders/file?libraryId=1&path=../secret.png", tok, nil), 400); code != CodeBadRequest {
+		t.Fatal(code)
+	}
+	if code := mgCode(t, e.do("GET", "/manage/folders/text?libraryId=1&path=../secret.txt", tok, nil), 400); code != CodeBadRequest {
+		t.Fatal(code)
+	}
+	if err := os.WriteFile(filepath.Join(e.music, "Artist", "Album", "notes.txt"), []byte("liner notes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	txtPreview := mgDecode[manage.FolderTextPreview](t, e.do("GET", "/manage/folders/text?libraryId=1&path=Artist/Album/notes.txt", tok, nil), 200)
+	if txtPreview.Content != "liner notes" || txtPreview.Truncated {
+		t.Fatalf("text preview %+v", txtPreview)
+	}
+	gif1x1 := []byte("GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;")
+	if err := os.WriteFile(filepath.Join(e.music, "Artist", "Album", "cover.gif"), gif1x1, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	imgRec := e.do("GET", "/manage/folders/file?libraryId=1&path=Artist/Album/cover.gif", tok, nil)
+	if imgRec.Code != http.StatusOK || imgRec.Header().Get("Content-Type") != "image/gif" ||
+		imgRec.Header().Get("X-Content-Type-Options") != "nosniff" ||
+		!strings.Contains(imgRec.Header().Get("Content-Security-Policy"), "sandbox") {
+		t.Fatalf("folder image headers: %d %v", imgRec.Code, imgRec.Header())
+	}
+	etagReq := httptest.NewRequest("GET", "/manage/folders/file?libraryId=1&path=Artist/Album/cover.gif", nil)
+	etagReq.Header.Set("Authorization", "Bearer "+tok)
+	etagReq.Header.Set("If-None-Match", imgRec.Header().Get("ETag"))
+	etagRec := httptest.NewRecorder()
+	e.h.ServeHTTP(etagRec, etagReq)
+	if etagRec.Code != http.StatusNotModified {
+		t.Fatalf("expected 304, got %d", etagRec.Code)
 	}
 	if rec := e.do("POST", "/manage/folders/rescan", tok, map[string]any{"libraryId": 1, "dir": "Artist"}); rec.Code != http.StatusAccepted {
 		t.Fatalf("rescan %d %s", rec.Code, rec.Body)

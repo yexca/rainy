@@ -16,7 +16,9 @@ Add a server in the app with:
 | Password | Your Rainy password, or leave it empty when using an API key |
 
 The **Subsonic apps** section of **Settings → Apps** in the web app shows the
-server address and your username to copy, and suggests apps for your platform.
+server address and your username to copy, and links to
+[Navidrome’s app list](https://www.navidrome.org/apps/) for
+OpenSubsonic-compatible software.
 
 Rainy implements Subsonic API 1.16.1. Most apps use token authentication (`t`
 and `s` parameters), which Rainy supports. Older apps that offer "plain

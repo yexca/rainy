@@ -66,7 +66,7 @@ export default function UsersPage() {
   })
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader
         title={t('users.title')}
         subtitle={users.data ? t('users.count', { count: list.length }) : t('users.subtitle')}

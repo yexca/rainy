@@ -1,4 +1,4 @@
-/** Deterministic, pleasant colours for items without artwork (genre tiles, radio stations). */
+/** Deterministic, pleasant colours for items without artwork (radio stations). */
 
 /** FNV-1a 32-bit hash of a string. */
 export function hashString(value: string): number {

@@ -112,7 +112,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <Page>
+    <Page centered>
       <PageHeader title={t('history.title')} subtitle={log.data ? t('history.count', { count: total }) : t('history.subtitle')} back={isMobile ? '/manage' : undefined}>
         <SectionTabs section={TOOLS_SECTION} />
         {trackId ? (

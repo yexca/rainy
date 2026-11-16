@@ -26,6 +26,7 @@ import type {
   EditLogEntry,
   EncodingFix,
   FolderListing,
+  FolderTextPreview,
   Genre,
   Home,
   Issue,
@@ -487,6 +488,12 @@ export const api = {
         request<FolderListing>('/manage/folders', { ...opts, query: { ...params } }),
       rescan: (body: { libraryId: number; dir: string }) =>
         request<void>('/manage/folders/rescan', { method: 'POST', body }),
+      /** A raster image file inside a library folder — for `<img src>`. */
+      imageUrl: (libraryId: number, path: string, version?: string | number) =>
+        apiUrl('/manage/folders/file', { libraryId, path, v: version }),
+      /** Bounded text / lyrics preview for a folder file. */
+      text: (params: { libraryId: number; path: string }, opts?: CallOptions) =>
+        request<FolderTextPreview>('/manage/folders/text', { ...opts, query: { ...params } }),
     },
     issues: {
       summary: (opts?: CallOptions) => request<Record<IssueType, number>>('/manage/issues/summary', opts),

@@ -35,7 +35,7 @@ the Media Session API.
 
 | Key | Action |
 | --- | --- |
-| Ctrl+K (⌘K on a Mac) | Open Quick actions |
+| Ctrl+K (⌘K on a Mac) | Search & quick actions |
 | Space | Play or pause |
 | ← / → | Back or forward 5 seconds |
 | Shift+← / Shift+→ | Previous or next song |
