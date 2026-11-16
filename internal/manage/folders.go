@@ -368,7 +368,7 @@ func (s *Service) FolderImage(ctx context.Context, libraryID int64, rel string) 
 	if err != nil {
 		return nil, "", 0, 0, fsErr(rel, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	data, err := io.ReadAll(io.LimitReader(f, maxFolderImageSize+1))
 	if err != nil {
 		return nil, "", 0, 0, fsErr(rel, err)
@@ -408,7 +408,7 @@ func (s *Service) FolderText(ctx context.Context, libraryID int64, rel string) (
 	if err != nil {
 		return nil, fsErr(rel, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	raw, err := io.ReadAll(io.LimitReader(f, maxFolderTextSize+1))
 	if err != nil {
 		return nil, fsErr(rel, err)
