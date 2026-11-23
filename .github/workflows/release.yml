@@ -48,7 +48,10 @@ jobs:
             exit 1
           fi
 
-      - name: Wait for successful main CI for this commit
+      # Full validates every main commit and keeps its result. Accept only a
+      # successful Full run for this exact commit, whether a push to main or a
+      # manual run on the tag started it; never accept another revision.
+      - name: Wait for a successful Full run for this commit
         timeout-minutes: 35
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,14 +59,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          runs_api="repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&event=push&per_page=100"
+          runs_api="repos/${GITHUB_REPOSITORY}/actions/workflows/full.yml/runs?head_sha=${GITHUB_SHA}&per_page=100"
           deadline=$((SECONDS + 1800))
 
           while true; do
             # The single-quoted program contains jq variables, not shell variables.
             # shellcheck disable=SC2016
             state="$(gh api "$runs_api" --jq '
-              [.workflow_runs[] | select(.head_branch == "main")] as $runs
+              .workflow_runs as $runs
               | if any($runs[]; .status == "completed" and .conclusion == "success") then "success"
                 elif any($runs[]; .status != "completed") then "waiting"
                 elif ($runs | length) > 0 then "failed"
@@ -73,28 +76,27 @@ jobs:
 
             case "$state" in
               success)
-                echo "Successful main CI found for commit $GITHUB_SHA."
+                echo "Full passed for commit $GITHUB_SHA."
                 break
                 ;;
               failed)
-                echo "Main CI failed for commit $GITHUB_SHA:" >&2
+                echo "Every Full run for commit $GITHUB_SHA finished without success. Start Full on $GITHUB_REF_NAME from the Actions page, then rerun this release:" >&2
                 gh api "$runs_api" --jq '
                   .workflow_runs[]
-                  | select(.head_branch == "main")
                   | "\(.html_url) status=\(.status) conclusion=\(.conclusion)"
                 ' >&2
                 exit 1
                 ;;
               waiting)
-                echo "Main CI for commit $GITHUB_SHA is still running; checking again in 60 seconds."
+                echo "Full for commit $GITHUB_SHA is still running; checking again in 60 seconds."
                 ;;
               missing)
-                echo "Main CI for commit $GITHUB_SHA is not visible yet; checking again in 60 seconds."
+                echo "Full for commit $GITHUB_SHA is not visible yet; checking again in 60 seconds."
                 ;;
             esac
 
             if (( SECONDS >= deadline )); then
-              echo "Timed out waiting for successful main CI for commit $GITHUB_SHA." >&2
+              echo "Timed out waiting for a successful Full run for commit $GITHUB_SHA." >&2
               exit 1
             fi
             sleep 60
@@ -194,5 +196,5 @@ jobs:
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file "$notes_file"
           else
-            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file "$notes_file"
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$notes_file"
           fi

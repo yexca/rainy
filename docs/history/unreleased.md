@@ -65,3 +65,18 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   previews.
 
 </details>
+
+<details>
+<summary><strong>Development And Docs</strong></summary>
+
+- Validation runs in two tiers: **PR** checks the jobs a pull request's
+  changes need, and **Full** checks every job on each `main` commit. The
+  required check is **PR / Gate**, and a release waits for a successful Full
+  run of the tagged commit.
+- `make ci-policy` lints the workflows with actionlint. Go and web advisory
+  checks move from the CI phases to a daily Dependency audit workflow and
+  `make audit`, so a new advisory no longer fails an unrelated pull request.
+  A pull request that changes a Go or web dependency manifest still runs the
+  matching audit and needs it to pass.
+
+</details>

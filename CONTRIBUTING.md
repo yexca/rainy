@@ -63,10 +63,11 @@ smallest target that covers the files you changed:
 
 ```sh
 make docs-check          # public documentation links
-make ci-policy           # docs and validation-policy tests
+make ci-policy           # docs, workflow lint, and validation-policy tests
 make ci-style            # frontend lint
-make ci-backend          # backend format, lint, module, vulnerability, vet, coverage, and race checks
-make ci-frontend         # frontend audit, typecheck, helper tests, and build
+make ci-backend          # backend format, lint, module, vet, coverage, and race checks
+make ci-frontend         # frontend typecheck, helper tests, and build
+make audit               # Go and web dependency advisories
 make ci-production       # production image build and smoke test
 ```
 

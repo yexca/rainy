@@ -3,7 +3,7 @@
 .PHONY: frontend-install frontend-dev frontend-typecheck frontend-lint frontend-test frontend-audit frontend-build
 .PHONY: testdata docker-build docker-up docker-down docker-status docker-logs smoke production-smoke
 .PHONY: sensitive-check sensitive-check-test privacy-check release-check release-check-test
-.PHONY: ci-plan ci-plan-test ci-results ci-policy ci-style ci-backend-static ci-backend-coverage ci-backend-race ci-backend ci-frontend ci-production ci-local ci
+.PHONY: actionlint audit ci-plan ci-plan-test ci-results ci-policy ci-style ci-backend-static ci-backend-coverage ci-backend-race ci-backend ci-frontend ci-production ci-local ci
 
 .DEFAULT_GOAL := help
 
@@ -19,6 +19,8 @@ GOLANGCI_LINT_TIMEOUT ?= 5m
 GOLANGCI_LINT_PACKAGE := github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 GOLANGCI_LINT_CONFIG := scripts/golangci-lint.yml
 GOVULNCHECK_PACKAGE := golang.org/x/vuln/cmd/govulncheck@v1.7.0
+ACTIONLINT_VERSION ?= v1.7.12
+ACTIONLINT_PACKAGE := github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
 BUILDINFO := rainy/internal/buildinfo
 # Keep build contexts, mounts, and the project name rooted here.
 DOCKER_COMPOSE_DEV = $(DOCKER) compose --project-directory "$(CURDIR)" -f deploy/compose/dev.yml
@@ -139,6 +141,8 @@ privacy-check: sensitive-check
 
 # --------------------------------------------------------------------------------- ci
 
+# GitHub Actions planning: CI_TIER (pr or full) and CI_BASE_SHA select the
+# jobs, and CI_PLAN with CI_RESULTS hold the Gate's inputs.
 ci-plan:
 	$(NODE) scripts/ci-plan.mjs plan
 
@@ -148,12 +152,23 @@ ci-results:
 ci-plan-test:
 	$(NODE) --test scripts/ci-plan.test.mjs
 
-# Policy needs only Node and Git; documentation-only PRs avoid Go/pnpm setup.
-ci-policy: docs-check sensitive-check-test ci-plan-test release-check-test
+# Checks workflow syntax, expressions, and, where shellcheck is installed,
+# their shell snippets.
+actionlint:
+	$(GO) run $(ACTIONLINT_PACKAGE)
+
+# Policy needs Node, Git, and Go for actionlint; it never installs pnpm packages.
+ci-policy: docs-check actionlint sensitive-check-test ci-plan-test release-check-test
+
+# Advisory checks query live databases, so a new advisory never fails an
+# unrelated change. They stay outside the CI phases: PR runs each one only when
+# its dependency manifest changes, and the Dependency audit workflow runs both
+# daily.
+audit: backend-vuln frontend-audit
 
 ci-style: frontend-lint
 
-ci-backend-static: backend-format backend-lint backend-verify backend-vuln backend-vet
+ci-backend-static: backend-format backend-lint backend-verify backend-vet
 
 # Coverage executes the full suite; keep the separate race-instrumented run.
 ci-backend-coverage: backend-coverage
@@ -162,7 +177,7 @@ ci-backend-race: backend-race
 
 ci-backend: ci-backend-static ci-backend-coverage ci-backend-race
 
-ci-frontend: frontend-audit frontend-typecheck frontend-test frontend-build
+ci-frontend: frontend-typecheck frontend-test frontend-build
 
 ci-production: docker-build smoke
 

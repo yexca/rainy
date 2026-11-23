@@ -135,12 +135,15 @@ out of every API response, log line, and error message.
 - After changing Go modules, run `go mod tidy`, `make backend-verify`, the
   backend tests, and `make backend-vuln`.
 - After changing the web lockfile, run `make frontend-audit`.
+- A pull request that changes `go.mod`, `go.sum`, or a web manifest or
+  lockfile must also pass the matching advisory audit in CI; the daily
+  [Dependency audit](ci.md#dependency-audit) covers `main`.
 - Pin third-party GitHub Actions to full commit SHAs and give workflows the
   least permissions they need.
 - Keep CI commands in Makefile targets and follow the fail-closed result plan
   in [CI and release automation](ci.md). Only planned-out jobs may be skipped;
-  release publication requires VERSION, release notes, main ancestry, and
-  successful main CI for the exact commit.
+  release publication requires VERSION, release notes, main ancestry, and a
+  successful Full run for the exact commit.
 
 ## Secrets and Public Data
 

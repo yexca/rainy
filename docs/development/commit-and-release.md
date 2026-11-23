@@ -103,14 +103,14 @@ it. Image tags drop the leading `v` (`v0.1.0` becomes `0.1.0`).
    [history index](../history/index.md).
 2. Run `make release-check` to validate `VERSION` and its nonempty release
    note.
-3. Land the change on `main`. The push to `main` starts the CI run the
+3. Land the change on `main`. The push to `main` starts the Full run the
    release waits for.
 4. Tag that commit on `main` with exactly the value of `VERSION` and push the
    tag.
 
 The release workflow re-runs the release check against the tag, requires the
-tagged commit to belong to `main`, and waits up to 30 minutes for that
-commit's `main` CI run to succeed; a failed or cancelled run stops the release
+tagged commit to belong to `main`, and waits up to 30 minutes for a Full run
+of that exact commit to succeed; a failed or cancelled run stops the release
 before anything is published. It then pushes `linux/amd64` and `linux/arm64`
 images to Docker Hub (`yexca/rainy`) and GHCR and publishes the GitHub Release
 with the tracked release note as its body. [CI and release

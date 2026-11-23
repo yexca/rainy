@@ -1,0 +1,48 @@
+name: Dependency audit
+
+on:
+  schedule:
+    # Daily at 03:23 UTC, off the top of the hour.
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rainy-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  go:
+    name: Go vulnerabilities
+    # Forks inherit the schedule; only the upstream repository runs it.
+    if: github.repository == 'yexca/rainy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # The go.mod version matches the release image, so standard library
+      # findings describe the shipped toolchain.
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+      - name: Check reachable vulnerabilities in modules and the standard library
+        run: make backend-vuln
+
+  web:
+    name: Web advisories
+    if: github.repository == 'yexca/rainy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: ./.github/actions/setup-node
+      - name: Audit the production dependencies
+        run: make frontend-audit

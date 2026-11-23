@@ -35,8 +35,9 @@ React. Permission guards in the backend remain authoritative.
 
 ## Validation
 
-Use `make ci-style` for lint and `make ci-frontend` for audit, typecheck,
-helper tests, and the production build. For interaction changes, run the
+Use `make ci-style` for lint and `make ci-frontend` for typecheck, helper
+tests, and the production build. After changing the lockfile, also run
+`make frontend-audit`. For interaction changes, run the
 Docker development stack and check the affected browser workflow as described
 in [Testing](testing.md#browser-checks). Browser checks are manual; do not
 claim a manual check covers every browser.

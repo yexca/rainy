@@ -1,57 +1,74 @@
-name: CI
+name: Validate
 
+# The job definitions shared by the PR and Full validation tiers. pr.yml and
+# full.yml call this file and choose the tier; it has no trigger of its own,
+# so a tier is always an explicit decision of the caller.
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   workflow_call:
     inputs:
-      run_builds:
-        description: Require Docker build validation for reusable calls.
-        required: false
-        default: false
-        type: boolean
+      tier:
+        description: >-
+          pr selects jobs from the changed paths; full runs every job.
+        required: true
+        type: string
 
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  policy:
-    name: Policy
+  # Planning needs only Node and the diff, so every planned job starts without
+  # waiting for Policy, which runs beside them.
+  plan:
+    name: Plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
       plan: ${{ steps.plan.outputs.plan }}
       style: ${{ steps.plan.outputs.style }}
       backend: ${{ steps.plan.outputs.backend }}
       frontend: ${{ steps.plan.outputs.frontend }}
       production: ${{ steps.plan.outputs.production }}
+      go_audit: ${{ steps.plan.outputs.go_audit }}
+      web_audit: ${{ steps.plan.outputs.web_audit }}
     steps:
+      # Full history without file contents: the diff against the PR base reads
+      # only commits and trees.
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
+          filter: blob:none
       - name: Set up Node
         uses: ./.github/actions/setup-node
-      - name: Run documentation and CI policy checks
-        run: make ci-policy
       - name: Select required validation
         id: plan
         env:
+          CI_TIER: ${{ inputs.tier }}
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          CI_RUN_BUILDS: ${{ inputs.run_builds || false }}
         run: make ci-plan
+
+  policy:
+    name: Policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: ./.github/actions/setup-node
+      # actionlint is built from its pinned Go module.
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+      - name: Check documentation, workflows, and CI and release policy
+        run: make ci-policy
 
   style:
     name: Style
-    needs: policy
-    if: needs.policy.outputs.style == 'true'
+    needs: plan
+    if: needs.plan.outputs.style == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -66,8 +83,8 @@ jobs:
 
   backend:
     name: Backend (${{ matrix.check }})
-    needs: policy
-    if: needs.policy.outputs.backend == 'true'
+    needs: plan
+    if: needs.plan.outputs.backend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
@@ -118,8 +135,8 @@ jobs:
 
   frontend:
     name: Frontend
-    needs: policy
-    if: needs.policy.outputs.frontend == 'true'
+    needs: plan
+    if: needs.plan.outputs.frontend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -140,8 +157,8 @@ jobs:
 
   smoke:
     name: Smoke
-    needs: policy
-    if: needs.policy.outputs.production == 'true'
+    needs: plan
+    if: needs.plan.outputs.production == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -171,11 +188,46 @@ jobs:
       - name: Exercise the production image
         run: make DOCKER_IMAGE=rainy:ci smoke
 
-  # Preserve the required check name; only the plan may authorize skipped jobs.
-  core:
-    name: Core
+  # The advisory audits run only for a pull request that changes the matching
+  # manifest; the daily Dependency audit workflow covers main.
+  go-audit:
+    name: Go audit
+    needs: plan
+    if: needs.plan.outputs.go_audit == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+      - name: Check reachable vulnerabilities in modules and the standard library
+        run: make backend-vuln
+
+  web-audit:
+    name: Web audit
+    needs: plan
+    if: needs.plan.outputs.web_audit == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: ./.github/actions/setup-node
+      - name: Audit the production dependencies
+        run: make frontend-audit
+
+  # The only result a caller or a ruleset needs: it fails unless Plan, Policy,
+  # and every planned job succeeded, and only the plan may authorize a skip.
+  gate:
+    name: Gate
     if: always()
-    needs: [policy, style, backend, frontend, smoke]
+    needs: [plan, policy, style, backend, frontend, smoke, go-audit, web-audit]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -185,8 +237,8 @@ jobs:
           persist-credentials: false
       - name: Set up Node
         uses: ./.github/actions/setup-node
-      - name: Verify all required validation results
+      - name: Verify all planned validation results
         env:
-          CI_PLAN: ${{ needs.policy.outputs.plan }}
+          CI_PLAN: ${{ needs.plan.outputs.plan }}
           CI_RESULTS: ${{ toJSON(needs) }}
         run: make ci-results
