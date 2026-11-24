@@ -15,7 +15,10 @@ import (
 	"rainy/internal/ytdlp"
 )
 
-var reviewOn = func() *bool { v := true; return &v }()
+var (
+	reviewOn  = func() *bool { v := true; return &v }()
+	reviewOff = new(bool)
+)
 
 // reviewEnv is a library without tracks and a downloader that "downloads" a silent WAV.
 func reviewEnv(t *testing.T) (*env, *fakeDownloader) {
@@ -237,11 +240,11 @@ func TestReviewDiscardAndValidation(t *testing.T) {
 func TestReviewFollowsSettingAndOnlineDownloads(t *testing.T) {
 	e, _ := reviewEnv(t)
 	set := model.DefaultSettings(e.cfg.ScanInterval)
-	set.YtdlpEnabled, set.LxSourcesEnabled, set.ReviewDownloads = true, true, true
+	set.YtdlpEnabled, set.LxSourcesEnabled = true, true
 	if err := e.st.SaveSettings(e.ctx, set); err != nil {
 		t.Fatal(err)
 	}
-	e.stageDownload(DownloadRequest{URL: testLink, LibraryID: e.lib.ID}) // the setting decides
+	e.stageDownload(DownloadRequest{URL: testLink, LibraryID: e.lib.ID}) // the default setting (on) decides
 
 	src := filepath.Join(t.TempDir(), "online.wav")
 	if err := os.WriteFile(src, silentWAV(), 0o600); err != nil {
@@ -267,12 +270,25 @@ func TestReviewFollowsSettingAndOnlineDownloads(t *testing.T) {
 	}
 
 	// An explicit review=false imports right away.
-	job, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID, Review: keepNames})
+	job, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID, Review: reviewOff})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if j := e.waitJob(job.ID); j.Review || len(j.TrackIDs) != 1 || len(j.StagedIDs) != 0 {
 		t.Fatalf("job without review %+v", j)
+	}
+
+	// Turning the setting off lets requests without review import right away.
+	set.ReviewDownloads = false
+	if err := e.st.SaveSettings(e.ctx, set); err != nil {
+		t.Fatal(err)
+	}
+	job, err = e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if j := e.waitJob(job.ID); j.Review || len(j.TrackIDs) != 1 || len(j.StagedIDs) != 0 {
+		t.Fatalf("job with setting off %+v", j)
 	}
 }
 

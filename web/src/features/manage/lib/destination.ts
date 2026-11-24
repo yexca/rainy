@@ -51,7 +51,10 @@ export interface DestinationTarget {
   organize: boolean
   /** The pattern organized files are placed by. */
   renamePattern: string
-  /** Downloads (links and online music) wait in Tracks › Review instead of being imported. */
+  /**
+   * Downloads (links and online music) wait in Tracks › Review instead of being imported
+   * (`settings.reviewDownloads`; assumed on until it answers).
+   */
   review: boolean
 }
 
@@ -71,6 +74,6 @@ export function useDestinationTarget(): DestinationTarget {
     invalidDir: clean.split('/').some((p) => p === '..' || p === '.'),
     organize: placement?.organize ?? true,
     renamePattern: placement?.renamePattern || DEFAULT_RENAME_PATTERN,
-    review: review ?? placement?.review ?? false,
+    review: review ?? placement?.review ?? true,
   }
 }

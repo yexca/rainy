@@ -125,7 +125,7 @@ Existing files are never overwritten. See
 ## Review Before Importing
 
 A link or online download started with `review` (the administrator setting
-`reviewDownloads`, off by default, decides when the request does not say) is
+`reviewDownloads`, on by default, decides when the request does not say) is
 prepared the same way but not imported: each file moves into
 `<data>/staging/<id>/` next to an `item.json` manifest holding its destination
 and edit-log details, and the job finishes with the item ids. Managers see

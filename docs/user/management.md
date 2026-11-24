@@ -269,10 +269,11 @@ source in its menu.
 
 ## Review Downloads Before Importing
 
-Turn on **Review first** beside the destination on Links or Online (an administrator sets the default with **Review downloads before
-importing** in **Admin → Settings**) to check downloads before they reach the
-library. Finished downloads then wait in **Tracks → Review** instead of being
-added. Each one shows where it would be added and warns about possible
+**Review first** beside the destination on Links or Online is on by default (an
+administrator sets the default with **Review downloads before importing** in
+**Admin → Settings**) so you can check downloads before they reach the library;
+turn it off to import right away. Finished downloads wait in **Tracks → Review**
+instead of being added. Each one shows where it would be added and warns about possible
 duplicates: a file with the same name already in the folder, an earlier
 download from the same link or page, or tracks with the same artist and title
 and about the same length.

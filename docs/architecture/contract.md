@@ -1406,7 +1406,7 @@ as same-timestamp lines) and the catalogue cover through TagLib, and imports the
 (`{title, source: the song's catalogue page, quality, via: the source name, size}`).
 
 **Staging** (downloads held for review). `review` is optional like `organize`: when a download request leaves it out,
-`settings.reviewDownloads` (default off) decides; the job keeps the value (`DownloadJob.review`) and a retry sends it
+`settings.reviewDownloads` (default on) decides; the job keeps the value (`DownloadJob.review`) and a retry sends it
 again. A job with review does not import: each prepared file moves into `<data>/staging/<id>/` (assembled under a
 hidden `.new-<id>` name and renamed, so listed items are complete; leftovers are removed at startup) with an `item.json`
 manifest (destination, source, the reported title, who started it, the edit-log details), and the job finishes `done`

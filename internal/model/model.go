@@ -480,7 +480,7 @@ func DefaultSettings(scanInterval time.Duration) Settings {
 		TranscodeBitrate:      192,
 		RenamePattern:         "{albumartist}/{album}/[{disc}-]{track:2} {title}",
 		OrganizeByTags:        true,
-		ReviewDownloads:       false,
+		ReviewDownloads:       true,
 		FixEncodingOnScan:     true,
 		EnableDownloads:       true,
 		OnlineMetadata:        false,

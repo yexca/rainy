@@ -475,14 +475,14 @@ func TestAdminSettingsAndSystem(t *testing.T) {
 	if !got.OrganizeByTags {
 		t.Fatalf("organizeByTags should be on by default: %+v", got)
 	}
-	if got.ReviewDownloads {
-		t.Fatalf("reviewDownloads should be off by default: %+v", got)
+	if !got.ReviewDownloads {
+		t.Fatalf("reviewDownloads should be on by default: %+v", got)
 	}
-	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); !p.Organize || p.RenamePattern != got.RenamePattern || p.Review {
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); !p.Organize || p.RenamePattern != got.RenamePattern || !p.Review {
 		t.Fatalf("placement %+v", p)
 	}
-	mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"organizeByTags": false, "renamePattern": "{artist}/{title}", "reviewDownloads": true}), 200)
-	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); p.Organize || p.RenamePattern != "{artist}/{title}" || !p.Review {
+	mgDecode[model.Settings](t, e.do("PUT", "/admin/settings", tok, map[string]any{"organizeByTags": false, "renamePattern": "{artist}/{title}", "reviewDownloads": false}), 200)
+	if p := mgDecode[placement](t, e.do("GET", "/manage/placement", e.mgrTok, nil), 200); p.Organize || p.RenamePattern != "{artist}/{title}" || p.Review {
 		t.Fatalf("placement after the change %+v", p)
 	}
 
