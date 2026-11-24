@@ -43,7 +43,6 @@ export function RawTab({ items, edits, onEditsChange, disabled }: RawTabProps) {
 
   return (
     <div className="grid gap-4 pb-2">
-      <p className="text-xs text-muted-foreground">{t('raw.hint')}</p>
       {rows.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">{t('raw.empty')}</p> : null}
       <ul className="grid gap-px overflow-hidden rounded-lg border bg-border">
         {rows.map((row) => (

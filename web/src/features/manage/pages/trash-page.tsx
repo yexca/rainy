@@ -75,7 +75,7 @@ export default function TrashPage() {
     <Page centered>
       <PageHeader
         title={t('trash.title')}
-        subtitle={entries.length > 0 ? t('trash.summary', { count: entries.length, size: formatBytes(totalSize) }) : t('trash.subtitle')}
+        subtitleInline subtitle={entries.length > 0 ? t('trash.summary', { count: entries.length, size: formatBytes(totalSize) }) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           entries.length > 0 ? (

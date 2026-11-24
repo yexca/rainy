@@ -70,8 +70,8 @@ export function LyricsTab({ item, draft, onDraftChange, disabled }: LyricsTabPro
           disabled={disabled}
           aria-label={t('lyrics.target')}
         >
-          <ToggleGroupItem value="embedded">{t('lyrics.embedded')}</ToggleGroupItem>
-          <ToggleGroupItem value="lrc">{t('lyrics.lrcFile')}</ToggleGroupItem>
+          <ToggleGroupItem value="embedded" title={t('lyrics.embeddedHint')}>{t('lyrics.embedded')}</ToggleGroupItem>
+          <ToggleGroupItem value="lrc" title={t('lyrics.lrcHint')}>{t('lyrics.lrcFile')}</ToggleGroupItem>
         </ToggleGroup>
         {draft.text.trim() ? (
           <Badge variant={synced ? 'default' : 'secondary'}>{synced ? t('lyrics.synced') : t('lyrics.plain')}</Badge>
@@ -93,9 +93,6 @@ export function LyricsTab({ item, draft, onDraftChange, disabled }: LyricsTabPro
           {t('lyrics.clear')}
         </Button>
       </div>
-      <p className="-mt-2 text-xs text-muted-foreground">
-        {draft.target === 'lrc' ? t('lyrics.lrcHint') : t('lyrics.embeddedHint')}
-      </p>
 
       {bilingual.detected && !bilingualDismissed ? (
         <BilingualBanner

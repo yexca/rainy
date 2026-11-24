@@ -79,7 +79,7 @@ not contact them and the proxy cannot reach other addresses. See
 ## Downloads from Links
 
 With the administrator setting `ytdlpEnabled` on (off by default), managers can
-paste a YouTube or bilibili link on the Tracks → Links tab. The server runs
+paste a YouTube or bilibili link in Tracks → Add → Links. The server runs
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) through `internal/ytdlp` with a fixed
 argument list in a work directory under `<data>/tmp`: configuration files,
 plugins, and the generic extractor are disabled, and only links to the
@@ -90,7 +90,7 @@ like an upload (see [Uploads](#uploads)): library lock, rescan, a `download`
 edit-log row per file, and a library event. Existing files are never
 overwritten.
 
-Administrators install and update yt-dlp from **Admin → yt-dlp**:
+Administrators install and update yt-dlp from **Admin → Settings → yt-dlp**:
 Rainy downloads the official release from GitHub into `<data>/ytdlp`, verifies
 it against the release checksums, and checks that it runs before replacing the
 old binary. An operator can instead point `RAINY_YTDLP_PATH` at a binary they
@@ -103,10 +103,10 @@ and stored encrypted with `secret.key`; no endpoint returns them. See
 
 With the administrator setting `lxSourcesEnabled` on (off by default),
 managers can search the five catalogues lx-music knows (Kuwo, Kugou, QQ Music,
-NetEase Cloud Music, and Migu) in **Tracks → Online** and download songs into
+NetEase Cloud Music, and Migu) in **Tracks → Add → Online** and download songs into
 a library through `internal/lxmusic`. Rainy ships no way to obtain audio
 itself: the download link comes from an lx-music *custom source* script that
-an administrator imports in **Admin → Sources**. Scripts run on the
+an administrator imports in **Admin → Settings → Sources**. Scripts run on the
 server in a goja interpreter with only the lx-music script API; their network
 access is limited to public internet addresses, and every call has a time
 limit. With several sources, Rainy tries the enabled ones in priority order
@@ -181,8 +181,8 @@ are organized by tags with the server's rename pattern or keep their uploaded
 folder structure and names; a request's optional `organize` flag overrides
 it, and a download job keeps the value it started with. Managers, who cannot
 read server settings, see the current placement and pattern through
-`GET /api/manage/placement`, shown in the destination box the **Tracks**
-page's Upload, Links, and Online tabs share. Imported tracks without an
+`GET /api/manage/placement`, shown in the destination chips that the Upload, Links, and
+Online pages under **Tracks → Add** share. Imported tracks without an
 artist or album tag are reported back so the web app can offer the tag
 editor.
 

@@ -4,12 +4,13 @@ Library managers and administrators can change the music library from the
 **Manage** section, which has three entries in the sidebar: **Tracks**,
 **Library tools**, and (for administrators) **Admin**. Each entry's pages are
 tabs at the top of the page. **Tracks** has **Metadata** (the track table and
-tag editor), **Upload** (files from this device), **Links** (YouTube and
-bilibili), **Online** (online music), and **Review** (downloads waiting to be
-checked); **Library tools** has **Folders**,
-**Doctor**, **Trash**, and **History**; **Admin** has **Users**,
-**Libraries**, and the server settings: **Settings**, **yt-dlp**,
-**Sources**, **Scrobbling**, and **System**. On phones the **Manage** tab
+tag editor), **Add** (switch between **Upload** for files from this device,
+**Links** for YouTube and bilibili, and **Online** for online music), and
+**Review** (downloads waiting to be checked; the tab shows their number and
+appears only while some are waiting); **Library tools** has **Folders**,
+**Doctor**, **Trash**, and **History**; **Admin** has **Libraries**,
+**Settings** (switch between **General**, **yt-dlp**, **Sources**,
+**Scrobbling**, and **System**), and **Users**. On phones the **Manage** tab
 opens Tracks, with links to Library tools and Admin beside its tabs. Every
 change writes to your files, so:
 
@@ -48,13 +49,16 @@ is also available from the "…" menu of any track.
 
 - **Details** edits common fields. With several tracks selected, fields that
   differ show "Multiple values" and are written only if you change them. Each
-  field can be reverted before saving.
-- **Cover** previews the picture, accepts drag and drop, paste, or upload, and
-  can remove it, apply it to the whole album, or save it as the folder image.
+  field can be reverted before saving. Artists, album artists, composers, and
+  genres hold several values as chips: type `;` or press Enter to add one,
+  click a chip to edit it.
+- **Cover** previews the picture; click the preview, drop, or paste an image to
+  replace it. It can remove the cover, apply it to the whole album, or save it
+  as the folder image.
 - **Lyrics** edits embedded lyrics or the `.lrc` file (see below).
 - **All tags** shows every raw tag, including custom ones, and lets you add or
   remove them.
-- **File** shows read-only file information.
+- **File** shows read-only file information, including the embedded pictures.
 
 The **Tools** menu previews each change before applying it: auto-number tracks
 in the current order, tags from the file name, find and replace (with optional
@@ -155,17 +159,21 @@ is **Default rename pattern** in **Admin → Settings**.
 
 ## Upload
 
-**Tracks → Upload** accepts audio files and whole folders by drag and drop or
+**Tracks → Add → Upload** accepts audio files and whole folders by drag and drop or
 with **Choose files** and **Choose folder**, with per-file progress; other
 files are skipped (covers and lyrics are edited in the tag editor). Each file
-can be up to 2 GiB. Choose the target library and folder. Uploaded files
+can be up to 2 GiB. Uploaded files
 appear in the library immediately. An existing file is never overwritten: a
 name that is taken gets a ` (1)` suffix.
 
+At the top of **Add**, the chips beside **Upload**, **Links**, and **Online**
+set where music goes, shared by all three: the library (when there are
+several) and the folder (type a path or **Browse**).
+
 By default every file you add — picked, dragged in, downloaded from a link, or
 taken from an online catalogue — is **organized by tags**: Rainy places it with
-the rename pattern, under the folder you chose. The destination box shows the
-pattern in use. An administrator can turn this off with **Organize added music
+the rename pattern, under the folder you chose. The **By tags** chip shows the
+pattern in use (**As is** when organizing is off). An administrator can turn this off with **Organize added music
 by tags** in **Admin → Settings**; files then keep their names in the chosen
 folder, and uploaded folder structure is kept.
 
@@ -181,14 +189,14 @@ Uploads through a reverse proxy are limited by the proxy's body size; see
 
 ### Download from a Link
 
-The **Links** tab downloads the audio of a YouTube or bilibili video into the
+**Links** downloads the audio of a YouTube or bilibili video into the
 same destination as Upload.
 Paste a link (bilibili share text such as `【Title】 https://b23.tv/…` works
 too), choose the audio format, and select **Download**. **Original (no
 conversion)** keeps the site's audio stream (Opus from YouTube, AAC from
 bilibili); M4A, MP3, and Opus convert it. **Whole playlist** downloads up to
 100 entries of the playlist or multi-part video the link belongs to. Files go
-to the destination above and are organized by tags like uploads; when
+to the chosen destination and are organized by tags like uploads; when
 organizing is off they are named after the video title, and playlist entries
 go into a folder named after the playlist, numbered in playlist order. Rainy
 writes the title, artist (the channel when nothing better is known), album,
@@ -199,7 +207,7 @@ restart cancels unfinished downloads, and live streams are skipped. Only
 download what you have the right to keep; what the server sends where is in
 [Privacy](../../PRIVACY.md#downloads-from-youtube-and-bilibili).
 
-An administrator sets this up in **Admin → yt-dlp**:
+An administrator sets this up in **Admin → Settings → yt-dlp**:
 
 1. Turn on **Allow downloads from YouTube and bilibili**.
 2. Select **Install yt-dlp**. Rainy downloads the official release from GitHub
@@ -223,10 +231,10 @@ An administrator sets this up in **Admin → yt-dlp**:
 
 ## Online Music
 
-**Tracks → Online** searches Kuwo, Kugou, QQ Music, NetEase Cloud Music, or
+**Tracks → Add → Online** searches Kuwo, Kugou, QQ Music, NetEase Cloud Music, or
 Migu and downloads songs into your library. Pick a catalogue, search, and
 select songs (or use a row's download button). Under **Download options**
-choose the destination (shared with the Upload and Links tabs), the best quality you
+choose the best quality you
 want (Hi-Res, FLAC, 320K, or 128K; a lower one is used when the song or the
 sources lack it), and whether to embed the catalogue's lyrics (with a paired
 translation) and cover. Rainy writes the title, artists, album, lyrics, and
@@ -239,7 +247,7 @@ download what you have the right to keep; what the server sends where is in
 Rainy cannot obtain songs by itself: the download link comes from a **music
 source**, an lx-music custom source script that an administrator imports.
 Rainy doesn't include or recommend any source. An administrator sets this up
-in **Admin → Sources**:
+in **Admin → Settings → Sources**:
 
 1. Turn on **Allow online music and music sources**.
 2. Select **Import** and choose the script's `.js` file, or paste a link to it
@@ -261,8 +269,7 @@ source in its menu.
 
 ## Review Downloads Before Importing
 
-Turn on **Review before importing** in the destination box of the Links or
-Online tab (an administrator sets the default with **Review downloads before
+Turn on **Review first** beside the destination on Links or Online (an administrator sets the default with **Review downloads before
 importing** in **Admin → Settings**) to check downloads before they reach the
 library. Finished downloads then wait in **Tracks → Review** instead of being
 added. Each one shows where it would be added and warns about possible
@@ -291,7 +298,8 @@ stay in the trash until you delete them.
 ## Doctor
 
 **Library tools → Doctor** finds common problems and links each one to the
-tool that fixes it:
+tool that fixes it. Checks with problems show as cards with their count, and
+the first one opens below; checks that pass show as green chips:
 
 - **Missing tags**: tracks without a title, artist, album, or track number.
 - **No cover**: albums without artwork.
@@ -312,8 +320,9 @@ in the tag editor, and support multi-select tag edits, cover updates, rename /
 organize, and moving files to the trash. Audio files that have not been scanned
 appear with a warning badge and a one-click folder rescan. Artwork thumbnails
 and `.lrc`, `.txt`, `.cue`, `.log`, `.md`, `.nfo`, and `.m3u` files open in a
-built-in preview dialog, and **Upload here** jumps to **Tracks → Upload** with
-the current folder selected.
+built-in preview dialog, and **Upload here** jumps to **Tracks → Add → Upload** with
+the current folder selected. **Actions** rescans the folder, opens it in the
+track list, or edits the selected tracks.
 
 ## History
 

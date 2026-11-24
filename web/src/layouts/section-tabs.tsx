@@ -4,20 +4,25 @@ import { Link, useLocation } from 'react-router'
 
 import { cn } from '@/lib/utils'
 
-import { pathMatches, type NavSection } from './nav'
+import { navItemActive, type NavSection } from './nav'
 
 /**
  * Horizontal route tabs of a manager section (Tracks, Library tools, Admin), rendered in each of
  * its pages' header. Each tab is its own route, so deep links such as "upload into this folder"
  * keep working. Phones show labels only, like an iOS segmented control; if they still do not fit,
  * the bar scrolls sideways with the active tab kept in view. `children` sit beside it.
+ * `badges` puts a count on a tab (by its `to`); a tab in `hidden` is left out unless it is open.
  */
 export function SectionTabs({
   section,
+  badges,
+  hidden,
   children,
   className,
 }: {
   section: NavSection
+  badges?: Readonly<Record<string, number>>
+  hidden?: readonly string[]
   children?: ReactNode
   className?: string
 }) {
@@ -40,7 +45,9 @@ export function SectionTabs({
         className="scrollbar-none relative inline-flex h-11 max-w-full items-center overflow-x-auto rounded-xl bg-muted p-1 text-muted-foreground max-sm:w-full sm:h-9 sm:rounded-lg sm:p-[3px]"
       >
         {section.tabs.map((tab) => {
-          const active = pathMatches(pathname, tab.to, tab.end)
+          const active = navItemActive(tab, pathname)
+          if (!active && hidden?.includes(tab.to)) return null
+          const badge = badges?.[tab.to] ?? 0
           return (
             <Link
               key={tab.to}
@@ -53,6 +60,11 @@ export function SectionTabs({
             >
               <tab.icon className="size-4 shrink-0 max-sm:hidden" strokeWidth={1.75} aria-hidden />
               {t(tab.labelKey)}
+              {badge > 0 ? (
+                <span className="tnum grid h-[18px] min-w-[18px] place-items-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-primary-foreground">
+                  {badge}
+                </span>
+              ) : null}
             </Link>
           )
         })}

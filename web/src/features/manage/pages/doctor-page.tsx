@@ -71,12 +71,19 @@ export default function DoctorPage() {
     )
 
   const totalIssues = summary.data ? ISSUE_TYPES.reduce((n, k) => n + (summary.data[k] ?? 0), 0) : 0
+  const countOf = (k: IssueType) => summary.data?.[k] ?? 0
+  // While loading every check is a card; afterwards only checks with issues stay cards and the
+  // healthy ones shrink to a row of chips.
+  const flagged = summary.data ? ISSUE_TYPES.filter((k) => countOf(k) > 0) : ISSUE_TYPES
+  const healthy = summary.data ? ISSUE_TYPES.filter((k) => countOf(k) === 0) : []
+  // Without an explicit choice the first check with issues is open.
+  const active = type ?? (summary.data ? (flagged[0] ?? null) : null)
 
   return (
     <Page centered>
       <PageHeader
         title={t('doctor.title')}
-        subtitle={summary.data ? (totalIssues === 0 ? t('doctor.healthy') : t('doctor.issueCount', { count: totalIssues })) : t('doctor.subtitle')}
+        subtitleInline subtitle={summary.data ? (totalIssues === 0 ? t('doctor.healthy') : t('doctor.issueCount', { count: totalIssues })) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           <Button variant="outline" onClick={() => void summary.refetch()} disabled={summary.isFetching}>
@@ -92,48 +99,74 @@ export default function DoctorPage() {
         <ErrorState error={summary.error} onRetry={() => void summary.refetch()} />
       ) : (
         <div className="grid gap-8">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {ISSUE_TYPES.map((k) => {
-              const Icon = ICONS[k]
-              const n = summary.data?.[k] ?? 0
-              const active = type === k
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => select(k)}
-                  aria-pressed={active}
-                  className={cn(
-                    'group flex flex-col gap-3 rounded-xl border p-4 text-left transition-[background-color,border-color,transform] hover:bg-accent/40 active:scale-[0.98]',
-                    active && 'border-primary/60 bg-primary/5 ring-1 ring-primary/30',
-                  )}
-                >
-                  <span className="flex items-center justify-between">
-                    <span className={cn('grid size-9 place-items-center rounded-lg', n > 0 ? 'bg-amber-500/12 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400')}>
-                      {n > 0 ? <Icon className="size-[18px]" strokeWidth={1.75} /> : <CircleCheck className="size-[18px]" strokeWidth={1.75} />}
-                    </span>
-                    {summary.isPending ? (
-                      <Skeleton className="h-7 w-10" />
-                    ) : (
-                      <span className="tnum text-2xl font-semibold tracking-tight">{formatNumber(n)}</span>
-                    )}
-                  </span>
-                  <span className="grid gap-0.5">
-                    <span className="text-sm font-medium">{t(`doctor.types.${k}.title`)}</span>
-                    <span className="line-clamp-2 text-xs text-muted-foreground">{t(`doctor.types.${k}.description`)}</span>
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+          {flagged.length > 0 || healthy.length > 0 ? (
+            <div className="grid gap-3">
+              {flagged.length > 0 ? (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,10rem),1fr))] gap-3">
+                  {flagged.map((k) => {
+                    const Icon = ICONS[k]
+                    const pressed = active === k
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => select(k)}
+                        aria-pressed={pressed}
+                        className={cn(
+                          'flex flex-col gap-3 rounded-xl border p-4 text-left transition-[background-color,border-color,transform] hover:bg-accent/40 active:scale-[0.98]',
+                          pressed && 'border-primary/60 bg-primary/5 ring-1 ring-primary/30',
+                        )}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span className="grid size-9 place-items-center rounded-lg bg-amber-500/12 text-amber-600 dark:text-amber-400">
+                            <Icon className="size-[18px]" strokeWidth={1.75} />
+                          </span>
+                          {summary.isPending ? (
+                            <Skeleton className="h-7 w-10" />
+                          ) : (
+                            <span className="tnum text-2xl font-semibold tracking-tight">{formatNumber(countOf(k))}</span>
+                          )}
+                        </span>
+                        <span className="text-sm font-medium">{t(`doctor.types.${k}.title`)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+              {healthy.length > 0 ? (
+                <ul className="flex flex-wrap gap-2">
+                  {healthy.map((k) => (
+                    <li
+                      key={k}
+                      className={cn(
+                        'inline-flex h-7 items-center gap-1.5 rounded-full bg-emerald-500/10 pr-3 pl-2 text-xs font-medium text-emerald-700 dark:text-emerald-400',
+                        active === k && 'ring-1 ring-emerald-500/40',
+                      )}
+                    >
+                      <CircleCheck className="size-3.5" strokeWidth={2} aria-hidden />
+                      {t(`doctor.types.${k}.title`)}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
 
-          {type ? <IssueList key={type} type={type} count={summary.data?.[type] ?? 0} /> : (
-            <p className="text-center text-sm text-muted-foreground">{t('doctor.pick')}</p>
-          )}
+          {active ? (
+            <IssueList key={active} type={active} count={countOf(active)} />
+          ) : summary.data && totalIssues === 0 ? (
+            <HealthyState />
+          ) : null}
         </div>
       )}
     </Page>
   )
+}
+
+function HealthyState() {
+  const { t } = useTranslation('manage')
+  const showArt = useMascotArt()
+  return <EmptyState icon={CircleCheck} art="happy" size={showArt ? 'default' : 'compact'} title={t('doctor.none')} />
 }
 
 function IssueList({ type, count }: { type: IssueType; count: number }) {
@@ -217,7 +250,7 @@ function IssueList({ type, count }: { type: IssueType; count: number }) {
       ) : issues.isError ? (
         <ErrorState error={issues.error} onRetry={() => void issues.refetch()} size="compact" />
       ) : all.length === 0 ? (
-        <EmptyState icon={CircleCheck} art="happy" size={showArt ? 'default' : 'compact'} title={t('doctor.none')} description={t('doctor.noneDescription')} />
+        <EmptyState icon={CircleCheck} art="happy" size={showArt ? 'default' : 'compact'} title={t('doctor.none')} />
       ) : (
         <>
           <ul className="grid gap-3">

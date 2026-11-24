@@ -131,25 +131,30 @@ export function CoverTab({ items, pending, onPendingChange, disabled }: CoverTab
           dragging ? 'border-primary bg-primary/5' : 'border-border',
         )}
       >
-        <div
-          className="relative aspect-square w-[min(100%,232px)] shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+          className="group relative aspect-square w-[min(100%,232px)] shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-black/5 disabled:cursor-default dark:ring-white/10"
           style={{ maxWidth: PREVIEW }}
         >
           {preview}
-        </div>
+          <span className="absolute inset-0 grid place-items-center bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100 group-disabled:hidden">
+            <ImagePlus className="size-8" strokeWidth={1.5} />
+          </span>
+        </button>
         <div className="flex min-w-0 flex-1 flex-col gap-3 text-center sm:text-left">
-          <div className="text-sm text-muted-foreground">
-            {pending?.kind === 'set' ? (
-              <p className="break-all">
-                <span className="font-medium text-foreground">{pending.file.name}</span> · {formatBytes(pending.file.size)}
-              </p>
-            ) : items.length > 1 ? (
-              <p>{t('cover.embeddedCount', { count: withPicture, total: items.length })}</p>
-            ) : (
-              <p>{withPicture > 0 ? t('cover.hasEmbedded') : t('cover.noEmbedded')}</p>
-            )}
-            <p className="mt-1 hidden text-xs sm:block">{t('cover.dropHint')}</p>
-          </div>
+          {pending?.kind === 'set' ? (
+            <p className="text-sm break-all text-muted-foreground">
+              <span className="font-medium text-foreground">{pending.file.name}</span> · {formatBytes(pending.file.size)}
+            </p>
+          ) : items.length > 1 ? (
+            <p className="text-sm text-muted-foreground">{t('cover.embeddedCount', { count: withPicture, total: items.length })}</p>
+          ) : withPicture === 0 && !pending ? (
+            <p className="text-sm text-muted-foreground">{t('cover.noEmbedded')}</p>
+          ) : null}
           <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
             <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={disabled}>
               <ImagePlus />
@@ -230,21 +235,6 @@ export function CoverTab({ items, pending, onPendingChange, disabled }: CoverTab
           </Label>
         ) : null}
       </fieldset>
-
-      {first && first.pictures.length > 0 ? (
-        <div className="grid gap-1.5">
-          <p className="text-[13px] font-medium text-foreground/75">{t('cover.pictures')}</p>
-          <ul className="grid gap-1 text-xs text-muted-foreground">
-            {first.pictures.map((p, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="font-medium text-foreground/80">{p.type || t('cover.pictureType')}</span>
-                <span>{p.mimeType}</span>
-                {p.description ? <span className="truncate">“{p.description}”</span> : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </div>
   )
 }

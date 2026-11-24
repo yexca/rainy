@@ -13,7 +13,7 @@ import { formatBytes, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
-import { DestinationSection } from '../components/destination-section'
+import { AddBar } from '../components/add-bar'
 import { TracksTabs } from '../components/tracks-tabs'
 import { toastError } from '../lib/batch'
 import { useDestination, useDestinationTarget } from '../lib/destination'
@@ -70,12 +70,12 @@ export default function UploadPage() {
 
   return (
     <Page centered>
-      <PageHeader title={t('title')} subtitle={t('upload.subtitle')}>
+      <PageHeader title={t('title')}>
         <TracksTabs />
       </PageHeader>
 
-      <div className="grid gap-8">
-        <DestinationSection />
+      <div className="grid gap-6">
+        <AddBar />
 
         <section
           onDragEnter={(e) => {
@@ -97,10 +97,7 @@ export default function UploadPage() {
           <div className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
             <Upload className="size-6" strokeWidth={1.75} />
           </div>
-          <div className="grid gap-1">
-            <p className="text-base font-semibold">{t('upload.dropTitle')}</p>
-            <p className="text-sm text-muted-foreground">{t('upload.dropHint')}</p>
-          </div>
+          <p className="text-base font-semibold">{t('upload.dropTitle')}</p>
           <div className="flex flex-wrap justify-center gap-2">
             <Button onClick={() => filesRef.current?.click()} className="max-sm:h-11">
               <FileAudio />

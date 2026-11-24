@@ -24,7 +24,7 @@ import type { DownloadsStatus, OnlinePlatform, OnlineQualityType, OnlineSong, On
 import { formatDuration, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { DestinationSection } from '../components/destination-section'
+import { AddBar } from '../components/add-bar'
 import { DownloadJobs } from '../components/download-jobs'
 import { TracksTabs } from '../components/tracks-tabs'
 import { toastError } from '../lib/batch'
@@ -72,6 +72,7 @@ export default function OnlinePage() {
   useJobNotifications(downloads.data?.jobs)
   const onlineJobs = downloads.data?.jobs.filter((j) => j.kind === 'online') ?? []
 
+  const available = !!status.data?.enabled && status.data.sources > 0
   let content
   if (!status.data) {
     content = status.isError ? (
@@ -87,10 +88,11 @@ export default function OnlinePage() {
 
   return (
     <Page centered>
-      <PageHeader title={t('title')} subtitle={t('onlineMusic.subtitle')}>
+      <PageHeader title={t('title')}>
         <TracksTabs />
       </PageHeader>
-      <div className="grid gap-8">
+      <div className="grid gap-6">
+        <AddBar review destination={available} />
         {content}
         <DownloadJobs jobs={onlineJobs} />
       </div>
@@ -199,23 +201,20 @@ function OnlineSearch() {
   const download = (list: OnlineSong[]) => {
     if (target.invalidDir) {
       toast.error(t('upload.invalidDir'))
-      setOptionsOpen(true)
       return
     }
     start.mutate(list)
   }
 
   const summary = [
-    `${target.library?.name || t('library.default')} › ${target.organize ? t('onlineMusic.organized') : target.dir || t('upload.folderPlaceholder')}`,
     t(`onlineMusic.qualities.${quality}`),
     lyrics ? t('onlineMusic.withLyrics') : '',
     cover ? t('onlineMusic.withCover') : '',
-    target.review ? t('review.optionShort') : '',
   ].filter(Boolean)
 
   return (
     <>
-      <Collapsible open={optionsOpen || target.invalidDir} onOpenChange={setOptionsOpen} className="grid gap-3">
+      <Collapsible open={optionsOpen} onOpenChange={setOptionsOpen} className="grid gap-3">
         <CollapsibleTrigger asChild>
           <button
             type="button"
@@ -224,16 +223,13 @@ function OnlineSearch() {
             <SlidersHorizontal className="size-[18px] shrink-0 text-primary" strokeWidth={1.75} aria-hidden />
             <span className="grid min-w-0 flex-1 gap-0.5">
               <span className="text-sm font-medium">{t('onlineMusic.options')}</span>
-              <span className={cn('truncate text-xs', target.invalidDir ? 'text-destructive' : 'text-muted-foreground')}>
-                {target.invalidDir ? t('upload.invalidDir') : summary.join(' · ')}
-              </span>
+              <span className="truncate text-xs text-muted-foreground">{summary.join(' · ')}</span>
             </span>
-            <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', (optionsOpen || target.invalidDir) && 'rotate-180')} aria-hidden />
+            <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', optionsOpen && 'rotate-180')} aria-hidden />
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <DestinationSection review>
-            <div className="grid gap-4 border-t pt-4">
+          <div className="grid gap-4 rounded-xl border p-4 sm:p-5">
               <div className="grid gap-1.5">
                 <Label className="text-[13px] font-medium text-foreground/75">{t('onlineMusic.quality')}</Label>
                 <Select
@@ -281,8 +277,7 @@ function OnlineSearch() {
                 />
                 <span className="text-sm font-medium">{t('onlineMusic.cover')}</span>
               </Label>
-            </div>
-          </DestinationSection>
+          </div>
         </CollapsibleContent>
       </Collapsible>
 

@@ -12,6 +12,11 @@ export interface PageHeaderProps {
   /** Page title (also used for the collapsed bar and `document.title`). */
   title: string
   subtitle?: ReactNode
+  /**
+   * Subtitle on the title's baseline, to its right, instead of below it: the header keeps its
+   * height whether or not there is one (management pages, whose subtitle is a count that loads later).
+   */
+  subtitleInline?: boolean
   /** Primary actions: right of the title on desktop, below it on mobile. */
   actions?: ReactNode
   /** Compact control aligned inline to the right of the heading on mobile. */
@@ -47,6 +52,7 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   subtitle,
+  subtitleInline = false,
   actions,
   titleAction,
   navActions,
@@ -170,14 +176,16 @@ export function PageHeader({
         )}
       >
         <div className={cn('min-w-0', titleAction && 'flex items-center justify-between gap-3 md:block')}>
-          <div className="min-w-0">
+          <div className={cn('min-w-0', subtitleInline && 'flex flex-wrap items-baseline gap-x-3')}>
             <h1
               ref={titleRef}
               className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
             >
               {title}
             </h1>
-            {subtitle ? <div className="mt-1 text-[15px] text-muted-foreground md:text-sm">{subtitle}</div> : null}
+            {subtitle ? (
+              <div className={cn('text-[15px] text-muted-foreground md:text-sm', subtitleInline ? 'tnum whitespace-nowrap' : 'mt-1')}>{subtitle}</div>
+            ) : null}
           </div>
           {titleAction ? <div className="shrink-0 md:hidden">{titleAction}</div> : null}
         </div>

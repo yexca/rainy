@@ -87,7 +87,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
   return (
     <form onSubmit={handleSubmit((v) => save.mutate(v))} className="grid gap-8" noValidate>
       <Section title={t('settings.sections.scanning')}>
-        <Row label={t('settings.fields.scanInterval')} description={t('settings.help.scanInterval')} error={err(errors.scanInterval?.message)}>
+        <Row label={t('settings.fields.scanInterval')} error={err(errors.scanInterval?.message)}>
           <Controller
             control={control}
             name="scanInterval"
@@ -116,7 +116,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       </Section>
 
       <Section title={t('settings.sections.metadata')}>
-        <Row label={t('settings.fields.genreSeparators')} description={t('settings.help.genreSeparators')} error={err(errors.genreSeparators?.message)}>
+        <Row label={t('settings.fields.genreSeparators')} error={err(errors.genreSeparators?.message)}>
           <Input className="font-mono sm:w-48" autoComplete="off" spellCheck={false} {...register('genreSeparators')} />
         </Row>
         <Row label={t('settings.fields.ignoredArticles')} description={t('settings.help.ignoredArticles')} error={err(errors.ignoredArticles?.message)}>
@@ -156,7 +156,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
             )}
           />
         </Row>
-        <Row label={t('settings.fields.transcodeBitrate')} description={t('settings.help.transcodeBitrate')}>
+        <Row label={t('settings.fields.transcodeBitrate')}>
           <Controller
             control={control}
             name="transcodeBitrate"

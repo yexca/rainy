@@ -87,7 +87,7 @@ export function YtdlpSettings() {
       <Section title={t('ytdlp.sections.binary')}>
         <Row
           label={t('ytdlp.version')}
-          description={d.managed ? t('ytdlp.managedHelp') : t('ytdlp.unmanagedHelp')}
+          description={d.managed ? undefined : t('ytdlp.unmanagedHelp')}
         >
           <div className="grid gap-1 text-sm sm:justify-items-end sm:text-right">
             <p className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -121,7 +121,7 @@ export function YtdlpSettings() {
           </div>
           {d.install.error && !installing ? <p className="text-xs text-destructive sm:text-right">{d.install.error}</p> : null}
         </Row>
-        <Row label={t('ytdlp.requirements')} description={t('ytdlp.requirementsHelp')}>
+        <Row label={t('ytdlp.requirements')}>
           <ul className="grid gap-1 text-sm sm:justify-items-end">
             <Requirement ok={d.ffmpeg} label={d.ffmpeg ? t('ytdlp.ffmpegOk') : t('ytdlp.ffmpegMissing')} />
             <Requirement

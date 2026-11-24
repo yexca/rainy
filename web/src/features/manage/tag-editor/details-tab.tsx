@@ -12,6 +12,7 @@ import { FIELD_BY_ID, type FieldDef, type FieldId } from '../lib/tag-fields'
 import { changeField, revertKeys, summarizeField, type Edits, type FieldSummary } from '../lib/tag-state'
 import { DraftInput, DraftTextarea } from './draft-input'
 import { GenreInput } from './genre-input'
+import { MultiValueInput } from './multi-value-input'
 
 export interface DetailsTabProps {
   items: readonly TrackTags[]
@@ -40,6 +41,7 @@ export function DetailsTab({ items, edits, onEditsChange, disabled }: DetailsTab
         onChange={(value) => onEditsChange(changeField(items, edits, def, value))}
         onRevert={() => onEditsChange(revertKeys(edits, def.keys))}
         multipleLabel={t('editor.multipleValues')}
+        addLabel={t('editor.addValue')}
         label={t(`fields.${id}`)}
         revertLabel={t('editor.revertField', { field: t(`fields.${id}`) })}
       />
@@ -51,9 +53,8 @@ export function DetailsTab({ items, edits, onEditsChange, disabled }: DetailsTab
 
   return (
     <div className="grid gap-4 pb-2">
-      {items.length > 1 ? <p className="-mb-1 text-xs text-muted-foreground">{t('editor.batchHint', { count: items.length })}</p> : null}
       {field('title')}
-      {field('artist', { hint: t('editor.multiHint') })}
+      {field('artist')}
       {field('album')}
       {field('albumArtist')}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -80,6 +81,7 @@ interface FieldRowProps {
   summary: FieldSummary
   label: string
   multipleLabel: string
+  addLabel: string
   revertLabel: string
   hint?: ReactNode
   className?: string
@@ -88,7 +90,7 @@ interface FieldRowProps {
   onRevert: () => void
 }
 
-function FieldRow({ def, summary, label, multipleLabel, revertLabel, hint, className, disabled, onChange, onRevert }: FieldRowProps) {
+function FieldRow({ def, summary, label, multipleLabel, addLabel, revertLabel, hint, className, disabled, onChange, onRevert }: FieldRowProps) {
   const id = `tag-field-${def.id}`
   const placeholder = summary.mixed ? multipleLabel : undefined
   const mixedClass = summary.mixed ? 'placeholder:italic placeholder:text-muted-foreground/80' : undefined
@@ -110,6 +112,18 @@ function FieldRow({ def, summary, label, multipleLabel, revertLabel, hint, class
       break
     case 'genre':
       control = <GenreInput id={id} value={summary.value} onChange={onChange} placeholder={placeholder} disabled={disabled} />
+      break
+    case 'multi':
+      control = (
+        <MultiValueInput
+          id={id}
+          value={summary.value}
+          onChange={onChange}
+          placeholder={placeholder}
+          addPlaceholder={addLabel}
+          disabled={disabled}
+        />
+      )
       break
     case 'textarea':
       control = (
@@ -134,7 +148,7 @@ function FieldRow({ def, summary, label, multipleLabel, revertLabel, hint, class
           disabled={disabled}
           inputMode={def.kind === 'number' ? 'numeric' : undefined}
           autoComplete="off"
-          spellCheck={def.kind === 'text' || def.kind === 'multi'}
+          spellCheck={def.kind === 'text'}
           className={cn(def.kind === 'number' && 'tnum', mixedClass)}
         />
       )

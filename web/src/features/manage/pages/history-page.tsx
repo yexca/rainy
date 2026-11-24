@@ -114,7 +114,7 @@ export default function HistoryPage() {
 
   return (
     <Page centered>
-      <PageHeader title={t('history.title')} subtitle={log.data ? t('history.count', { count: total }) : t('history.subtitle')} back={isMobile ? '/manage' : undefined}>
+      <PageHeader title={t('history.title')} subtitleInline subtitle={log.data ? t('history.count', { count: total }) : undefined} back={isMobile ? '/manage' : undefined}>
         <SectionTabs section={TOOLS_SECTION} />
         {trackId ? (
           <div className="flex items-center gap-2 pb-4">

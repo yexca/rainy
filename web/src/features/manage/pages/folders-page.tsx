@@ -272,6 +272,14 @@ export default function FoldersPage() {
     () => groupFolderFiles(data?.files ?? [], showAttachedLyrics),
     [data?.files, showAttachedLyrics],
   )
+  // Section headings only separate kinds of content; a folder with one kind needs none.
+  const sectionCount = [
+    data?.folders.length ?? 0,
+    sections.audio.length,
+    sections.images.length,
+    sections.documents.length,
+    sections.others.length,
+  ].filter((n) => n > 0).length
 
   const selected = selectionState.key === folderKey ? selectionState.ids : EMPTY_STRING_SET
   const trackLimit = trackLimitState.key === folderKey ? trackLimitState.limit : INITIAL_TRACK_LIMIT
@@ -387,7 +395,6 @@ export default function FoldersPage() {
     <Page centered>
       <PageHeader
         title={t('folders.title')}
-        subtitle={t('folders.subtitle')}
         back={isMobile ? '/manage' : undefined}
       >
         <SectionTabs section={TOOLS_SECTION} />
@@ -454,19 +461,6 @@ export default function FoldersPage() {
               </Button>
             ) : null}
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn('text-muted-foreground hover:text-foreground', isMobile ? 'size-11' : 'size-8')}
-              disabled={rescan.isPending}
-              aria-label={t('folders.rescan')}
-              title={t('folders.rescan')}
-              onClick={() => rescan.mutate()}
-            >
-              <RefreshCw className={cn('size-4', rescan.isPending && 'animate-spin')} />
-            </Button>
-
             {writable ? (
               <Button
                 asChild
@@ -490,7 +484,7 @@ export default function FoldersPage() {
                   className={cn(isMobile ? 'size-11' : 'h-8 gap-1.5 px-2.5 text-xs')}
                   aria-label={t('folders.actions')}
                 >
-                  <MoreHorizontal className="size-4" />
+                  {rescan.isPending ? <RefreshCw className="size-4 animate-spin" /> : <MoreHorizontal className="size-4" />}
                   {isMobile ? null : <span>{t('folders.actions')}</span>}
                 </Button>
               </DropdownMenuTrigger>
@@ -505,14 +499,6 @@ export default function FoldersPage() {
                     {t('folders.openInManager')}
                   </Link>
                 </DropdownMenuItem>
-                {writable ? (
-                  <DropdownMenuItem asChild>
-                    <Link to={uploadLink}>
-                      <Upload />
-                      {t('folders.uploadHere')}
-                    </Link>
-                  </DropdownMenuItem>
-                ) : null}
                 {indexedTrackIds.length > 0 ? (
                   <>
                     <DropdownMenuSeparator />
@@ -655,7 +641,6 @@ export default function FoldersPage() {
               <EmptyState
                 icon={FolderOpen}
                 title={t('folders.empty')}
-                description={t('folders.emptyDescription')}
                 action={
                   writable ? (
                     <Button asChild variant="outline">
@@ -671,7 +656,7 @@ export default function FoldersPage() {
               <div className="space-y-6">
                 {/* Subfolders grid */}
                 {data.folders.length > 0 ? (
-                  <ExplorerSection title={t('folders.sections.folders')} count={data.folders.length}>
+                  <ExplorerSection title={t('folders.sections.folders')} count={data.folders.length} showTitle={sectionCount > 1}>
                     <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
                       {data.folders.map((f) => (
                         <FolderTile
@@ -693,6 +678,7 @@ export default function FoldersPage() {
                   <ExplorerSection
                     title={t('folders.sections.tracks')}
                     count={sections.audio.length}
+                    showTitle={sectionCount > 1}
                     badge={
                       sections.unindexedAudioCount > 0 ? (
                         <button
@@ -780,7 +766,7 @@ export default function FoldersPage() {
 
                 {/* Images gallery */}
                 {sections.images.length > 0 ? (
-                  <ExplorerSection title={t('folders.sections.images')} count={sections.images.length}>
+                  <ExplorerSection title={t('folders.sections.images')} count={sections.images.length} showTitle={sectionCount > 1}>
                     <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(6.75rem,1fr))] sm:[grid-template-columns:repeat(auto-fill,minmax(7.75rem,1fr))]">
                       {visibleImages.map((img, idx) => (
                         <FolderImageTile
@@ -810,7 +796,7 @@ export default function FoldersPage() {
 
                 {/* Lyrics & text documents */}
                 {sections.documents.length > 0 ? (
-                  <ExplorerSection title={t('folders.sections.documents')} count={sections.documents.length}>
+                  <ExplorerSection title={t('folders.sections.documents')} count={sections.documents.length} showTitle={sectionCount > 1}>
                     <div className="divide-y divide-border/50">
                       {sections.documents.map((doc) => (
                         <FolderDocRow
@@ -826,7 +812,7 @@ export default function FoldersPage() {
 
                 {/* Other non-media files */}
                 {sections.others.length > 0 ? (
-                  <ExplorerSection title={t('folders.sections.otherFiles')} count={sections.others.length}>
+                  <ExplorerSection title={t('folders.sections.otherFiles')} count={sections.others.length} showTitle={sectionCount > 1}>
                     <div className="divide-y divide-border/50">
                       {sections.others.map((other) => (
                         <FolderDocRow key={other.path} file={other} clampNames={clampNames} />
@@ -861,26 +847,36 @@ export default function FoldersPage() {
 function ExplorerSection({
   title,
   count,
+  showTitle = true,
   badge,
   actions,
   children,
 }: {
   title: string
   count: number
+  /** `false` keeps the heading for assistive tech only (the folder holds one kind of content). */
+  showTitle?: boolean
   badge?: ReactNode
   actions?: ReactNode
   children: ReactNode
 }) {
+  const bar = showTitle || badge || actions
   return (
-    <section className="space-y-1.5">
-      <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</h2>
-          <span className="tnum text-xs text-muted-foreground/75">({count})</span>
-          {badge}
+    <section className="space-y-1.5" aria-label={showTitle ? undefined : title}>
+      {bar ? (
+        <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            {showTitle ? (
+              <>
+                <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</h2>
+                <span className="tnum text-xs text-muted-foreground/75">({count})</span>
+              </>
+            ) : null}
+            {badge}
+          </div>
+          {actions ? <div className="ml-auto flex flex-wrap items-center gap-1.5">{actions}</div> : null}
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-1.5">{actions}</div> : null}
-      </div>
+      ) : null}
       {children}
     </section>
   )

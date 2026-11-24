@@ -92,7 +92,7 @@ An administrator can turn on **Allow online music and music sources** in
 the requests below are made; a source script imported from a file is stored
 but not run.
 
-- **Searching.** Only when a manager searches in **Tracks → Online**, the
+- **Searching.** Only when a manager searches in **Tracks → Add → Online**, the
   server sends the search terms to the chosen catalogue and loads the result
   covers through itself, so the browser never contacts these hosts:
 

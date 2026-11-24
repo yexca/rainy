@@ -55,16 +55,14 @@
     "loadFailed_one": "有 {{count}} 首歌曲读取失败，已略过。",
     "loadFailed_other": "有 {{count}} 首歌曲读取失败，已略过。",
     "multipleValues": "多个值",
-    "multiHint": "多个值之间用“;”分隔。",
-    "batchHint_one": "正在编辑 {{count}} 首歌曲。显示“多个值”的字段会保留各自原有的值，除非你输入新内容。",
-    "batchHint_other": "正在编辑 {{count}} 首歌曲。显示“多个值”的字段会保留各自原有的值，除非你输入新内容。",
     "dateHint": "请使用 YYYY 或 YYYY-MM-DD 格式。",
     "revertField": "还原{{field}}",
     "revert": "还原",
     "revertAll": "全部还原",
     "removeValue": "移除 {{value}}",
+    "editValue": "编辑 {{value}}",
+    "addValue": "添加…",
     "addGenre": "添加流派…",
-    "noChanges": "没有改动",
     "pending_one": "{{count}} 首歌曲有未保存的改动",
     "pending_other": "{{count}} 首歌曲有未保存的改动",
     "saved_one": "已保存 {{count}} 首歌曲的改动",
@@ -89,7 +87,6 @@
     "undo": "撤销",
     "remove": "移除封面",
     "willRemove": "封面将被移除",
-    "hasEmbedded": "此文件内嵌了封面。",
     "noEmbedded": "没有内嵌封面，当前显示的是专辑封面。",
     "embeddedCount": "{{total}} 个文件中有 {{count}} 个内嵌了封面。",
     "notImage": "请选择图片文件。",
@@ -141,7 +138,6 @@
     "bilingualDone_other": "已将 {{count}} 行拆分为原文和译文。"
   },
   "raw": {
-    "hint": "文件中保存的所有标签。键名使用 TagLib 名称（TITLE、ARTIST…），保存时会删除空标签。",
     "empty": "没有标签。",
     "partial": "部分",
     "deleted": "将被删除",
@@ -366,8 +362,7 @@
     "count_other": "已选 {{formatted}} 首",
     "selectAllMatching_one": "选择全部 {{formatted}} 首",
     "selectAllMatching_other": "选择全部 {{formatted}} 首",
-    "deselectAll": "取消全选",
-    "hint": "单击选择 · 按住 Shift / Ctrl 多选 · 双击编辑"
+    "deselectAll": "取消全选"
   },
   "rescan": {
     "started_one": "正在重新扫描 {{count}} 个文件夹…",
@@ -407,7 +402,6 @@
     "description_one": "修复 {{count}} 首歌曲中编码错误的标签。",
     "description_other": "修复 {{count}} 首歌曲中编码错误的标签。",
     "descriptionAll": "修复曲库体检发现的所有乱码标签。",
-    "hint": "老软件以 GBK、Big5 或 Shift-JIS 写入的标签常会显示成“ÄãºÃ”这样的乱码。确认修复结果后再写入文件。",
     "none": "没有需要修复的内容",
     "noneDescription": "这些歌曲中没有检测到乱码标签。",
     "include": "修复此文件",
@@ -439,20 +433,18 @@
   },
   "upload": {
     "title": "上传",
-    "subtitle": "把这台设备上的音乐添加到音乐库。",
     "target": "保存位置",
     "folder": "文件夹",
     "folderPlaceholder": "音乐库根目录",
     "browse": "浏览",
     "invalidDir": "文件夹路径中不能包含“.”或“..”。",
-    "folderOrganizeHint": "整理后的文件会放在这个文件夹下。",
     "organize": "按标签自动整理",
-    "organizeHint": "使用命名格式自动放置文件：",
     "organizeOff": "保留原文件名",
+    "byTags": "按标签整理",
+    "asIs": "保持原样",
     "organizeOffHint": "新增的文件会原样放入上方文件夹；上传文件夹时保留其结构。",
     "organizeSettings": "在设置中修改",
     "dropTitle": "把文件或文件夹拖到这里",
-    "dropHint": "仅支持音频文件（封面和歌词请在标签编辑器中修改）。",
     "chooseFiles": "选择文件",
     "chooseFolder": "选择文件夹",
     "queued_one": "开始上传 {{count}} 个文件",
@@ -488,9 +480,7 @@
     "imported_other": "{{count}} 首缺少艺人或专辑标签"
   },
   "download": {
-    "pageSubtitle": "把 YouTube、哔哩哔哩视频中的音频下载到音乐库。",
     "title": "从 YouTube 或哔哩哔哩链接下载",
-    "subtitle": "服务器使用 yt-dlp 下载音频，并保存到上方的保存位置。",
     "statusError": "无法读取下载状态。",
     "disabled": "链接下载已关闭。",
     "notInstalled": "服务器尚未安装 yt-dlp。",
@@ -533,7 +523,6 @@
     }
   },
   "onlineMusic": {
-    "subtitle": "搜索在线曲库，通过音源把歌曲下载到音乐库。",
     "disabledTitle": "在线音乐未开启",
     "disabledAdmin": "在「系统 → 服务器设置 → 音源」中开启并添加音源。",
     "disabledManager": "管理员可以在「系统 → 服务器设置 → 音源」中开启。",
@@ -565,7 +554,6 @@
     "downloadOne": "下载「{{title}}」",
     "queued_other": "已加入下载队列：{{count}} 首",
     "options": "下载选项",
-    "organized": "按标签整理",
     "withLyrics": "歌词",
     "withCover": "封面",
     "quality": "音质",
@@ -593,7 +581,6 @@
   },
   "folders": {
     "title": "文件夹",
-    "subtitle": "浏览磁盘上的文件。",
     "root": "根目录",
     "treeTitle": "目录",
     "breadcrumbs": "文件夹路径",
@@ -641,7 +628,6 @@
     "showAllImages_one": "显示全部 {{count}} 张图片",
     "showAllImages_other": "显示全部 {{count}} 张图片",
     "empty": "文件夹是空的",
-    "emptyDescription": "可以上传音乐到这里，或选择其他文件夹。",
     "sections": {
       "folders": "文件夹",
       "tracks": "音频",
@@ -661,13 +647,10 @@
   },
   "doctor": {
     "title": "曲库体检",
-    "subtitle": "发现并修复曲库中的常见问题。",
     "healthy": "一切正常。",
     "issueCount_one": "发现 {{count}} 个问题",
     "issueCount_other": "发现 {{count}} 个问题",
-    "pick": "选择上方的检查项查看详情。",
     "none": "没有问题",
-    "noneDescription": "这里没有需要处理的内容。",
     "loadMore_one": "加载更多（剩余 {{count}} 项）",
     "loadMore_other": "加载更多（剩余 {{count}} 项）",
     "moreTracks_one": "…还有 {{count}} 首",
@@ -690,34 +673,28 @@
     "types": {
       "missing_tags": {
         "title": "标签缺失",
-        "description": "缺少标题、艺人或专辑的歌曲。",
         "help": "这些歌曲在播放器中会显示为文件名或“未知”。"
       },
       "no_cover": {
         "title": "没有封面",
-        "description": "没有任何封面图片的专辑。",
         "help": "可以内嵌封面，或在文件夹中放一张封面图片（cover.jpg）。"
       },
       "duplicates": {
         "title": "重复歌曲",
-        "description": "同一首歌出现了多次。",
         "help": "标题、艺人和时长都相同的歌曲。保留最好的版本，其余移到回收站。"
       },
       "missing_files": {
         "title": "文件丢失",
-        "description": "文件已经不存在的歌曲。",
         "help": "文件在 Rainy 之外被移动或删除了。重新扫描可识别移动过的文件，或直接移除这些条目。"
       },
       "encoding": {
         "title": "编码问题",
-        "description": "字符编码有误、显示为乱码的标签。",
         "help": "以 GBK / Big5 / Shift-JIS 编码却被当作 Latin-1 读取的标签。"
       }
     }
   },
   "trash": {
     "title": "回收站",
-    "subtitle": "清空回收站之前，删除的文件都可以恢复。",
     "summary_one": "{{count}} 个文件 · {{size}}",
     "summary_other": "{{count}} 个文件 · {{size}}",
     "selectHint": "选择要恢复或删除的文件",
@@ -740,7 +717,6 @@
   },
   "history": {
     "title": "修改记录",
-    "subtitle": "Rainy 对文件做过的每一次修改。",
     "count_one": "{{count}} 条记录",
     "count_other": "{{count}} 条记录",
     "filteredBy": "歌曲：{{title}}",
@@ -787,11 +763,10 @@
     }
   },
   "review": {
-    "subtitle": "下载完成、等待确认标签后再放入音乐库的歌曲。",
     "summary_other": "{{count}} 首待确认 · {{size}}",
     "option": "确认后入库",
+    "chip": "先确认",
     "optionHint": "下载的歌曲会先放在“曲目 › 待确认”，确认或修正标签后再放入音乐库。",
-    "optionShort": "确认后入库",
     "open": "去确认",
     "waiting_other": "{{count}} 首待确认",
     "downloaded_other": "已下载「{{name}}」（{{count}} 首），等待确认",

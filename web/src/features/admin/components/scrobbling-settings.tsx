@@ -56,12 +56,19 @@ export function ScrobblingSettings() {
   const pending = toggle.isPending ? toggle.variables : {}
   const lastfmOn = pending.lastfmEnabled ?? d.lastfm.enabled
   const lbOn = pending.listenBrainzEnabled ?? d.listenBrainz.enabled
+  const connected = (users: number) => t('scrobbling.users', { count: users, formatted: formatNumber(users) })
 
   return (
     <div className="grid gap-8">
       <p className="px-1 text-xs text-muted-foreground">{t('scrobbling.intro')}</p>
+      <OwnAccounts
+        accounts={[
+          { service: 'lastfm', account: own('lastfm'), enabled: lastfmOn },
+          { service: 'listenbrainz', account: own('listenbrainz'), enabled: lbOn },
+        ]}
+      />
       <Section title={t('scrobbling.lastfm.title')}>
-        <Row label={t('scrobbling.lastfm.enable')} description={t('scrobbling.lastfm.enableHelp')} inline>
+        <Row label={t('scrobbling.lastfm.enable')} description={connected(d.lastfm.users)} inline>
           <Switch
             checked={lastfmOn}
             onCheckedChange={(v) => toggle.mutate({ lastfmEnabled: v })}
@@ -69,18 +76,11 @@ export function ScrobblingSettings() {
             aria-label={t('scrobbling.lastfm.enable')}
           />
         </Row>
-        <Row label={t('scrobbling.lastfm.status')} description={t('scrobbling.users', { count: d.lastfm.users, formatted: formatNumber(d.lastfm.users) })}>
-          <Status
-            ok={d.lastfm.configured}
-            label={d.lastfm.configured ? t('scrobbling.lastfm.configured') : t('scrobbling.lastfm.notConfigured')}
-          />
-        </Row>
-        <OwnAccount account={own('lastfm')} enabled={lastfmOn} />
         <LastfmCredentials info={d} onSaved={setInfo} />
       </Section>
 
       <Section title={t('scrobbling.listenbrainz.title')}>
-        <Row label={t('scrobbling.listenbrainz.enable')} description={t('scrobbling.listenbrainz.enableHelp')} inline>
+        <Row label={t('scrobbling.listenbrainz.enable')} description={connected(d.listenBrainz.users)} inline>
           <Switch
             checked={lbOn}
             onCheckedChange={(v) => toggle.mutate({ listenBrainzEnabled: v })}
@@ -88,12 +88,6 @@ export function ScrobblingSettings() {
             aria-label={t('scrobbling.listenbrainz.enable')}
           />
         </Row>
-        <Row label={t('scrobbling.listenbrainz.status')} description={t('scrobbling.listenbrainz.statusHelp')}>
-          <p className="text-sm text-muted-foreground sm:text-right">
-            {t('scrobbling.users', { count: d.listenBrainz.users, formatted: formatNumber(d.listenBrainz.users) })}
-          </p>
-        </Row>
-        <OwnAccount account={own('listenbrainz')} enabled={lbOn} />
       </Section>
     </div>
   )
@@ -129,7 +123,13 @@ function LastfmCredentials({ info, onSaved }: { info: ScrobblingAdmin; onSaved: 
   return (
     <form onSubmit={submit} className="grid gap-4 p-4" noValidate>
       <div className="grid gap-1">
-        <p className="text-sm font-medium">{t('scrobbling.lastfm.account')}</p>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="text-sm font-medium">{t('scrobbling.lastfm.account')}</p>
+          <Status
+            ok={info.lastfm.configured}
+            label={info.lastfm.configured ? t('scrobbling.lastfm.configured') : t('scrobbling.lastfm.notConfigured')}
+          />
+        </div>
         <p className="text-xs text-muted-foreground">
           {t('scrobbling.lastfm.accountHelp')}{' '}
           <a href={LASTFM_CREATE_URL} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">
@@ -190,28 +190,38 @@ function LastfmCredentials({ info, onSaved }: { info: ScrobblingAdmin; onSaved: 
   )
 }
 
-/** "Your account": whether the signed-in administrator connected their own account, with a link to do so. */
-function OwnAccount({ account, enabled }: { account: ScrobbleAccount | undefined; enabled: boolean }) {
+/**
+ * "Your account": whether the signed-in administrator connected their own account to each
+ * service that is allowed (or still linked), with one link to Settings → Scrobbling.
+ */
+function OwnAccounts({ accounts }: { accounts: { service: ScrobbleService; account: ScrobbleAccount | undefined; enabled: boolean }[] }) {
   const { t } = useTranslation('admin')
-  const linked = !!account?.linked && !account.needsRelink
-  const state = !account
-    ? ''
-    : account.needsRelink
-      ? t('scrobbling.own.needsRelink')
-      : !account.linked
-        ? t('scrobbling.own.notLinked')
-        : account.enabled
-          ? t('scrobbling.own.linked', { user: account.username })
-          : t('scrobbling.own.paused', { user: account.username })
+  const shown = accounts.filter((a) => a.account && (a.enabled || a.account.linked))
+  if (shown.length === 0) return null
+  const anyToConnect = shown.some((a) => a.enabled && !(a.account!.linked && !a.account!.needsRelink))
   return (
-    <Row label={t('scrobbling.own.label')} description={t('scrobbling.own.help')}>
-      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-        {state ? <Status ok={linked && account!.enabled} label={state} /> : null}
-        <Button variant="outline" size="sm" asChild className="max-md:h-11">
-          <Link to="/settings/scrobbling">{linked || !enabled ? t('scrobbling.own.manage') : t('scrobbling.own.connect')}</Link>
-        </Button>
+    <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      <div className="grid gap-1.5">
+        <p className="text-sm font-medium">{t('scrobbling.own.label')}</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {shown.map(({ service, account }) => {
+            const a = account!
+            const linked = a.linked && !a.needsRelink
+            const state = a.needsRelink
+              ? t('scrobbling.own.needsRelink')
+              : !a.linked
+                ? t('scrobbling.own.notLinked')
+                : a.enabled
+                  ? t('scrobbling.own.linked', { user: a.username })
+                  : t('scrobbling.own.paused', { user: a.username })
+            return <Status key={service} ok={linked && a.enabled} label={`${t(`scrobbling.${service}.title`)} · ${state}`} />
+          })}
+        </div>
       </div>
-    </Row>
+      <Button variant="outline" size="sm" asChild className="justify-self-start max-md:h-11">
+        <Link to="/settings/scrobbling">{anyToConnect ? t('scrobbling.own.connect') : t('scrobbling.own.manage')}</Link>
+      </Button>
+    </div>
   )
 }
 

@@ -324,7 +324,7 @@ export default function ManagePage() {
     <Page centered>
       <PageHeader
         title={t('title')}
-        subtitle={first.data ? t('table.count', { count: total, formatted: formatNumber(total) }) : undefined}
+        subtitleInline subtitle={first.data ? t('table.count', { count: total, formatted: formatNumber(total) }) : undefined}
         navActions={
           isMobile && total > 0 ? (
             <Button
@@ -372,9 +372,7 @@ export default function ManagePage() {
                     {t('common:actions.clear')}
                   </Button>
                 </>
-              ) : (
-                <span className="text-muted-foreground">{t('selection.hint')}</span>
-              )}
+              ) : null}
             </p>
             {actions.map((action) => {
               const disabled = busy !== null || (action.id !== 'rescan' && count === 0)

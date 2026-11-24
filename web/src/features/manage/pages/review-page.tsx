@@ -99,7 +99,7 @@ export default function ReviewPage() {
     <Page centered>
       <PageHeader
         title={t('title')}
-        subtitle={items.length > 0 ? t('review.summary', { count: items.length, size: formatBytes(totalSize) }) : t('review.subtitle')}
+        subtitleInline subtitle={items.length > 0 ? t('review.summary', { count: items.length, size: formatBytes(totalSize) }) : undefined}
       >
         <TracksTabs />
       </PageHeader>

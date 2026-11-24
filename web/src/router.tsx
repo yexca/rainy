@@ -92,7 +92,7 @@ export const routes: RouteObject[] = [
                     path: 'admin',
                     element: <RequireAdmin />,
                     children: [
-                      { index: true, element: <Navigate to="users" replace /> },
+                      { index: true, element: <Navigate to="libraries" replace /> },
                       { path: 'users', lazy: page(() => import('@/features/admin/pages/users-page')) },
                       { path: 'libraries', lazy: page(() => import('@/features/admin/pages/libraries-page')) },
                       { path: 'settings', lazy: page(() => import('@/features/admin/pages/settings-page')) },

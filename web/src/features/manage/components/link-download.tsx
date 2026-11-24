@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, Link2, Settings2 } from 'lucide-react'
+import { Download, Settings2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -74,16 +74,7 @@ export function LinkDownload({ libraryId, dir, invalidDir, review }: LinkDownloa
   const canStart = !!data?.enabled && data.ready && url.trim() !== '' && !invalidDir && !start.isPending
 
   return (
-    <section className="grid gap-4 rounded-xl border p-4 sm:p-5">
-      <div className="flex items-start gap-3">
-        <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-          <Link2 className="size-[18px]" strokeWidth={1.75} />
-        </div>
-        <div className="grid gap-0.5">
-          <h2 className="text-sm font-semibold">{t('download.title')}</h2>
-          <p className="text-xs text-muted-foreground">{t('download.subtitle')}</p>
-        </div>
-      </div>
+    <section className="grid gap-4 rounded-xl border p-4 sm:p-5" aria-label={t('download.title')}>
 
       {!data ? (
         status.isError ? (
@@ -114,7 +105,7 @@ export function LinkDownload({ libraryId, dir, invalidDir, review }: LinkDownloa
           }}
         >
           <div className="grid gap-1.5">
-            <Label htmlFor="download-url" className="text-[13px] font-medium text-foreground/75">
+            <Label htmlFor="download-url" className="sr-only">
               {t('download.link')}
             </Label>
             <div className="relative">

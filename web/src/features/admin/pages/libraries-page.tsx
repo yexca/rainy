@@ -60,7 +60,7 @@ export default function LibrariesPage() {
     <Page centered>
       <PageHeader
         title={t('libraries.title')}
-        subtitle={t('libraries.subtitle')}
+        subtitleInline subtitle={libraries.data ? t('libraries.count', { count: list.length }) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           isMobile ? null : (
@@ -106,7 +106,7 @@ export default function LibrariesPage() {
           ) : (
             <ul className="grid gap-3 md:grid-cols-2">
               {list.map((lib) => (
-                <LibraryCard key={lib.id} library={lib} onEdit={() => setEditing({ library: lib })} onDelete={() => setDeleting(lib)} />
+                <LibraryCard key={lib.id} library={lib} scanButtons={list.length > 1} onEdit={() => setEditing({ library: lib })} onDelete={() => setDeleting(lib)} />
               ))}
             </ul>
           )}
@@ -127,7 +127,18 @@ export default function LibrariesPage() {
   )
 }
 
-function LibraryCard({ library, onEdit, onDelete }: { library: LibraryInfo; onEdit: () => void; onDelete: () => void }) {
+/** `scanButtons`: scan this library on its own; with one library the scan panel above does the same. */
+function LibraryCard({
+  library,
+  scanButtons,
+  onEdit,
+  onDelete,
+}: {
+  library: LibraryInfo
+  scanButtons: boolean
+  onEdit: () => void
+  onDelete: () => void
+}) {
   const { t } = useTranslation('admin')
   const scan = useScanStatus()
   const start = useStartScan()
@@ -199,6 +210,7 @@ function LibraryCard({ library, onEdit, onDelete }: { library: LibraryInfo; onEd
         </div>
       </dl>
 
+      {scanButtons ? (
       <div className="mt-auto flex gap-2">
         <Button variant="secondary" className="flex-1 max-sm:h-11" disabled={scanning || start.isPending || !library.exists} onClick={() => start.mutate({ libraryId: library.id })}>
           <ScanSearch />
@@ -208,6 +220,7 @@ function LibraryCard({ library, onEdit, onDelete }: { library: LibraryInfo; onEd
           {t('scan.fullScan')}
         </Button>
       </div>
+      ) : null}
     </li>
   )
 }

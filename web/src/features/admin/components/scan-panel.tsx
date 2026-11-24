@@ -45,16 +45,19 @@ export function ScanPanel({ libraries }: { libraries: LibraryInfo[] }) {
   const scopeName = s && s.libraryId ? libraries.find((l) => l.id === s.libraryId)?.name : undefined
   const elapsed = s?.startedAt ? ((scanning ? now : s.finishedAt || now) - s.startedAt) / 1000 : 0
 
-  const counters: [string, number][] = s
-    ? [
-        [t('scan.filesSeen'), s.filesSeen],
-        [t('scan.added'), s.added],
-        [t('scan.updated'), s.updated],
-        [t('scan.removed'), s.removed],
-        [t('scan.moved'), s.moved],
-        [t('scan.errors'), s.errors],
-      ]
+  // Only what changed; the number of files goes in the summary line once the scan is over.
+  const changes: [string, number][] = s
+    ? (
+        [
+          [t('scan.added'), s.added],
+          [t('scan.updated'), s.updated],
+          [t('scan.removed'), s.removed],
+          [t('scan.moved'), s.moved],
+          [t('scan.errors'), s.errors],
+        ] as [string, number][]
+      ).filter(([, value]) => value > 0)
     : []
+  const counters: [string, number][] = s && scanning ? [[t('scan.filesSeen'), s.filesSeen], ...changes] : changes
 
   return (
     <section className="grid gap-4 rounded-xl border p-4 sm:p-5" aria-live="polite">
@@ -81,7 +84,13 @@ export function ScanPanel({ libraries }: { libraries: LibraryInfo[] }) {
             {scanning
               ? [s?.full ? t('scan.full') : t('scan.quick'), scopeName ?? t('scan.allLibraries'), formatDuration(elapsed)].join(' · ')
               : s?.finishedAt
-                ? t('scan.lastFinished', { when: formatRelative(s.finishedAt), duration: formatDuration(elapsed) })
+                ? [
+                    t('scan.lastFinished', { when: formatRelative(s.finishedAt), duration: formatDuration(elapsed) }),
+                    t('scan.files', { count: s.filesSeen, formatted: formatNumber(s.filesSeen) }),
+                    changes.length === 0 ? t('scan.noChanges') : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
                 : t('scan.never')}
           </p>
         </div>
@@ -105,7 +114,7 @@ export function ScanPanel({ libraries }: { libraries: LibraryInfo[] }) {
         </div>
       ) : null}
 
-      {s && (scanning || s.finishedAt > 0) ? (
+      {s && counters.length > 0 && (scanning || s.finishedAt > 0) ? (
         <dl className="grid grid-cols-3 gap-2 sm:grid-cols-6">
           {counters.map(([label, value]) => (
             <div key={label} className="rounded-lg bg-muted/50 px-3 py-2">

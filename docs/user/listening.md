@@ -108,7 +108,7 @@ Recommendations use only your own library and plays on the server. See also
 ## Scrobbling to Last.fm and ListenBrainz
 
 An administrator first turns the service on in **Admin →
-Scrobbling** (see [Configuration](../operations/configuration.md#server-settings)).
+Settings → Scrobbling** (see [Configuration](../operations/configuration.md#server-settings)).
 That only allows the service: every user, administrators included, then
 connects their own account in **Settings → Scrobbling**, and plays go to that
 user's account:

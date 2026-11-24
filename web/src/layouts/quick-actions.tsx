@@ -40,7 +40,7 @@ import { queryKeys } from '@/lib/query-keys'
 import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSearches } from '@/lib/recent-searches'
 import { cn } from '@/lib/utils'
 
-import { ADMIN_SECTION, FOOTER_NAV, LIBRARY_NAV, TOOLS_SECTION, TRACKS_SECTION, type NavItem } from './nav'
+import { ADMIN_SECTION, FOOTER_NAV, LIBRARY_NAV, sectionPages, TOOLS_SECTION, TRACKS_SECTION, type NavItem } from './nav'
 
 const APPLE = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 const SHORTCUT_LABEL = APPLE ? '⌘K' : 'Ctrl K'
@@ -233,8 +233,8 @@ function SpotlightPalette({ onClose }: { onClose: () => void }) {
     },
   ]
 
-  const manageActions = isManager ? navEntries([...TRACKS_SECTION.tabs, ...TOOLS_SECTION.tabs], manageGroup) : []
-  const adminActions = isAdmin ? navEntries(ADMIN_SECTION.tabs, adminGroup) : []
+  const manageActions = isManager ? navEntries([...sectionPages(TRACKS_SECTION), ...sectionPages(TOOLS_SECTION)], manageGroup) : []
+  const adminActions = isAdmin ? navEntries(sectionPages(ADMIN_SECTION), adminGroup) : []
   const settingsActions = navEntries(
     [...SETTINGS_TABS, ...FOOTER_NAV.filter((item) => item.to !== '/settings')],
     settingsGroup,

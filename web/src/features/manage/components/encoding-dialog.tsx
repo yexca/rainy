@@ -98,7 +98,6 @@ function EncodingBody({ trackIds, onClose, onDone }: { trackIds: readonly string
 
   return (
     <div className="grid gap-4">
-      <p className="text-xs text-muted-foreground">{t('encoding.hint')}</p>
       {body}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&_button]:max-sm:h-11">
         <Button variant="outline" onClick={onClose} disabled={apply.isPending}>
@@ -115,7 +114,7 @@ function EncodingBody({ trackIds, onClose, onDone }: { trackIds: readonly string
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={t('confirmation.editTitle', { count: chosen.length })}
-        description={t('encoding.hint')}
+        description={t('confirmation.editDescription')}
         confirmLabel={t('encoding.apply', { count: chosen.length })}
         twoStep
         onConfirm={() => {

@@ -129,14 +129,9 @@ export function FolderRail({
   onToggleExpand,
   onCollapse,
 }: FolderNavigatorListProps & { onCollapse: () => void }) {
-  const { t } = useTranslation('manage')
-
   return (
     <aside className="sticky top-[calc(var(--app-header-h)+3.5rem)] flex max-h-[calc(100dvh-var(--app-header-h)-var(--player-clearance)-4rem)] flex-col self-start border-r pr-3">
-      <div className="mb-1.5 flex shrink-0 items-center justify-between gap-1">
-        <span className="px-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t('folders.treeTitle')}
-        </span>
+      <div className="mb-1.5 flex shrink-0 items-center justify-end gap-1">
         <FolderRailToggle collapsed={false} onToggle={onCollapse} />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">

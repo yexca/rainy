@@ -16,6 +16,7 @@ import {
   ListMusic,
   MicVocal,
   Music,
+  Plus,
   Radio,
   Settings,
   ShieldCheck,
@@ -37,6 +38,11 @@ export interface NavItem {
   icon: LucideIcon
   /** Active only on an exact match. */
   end?: boolean
+  /**
+   * Pages grouped under this tab: the page shows them as a segmented control and the tab stays
+   * active on each of them. `to` is the first one.
+   */
+  items?: readonly NavItem[]
 }
 
 export const LIBRARY_NAV: readonly NavItem[] = [
@@ -75,9 +81,16 @@ export const TRACKS_SECTION: NavSection = {
   icon: AudioLines,
   tabs: [
     { to: '/manage', labelKey: 'nav.metadata', icon: Tags, end: true },
-    { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
-    { to: '/manage/links', labelKey: 'nav.links', icon: Link2 },
-    { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
+    {
+      to: '/manage/upload',
+      labelKey: 'nav.add',
+      icon: Plus,
+      items: [
+        { to: '/manage/upload', labelKey: 'nav.upload', icon: Upload },
+        { to: '/manage/links', labelKey: 'nav.links', icon: Link2 },
+        { to: '/manage/online', labelKey: 'nav.online', icon: Globe },
+      ],
+    },
     { to: '/manage/review', labelKey: 'nav.review', icon: ClipboardCheck },
   ],
 }
@@ -99,19 +112,42 @@ export const ADMIN_SECTION: NavSection = {
   labelKey: 'nav.admin',
   icon: ShieldCheck,
   tabs: [
-    { to: '/admin/users', labelKey: 'nav.users', icon: Users },
     { to: '/admin/libraries', labelKey: 'nav.libraries', icon: HardDrive },
-    { to: '/admin/settings', labelKey: 'nav.serverSettings', icon: SlidersHorizontal, end: true },
-    { to: '/admin/settings/ytdlp', labelKey: 'nav.ytdlp', icon: Download },
-    { to: '/admin/settings/sources', labelKey: 'nav.sources', icon: ListMusic },
-    { to: '/admin/settings/scrobbling', labelKey: 'nav.scrobbling', icon: AudioWaveform },
-    { to: '/admin/settings/system', labelKey: 'nav.system', icon: Info },
+    {
+      to: '/admin/settings',
+      labelKey: 'nav.serverSettings',
+      icon: SlidersHorizontal,
+      end: true,
+      items: [
+        { to: '/admin/settings', labelKey: 'nav.general', icon: SlidersHorizontal, end: true },
+        { to: '/admin/settings/ytdlp', labelKey: 'nav.ytdlp', icon: Download },
+        { to: '/admin/settings/sources', labelKey: 'nav.sources', icon: ListMusic },
+        { to: '/admin/settings/scrobbling', labelKey: 'nav.scrobbling', icon: AudioWaveform },
+        { to: '/admin/settings/system', labelKey: 'nav.system', icon: Info },
+      ],
+    },
+    { to: '/admin/users', labelKey: 'nav.users', icon: Users },
   ],
+}
+
+/** Whether `pathname` is `item` or one of its grouped pages. */
+export function navItemActive(item: NavItem, pathname: string): boolean {
+  return pathMatches(pathname, item.to, item.end) || (item.items ?? []).some((sub) => navItemActive(sub, pathname))
 }
 
 /** Whether `pathname` is one of the section's tabs. */
 export function isSectionPath(section: NavSection, pathname: string): boolean {
-  return section.tabs.some((tab) => pathMatches(pathname, tab.to, tab.end))
+  return section.tabs.some((tab) => navItemActive(tab, pathname))
+}
+
+/** The pages grouped with `to` under one of `tabs` (`NavItem.items`). */
+export function groupedPages(tabs: readonly NavItem[], to: string): readonly NavItem[] {
+  return tabs.find((tab) => tab.items?.some((item) => item.to === to))?.items ?? []
+}
+
+/** The section's pages, with grouped pages listed one by one (quick actions). */
+export function sectionPages(section: NavSection): NavItem[] {
+  return section.tabs.flatMap((tab) => tab.items ?? [tab])
 }
 
 export interface TabItem extends NavItem {

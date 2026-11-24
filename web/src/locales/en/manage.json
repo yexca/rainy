@@ -56,16 +56,14 @@
     "loadFailed_one": "{{count}} track couldn't be loaded and is left out.",
     "loadFailed_other": "{{count}} tracks couldn't be loaded and are left out.",
     "multipleValues": "Multiple values",
-    "multiHint": "Separate multiple values with “;”.",
-    "batchHint_one": "Editing {{count}} track. Fields showing “Multiple values” keep each track’s own value unless you type a new one.",
-    "batchHint_other": "Editing {{count}} tracks. Fields showing “Multiple values” keep each track’s own value unless you type a new one.",
     "dateHint": "Use YYYY or YYYY-MM-DD.",
     "revertField": "Revert {{field}}",
     "revert": "Revert",
     "revertAll": "Revert all",
     "removeValue": "Remove {{value}}",
+    "editValue": "Edit {{value}}",
+    "addValue": "Add…",
     "addGenre": "Add genre…",
-    "noChanges": "No changes",
     "pending_one": "Unsaved changes in {{count}} track",
     "pending_other": "Unsaved changes in {{count}} tracks",
     "saved_one": "Saved changes to {{count}} track",
@@ -90,7 +88,6 @@
     "undo": "Undo",
     "remove": "Remove cover",
     "willRemove": "Cover will be removed",
-    "hasEmbedded": "This file has an embedded cover.",
     "noEmbedded": "No embedded cover — showing the album artwork.",
     "embeddedCount": "{{count}} of {{total}} files have an embedded cover.",
     "notImage": "Please choose an image file.",
@@ -142,7 +139,6 @@
     "bilingualDone_other": "Split {{count}} lines into original and translation."
   },
   "raw": {
-    "hint": "Every tag stored in the files. Keys use TagLib names (TITLE, ARTIST, …); empty keys are removed on save.",
     "empty": "No tags.",
     "partial": "Some",
     "deleted": "Will be removed",
@@ -367,8 +363,7 @@
     "count_other": "{{formatted}} selected",
     "selectAllMatching_one": "Select all {{formatted}}",
     "selectAllMatching_other": "Select all {{formatted}}",
-    "deselectAll": "Deselect all",
-    "hint": "Click to select · Shift or Ctrl/⌘ to add · double-click to edit"
+    "deselectAll": "Deselect all"
   },
   "rescan": {
     "started_one": "Rescanning {{count}} folder…",
@@ -408,7 +403,6 @@
     "description_one": "Repair garbled (mojibake) tags in {{count}} track.",
     "description_other": "Repair garbled (mojibake) tags in {{count}} tracks.",
     "descriptionAll": "Repair garbled (mojibake) tags in every track the library doctor flagged.",
-    "hint": "Tags written in GBK, Big5 or Shift-JIS by old software often look like “ÄãºÃ”. Review the repairs, then write them to the files.",
     "none": "Nothing to fix",
     "noneDescription": "No garbled tags were detected in these tracks.",
     "include": "Include this file",
@@ -440,20 +434,18 @@
   },
   "upload": {
     "title": "Upload",
-    "subtitle": "Add music from this device.",
     "target": "Destination",
     "folder": "Folder",
     "folderPlaceholder": "Library root",
     "browse": "Browse",
     "invalidDir": "The folder can't contain “.” or “..” segments.",
-    "folderOrganizeHint": "Organized files are placed under this folder.",
     "organize": "Organize by tags",
-    "organizeHint": "Place files automatically using the rename pattern:",
     "organizeOff": "Files keep their names",
+    "byTags": "By tags",
+    "asIs": "As is",
     "organizeOffHint": "Added files go into the folder above as they are; folder uploads keep their structure.",
     "organizeSettings": "Change in settings",
     "dropTitle": "Drop files or folders here",
-    "dropHint": "Audio files only (covers and lyrics are edited in the tag editor).",
     "chooseFiles": "Choose files",
     "chooseFolder": "Choose folder",
     "queued_one": "Uploading {{count}} file",
@@ -491,9 +483,7 @@
     "imported_other": "{{count}} without an artist or album tag"
   },
   "download": {
-    "pageSubtitle": "Download the audio of YouTube and bilibili videos into the library.",
     "title": "From a YouTube or bilibili link",
-    "subtitle": "The server downloads the audio with yt-dlp and adds it to the destination above.",
     "statusError": "Couldn't load the download status.",
     "disabled": "Downloading from links is turned off.",
     "notInstalled": "yt-dlp isn't installed on the server yet.",
@@ -539,7 +529,6 @@
     }
   },
   "onlineMusic": {
-    "subtitle": "Search online music catalogues and download songs into your library through music sources.",
     "disabledTitle": "Online music is off",
     "disabledAdmin": "Turn it on and add a music source in Settings → Sources.",
     "disabledManager": "An administrator can turn it on in Settings → Sources.",
@@ -574,7 +563,6 @@
     "queued_one": "Added {{count}} song to the downloads",
     "queued_other": "Added {{count}} songs to the downloads",
     "options": "Download options",
-    "organized": "organized by tags",
     "withLyrics": "lyrics",
     "withCover": "cover",
     "quality": "Quality",
@@ -602,7 +590,6 @@
   },
   "folders": {
     "title": "Folders",
-    "subtitle": "Browse the files on disk.",
     "root": "Root",
     "treeTitle": "Folders",
     "breadcrumbs": "Folder path",
@@ -650,7 +637,6 @@
     "showAllImages_one": "Show all {{count}} image",
     "showAllImages_other": "Show all {{count}} images",
     "empty": "This folder is empty",
-    "emptyDescription": "Upload music into it, or pick another folder.",
     "sections": {
       "folders": "Folders",
       "tracks": "Audio",
@@ -670,13 +656,10 @@
   },
   "doctor": {
     "title": "Library doctor",
-    "subtitle": "Find and fix common library problems.",
     "healthy": "Everything looks healthy.",
     "issueCount_one": "{{count}} issue found",
     "issueCount_other": "{{count}} issues found",
-    "pick": "Choose a check above to see details.",
     "none": "No issues",
-    "noneDescription": "Nothing to fix here.",
     "loadMore_one": "Load more ({{count}} left)",
     "loadMore_other": "Load more ({{count}} left)",
     "moreTracks_one": "…and {{count}} more track",
@@ -699,34 +682,28 @@
     "types": {
       "missing_tags": {
         "title": "Missing tags",
-        "description": "Tracks without title, artist or album.",
         "help": "These tracks fall back to file names or “Unknown” in players."
       },
       "no_cover": {
         "title": "No cover",
-        "description": "Albums without any artwork.",
         "help": "Add an embedded cover or a folder image (cover.jpg)."
       },
       "duplicates": {
         "title": "Duplicates",
-        "description": "The same song more than once.",
         "help": "Tracks with the same title, artist and duration. Keep the best copy and move the rest to the trash."
       },
       "missing_files": {
         "title": "Missing files",
-        "description": "Tracks whose file is gone.",
         "help": "The file was moved or deleted outside Rainy. Rescan to pick up moves, or remove the entries."
       },
       "encoding": {
         "title": "Encoding",
-        "description": "Garbled tags with broken character encoding.",
         "help": "Tags that look like GBK / Big5 / Shift-JIS read as Latin-1 (mojibake)."
       }
     }
   },
   "trash": {
     "title": "Trash",
-    "subtitle": "Deleted files can be restored until the trash is emptied.",
     "summary_one": "{{count}} file · {{size}}",
     "summary_other": "{{count}} files · {{size}}",
     "selectHint": "Select files to restore or delete",
@@ -749,7 +726,6 @@
   },
   "history": {
     "title": "Edit history",
-    "subtitle": "Every change Rainy made to your files.",
     "count_one": "{{count}} change",
     "count_other": "{{count}} changes",
     "filteredBy": "Track: {{title}}",
@@ -796,12 +772,11 @@
     }
   },
   "review": {
-    "subtitle": "Downloads waiting for you to check their tags before they are added to the library.",
     "summary_one": "{{count}} download waiting · {{size}}",
     "summary_other": "{{count}} downloads waiting · {{size}}",
     "option": "Review before importing",
+    "chip": "Review first",
     "optionHint": "Downloads wait in Tracks › Review, where you can correct their tags before they are added to the library.",
-    "optionShort": "review first",
     "open": "Review",
     "waiting_one": "{{count}} waiting for review",
     "waiting_other": "{{count}} waiting for review",

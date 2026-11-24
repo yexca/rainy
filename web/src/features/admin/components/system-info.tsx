@@ -32,7 +32,7 @@ export function SystemInfo() {
   if (system.isPending) return <PageLoader />
   if (system.isError) return <ErrorState error={system.error} onRetry={() => void system.refetch()} />
   const s = system.data
-  const buildDate = Number.isFinite(Date.parse(s.buildDate)) ? formatDateTime(Date.parse(s.buildDate)) : s.buildDate || '—'
+  const buildDate = Number.isFinite(Date.parse(s.buildDate)) ? formatDateTime(Date.parse(s.buildDate)) : s.buildDate
 
   const st = stats.data
   const maxFormat = Math.max(1, ...(st?.formats ?? []).map((f) => f.count))
@@ -41,8 +41,8 @@ export function SystemInfo() {
     <div className="grid gap-8">
       <Group title={t('system.server')}>
         <Item label={t('system.version')} value={<span className="font-mono">{s.version || '—'}</span>} />
-        <Item label={t('system.commit')} value={<span className="font-mono">{s.commit ? s.commit.slice(0, 12) : '—'}</span>} />
-        <Item label={t('system.buildDate')} value={buildDate} />
+        {s.commit ? <Item label={t('system.commit')} value={<span className="font-mono">{s.commit.slice(0, 12)}</span>} /> : null}
+        {buildDate ? <Item label={t('system.buildDate')} value={buildDate} /> : null}
         <Item label={t('system.runtime')} value={`${s.goVersion} · ${s.os}/${s.arch}`} />
         <Item label={t('system.uptime')} value={formatDurationLong(s.uptimeSec)} />
       </Group>

@@ -21,6 +21,16 @@ explains the rules every UI change must keep.
 - **No redundant helper text.** Avoid helper labels and explanatory captions
   that repeat what the layout, grouping, icons, and visual hierarchy already
   show. Icon buttons keep their accessible names.
+  - A page subtitle carries live data (a count, a size, a status such as
+    "5 issues found") or is left out; it never describes what the page is
+    for. On management pages it sits to the right of the title, on its
+    baseline, so the header keeps its height while the count loads.
+  - Express a rule through the control instead of a caption: multi-value tags
+    are chips, a cover preview is its own drop target and picker, a disabled
+    Save button means there is nothing to save.
+  - A one-line explanation that is still useful goes in a `title` tooltip.
+    Warnings about consequences (files are modified, rights to download)
+    stay visible.
 - **Accessible by default.** Every icon button has an `aria-label`, focus rings
   stay visible, and color contrast meets WCAG AA.
 

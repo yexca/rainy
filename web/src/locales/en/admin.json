@@ -10,7 +10,6 @@
   },
   "users": {
     "title": "Users",
-    "subtitle": "Who can sign in to Rainy and what they may do.",
     "count_one": "{{count}} user",
     "count_other": "{{count}} users",
     "add": "Add user",
@@ -53,7 +52,8 @@
   },
   "libraries": {
     "title": "Libraries & scanning",
-    "subtitle": "Music folders Rainy indexes, and their scan status.",
+    "count_one": "{{count}} library",
+    "count_other": "{{count}} libraries",
     "listTitle": "Libraries",
     "add": "Add library",
     "addTitle": "Add library",
@@ -95,6 +95,9 @@
     "never": "Not scanned yet",
     "scanningNow": "Scanning…",
     "statusUnavailable": "Scan status is unavailable.",
+    "files_one": "{{formatted}} file",
+    "files_other": "{{formatted}} files",
+    "noChanges": "No changes",
     "filesSeen": "Files",
     "added": "Added",
     "updated": "Updated",
@@ -113,7 +116,6 @@
   },
   "settings": {
     "title": "Server settings",
-    "subtitle": "Settings for everyone using this server.",
     "saved": "Settings saved",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
@@ -140,15 +142,12 @@
       "renamePattern": "Default rename pattern"
     },
     "help": {
-      "scanInterval": "How often to look for new or changed files.",
       "fixEncodingOnScan": "Show GBK / Big5 / Shift-JIS tags correctly. Files are not modified.",
-      "genreSeparators": "Characters that split one genre tag into several.",
       "ignoredArticles": "Words skipped when sorting artists (“The Example Band” under E).",
       "coverArtFiles": "Folder images used as album covers, in priority order.",
       "onlineMetadata": "Lets managers search NetEase Cloud Music, QQ Music, Kugou, Kuwo and iTunes from the tag editor. The server sends the search terms to these services; nothing is sent until someone searches.",
       "onlineMetadataChinaIp": "Adds an X-Real-IP header with a random mainland-China address to NetEase, QQ Music, Kugou and Kuwo requests, which hide some songs from searches outside China. The header is spoofed and not guaranteed to work; iTunes and cover downloads never get it.",
       "transcodeFormat": "Used when a client asks for a lower bitrate.",
-      "transcodeBitrate": "Default bitrate for transcoded streams.",
       "enableDownloads": "Users with the download permission can save original files.",
       "organizeByTags": "Uploads, link downloads and online music are placed by the pattern below, under the folder chosen when adding them. When off, files keep their names in that folder.",
       "reviewDownloads": "Link downloads and online music wait in Tracks › Review, where their tags can be corrected before they are placed in the library. Each download can still choose otherwise.",
@@ -176,9 +175,8 @@
       "cookies": "Sign-in cookies"
     },
     "enable": "Allow downloads from YouTube and bilibili",
-    "enableHelp": "Managers can paste a link in Tracks → Links; the server downloads the audio with yt-dlp and adds it to the library. The server contacts YouTube or bilibili only when someone starts a download, and GitHub only when you check for or install an update.",
+    "enableHelp": "Managers can paste a link in Tracks → Add → Links; the server downloads the audio with yt-dlp and adds it to the library. The server contacts YouTube or bilibili only when someone starts a download, and GitHub only when you check for or install an update.",
     "version": "Installed version",
-    "managedHelp": "Rainy installs the official yt-dlp release in the data folder.",
     "unmanagedHelp": "Managed by the server operator (RAINY_YTDLP_PATH); update it there.",
     "notInstalled": "Not installed",
     "updateAvailable": "{{version}} available",
@@ -194,7 +192,6 @@
     "installFailed": "Installing yt-dlp failed",
     "upToDate": "yt-dlp {{version}} is up to date",
     "requirements": "Requirements",
-    "requirementsHelp": "ffmpeg extracts the audio; a JavaScript runtime solves YouTube’s challenges.",
     "ffmpegOk": "ffmpeg found",
     "ffmpegMissing": "ffmpeg not found; downloads can’t run",
     "jsRuntime": "JavaScript runtime: {{name}}",
@@ -258,7 +255,7 @@
       "sources_other": "Sources ({{count}})"
     },
     "enable": "Allow online music and music sources",
-    "enableHelp": "Managers can then search online catalogues in Tracks → Online and download songs into a library. Music sources are lx-music custom source scripts that run on this server and contact the servers their authors chose.",
+    "enableHelp": "Managers can then search online catalogues in Tracks → Add → Online and download songs into a library. Music sources are lx-music custom source scripts that run on this server and contact the servers their authors chose.",
     "modes": {
       "auto": "Automatic fallback",
       "autoHelp": "Try the enabled sources from top to bottom until one delivers the song.",
@@ -268,7 +265,7 @@
       "choose": "Choose a source",
       "fixedUnavailable": "This source is disabled or removed; downloads will fail until you choose another one."
     },
-    "help": "Order sets the priority for automatic fallback. Rainy doesn’t include any source: import scripts you trust.",
+    "help": "Rainy doesn’t include any source: import scripts you trust.",
     "importButton": "Import",
     "empty": "No sources yet. Import an lx-music custom source script (.js).",
     "disabled": "disabled",
@@ -374,8 +371,6 @@
     "lastfm": {
       "title": "Last.fm",
       "enable": "Allow scrobbling to Last.fm",
-      "enableHelp": "Off by default. Also needs the API account below.",
-      "status": "Status",
       "configured": "API account set",
       "notConfigured": "API key or shared secret missing",
       "account": "Last.fm API account",
@@ -392,14 +387,10 @@
     },
     "listenbrainz": {
       "title": "ListenBrainz",
-      "enable": "Allow scrobbling to ListenBrainz",
-      "enableHelp": "Off by default. No API account is needed: users paste their own token.",
-      "status": "Accounts",
-      "statusHelp": "Users connect in Settings → Scrobbling."
+      "enable": "Allow scrobbling to ListenBrainz"
     },
     "own": {
       "label": "Your account",
-      "help": "These settings only allow the service. Every user, you included, connects their own account in Settings → Scrobbling, and plays go to that account.",
       "notLinked": "Not connected",
       "linked": "Connected as {{user}}",
       "paused": "Paused · {{user}}",

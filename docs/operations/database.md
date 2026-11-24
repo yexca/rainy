@@ -142,7 +142,7 @@ migrations run automatically.
 
 ## Maintenance
 
-- **Clear the cover cache** under **Admin → System**, or delete
+- **Clear the cover cache** under **Admin → Settings → System**, or delete
   `cache/` while Rainy is stopped. The same tab shows the database, cache, and
   trash sizes.
 - **Empty the trash** from **Library tools → Trash** to reclaim space.

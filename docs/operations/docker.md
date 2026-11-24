@@ -4,7 +4,7 @@ Rainy ships as one Docker image for `linux/amd64` and `linux/arm64` (Synology
 Plus models, ARM NAS devices, and Raspberry Pi 4/5 included). The image
 contains the server, the web app, ffmpeg, and QuickJS (the JavaScript runtime
 yt-dlp uses for YouTube). yt-dlp itself is not included; an administrator
-installs it from **Admin → yt-dlp** when needed. 32-bit ARM is not supported.
+installs it from **Admin → Settings → yt-dlp** when needed. 32-bit ARM is not supported.
 
 ## Default Stack
 

@@ -50,6 +50,14 @@ function FileCard({ item }: { item: TrackTags }) {
     [t('file.modified'), formatDateTime(f.mtime || item.track.mtime)],
     [t('file.added'), formatDateTime(item.track.createdAt)],
   ]
+  if (item.pictures.length > 0) {
+    rows.push([
+      t('cover.pictures'),
+      item.pictures
+        .map((p) => [p.type || t('cover.pictureType'), p.mimeType, p.description ? `“${p.description}”` : ''].filter(Boolean).join(' · '))
+        .join(', '),
+    ])
+  }
   return (
     <section className="rounded-lg border p-3">
       <div className="mb-2 flex items-start gap-2">
@@ -65,7 +73,9 @@ function FileCard({ item }: { item: TrackTags }) {
         {rows.map(([label, value]) => (
           <div key={label} className="contents">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className="tnum min-w-0 truncate">{value}</dd>
+            <dd className="tnum min-w-0 truncate" title={typeof value === 'string' ? value : undefined}>
+              {value}
+            </dd>
           </div>
         ))}
       </dl>

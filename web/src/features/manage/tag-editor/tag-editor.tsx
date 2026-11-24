@@ -264,7 +264,7 @@ export function TagEditor({ trackIds, onClose, onRequestClose, onDirtyChange }: 
 
       <footer className="hairline-t flex items-center gap-3 px-4 pt-3 pb-[calc(var(--safe-bottom)+0.75rem)] sm:px-5 sm:pb-4">
         <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
-          {dirty ? t('editor.pending', { count: Math.max(tagEdits.length, cover || lyricsDirty ? 1 : 0) }) : t('editor.noChanges')}
+          {dirty ? t('editor.pending', { count: Math.max(tagEdits.length, cover || lyricsDirty ? 1 : 0) }) : null}
         </p>
         {dirty ? (
           <Button

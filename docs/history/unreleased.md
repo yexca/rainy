@@ -63,6 +63,33 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   that groups subfolders, playable audio tracks with multi-select tag actions,
   artwork thumbnails, and `.lrc` / text files with built-in image and text
   previews.
+- Management pages are quieter: page subtitles show only counts and status,
+  and explanatory captions are gone from the track table, upload area, and
+  tag editor. In the tag editor, artists, album artists, and composers are
+  chips like genres (type `;` or press Enter to add one, click one to edit
+  it), the cover preview is clickable to choose a new image, and embedded
+  picture details move to the **File** tab.
+- **Library tools → Doctor** shows only the checks with problems as cards and
+  opens the first one; passing checks shrink to green chips. **Folders**
+  drops repeated headings: content group titles appear only when a folder
+  holds more than one kind of file, and rescanning lives in the **Actions**
+  menu.
+- **Tracks** has three tabs: **Metadata**, **Add**, and **Review**. **Add**
+  switches between **Upload**, **Links**, and **Online** beside one row of
+  destination chips (library, folder, organizing by tags, and **Review
+  first**), whose details open from each chip. **Review** shows how many
+  downloads are waiting and appears only while some are. Existing
+  `/manage/upload`, `/manage/links`, and `/manage/online` links keep working.
+- **Admin** has three tabs: **Libraries**, **Settings**, and **Users**.
+  **Settings** switches between **General**, **yt-dlp**, **Sources**,
+  **Scrobbling**, and **System** at the top of the page; existing links keep
+  working, and **Admin** opens on **Libraries**. Settings
+  drop captions that repeated their labels. **Libraries** shows scan buttons
+  on each library only when there is more than one, and after a scan lists
+  only what changed. **Scrobbling** shows your own accounts once, above the
+  services.
+- On Tracks, Library tools, and Admin pages, counts such as "27 tracks" sit
+  to the right of the page title instead of below it.
 
 </details>
 
