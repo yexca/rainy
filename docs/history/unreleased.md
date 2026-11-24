@@ -78,5 +78,10 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   `make audit`, so a new advisory no longer fails an unrelated pull request.
   A pull request that changes a Go or web dependency manifest still runs the
   matching audit and needs it to pass.
+- Agent instructions are split into a short root `AGENTS.md`, area guides in
+  `internal/`, `web/`, and `docs/`, and `migration` and `release` skills in
+  `.claude/skills/`. Changes to them count as documentation in the PR plan.
+- `make docs-check` also checks that every link's heading anchor exists, and
+  covers the area guides and skills.
 
 </details>

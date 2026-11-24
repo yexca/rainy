@@ -92,7 +92,7 @@ explains how they map to Actions jobs.
 Public documentation lives under `docs/`. Where each topic belongs is listed
 in [Documentation Rules](docs/README.md#documentation-rules), and the writing
 rules (present tense, no change narration, one place per fact) are in the
-[agent guide](AGENTS.md#documentation). In short:
+[documentation agent guide](docs/AGENTS.md#writing-rules). In short:
 
 - Describe the current system. Release notes in `docs/history/` are the only
   place for change history: record a user-facing change as a bullet in the

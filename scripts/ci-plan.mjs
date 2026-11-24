@@ -29,7 +29,7 @@ export const plannedJobs = {
 };
 
 const docsPattern =
-  /^(README(?:\.[\w-]+)?\.md|AGENTS\.md|CONTRIBUTING\.md|SECURITY\.md|PRIVACY\.md|LICENSE|\.github\/pull_request_template\.md)$/;
+  /^(README(?:\.[\w-]+)?\.md|(?:[\w.-]+\/)*AGENTS\.md|\.claude\/skills\/.+\.md|CONTRIBUTING\.md|SECURITY\.md|PRIVACY\.md|LICENSE|\.github\/pull_request_template\.md)$/;
 const globalPattern =
   /^(Makefile|VERSION|\.nvmrc|\.github\/|scripts\/|go\.(mod|sum)$|web\/(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$)/;
 const productionPattern =

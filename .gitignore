@@ -44,4 +44,5 @@ Thumbs.db
 .codegraph/
 .claude/*
 !.claude/settings.json
+!.claude/skills/
 .agents/

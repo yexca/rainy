@@ -76,7 +76,7 @@ make frontend-lint       # eslint
 make frontend-test       # helper unit tests (node --test "tests/**/*.test.ts")
 make frontend-audit      # dependency audit
 make frontend-build      # production build into web/dist
-make docs-check          # documentation link check (frontend-docs is an alias)
+make docs-check          # documentation link and anchor check (frontend-docs is an alias)
 ```
 
 Pure, framework-free helpers such as the bilingual lyrics analyzer

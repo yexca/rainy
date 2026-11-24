@@ -81,7 +81,7 @@ Security reporters should read:
 - Durable design choices belong in [ADRs](decisions/index.md).
 - Release notes and pending changes belong in [History](history/index.md).
   Every other page describes only the current system; see the writing rules in
-  the [repository agent guide](../AGENTS.md#documentation).
+  the [documentation agent guide](AGENTS.md#writing-rules).
 - English is canonical. The translated READMEs under `readme/` summarize the
   English README and link back to the English documentation.
 - Use reserved examples in every public document: `example.com` domains,

@@ -104,7 +104,7 @@ rainy/
 - Keep packages free of import cycles: `db`, `model`, `util`, `config`, `buildinfo`, `tags`,
   `events` and `nowplaying` import nothing internal; `store` imports `db`, `model`, `util`;
   `auth` imports `store` and `model`; services import `store` but never `api`, `subsonic`,
-  `server` or `app` (layering in [AGENTS.md](../../AGENTS.md#code-organization)).
+  `server` or `app` (layering in the [backend agent guide](../../internal/AGENTS.md#layering)).
 
 ### Go style
 - Idiomatic, small functions, table-driven tests (`*_test.go` next to code).
@@ -2006,6 +2006,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.6 i18n
 - i18next with namespaces = files in `locales/<lng>/<ns>.json`; languages `zh` (简体中文) and `en`; detection: saved choice → `navigator.language` (`zh*` → zh) → en.
+- `en` is the base locale and `fallbackLng`: a new string is written in `en` first and added to `zh` in the same change. The backend stores and returns codes or English text, never localized display strings; the web app translates them.
 - Namespaces: `common` (navigation, shared actions, errors, mascot lines), `auth`, `library`, `player`, `settings`, `manage`, `admin`; a feature keeps its strings in its own namespace and shares only through `common`. `defaultNS` and `fallbackNS` are `common`; the saved choice is `localStorage` `rainy.lang`, and `setLanguage()` switches and persists it.
 
 ## 10. Build, run, test

@@ -54,7 +54,7 @@ listing both sides of renames and deleted paths:
 
 | Changed area | Planned jobs beside Plan, Policy, and Gate |
 | --- | --- |
-| Only public docs, root guides, the pull request template, or license | None |
+| Only public docs, root and area agent guides, skills in `.claude/skills/`, the pull request template, or license | None |
 | `cmd/`, `internal/`, or `web/embed.go` | Backend and Smoke |
 | Other `web/` files | Style, Frontend, and Smoke |
 | Dockerfile, entrypoint, Compose, deployment examples | Smoke |

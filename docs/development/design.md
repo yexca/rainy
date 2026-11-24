@@ -17,7 +17,10 @@ explains the rules every UI change must keep.
 - **Accent sparingly.** The accent color marks play buttons, active
   navigation, and progress, not decoration.
 - **Every string is translated.** Use i18next keys with both `en` and `zh`
-  text; never hard-code visible copy.
+  text, `en` first as the base locale; never hard-code visible copy.
+- **No redundant helper text.** Avoid helper labels and explanatory captions
+  that repeat what the layout, grouping, icons, and visual hierarchy already
+  show. Icon buttons keep their accessible names.
 - **Accessible by default.** Every icon button has an `aria-label`, focus rings
   stay visible, and color contrast meets WCAG AA.
 
