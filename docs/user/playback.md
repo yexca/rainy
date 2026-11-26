@@ -52,8 +52,10 @@ the Media Session API.
   queue and the lyrics can be open at the same time.
 - Long songs (10 minutes or longer by default) are left out when you play a
   list or add several songs, and a message says how many. The song you tap
-  still plays, and a list of only long songs is queued as it is. Turn this
-  off or change the length under **Settings → Playback**.
+  always plays, and when it is a long song the list's other long songs stay
+  in the queue too, so an album of long pieces plays through from there. A
+  list of only long songs is queued as it is. Turn this off or change the
+  length under **Settings → Playback**.
 - The queue is saved on the device immediately and on the server shortly
   after, so you can reload the page, or continue in a Subsonic app that
   supports play-queue sync, where you left off.

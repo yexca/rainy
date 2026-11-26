@@ -77,7 +77,7 @@
     "lyricsTranslation": "显示歌词翻译",
     "lyricsTranslationHint": "在双语歌词的每一行下方显示译文。",
     "skipLong": "跳过长音乐",
-    "skipLongHint": "播放列表或添加到播放队列时，不加入 {{minutes}} 分钟及以上的歌曲，无限模式也不会推荐它们。你单独点播的歌曲照常播放，全是长音乐的列表也会照常加入。",
+    "skipLongHint": "播放列表或添加到播放队列时，不加入 {{minutes}} 分钟及以上的歌曲，无限模式也不会推荐它们。你点播长音乐时，列表里的其他长音乐会一起加入；全是长音乐的列表也会照常加入。",
     "longMinutes": "长音乐时长",
     "longMinutesHint": "达到此时长的歌曲视为长音乐（{{min}}–{{max}} 分钟）。",
     "minutesUnit": "分钟",

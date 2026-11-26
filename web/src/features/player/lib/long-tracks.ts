@@ -31,8 +31,9 @@ export interface LongTrackFilter<T> {
 }
 
 /**
- * Leaves out long songs. The song at `keep` (the one the user picked) always stays, and when
- * every song is long nothing is left out, so asking for long songs alone still queues them.
+ * Leaves out long songs. Nothing is left out when every song is long, or when the song at
+ * `keep` (the one the user picked) is long: picking a long song from an album of long pieces
+ * plays on through the rest of them. A short picked song always stays.
  */
 export function withoutLongTracks<T extends LongTrackItem>(
   tracks: readonly T[],
@@ -40,12 +41,15 @@ export function withoutLongTracks<T extends LongTrackItem>(
   keep?: number,
 ): LongTrackFilter<T> {
   const picked = keep !== undefined && keep >= 0 && keep < tracks.length ? keep : -1
-  if (tracks.every((t) => isLongTrack(t, limitSeconds))) return { tracks: tracks.slice(), index: picked, skipped: 0 }
+  const wantsLong = picked >= 0 && isLongTrack(tracks[picked], limitSeconds)
+  if (wantsLong || tracks.every((t) => isLongTrack(t, limitSeconds))) {
+    return { tracks: tracks.slice(), index: picked, skipped: 0 }
+  }
   const out: T[] = []
   let index = -1
   for (let i = 0; i < tracks.length; i++) {
+    if (isLongTrack(tracks[i], limitSeconds)) continue
     if (i === picked) index = out.length
-    else if (isLongTrack(tracks[i], limitSeconds)) continue
     out.push(tracks[i])
   }
   return { tracks: out, index, skipped: tracks.length - out.length }

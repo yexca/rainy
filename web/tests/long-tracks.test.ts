@@ -40,18 +40,19 @@ describe('withoutLongTracks', () => {
     assert.equal(r.index, -1)
   })
 
-  it('keeps the picked song even when it is long and moves its index', () => {
+  it('keeps the whole list when the picked song is long', () => {
+    // An album of long pieces with a short interlude: picking one plays on through the others.
     const r = withoutLongTracks(list, LIMIT, 3)
-    assert.deepEqual(ids(r.tracks), ['a', 'b', 'live'])
-    assert.equal(r.index, 2)
-    assert.equal(r.skipped, 1)
-    assert.equal(r.tracks[r.index].id, 'live')
+    assert.deepEqual(ids(r.tracks), ids(list))
+    assert.equal(r.index, 3)
+    assert.equal(r.skipped, 0)
   })
 
-  it('maps a short picked song to its new position', () => {
+  it('keeps a short picked song and maps it to its new position', () => {
     const r = withoutLongTracks(list, LIMIT, 2)
     assert.deepEqual(ids(r.tracks), ['a', 'b'])
     assert.equal(r.index, 1)
+    assert.equal(r.skipped, 2)
   })
 
   it('leaves nothing out when every song is long', () => {

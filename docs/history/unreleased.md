@@ -18,6 +18,10 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
 - The full-screen player remembers whether you left the lyrics open. On
   phones it starts on the artwork until you open the lyrics; on tablets and
   desktops it starts on the lyrics until you close them.
+- Tapping a long song in an album or list keeps the list's other long songs in
+  the queue, so an album of long pieces with a short interlude plays through
+  instead of jumping to the short songs. Tapping a short song still leaves the
+  long ones out.
 
 </details>
 

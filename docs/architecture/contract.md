@@ -1830,7 +1830,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   whole minutes 1–600, default 10; both in `usePlaybackPrefs`, persisted as `rainy.playback`), `playTracks`, `playNext`
   and `addToQueue` leave out non-radio songs whose `duration` is at least the limit and toast how many
   (`player:longTracks.skipped`). The song at an explicit `startIndex` always stays (callers playing a whole list pass
-  `undefined`), and a list whose songs are all long is queued unchanged. `appendAuto` drops long suggestions silently.
+  `undefined`); when it is long, or when every song in the list is long, the list is queued unchanged. `appendAuto` drops long suggestions silently.
   `restoreQueue` never filters.
   Playback position lives in a separate high-frequency store `usePlayback` (`currentTime, duration, buffered, buffering, seek(t)`; the engine publishes with `update` and registers its seek handler) so lists don't re-render.
 - Shell slots imported from the player feature: `<PlayerDock/>` (tablet/desktop: bottom bar or floating window; positions itself), `<MiniPlayer/>` (mobile, above tab bar), `<NowPlayingSheet/>`, `<AudioEngine/>` (headless), `<MascotCompanion/>` (tablet/desktop while `mascotCompanion` is on; positions itself above the player chrome).

@@ -67,7 +67,7 @@ export interface PlayerState {
 
   /**
    * Replace the queue and start playing. `opts.shuffle` overrides the current shuffle mode.
-   * Long songs are left out (playback pref), except the one at an explicit `startIndex`.
+   * Long songs are left out (playback pref), unless the song at an explicit `startIndex` is long.
    */
   playTracks(tracks: readonly PlayableTrack[], startIndex?: number, opts?: { shuffle?: boolean }): void
   /** Insert right after the current track (starts playback when nothing is loaded). Returns how many were queued. */
@@ -177,7 +177,8 @@ export const usePlayer: UseBoundStore<StoreApi<PlayerState>> = create<PlayerStat
 
       playTracks: (tracks, startIndex, opts) => {
         if (tracks.length === 0) return
-        // The song at an explicit start index was picked by the user, so it stays even when long.
+        // The song at an explicit start index was picked by the user: it always stays, and when
+        // it is long the list's other long songs stay too.
         const kept = withoutLong(tracks, startIndex === undefined ? undefined : clampIndex(startIndex, tracks.length))
         const list = entries(kept.tracks)
         const picked = startIndex === undefined ? undefined : kept.index

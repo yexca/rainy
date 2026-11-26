@@ -77,7 +77,7 @@
     "lyricsTranslation": "Show lyric translations",
     "lyricsTranslationHint": "Shows the translation under each line of bilingual lyrics.",
     "skipLong": "Skip long songs",
-    "skipLongHint": "Leaves songs of {{minutes}} min or longer out when you play a list or add songs to the queue, and out of infinite mode. A song you pick yourself still plays, and so does a list of only long songs.",
+    "skipLongHint": "Leaves songs of {{minutes}} min or longer out when you play a list or add songs to the queue, and out of infinite mode. When you pick a long song yourself, the list keeps its other long songs, and a list of only long songs is queued as it is.",
     "longMinutes": "Long song length",
     "longMinutesHint": "Songs at least this long count as long ({{min}}–{{max}} minutes).",
     "minutesUnit": "min",
