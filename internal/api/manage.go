@@ -403,15 +403,16 @@ func (a *API) manageFolders(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, listing)
 }
 
+// manageFolderFile serves a folder image. Revalidations (no-cache) are answered from the
+// file's size and modification time before it is read.
 func (a *API) manageFolderFile(w http.ResponseWriter, r *http.Request) {
-	data, ctype, size, mtime, err := a.app.Manage.FolderImage(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("path"))
+	img, err := a.app.Manage.StatFolderImage(r.Context(), queryInt64(r, "libraryId", 0), r.URL.Query().Get("path"))
 	if err != nil {
 		writeManageErr(w, r, err)
 		return
 	}
-	etag := `W/"` + strconv.FormatInt(size, 16) + `-` + strconv.FormatInt(mtime, 16) + `"`
+	etag := `W/"` + strconv.FormatInt(img.Size, 16) + `-` + strconv.FormatInt(img.Mtime, 16) + `"`
 	h := w.Header()
-	h.Set("Content-Type", pictureContentType(ctype))
 	h.Set("ETag", etag)
 	h.Set("Cache-Control", "private, no-cache")
 	h.Set("X-Content-Type-Options", "nosniff")
@@ -420,6 +421,14 @@ func (a *API) manageFolderFile(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
+	data, ctype, err := img.Read()
+	if err != nil {
+		h.Del("ETag")
+		h.Del("Cache-Control")
+		writeManageErr(w, r, err)
+		return
+	}
+	h.Set("Content-Type", pictureContentType(ctype))
 	h.Set("Content-Length", strconv.Itoa(len(data)))
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)

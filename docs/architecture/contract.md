@@ -532,6 +532,8 @@ ReplaceLxSourceScript(ctx, *model.LxSource) error; SetLxSourceFlags(ctx, id stri
 SetLxSourceLoaded(ctx, id, platformsJSON, lastError string, at int64) error; SetLxSourceUpdateAlert(ctx, id, log, url string, at int64) error
 DeleteLxSource(ctx, id) error; ReorderLxSources(ctx, ids []string) error /*every id exactly once, else ErrInvalid*/
 AddEditLog(ctx, *model.EditLogEntry) error; ListEditLog(ctx, trackID string, offset, limit int) ([]model.EditLogEntry, int, error)
+DownloadedTrackIDs(ctx, sources []string, limit int) (map[string][]string, error) // per details.source of "download" rows: track ids,
+                                     // newest first, each once, ≤ limit per source; sources without rows are absent (staging duplicates)
 AddTrash(ctx, *model.TrashEntry) error; ListTrash(ctx) ([]model.TrashEntry, error); GetTrash(ctx, id) (*model.TrashEntry, error); DeleteTrash(ctx, id) error
 type FormatStat struct { Suffix string; Count int; Size int64 }
 type LibraryStats struct { Tracks, Albums, Artists, Genres, Playlists, Users, MissingTracks int; TotalDuration float64; TotalSize int64; Formats []FormatStat; PlaysLast30Days int }
@@ -785,8 +787,9 @@ func New(st *store.Store, sc *scanner.Scanner, art *artwork.Service, bus *events
 `RemoveDownload` behind §7.6 `/manage/downloads`. `(*Service).SetOnlineSource(o manage.OnlineSource)` (app passes
 `*lxmusic.Service`) enables `StartOnlineDownload` (§7.6 `/manage/online/downloads`); online jobs share the job list
 (`DownloadJob.Kind` `link` | `online`) but have their own three workers. Jobs started with review hand their prepared
-files to the staging area (`ListStaged`, `UpdateStaged`, `StagedPicture`, `ImportStaged`, `DiscardStaged` behind §7.6
-`/manage/staging`) instead of `place`.
+files to the staging area (`ListStaged`, `CountStaged`, `UpdateStaged`, `StagedPicture`, `ImportStaged`, `DiscardStaged`
+behind §7.6 `/manage/staging`) instead of `place`. Folder previews: `StatFolderImage` checks an image without reading it
+(conditional requests are answered from its size and mtime) and `FolderImageFile.Read` reads and sniffs it; `FolderText`.
 The service's other exported methods back the §7.6 endpoints one to one; the HTTP contract is the public surface.
 Rules: every file operation goes through `util.SafeJoin` and `util.EnsureWithinRoot`, holds the scanner's library lock
 (waiting at most 90 s, then `409 conflict`), calls `scanner.RescanFiles` afterwards (old and new paths), writes an
@@ -1210,7 +1213,10 @@ are outside the snapshot; see [backup and restore](../operations/database.md#bac
 - Errors: HTTP status + `{"error":{"code":"<code>","message":"<human text>"}}`, codes:
   `bad_request 400, unauthorized 401, forbidden 403, not_found 404, method_not_allowed 405, conflict 409,
   readonly 409, rate_limited 429, internal 500, not_implemented 501, unavailable 503`. A body over its limit is
-  `413` with code `bad_request`; a cancelled request is `503 unavailable`.
+  `413` with code `bad_request`; a cancelled request is `503 unavailable`. `bad_request` and `conflict` messages
+  say what went wrong or what to do (the web UI shows them as they are); `internal` messages are fixed. Per-item,
+  staged-item and job errors (`ItemError.error`, `StagedItem.error`, `StagedError.error`, `DownloadJob.error`) never
+  carry host paths or raw filesystem errors: those become fixed messages and are logged in full.
 - JSON bodies: at most 1 MiB unless an endpoint says otherwise; an empty body counts as `{}`.
 - Lists: `?offset=0&limit=50&sort=<field>&order=asc|desc` → `{"items":[...],"total":N}` (`Page<T>`).
   limit default 50, max 1000.
@@ -1335,7 +1341,7 @@ served. Downloads (single files and album zips) need download permission: admin,
 | POST | `/api/manage/trash/purge` | `{ids?}` (omit = empty trash) | `{purged:number}` |
 | POST | `/api/manage/missing/purge` | `{trackIds?}` (omit = all missing) | `{purged:number}` |
 | GET | `/api/manage/folders` | `libraryId, dir` | `FolderListing` |
-| GET | `/api/manage/folders/file` | `libraryId, path, v?` | raster image bytes (≤ 32 MiB; `nosniff`, sandbox CSP, `ETag`) |
+| GET | `/api/manage/folders/file` | `libraryId, path, v?` | raster image bytes (≤ 32 MiB; `nosniff`, sandbox CSP, weak `ETag` from size and mtime; a matching `If-None-Match` gets `304` without the file being read) |
 | GET | `/api/manage/folders/text` | `libraryId, path` | `FolderTextPreview` (`.lrc/.txt/.cue/.log/.md/.nfo/.m3u/.m3u8`, ≤ 256 KiB, decoded via `lyrics.DecodeText`) |
 | POST | `/api/manage/folders/rescan` | `{libraryId, dir}` | 202 `{"status":"accepted"}` |
 | GET | `/api/manage/issues/summary` | | `Record<IssueType, number>` |
@@ -1354,6 +1360,7 @@ served. Downloads (single files and album zips) need download permission: admin,
 | GET | `/api/manage/online/cover` | `url` (a result's `coverUrl`) | image bytes (raster type, `nosniff`, sandbox CSP) |
 | POST | `/api/manage/online/downloads` | `{songs: OnlineSong[] (1–50), quality?: '128k'|'320k'|'flac'|'flac24bit' (default flac), libraryId, dir?, organize?, review?, lyrics?, cover?}` | 202 `{jobs: DownloadJob[]}` |
 | GET | `/api/manage/staging` | | `{items: StagedItem[]}` (newest first) |
+| GET | `/api/manage/staging/count` | | `{count:number}` (complete items; reads no tags and checks no duplicates) |
 | PATCH | `/api/manage/staging/{id}` | `{tags?: TagMap, libraryId?, dir?, organize?}` | `StagedItem` (404 for an unknown id) |
 | GET | `/api/manage/staging/{id}/picture` | | embedded picture bytes (404 if none; same headers as `/tracks/{id}/picture`) |
 | POST | `/api/manage/staging/import` | `{ids (1–500), onConflict?: 'keep'|'skip'}` (default keep) | `StagedImportResult` |
@@ -1899,7 +1906,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
 
 ### 9.5 Management UI
 - **Tracks** (sidebar entry; page title "Tracks") has three route tabs (`TracksTabs`): Metadata, Add, and Review. Review
-  carries the number of staged downloads (`stagingQuery`) as a badge and is left out while there are none, unless it is
+  carries the number of staged downloads (`stagingCountQuery`, `/manage/staging/count`) as a badge and is left out while there are none, unless it is
   open (`SectionTabs` `badges` / `hidden`). Add groups Upload, Links and Online: each of the three pages starts with
   `AddBar` — the source switch (`SubTabs`, pill links to the three routes) on the left and the destination chips on the right:
   library (only with several), folder (a popover with the path input and a Browse button opening `FolderPicker`; an
@@ -1909,7 +1916,8 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   server job list (`DownloadJobs`, links on Links, online music on Online; `useJobNotifications` toasts finished jobs
   and refreshes the library) sits below each page. Organizing by tags is not chosen per page: the three send no
   `organize`, so `settings.organizeByTags` applies to all of them. "Review first" starts at `placement.review`, is
-  changed for the session in `useDestination`, and every download request sends it as `review`; a job that staged
+  changed for the session in `useDestination`, and download requests send it as `review` (until `placement` answers and
+  without a choice here it is unknown: the toggle is disabled and requests omit `review`, so the setting decides); a job that staged
   files shows a "Review" button and `useJobNotifications` toasts with an action to open the Review tab. Tracks that arrive without an artist
   or album tag (`untagged`) are prompted for the same way everywhere (`promptUntagged`): a warning toast with a "Fill in
   tags" action when the batch or job finishes, and a "Fill in tags" button on the upload row / job row; both open the tag
@@ -1921,7 +1929,7 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   final action. Canceling either stage sends no mutation request. Reopening starts
   at stage one; failed requests restart confirmation. API manager authorization and
   filesystem checks remain authoritative; API shapes are unchanged.
-- **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button; artist, album artist, composer and genre are `MultiValueInput` chips — `;` or Enter adds one, clicking a chip takes it back into the text field, Backspace on an empty field removes the last one), *Cover* (preview, which is also the file picker; drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines (credit lines such as `词：…` excepted) are `original 中文` or `original「中文」`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info, including the embedded pictures). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
+- **Tag editor** (`TagEditorHost`, opened via `useUI.openTagEditor(ids)`): right-side Sheet (desktop, ~560px) / full-screen Drawer (mobile). Tabs: *Details* (common fields; with multiple tracks selected, differing values show a "Multiple values" placeholder and are only written if edited — each field has a revert button; artist, album artist, composer and genre are `MultiValueInput` chips — `;` or Enter adds one, clicking a chip takes it back into the text field and committing puts it back at its position (`lib/multi-value.ts`), Backspace on an empty field removes the last one), *Cover* (preview, which is also the file picker; drop/paste/upload, remove, apply to whole album, save as folder image), *Lyrics* (textarea with LRC highlighting, "insert timestamp at current playback time" button that also restamps following lines sharing the old timestamps, target embedded / .lrc; `analyzeBilingual` runs on every edit and, when most non-Chinese lines (credit lines such as `词：…` excepted) are `original 中文` or `original「中文」`, shows a banner with a preview and "Split lines" → `toPairedLrc` rewrites timed lines as same-timestamp pairs, original first; nothing is applied without the user; a "Bilingual" badge marks already paired text), *All tags* (raw key/value table incl. custom keys, add/remove), *File* (read-only file info, including the embedded pictures). *Search online* (`OnlineDialog`, `lib/online.ts`): pick a catalogue, search (prefilled with title + artist, or album + album artist for several tracks), open a result to see current → new values with checkboxes (fields that would change are pre-selected; with several tracks only album-level fields are offered), plus the cover (proxied through `/manage/metadata/cover`) and, for one track, lyrics with an optional translation paired as same-timestamp lines; "Fill in editor" only changes the draft — the user saves as usual. When `onlineMetadata` is off the dialog explains how to enable it. Tools menu with preview-before-apply: auto-number tracks (by current order), tags from filename pattern, find & replace in a field (regex optional), case transforms, copy field to field, clear field. Save → `POST /api/manage/tags` with per-track diffs only; show per-track errors.
 - **Rename / organize** dialog: pattern input with token chips + saved default from settings, live preview table (from → to, status badges), apply.
 - **Upload** `/manage/upload`: drag & drop zone (files + folders), per-file progress (XHR upload progress), target library + folder picker; files picked or dropped (folders included) are placed like every other import.
 - **Links** `/manage/links` (`LinkDownload` below `AddBar`): YouTube / bilibili link (share text accepted; `detectSite` shows a site chip), audio format
@@ -1941,10 +1949,12 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   duration · kind · age · who, conflict chips: file exists / downloaded before / n similar), a sticky bar (select all,
   conflict policy keep / skip, remembered; Import; Discard with confirmation), and an edit dialog (`ReviewDialog`;
   title, artist, album, album artist, track, disc, year or date, genre; library, folder, organize; the current target;
-  the conflicting paths). `lib/review.ts` turns the form into a tag patch that only touches the fields the user changed;
+  the conflicting paths). `lib/review.ts` turns the form into a tag patch that only touches the fields the user changed
+  (track and disc accept `n` or `n/total`; without a typed total the file's total is kept; a changed date is written to
+  the DATE and YEAR keys the file has, YEAR keeping only the year, or to DATE when it has neither);
   Save sends `PATCH` and shows the new target, "Save and import" saves first. Imports toast imported / skipped / failed
   counts and prompt for untagged tracks (`promptUntagged`).
-- **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector; Upload here and an Actions menu with rescan, open in manager, and selection actions), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, content grouped into folders, audio, images, lyrics & text, and other files (group headings appear only when a folder holds more than one kind), image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`), **Doctor** (checks with issues as count cards, healthy checks as a row of chips; the first check with issues opens by default, `?type=` picks another; its list has quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
+- **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector; Upload here and an Actions menu with rescan, open in manager, and selection actions), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, content grouped into folders, audio, images, lyrics & text, and other files (group headings appear only when a folder holds more than one kind), image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`; text keyed by path and mtime; timed LRC rows in time order, one per timestamp of a stacked line, `[key:value]` header lines hidden), **Doctor** (checks with issues as count cards, healthy checks as a row of chips; the first check with issues opens by default, `?type=` picks another; its list has quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
 - **Admin**: users (table + dialog; roles: admin, manager, download), libraries & scan (a scan panel with quick/full scan for all libraries, live progress via `/api/events`, and after a scan the file count with only the non-zero change counters, or "No changes"; cards with path, counts, writable badge, and per-library quick/full scan only when there is more than one library), server settings form, system info (versions, ffmpeg, sizes, clear cache; commit and build date only when the build has them). Page subtitles carry only counts (libraries, users).
   The Settings tab groups General / yt-dlp / Sources / Scrobbling / System, switched by a pill control at the top of each page (`SubTabs` in `layouts/sub-tabs.tsx`, shared with Tracks → Add; the pages come from `groupedPages`). *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and
   `listenBrainzEnabled` switches (saved immediately), the Last.fm API key and write-only shared secret with a link to create an

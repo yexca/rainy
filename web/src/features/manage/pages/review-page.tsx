@@ -79,7 +79,7 @@ export default function ReviewPage() {
     try {
       const res = await api.manage.staging.discard(ids)
       toast.success(t('review.discarded', { count: res.discarded }))
-      setSelected(new Set())
+      setSelected((prev) => new Set([...prev].filter((id) => !ids.includes(id))))
       refresh()
     } catch (error) {
       toastError(error)

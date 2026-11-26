@@ -265,6 +265,22 @@ func (s *Service) stagedIDs() ([]string, error) {
 	return ids, nil
 }
 
+// CountStaged returns how many downloads wait for review without reading them (the Tracks
+// tab badge). It takes no lock: an item appears by one rename and leaves by one removal.
+func (s *Service) CountStaged() (int, error) {
+	ids, err := s.stagedIDs()
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, id := range ids {
+		if _, err := os.Stat(filepath.Join(s.stagedDir(id), stagedManifest)); err == nil {
+			n++
+		}
+	}
+	return n, nil
+}
+
 // ListStaged returns the items waiting for review, newest first, with where each would be
 // imported now and what it may duplicate.
 func (s *Service) ListStaged(ctx context.Context) ([]StagedItem, error) {
@@ -293,7 +309,11 @@ func (s *Service) ListStaged(ctx context.Context) ([]StagedItem, error) {
 	if len(metas) == 0 {
 		return out, nil
 	}
-	look, err := s.newDupLookup(ctx)
+	sources := make([]string, len(metas))
+	for i, m := range metas {
+		sources[i] = m.Source
+	}
+	look, err := s.newDupLookup(ctx, sources)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +330,7 @@ func (s *Service) GetStaged(ctx context.Context, id string) (*StagedItem, error)
 	if err != nil {
 		return nil, err
 	}
-	look, err := s.newDupLookup(ctx)
+	look, err := s.newDupLookup(ctx, []string{m.Source})
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +359,7 @@ func (s *Service) describeStaged(ctx context.Context, libs *libraries, look *dup
 	it.Tags = cloneTags(md.Raw)
 	delete(it.Tags, "LYRICS") // long; shown by the tag editor after the import
 	it.Duration, it.HasCover = md.Duration, md.HasPicture
-	it.Conflict.SameSource = look.sameSource(ctx, m.Source)
+	it.Conflict.SameSource = look.sameSource(m.Source)
 	it.Conflict.Similar = look.similar(md.Artist, md.Title, md.Duration)
 
 	lib, err := libs.get(ctx, m.LibraryID)
@@ -362,11 +382,12 @@ func (s *Service) describeStaged(ctx context.Context, libs *libraries, look *dup
 	return it
 }
 
-// dupLookup finds library tracks a staged item may duplicate.
+// dupLookup finds library tracks a staged item may duplicate. A listing builds it once: one
+// pass over the indexed tracks (as the Library Doctor's duplicate check does) and one over
+// the edit log for the sources of all its items.
 type dupLookup struct {
-	s       *Service
 	byKey   map[string][]dupTrack
-	sources map[string][]StagedMatch
+	sources map[string][]StagedMatch // earlier downloads of a source still in a library
 }
 
 type dupTrack struct {
@@ -374,7 +395,7 @@ type dupTrack struct {
 	duration float64
 }
 
-func (s *Service) newDupLookup(ctx context.Context) (*dupLookup, error) {
+func (s *Service) newDupLookup(ctx context.Context, sources []string) (*dupLookup, error) {
 	var rows []struct {
 		ID        string  `db:"id"`
 		LibraryID int64   `db:"library_id"`
@@ -387,10 +408,24 @@ func (s *Service) newDupLookup(ctx context.Context) (*dupLookup, error) {
 		`SELECT id, library_id, path, artist, title, duration FROM tracks WHERE missing = 0`); err != nil {
 		return nil, err
 	}
-	l := &dupLookup{s: s, byKey: map[string][]dupTrack{}, sources: map[string][]StagedMatch{}}
+	l := &dupLookup{byKey: map[string][]dupTrack{}, sources: map[string][]StagedMatch{}}
+	present := make(map[string]StagedMatch, len(rows))
 	for _, r := range rows {
+		m := StagedMatch{TrackID: r.ID, LibraryID: r.LibraryID, Path: r.Path}
+		present[r.ID] = m
 		if k := dupKey(r.Artist, r.Title); k != "" {
-			l.byKey[k] = append(l.byKey[k], dupTrack{StagedMatch{r.ID, r.LibraryID, r.Path}, r.Duration})
+			l.byKey[k] = append(l.byKey[k], dupTrack{m, r.Duration})
+		}
+	}
+	downloaded, err := s.st.DownloadedTrackIDs(ctx, sources, stagedSimilarMax)
+	if err != nil {
+		slog.Warn("manage: looking up earlier downloads", "err", err)
+	}
+	for source, ids := range downloaded {
+		for _, id := range ids {
+			if m, ok := present[id]; ok {
+				l.sources[source] = append(l.sources[source], m)
+			}
 		}
 	}
 	return l, nil
@@ -420,27 +455,11 @@ func (l *dupLookup) similar(artist, title string, duration float64) []StagedMatc
 
 // sameSource returns the tracks still in a library that an earlier download of source
 // imported (from the edit log).
-func (l *dupLookup) sameSource(ctx context.Context, source string) []StagedMatch {
-	if source == "" {
-		return []StagedMatch{}
-	}
-	if m, ok := l.sources[source]; ok {
+func (l *dupLookup) sameSource(source string) []StagedMatch {
+	if m := l.sources[source]; len(m) > 0 {
 		return m
 	}
-	out := []StagedMatch{}
-	ids, err := l.s.st.DownloadedTrackIDs(ctx, source, stagedSimilarMax)
-	if err != nil {
-		slog.Warn("manage: looking up earlier downloads", "err", err)
-	}
-	for _, id := range ids {
-		t, err := l.s.st.GetTrack(ctx, id, "")
-		if err != nil || t.Missing {
-			continue
-		}
-		out = append(out, StagedMatch{TrackID: t.ID, LibraryID: t.LibraryID, Path: t.Path})
-	}
-	l.sources[source] = out
-	return out
+	return []StagedMatch{}
 }
 
 // UpdateStaged writes tags into a staged file and changes its destination.

@@ -68,10 +68,11 @@ function values(field: keyof ReviewForm, value: string, tags: TagMap): string[] 
       .filter(Boolean)
   }
   if (NUMBERED.has(field)) {
-    const digits = trimmed.replace(/[^\d]/g, '')
-    if (!digits) return []
-    const n = String(Number.parseInt(digits, 10))
-    const total = splitNumber(firstValue(tags, KEYS[field]))[1]
+    // "3" or "3/12": the number, and a total when one is typed.
+    const [typedNumber, typedTotal] = splitNumber(trimmed).map((part) => part.replace(/[^\d]/g, ''))
+    if (!typedNumber) return []
+    const n = String(Number.parseInt(typedNumber, 10))
+    const total = typedTotal ? String(Number.parseInt(typedTotal, 10)) : splitNumber(firstValue(tags, KEYS[field]))[1]
     return [total ? `${n}/${total}` : n] // keep the file's "n/total" style
   }
   return trimmed ? [trimmed] : []
@@ -83,9 +84,29 @@ function sameValues(a: readonly string[] | undefined, b: readonly string[]): boo
 }
 
 /**
+ * The date keys a changed date is written to: the ones the file has (the form shows DATE, else
+ * YEAR), or DATE for a file with neither. A YEAR key keeps only the year.
+ */
+function datePatch(next: string[], tags: TagMap): TagMap {
+  const hasDate = (tags.DATE?.length ?? 0) > 0
+  const hasYear = (tags.YEAR?.length ?? 0) > 0
+  if (next.length === 0) {
+    const cleared: TagMap = {}
+    if (hasDate) cleared.DATE = []
+    if (hasYear) cleared.YEAR = []
+    return cleared
+  }
+  const patch: TagMap = {}
+  if (hasDate || !hasYear) patch.DATE = next
+  if (hasYear) patch.YEAR = [next[0].match(/\d{4}/)?.[0] ?? next[0]]
+  return patch
+}
+
+/**
  * The tag changes (`key → values`, `[]` deletes) that turn `tags` into `form`; empty when nothing
  * changed. A field the user left as it was is never rewritten, even when the file stores it in
- * another shape ("A; B" in one value, a YEAR without DATE, "1/12").
+ * another shape ("A; B" in one value, a YEAR without DATE, "1/12"). A changed date updates every
+ * date key the file has, so a cleared or corrected year does not come back from YEAR.
  */
 export function tagPatch(form: ReviewForm, tags: TagMap): TagMap {
   const original = formFromTags(tags)
@@ -93,7 +114,8 @@ export function tagPatch(form: ReviewForm, tags: TagMap): TagMap {
   for (const field of REVIEW_FIELDS) {
     const next = values(field, form[field], tags)
     if (sameValues(values(field, original[field], tags), next)) continue
-    patch[KEYS[field]] = next
+    if (field === 'date') Object.assign(patch, datePatch(next, tags))
+    else patch[KEYS[field]] = next
   }
   return patch
 }

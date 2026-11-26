@@ -118,7 +118,7 @@ func checkFile(path string) error {
 		return err
 	}
 	if !fi.Mode().IsRegular() {
-		return fmt.Errorf("%s: not a regular file: %w", path, fs.ErrInvalid)
+		return fmt.Errorf("%s: not a regular file: %w", filepath.Base(path), fs.ErrInvalid)
 	}
 	return nil
 }

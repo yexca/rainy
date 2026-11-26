@@ -14,14 +14,17 @@ export const manageKeys = {
   all: ['manage'] as const,
   trash: ['manage', 'trash'] as const,
   folders: (libraryId: number, dir: string) => ['manage', 'folders', libraryId, dir] as const,
-  folderText: (libraryId: number, path: string) => ['manage', 'folder-text', libraryId, path] as const,
+  /** `mtime` makes a changed file a new preview. */
+  folderText: (libraryId: number, path: string, mtime: number) => ['manage', 'folder-text', libraryId, path, mtime] as const,
   issuesSummary: ['manage', 'issues', 'summary'] as const,
   issues: (type: IssueType) => ['manage', 'issues', 'list', type] as const,
   log: (trackId: string) => ['manage', 'log', trackId] as const,
   downloads: ['manage', 'downloads'] as const,
   online: ['manage', 'online'] as const,
   placement: ['manage', 'placement'] as const,
+  /** Downloads waiting for review; invalidating it also refreshes `stagingCount`. */
   staging: ['manage', 'staging'] as const,
+  stagingCount: ['manage', 'staging', 'count'] as const,
   /** Online search results: not a library root, so library events don't refetch them. */
   onlineSearch: (platform: string, q: string) => ['online-search', platform, q] as const,
   /** Paged track table of the library manager (`tracks` root). */
@@ -53,6 +56,12 @@ export const onlineStatusQuery = queryOptions({
 export const stagingQuery = queryOptions({
   queryKey: manageKeys.staging,
   queryFn: async ({ signal }) => (await api.manage.staging.list({ signal })).items,
+})
+
+/** How many downloads wait for review (the Tracks › Review badge); cheap enough for every Tracks page. */
+export const stagingCountQuery = queryOptions({
+  queryKey: manageKeys.stagingCount,
+  queryFn: async ({ signal }) => (await api.manage.staging.count({ signal })).count,
 })
 
 /** Where uploads and downloads go (the server settings, readable by managers). */

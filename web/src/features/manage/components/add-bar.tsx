@@ -181,8 +181,9 @@ function ReviewToggle() {
     <Toggle
       variant="outline"
       size="sm"
-      pressed={target.review}
+      pressed={target.review ?? false}
       onPressedChange={setReview}
+      disabled={target.review === undefined}
       title={t('review.optionHint')}
       aria-label={t('review.option')}
       className={cn(chip, 'shadow-none data-[state=on]:border-primary/50 data-[state=on]:bg-primary/10 data-[state=on]:text-primary')}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
+import { insertValues, parseValues, startEdit } from '../lib/multi-value'
 import { MULTI_SEPARATOR, splitMulti } from '../lib/tag-fields'
 
 export interface MultiValueInputProps {
@@ -24,8 +25,8 @@ export interface MultiValueInputProps {
 /**
  * Multi-value tag editor: every value is a chip, so the field shows that it holds several
  * values without a caption. Typing `;` (or Enter, or leaving the field) adds a chip; a click on
- * a chip takes it back into the text field for editing; Backspace on an empty field removes the
- * last one.
+ * a chip takes it back into the text field for editing, and committing puts it back in its place
+ * (the first artist stays first); Backspace on an empty field removes the last one.
  */
 export function MultiValueInput({
   id,
@@ -42,29 +43,29 @@ export function MultiValueInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const composing = useRef(false)
   const [text, setText] = useState('')
+  /** Where the text goes back when it came from a chip (`null`: new values go last). */
+  const [editAt, setEditAt] = useState<number | null>(null)
   const values = splitMulti(value)
   const separator = splitComma ? /[;,；，]$/ : /[;；]$/
 
-  const commit = (raw: string, base: readonly string[] = values) => {
-    const added = splitMulti((splitComma ? raw.replace(/[,，]/g, ';') : raw).replace(/；/g, ';'))
-    if (added.length === 0) {
-      setText('')
-      return
-    }
-    const lower = new Set(base.map((v) => v.toLowerCase()))
-    const next = [...base, ...added.filter((v) => !lower.has(v.toLowerCase()))]
-    onChange(next.join(MULTI_SEPARATOR))
+  const commit = (raw: string) => {
+    const added = parseValues(raw, splitComma)
+    if (added.length > 0) onChange(insertValues(values, added, editAt).join(MULTI_SEPARATOR))
     setText('')
+    setEditAt(null)
   }
 
-  const remove = (index: number) => onChange(values.filter((_, i) => i !== index).join(MULTI_SEPARATOR))
+  const remove = (index: number) => {
+    onChange(values.filter((_, i) => i !== index).join(MULTI_SEPARATOR))
+    if (editAt !== null && index < editAt) setEditAt(editAt - 1)
+  }
 
   const edit = (index: number) => {
-    const rest = values.filter((_, i) => i !== index)
-    // Keep what was being typed as its own value rather than losing it.
-    if (text.trim()) commit(text, rest)
-    else onChange(rest.join(MULTI_SEPARATOR))
-    setText(values[index] ?? '')
+    // What was being typed stays as its own value rather than being lost.
+    const next = startEdit(values, index, parseValues(text, splitComma), editAt)
+    onChange(next.values.join(MULTI_SEPARATOR))
+    setText(next.text)
+    setEditAt(next.at)
     inputRef.current?.focus()
   }
 

@@ -254,14 +254,38 @@ func (s *Store) ListEditLog(ctx context.Context, trackID string, offset, limit i
 	return out, total, nil
 }
 
-// DownloadedTrackIDs returns the tracks that "download" edit-log rows with details.source
-// = source imported, newest first and at most limit (> 0), without duplicates.
-func (s *Store) DownloadedTrackIDs(ctx context.Context, source string, limit int) ([]string, error) {
-	var ids []string
-	err := s.db.R.SelectContext(ctx, &ids, `SELECT track_id FROM edit_log
-		WHERE action = 'download' AND track_id <> '' AND json_valid(details) AND json_extract(details, '$.source') = ?
-		GROUP BY track_id ORDER BY MAX(created_at) DESC, track_id LIMIT ?`, source, limit)
-	return ids, err
+// DownloadedTrackIDs returns, per source, the tracks that "download" edit-log rows with
+// details.source = source imported: newest first, at most limit (> 0) per source, without
+// duplicates. Sources nothing was downloaded from are absent. One pass over the edit log
+// serves up to 500 sources.
+func (s *Store) DownloadedTrackIDs(ctx context.Context, sources []string, limit int) (map[string][]string, error) {
+	out := map[string][]string{}
+	sources = dedupe(sources)
+	if limit <= 0 {
+		return out, nil
+	}
+	const batch = 500
+	for start := 0; start < len(sources); start += batch {
+		part := sources[start:min(start+batch, len(sources))]
+		var rows []struct {
+			Source  string `db:"source"`
+			TrackID string `db:"track_id"`
+		}
+		if err := s.db.R.SelectContext(ctx, &rows, `SELECT json_extract(details, '$.source') AS source, track_id
+			FROM edit_log
+			WHERE action = 'download' AND track_id <> '' AND json_valid(details)
+				AND json_extract(details, '$.source') IN (`+placeholders(len(part))+`)
+			GROUP BY source, track_id
+			ORDER BY source, MAX(created_at) DESC, track_id`, anys(part)...); err != nil {
+			return nil, err
+		}
+		for _, r := range rows {
+			if len(out[r.Source]) < limit {
+				out[r.Source] = append(out[r.Source], r.TrackID)
+			}
+		}
+	}
+	return out, nil
 }
 
 // ---- trash

@@ -75,7 +75,7 @@ export function FolderPreviewDialog({ libraryId, items, index, onIndexChange }: 
   }, [index])
 
   const textQuery = useQuery({
-    queryKey: manageKeys.folderText(libraryId, item?.path ?? ''),
+    queryKey: manageKeys.folderText(libraryId, item?.path ?? '', item?.mtime ?? 0),
     queryFn: ({ signal }) => api.manage.folders.text({ libraryId, path: item!.path }, { signal }),
     enabled: open && item?.kind === 'text',
     staleTime: 60_000,

@@ -1035,6 +1035,20 @@ func TestQueueBookmarksRadioTrashLog(t *testing.T) {
 	if entries, total, _ = s.ListEditLog(ctx, "", 1, 1); total != 3 || len(entries) != 1 || entries[0].CreatedAt != 2 {
 		t.Fatalf("%+v %d", entries, total)
 	}
+
+	// Earlier downloads by source: newest first, each track once, at most limit per source.
+	const srcA, srcB = "https://a.example/1", "https://b.example/2"
+	for i, d := range []struct{ track, source string }{{"d1", srcA}, {"d2", srcA}, {"d1", srcA}, {"d3", srcB}, {"d4", srcA}} {
+		entry := &model.EditLogEntry{UserID: u.ID, Username: "u", Action: "download", TrackID: d.track, CreatedAt: int64(10 + i),
+			Details: json.RawMessage(`{"source":"` + d.source + `"}`)}
+		if err := s.AddEditLog(ctx, entry); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := s.DownloadedTrackIDs(ctx, []string{srcA, srcB, "https://c.example/3", ""}, 2)
+	if err != nil || !reflect.DeepEqual(got, map[string][]string{srcA: {"d4", "d1"}, srcB: {"d3"}}) {
+		t.Fatalf("DownloadedTrackIDs = %v, %v", got, err)
+	}
 }
 
 func TestStats(t *testing.T) {

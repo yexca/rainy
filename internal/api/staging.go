@@ -13,6 +13,7 @@ import (
 // routesManage.
 func (a *API) routesStaging(r chi.Router) {
 	r.Get("/staging", a.manageStaging)
+	r.Get("/staging/count", a.manageStagingCount)
 	r.Patch("/staging/{id}", a.manageUpdateStaged)
 	r.Get("/staging/{id}/picture", a.manageStagedPicture)
 	r.Post("/staging/import", a.manageImportStaged)
@@ -26,6 +27,15 @@ func (a *API) manageStaging(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"items": nonNil(items)})
+}
+
+func (a *API) manageStagingCount(w http.ResponseWriter, r *http.Request) {
+	n, err := a.app.Manage.CountStaged()
+	if err != nil {
+		writeManageErr(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]int{"count": n})
 }
 
 func (a *API) manageUpdateStaged(w http.ResponseWriter, r *http.Request) {

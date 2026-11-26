@@ -51,7 +51,7 @@ is also available from the "…" menu of any track.
   differ show "Multiple values" and are written only if you change them. Each
   field can be reverted before saving. Artists, album artists, composers, and
   genres hold several values as chips: type `;` or press Enter to add one,
-  click a chip to edit it.
+  click a chip to edit it in place (the first artist stays first).
 - **Cover** previews the picture; click the preview, drop, or paste an image to
   replace it. It can remove the cover, apply it to the whole album, or save it
   as the folder image.

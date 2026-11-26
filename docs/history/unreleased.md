@@ -56,6 +56,10 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   the Links and Online tabs can change it per session.
 - At startup Rainy removes staged uploads and online download work
   directories that a crash left in `<data>/tmp`.
+- Errors for single files in uploads, downloads, and **Review** no longer show
+  server folder paths or raw system errors: they say what failed in plain
+  words (for example that the disk is full), and the server log keeps the
+  details.
 - **Tracks**, **Library tools**, **Admin**, **Settings**, and **About** share one
   centered column across every tab so page titles, section tabs, tables, and
   forms keep matching left and right edges on wide screens.
@@ -67,7 +71,7 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   and explanatory captions are gone from the track table, upload area, and
   tag editor. In the tag editor, artists, album artists, and composers are
   chips like genres (type `;` or press Enter to add one, click one to edit
-  it), the cover preview is clickable to choose a new image, and embedded
+  it in place), the cover preview is clickable to choose a new image, and embedded
   picture details move to the **File** tab.
 - **Library tools → Doctor** shows only the checks with problems as cards and
   opens the first one; passing checks shrink to green chips. **Folders**

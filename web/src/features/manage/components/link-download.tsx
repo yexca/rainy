@@ -38,8 +38,8 @@ export interface LinkDownloadProps {
   libraryId: number
   dir: string
   invalidDir: boolean
-  /** Hold the files in Tracks › Review instead of importing them. */
-  review: boolean
+  /** Hold the files in Tracks › Review instead of importing them; `undefined`: the server setting decides. */
+  review: boolean | undefined
 }
 
 /**

@@ -3,7 +3,11 @@ package manage
 import (
 	"errors"
 	"io/fs"
+	"log/slog"
+	"os"
 	"syscall"
+
+	"rainy/internal/util"
 )
 
 // ReadonlyMessage explains how to make a library writable. It is the message of every
@@ -62,11 +66,30 @@ func fsErr(rel string, err error) error {
 	return err
 }
 
-// errorText is the message stored in ItemError.Error.
+// errorText is the message stored in ItemError.Error, StagedItem.Error, StagedError.Error
+// and DownloadJob.Error, all of which clients see. Errors that can name host paths (unsafe
+// paths, raw filesystem and system call errors) get a fixed message and go to the log in
+// full.
 func errorText(err error) string {
 	var re *ReadonlyError
 	if errors.As(err, &re) {
 		return re.Error()
+	}
+	if errors.Is(err, util.ErrUnsafePath) {
+		return "invalid or unsafe path"
+	}
+	var pathErr *fs.PathError
+	var linkErr *os.LinkError
+	var sysErr *os.SyscallError
+	if errors.As(err, &pathErr) || errors.As(err, &linkErr) || errors.As(err, &sysErr) {
+		slog.Warn("manage: file operation failed", "err", err)
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			return "the file no longer exists"
+		case errors.Is(err, syscall.ENOSPC):
+			return "the server's disk is full"
+		}
+		return "a file operation failed on the server"
 	}
 	return err.Error()
 }

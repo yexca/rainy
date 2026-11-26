@@ -34,10 +34,33 @@ describe('review form', () => {
     })
   })
 
+  it('reads a typed "n/total" as a number and its total', () => {
+    // Typing the file's own "3/12" is no change.
+    assert.deepEqual(tagPatch({ ...formFromTags(tags), track: '3/12' }, tags), {})
+    assert.deepEqual(tagPatch({ ...formFromTags(tags), track: '5 / 10', disc: '1/2' }, tags), {
+      TRACKNUMBER: ['5/10'],
+      DISCNUMBER: ['1/2'],
+    })
+    // A number with a trailing "/" keeps the file's total.
+    assert.deepEqual(tagPatch({ ...formFromTags(tags), track: '4/' }, tags), { TRACKNUMBER: ['4/12'] })
+  })
+
   it('leaves fields the user did not touch as the file stores them', () => {
     const stored = { GENRE: ['Ambient; Electronic'], DISCNUMBER: ['1/2'], DATE: ['2020-11-02'] }
     assert.deepEqual(tagPatch(formFromTags(stored), stored), {})
     assert.deepEqual(tagPatch({ ...formFromTags(stored), genre: 'Ambient; Jazz' }, stored), { GENRE: ['Ambient', 'Jazz'] })
+  })
+
+  it('writes a changed date to the date keys the file has', () => {
+    // Only YEAR: clearing deletes it, a new date updates it (YEAR keeps the year).
+    assert.deepEqual(tagPatch({ ...formFromTags(tags), date: '' }, tags), { YEAR: [] })
+    assert.deepEqual(tagPatch({ ...formFromTags(tags), date: '2025-03-04' }, tags), { YEAR: ['2025'] })
+    // Both: both change together.
+    const both = { DATE: ['2020-11-02'], YEAR: ['2020'] }
+    assert.deepEqual(tagPatch({ ...formFromTags(both), date: '2021-01-05' }, both), { DATE: ['2021-01-05'], YEAR: ['2021'] })
+    assert.deepEqual(tagPatch({ ...formFromTags(both), date: '' }, both), { DATE: [], YEAR: [] })
+    // Neither: DATE.
+    assert.deepEqual(tagPatch({ ...formFromTags({}), date: '2024' }, {}), { DATE: ['2024'] })
   })
 
   it('deletes cleared fields', () => {

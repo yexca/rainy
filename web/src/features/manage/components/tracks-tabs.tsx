@@ -4,7 +4,7 @@ import { useIsMobile } from '@/hooks/use-media-query'
 import { TRACKS_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
 
-import { stagingQuery } from '../queries'
+import { stagingCountQuery } from '../queries'
 import { ManageSections } from './manage-sections'
 
 const REVIEW = '/manage/review'
@@ -16,8 +16,7 @@ const REVIEW = '/manage/review'
  */
 export function TracksTabs({ className }: { className?: string }) {
   const isMobile = useIsMobile()
-  const staging = useQuery(stagingQuery)
-  const waiting = staging.data?.length ?? 0
+  const waiting = useQuery(stagingCountQuery).data ?? 0
   return (
     <SectionTabs
       section={TRACKS_SECTION}

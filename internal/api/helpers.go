@@ -122,7 +122,9 @@ func errorFrom(err error) (status int, code, msg string) {
 	case errors.Is(err, store.ErrNotFound), errors.Is(err, artwork.ErrNotFound):
 		return http.StatusNotFound, CodeNotFound, "not found"
 	case errors.Is(err, store.ErrConflict), errors.Is(err, scanner.ErrScanInProgress):
-		return http.StatusConflict, CodeConflict, "the requested operation conflicts with the current server state"
+		// Conflict messages say what to do (wait for a scan, install yt-dlp, pick another
+		// name); their sources keep host paths and raw system errors out of them.
+		return http.StatusConflict, CodeConflict, err.Error()
 	case errors.Is(err, syscall.EROFS), errors.Is(err, fs.ErrPermission):
 		return http.StatusConflict, CodeReadonly,
 			"the music folder is read-only or not writable by the server; mount it read-write to edit files"

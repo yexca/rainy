@@ -80,6 +80,9 @@ func TestReviewHoldsDownloadUntilImported(t *testing.T) {
 	if len(items) != 1 || items[0].ID != done.StagedIDs[0] {
 		t.Fatalf("staged items %+v", items)
 	}
+	if n, err := e.svc.CountStaged(); err != nil || n != 1 {
+		t.Fatalf("CountStaged = %d, %v; want 1", n, err)
+	}
 	it := items[0]
 	if it.Kind != JobKindLink || it.Source != testLink || it.Site != ytdlp.SiteYouTube || it.Format != "wav" || it.CreatedBy != "editor" ||
 		it.Target != "Downloads/Synthetic Song.wav" || it.Error != "" || it.Conflict.Exists || it.Tags["TITLE"][0] != "Synthetic Song" {
@@ -128,6 +131,9 @@ func TestReviewHoldsDownloadUntilImported(t *testing.T) {
 	}
 	if items := e.staged(); len(items) != 0 {
 		t.Fatalf("still staged after the import: %+v", items)
+	}
+	if n, err := e.svc.CountStaged(); err != nil || n != 0 {
+		t.Fatalf("CountStaged after the import = %d, %v", n, err)
 	}
 	if _, err := os.Stat(filepath.Join(e.cfg.StagingDir(), it.ID)); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("staging directory left behind: %v", err)

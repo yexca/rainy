@@ -347,42 +347,58 @@ func isFolderImageSuffix(ext string) bool {
 	return util.IsImageSuffix(ext) || ext == "gif" || ext == "bmp"
 }
 
-// FolderImage reads a raster image file inside a library folder for manager preview.
-func (s *Service) FolderImage(ctx context.Context, libraryID int64, rel string) ([]byte, string, int64, int64, error) {
+// FolderImageFile is a raster image file inside a library folder, checked by
+// StatFolderImage and not read yet.
+type FolderImageFile struct {
+	Size  int64 // bytes
+	Mtime int64 // unix ms
+	abs   string
+	rel   string
+}
+
+// StatFolderImage checks an image file inside a library folder for manager preview without
+// reading it, so a conditional request can be answered from its size and modification time.
+func (s *Service) StatFolderImage(ctx context.Context, libraryID int64, rel string) (*FolderImageFile, error) {
 	rel = cleanDir(rel)
 	_, abs, fi, err := s.resolveFolderFile(ctx, libraryID, rel)
 	if err != nil {
-		return nil, "", 0, 0, err
+		return nil, err
 	}
 	ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(fi.Name()), "."))
 	if !isFolderImageSuffix(ext) {
-		return nil, "", 0, 0, fmt.Errorf("%w: unsupported image file", store.ErrInvalid)
+		return nil, fmt.Errorf("%w: unsupported image file", store.ErrInvalid)
 	}
 	if fi.Size() <= 0 {
-		return nil, "", 0, 0, store.ErrNotFound
+		return nil, store.ErrNotFound
 	}
 	if fi.Size() > maxFolderImageSize {
-		return nil, "", 0, 0, fmt.Errorf("%w: image exceeds maximum preview size", store.ErrInvalid)
+		return nil, fmt.Errorf("%w: image exceeds maximum preview size", store.ErrInvalid)
 	}
-	f, err := os.Open(abs)
+	return &FolderImageFile{Size: fi.Size(), Mtime: fi.ModTime().UnixMilli(), abs: abs, rel: rel}, nil
+}
+
+// Read returns the image bytes and their sniffed type; content that is not a raster image is
+// store.ErrInvalid.
+func (f *FolderImageFile) Read() ([]byte, string, error) {
+	file, err := os.Open(f.abs)
 	if err != nil {
-		return nil, "", 0, 0, fsErr(rel, err)
+		return nil, "", fsErr(f.rel, err)
 	}
-	defer func() { _ = f.Close() }()
-	data, err := io.ReadAll(io.LimitReader(f, maxFolderImageSize+1))
+	defer func() { _ = file.Close() }()
+	data, err := io.ReadAll(io.LimitReader(file, maxFolderImageSize+1))
 	if err != nil {
-		return nil, "", 0, 0, fsErr(rel, err)
+		return nil, "", fsErr(f.rel, err)
 	}
 	if int64(len(data)) > maxFolderImageSize {
-		return nil, "", 0, 0, fmt.Errorf("%w: image exceeds maximum preview size", store.ErrInvalid)
+		return nil, "", fmt.Errorf("%w: image exceeds maximum preview size", store.ErrInvalid)
 	}
 	mt, _, _ := mime.ParseMediaType(http.DetectContentType(data))
 	switch mt {
 	case "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp":
 	default:
-		return nil, "", 0, 0, fmt.Errorf("%w: unsupported image content", store.ErrInvalid)
+		return nil, "", fmt.Errorf("%w: unsupported image content", store.ErrInvalid)
 	}
-	return data, mt, int64(len(data)), fi.ModTime().UnixMilli(), nil
+	return data, mt, nil
 }
 
 func isPreviewTextSuffix(ext string) bool {

@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -217,6 +218,12 @@ func TestStartDownloadValidates(t *testing.T) {
 	dl.notReady = ytdlp.ErrNotInstalled
 	if _, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID}); !errors.Is(err, store.ErrConflict) {
 		t.Fatalf("not installed: %v, want ErrConflict", err)
+	}
+	// The probe error names the binary's host path; the conflict message must not.
+	dl.notReady = fmt.Errorf("yt-dlp cannot run: fork/exec /srv/rainy/ytdlp/yt-dlp: permission denied")
+	_, err := e.svc.StartDownload(e.ctx, e.user, DownloadRequest{URL: testLink, LibraryID: e.lib.ID})
+	if !errors.Is(err, store.ErrConflict) || strings.Contains(err.Error(), "/srv/rainy") {
+		t.Fatalf("cannot run: %v, want ErrConflict without the binary path", err)
 	}
 	if len(dl.got) != 0 {
 		t.Fatal("yt-dlp ran for a refused request")

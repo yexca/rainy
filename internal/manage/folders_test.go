@@ -159,20 +159,29 @@ func TestFolderImageAndTextPreviewsAndGuards(t *testing.T) {
 	write("Album/song.lrc", gbkLyrics)
 	write("Album/huge.log", bytes.Repeat([]byte("line0123\n"), 40000))
 
-	data, ctype, size, mtime, err := e.svc.FolderImage(e.ctx, e.lib.ID, "Album/cover.png")
+	readImage := func(rel string) (*FolderImageFile, []byte, string, error) {
+		img, err := e.svc.StatFolderImage(e.ctx, e.lib.ID, rel)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		data, ctype, err := img.Read()
+		return img, data, ctype, err
+	}
+	img, data, ctype, err := readImage("Album/cover.png")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ctype != "image/png" || size != int64(len(pngBytes)) || mtime <= 0 || !bytes.Equal(data, pngBytes) {
-		t.Fatalf("unexpected image preview: ctype=%s size=%d mtime=%d", ctype, size, mtime)
+	if ctype != "image/png" || img.Size != int64(len(pngBytes)) || img.Mtime <= 0 || !bytes.Equal(data, pngBytes) {
+		t.Fatalf("unexpected image preview: ctype=%s size=%d mtime=%d", ctype, img.Size, img.Mtime)
 	}
 
+	// fake.png passes the name checks and fails on its content.
 	for _, bad := range []string{"", "../cover.png", "Album/.hidden.png", "Album/song.wav", "Album/fake.png", "Album"} {
-		if _, _, _, _, err := e.svc.FolderImage(e.ctx, e.lib.ID, bad); !errors.Is(err, store.ErrInvalid) {
-			t.Errorf("FolderImage(%q) expected ErrInvalid, got %v", bad, err)
+		if _, _, _, err := readImage(bad); !errors.Is(err, store.ErrInvalid) {
+			t.Errorf("folder image %q: expected ErrInvalid, got %v", bad, err)
 		}
 	}
-	if _, _, _, _, err := e.svc.FolderImage(e.ctx, e.lib.ID, "Album/missing.png"); !errors.Is(err, store.ErrNotFound) {
+	if _, _, _, err := readImage("Album/missing.png"); !errors.Is(err, store.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 

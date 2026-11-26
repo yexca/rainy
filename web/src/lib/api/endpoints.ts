@@ -534,6 +534,8 @@ export const api = {
     /** Downloads waiting for review (jobs started with `review`). */
     staging: {
       list: (opts?: CallOptions) => request<{ items: StagedItem[] }>('/manage/staging', opts),
+      /** How many downloads wait (cheap: no tags or duplicate checks), for the Tracks tab badge. */
+      count: (opts?: CallOptions) => request<{ count: number }>('/manage/staging/count', opts),
       update: (id: string, body: StagedUpdateInput) => request<StagedItem>(`/manage/staging/${seg(id)}`, { method: 'PATCH', body }),
       /** The cover embedded in a staged file (404 when none) — for `<img src>`. */
       pictureUrl: (id: string, version?: string | number) => apiUrl(`/manage/staging/${seg(id)}/picture`, { v: version }),

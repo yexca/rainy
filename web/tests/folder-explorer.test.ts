@@ -185,4 +185,23 @@ describe('folder explorer helpers', () => {
       { timeLabel: '00:09', text: 'Second line' },
     ])
   })
+
+  it('expands stacked timestamps and skips every header tag', () => {
+    const lrc = [
+      '[au:Synthetic Author]',
+      '[tool:Synthetic Tool]',
+      '[#:comment]',
+      '[00:05.00]Verse',
+      '[00:12.00][01:30.00]Chorus',
+      '[Bridge]',
+      '[01:00.50]Middle',
+    ].join('\n')
+    assert.deepEqual(parsePreviewLyrics(lrc), [
+      { timeLabel: '00:05', text: 'Verse' },
+      { timeLabel: '00:12', text: 'Chorus' },
+      { timeLabel: null, text: '[Bridge]' },
+      { timeLabel: '01:00', text: 'Middle' },
+      { timeLabel: '01:30', text: 'Chorus' },
+    ])
+  })
 })

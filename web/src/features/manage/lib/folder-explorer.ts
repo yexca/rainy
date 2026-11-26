@@ -273,30 +273,48 @@ export function groupFolderFiles(files: readonly FileEntry[], showAttachedLyrics
   }
 }
 
-const LRC_TAG_RE = /^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\](.*)$/
-const LRC_META_RE = /^\[(ar|ti|al|by|offset|length|re|ve):.*\]$/i
+/** A leading `[mm:ss]`, `[mm:ss.xx]` or `[mm:ss:xx]` timestamp. */
+const LRC_TIME_RE = /^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]\s*/
+/** A `[key:value]` header line (`[ti:…]`, `[offset:…]`, `[au:…]`, `[#:…]`): not a lyric. */
+const LRC_META_RE = /^\[[a-z#][\w#-]*:[^\]]*\]$/i
+/** Enhanced-LRC word timestamps (`<mm:ss.xx>`). */
+const LRC_WORD_TIME_RE = /<\d{1,3}:\d{2}(?:[.:]\d{1,3})?>/g
 
-/** Parses timed `.lrc` content into timestamp + text rows; returns `null` when untimed. */
+function lrcTimeLabel(seconds: number): string {
+  const whole = Math.floor(seconds)
+  return `${String(Math.floor(whole / 60)).padStart(2, '0')}:${String(whole % 60).padStart(2, '0')}`
+}
+
+/**
+ * Parses timed `.lrc` content into timestamp + text rows in time order; returns `null` when
+ * fewer than two lines are timed. A line with several timestamps (`[00:12.00][01:30.00]Chorus`)
+ * gives one row per time; an untimed line stays after the line before it.
+ */
 export function parsePreviewLyrics(content: string): ParsedPreviewLine[] | null {
-  const rawLines = content.replace(/\r\n?/g, '\n').split('\n')
-  const parsed: ParsedPreviewLine[] = []
+  const rows: { at: number; order: number; line: ParsedPreviewLine }[] = []
   let timedCount = 0
+  let lastAt = -1
 
-  for (const raw of rawLines) {
+  for (const raw of content.replace(/\r\n?/g, '\n').split('\n')) {
     const trimmed = raw.trim()
-    if (!trimmed) continue
-    if (LRC_META_RE.test(trimmed)) continue
-    const match = LRC_TAG_RE.exec(trimmed)
-    if (match) {
-      timedCount++
-      const mins = match[1].padStart(2, '0')
-      const secs = match[2]
-      const text = match[4].replace(/<\d{1,3}:\d{2}(?:[.:]\d{1,3})?>/g, '').trim()
-      parsed.push({ timeLabel: `${mins}:${secs}`, text })
-    } else {
-      parsed.push({ timeLabel: null, text: trimmed })
+    if (!trimmed || LRC_META_RE.test(trimmed)) continue
+    const times: number[] = []
+    let rest = trimmed
+    for (let m = LRC_TIME_RE.exec(rest); m; m = LRC_TIME_RE.exec(rest)) {
+      times.push(Number(m[1]) * 60 + Number(m[2]) + (m[3] ? Number(`0.${m[3]}`) : 0))
+      rest = rest.slice(m[0].length)
     }
+    if (times.length === 0) {
+      rows.push({ at: lastAt, order: rows.length, line: { timeLabel: null, text: trimmed } })
+      continue
+    }
+    timedCount++
+    const text = rest.replace(LRC_WORD_TIME_RE, '').trim()
+    for (const at of times) rows.push({ at, order: rows.length, line: { timeLabel: lrcTimeLabel(at), text } })
+    lastAt = times[0]
   }
 
-  return timedCount >= 2 ? parsed : null
+  if (timedCount < 2) return null
+  rows.sort((a, b) => a.at - b.at || a.order - b.order)
+  return rows.map((row) => row.line)
 }

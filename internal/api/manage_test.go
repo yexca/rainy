@@ -165,7 +165,7 @@ func TestManageAndAdminAuthz(t *testing.T) {
 		{"GET", "/manage/metadata"}, {"GET", "/manage/metadata/search"}, {"GET", "/manage/metadata/lyrics"},
 		{"GET", "/manage/metadata/cover"}, {"GET", "/manage/downloads"}, {"POST", "/manage/downloads"},
 		{"DELETE", "/manage/downloads/x"}, {"GET", "/manage/placement"},
-		{"GET", "/manage/staging"}, {"PATCH", "/manage/staging/x"}, {"GET", "/manage/staging/x/picture"},
+		{"GET", "/manage/staging"}, {"GET", "/manage/staging/count"}, {"PATCH", "/manage/staging/x"}, {"GET", "/manage/staging/x/picture"},
 		{"POST", "/manage/staging/import"}, {"POST", "/manage/staging/discard"},
 	}
 	for _, rt := range manageRoutes {
@@ -290,8 +290,8 @@ func TestManageEndpoints(t *testing.T) {
 	etagReq.Header.Set("If-None-Match", imgRec.Header().Get("ETag"))
 	etagRec := httptest.NewRecorder()
 	e.h.ServeHTTP(etagRec, etagReq)
-	if etagRec.Code != http.StatusNotModified {
-		t.Fatalf("expected 304, got %d", etagRec.Code)
+	if etagRec.Code != http.StatusNotModified || etagRec.Body.Len() != 0 {
+		t.Fatalf("expected an empty 304, got %d (%d bytes)", etagRec.Code, etagRec.Body.Len())
 	}
 	if rec := e.do("POST", "/manage/folders/rescan", tok, map[string]any{"libraryId": 1, "dir": "Artist"}); rec.Code != http.StatusAccepted {
 		t.Fatalf("rescan %d %s", rec.Code, rec.Body)
@@ -510,6 +510,9 @@ func TestManageStagingEndpoints(t *testing.T) {
 	}](t, e.do("GET", "/manage/staging", e.mgrTok, nil), 200)
 	if list.Items == nil || len(list.Items) != 0 {
 		t.Fatalf("empty staging list %+v", list)
+	}
+	if got := mgDecode[map[string]int](t, e.do("GET", "/manage/staging/count", e.mgrTok, nil), 200); got["count"] != 0 {
+		t.Fatalf("empty staging count %+v", got)
 	}
 	unknown := "AAAAAAAAAAAAAAAAAAAAAA"
 	if code := mgCode(t, e.do("PATCH", "/manage/staging/"+unknown, e.mgrTok, map[string]any{"tags": map[string]any{"TITLE": []string{"x"}}}), 404); code != "not_found" {

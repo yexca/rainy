@@ -47,6 +47,11 @@ func TestErrorFrom(t *testing.T) {
 			t.Error("internal errors must not leak details")
 		}
 	}
+	// A conflict tells the user what to do, so its message reaches the client.
+	busy := fmt.Errorf("%w: the library is busy (a scan is running); try again when it has finished", store.ErrConflict)
+	if _, _, msg := errorFrom(busy); msg != busy.Error() {
+		t.Errorf("conflict message = %q, want %q", msg, busy.Error())
+	}
 }
 
 func TestDecodeJSON(t *testing.T) {

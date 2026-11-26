@@ -227,8 +227,12 @@ func fromYtdlp(err error) error {
 		return fmt.Errorf("%w: %s", store.ErrInvalid, msg)
 	case errors.Is(err, ytdlp.ErrNotInstalled):
 		return fmt.Errorf("%w: yt-dlp is not installed yet; an administrator can install it in Settings → yt-dlp", store.ErrConflict)
-	case errors.Is(err, ytdlp.ErrNoFFmpeg), strings.HasPrefix(msg, "yt-dlp cannot run"):
-		return fmt.Errorf("%w: %s", store.ErrConflict, msg)
+	case errors.Is(err, ytdlp.ErrNoFFmpeg):
+		return fmt.Errorf("%w: %s", store.ErrConflict, ytdlp.ErrNoFFmpeg.Error())
+	case strings.HasPrefix(msg, "yt-dlp cannot run"):
+		// The cause names the binary's host path (exec errors); it stays in the log.
+		slog.Warn("manage: yt-dlp cannot run", "err", err)
+		return fmt.Errorf("%w: yt-dlp cannot run on this server; an administrator can check it in Settings → yt-dlp", store.ErrConflict)
 	case errors.Is(err, ytdlp.ErrUpstream):
 		return errors.New(msg) // yt-dlp's own message, e.g. "[youtube] …: Video unavailable"
 	}
