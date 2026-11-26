@@ -12,8 +12,8 @@ import type { VitePWAOptions } from 'vite-plugin-pwa'
 
 // Browser chrome / splash colours = the app background (default "apple" style, light theme;
 // the dark variant is set per colour scheme with <meta name="theme-color" media=…> in index.html).
-const THEME_COLOR = '#f3f3f7'
-const BACKGROUND_COLOR = '#f3f3f7'
+const THEME_COLOR = '#f2f2f7'
+const BACKGROUND_COLOR = '#f2f2f7'
 
 export const pwaOptions: Partial<VitePWAOptions> = {
   strategies: 'generateSW',

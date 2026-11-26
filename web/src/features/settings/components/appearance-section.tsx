@@ -1,18 +1,30 @@
 import { Check, Circle, Feather, Layers3, Monitor, Moon, Shapes, Sun, type LucideIcon } from 'lucide-react'
-import { useRef, type KeyboardEvent, type ReactNode } from 'react'
+import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Switch } from '@/components/ui/switch'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
-import { ACCENTS, STYLES, STYLE_PREVIEWS, accentFill, accentSwatch, immersiveForStyle, type Accent, type Style, type Theme } from '@/lib/theme'
+import {
+  IMMERSIVE_SWATCH,
+  STYLES,
+  STYLE_PREVIEWS,
+  accentSwatch,
+  immersiveForStyle,
+  showsCoverWheel,
+  styleAccents,
+  type Accent,
+  type AccentSwatch,
+  type Style,
+  type Theme,
+} from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
 
 export function AppearanceSection() {
   const { t, i18n } = useTranslation('settings')
-  const { theme, setTheme, style, setStyle, accent, setAccent, immersive, setImmersive } = useTheme()
+  const { theme, setTheme, style, setStyle, accent, savedAccent, setAccent, immersive, setImmersive } = useTheme()
   // Re-render on language change (i18n.language is read for the current value).
   const language: Language = i18n.language ? currentLanguage() : 'en'
 
@@ -28,7 +40,7 @@ export function AppearanceSection() {
         <Segmented label={t('appearance.theme')} value={theme} onChange={setTheme} options={themes} />
       </SettingsRow>
       <SettingsRow label={t('common:style.label')} description={t('appearance.styleHint')} stacked>
-        <StylePicker value={style} accent={accent} immersive={immersive} onChange={setStyle} className="w-full sm:w-80" />
+        <StylePicker value={style} accent={savedAccent} immersive={immersive} onChange={setStyle} className="w-full sm:w-80" />
       </SettingsRow>
       {/* The immersive switch sits beside the label; the swatches below follow it. */}
       <div>
@@ -74,6 +86,22 @@ function useRadioKeys<T>(values: readonly T[], onChange: (value: T) => void) {
     refs.current[next]?.focus()
   }
   return { refs, onKeyDown }
+}
+
+const PREVIEW_BAR = 'h-1.5 flex-1 rounded-full ring-1 ring-black/10 dark:ring-white/15'
+
+/**
+ * Inline properties of an `accent-swatch` element (index.css): the accent's light and dark
+ * colours, so the swatch shows the current theme's; the cover wheel paints over the fill.
+ */
+function swatchStyle({ light, dark }: AccentSwatch, wheel: boolean): CSSProperties {
+  return {
+    '--swatch-light': light.primary,
+    '--swatch-dark': dark.primary,
+    '--swatch-fg-light': light.foreground,
+    '--swatch-fg-dark': dark.foreground,
+    ...(wheel ? { backgroundImage: IMMERSIVE_SWATCH } : {}),
+  } as CSSProperties
 }
 
 /**
@@ -126,8 +154,12 @@ export function StylePicker({
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">{t(`style.${style}`)}</span>
               <span className="mt-1.5 flex gap-1" aria-hidden>
-                {[accentFill(accent, style, immersiveForStyle(immersive, value, style)), background.light, background.dark].map((fill, i) => (
-                  <span key={i} className="h-1.5 flex-1 rounded-full ring-1 ring-black/10 dark:ring-white/15" style={{ background: fill }} />
+                <span
+                  className={cn(PREVIEW_BAR, 'accent-swatch bg-(--swatch)')}
+                  style={swatchStyle(accentSwatch(accent, style), showsCoverWheel(accent, style, immersiveForStyle(immersive, value, style)))}
+                />
+                {[background.light, background.dark].map((fill) => (
+                  <span key={fill} className={PREVIEW_BAR} style={{ background: fill }} />
                 ))}
               </span>
             </span>
@@ -162,8 +194,9 @@ export function ImmersiveSwitch({
 }
 
 /**
- * The highlight colours. In immersive mode the first swatch (`original`) is a colour wheel: the
- * highlight follows the cover like everything else; the presets after it stay fixed highlights.
+ * The highlight colours the style offers, in the current theme. In immersive mode the first
+ * swatch (`original`) is a colour wheel: the highlight follows the cover like everything else;
+ * the others stay fixed highlights.
  */
 export function AccentPicker({
   value,
@@ -177,14 +210,15 @@ export function AccentPicker({
   onChange: (accent: Accent) => void
 }) {
   const { t } = useTranslation()
-  const { refs, onKeyDown } = useRadioKeys(ACCENTS, onChange)
+  const accents = styleAccents(style)
+  const { refs, onKeyDown } = useRadioKeys(accents, onChange)
 
   return (
     <div role="radiogroup" aria-label={t('accent.label')} className="-mx-1 flex flex-wrap">
-      {ACCENTS.map((accent, index) => {
+      {accents.map((accent, index) => {
         const selected = accent === value
-        const swatch = accentSwatch(accent, style)
-        const label = immersive && accent === 'original' ? t('accent.cover') : t(`accent.${accent}`)
+        const wheel = showsCoverWheel(accent, style, immersive)
+        const label = wheel ? t('accent.cover') : t(`accent.${accent}`)
         return (
           <button
             key={accent}
@@ -203,13 +237,15 @@ export function AccentPicker({
           >
             <span
               className={cn(
-                'grid size-8 place-items-center rounded-full shadow-sm ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 group-active:scale-90 dark:ring-white/15',
+                'accent-swatch grid size-8 place-items-center rounded-full bg-(--swatch) shadow-sm ring-1 ring-black/10 transition-[box-shadow,scale] duration-150 group-active:scale-90 dark:ring-white/15',
                 'group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background',
                 selected && 'ring-2 ring-offset-2 ring-offset-card',
               )}
-              style={{ background: accentFill(accent, style, immersive), ...(selected ? { ['--tw-ring-color' as string]: swatch } : {}) }}
+              style={{ ...swatchStyle(accentSwatch(accent, style), wheel), ...(selected ? { ['--tw-ring-color' as string]: 'var(--swatch)' } : {}) }}
             >
-              {selected ? <Check className={cn('size-4', accent === 'amber' ? 'text-black/75' : 'text-white drop-shadow-sm')} strokeWidth={3} aria-hidden /> : null}
+              {selected ? (
+                <Check className={cn('size-4', wheel ? 'text-white drop-shadow-sm' : 'text-(--swatch-fg)')} strokeWidth={3} aria-hidden />
+              ) : null}
             </span>
           </button>
         )

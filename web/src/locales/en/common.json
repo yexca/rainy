@@ -136,12 +136,11 @@
     "label": "Accent colour",
     "original": "Original",
     "cover": "From the cover",
-    "rain": "Rain",
-    "rose": "Rose",
-    "violet": "Violet",
-    "emerald": "Emerald",
-    "amber": "Amber",
-    "graphite": "Graphite"
+    "blue": "Blue",
+    "green": "Green",
+    "purple": "Purple",
+    "pink": "Pink",
+    "orange": "Orange"
   },
   "immersive": {
     "label": "Immersive"

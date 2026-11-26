@@ -30,14 +30,11 @@ function setPanel(open: boolean) {
   usePanel.setState({ open })
 }
 
-/** How long the chrome takes to settle after a style moved it (its 300ms transitions and a frame). */
-const CHROME_MOTION_MS = 340
-
 /** `beside`: the panel opens to the right of the sidebar instead of below the header. */
 function AppearanceMenu({ active, beside = false }: { active: boolean; beside?: boolean }) {
   const { t, i18n } = useTranslation()
   const isMobile = useIsMobile()
-  const { theme, setTheme, style, setStyle, accent, setAccent, immersive, setImmersive } = useTheme()
+  const { theme, setTheme, style, setStyle, accent, savedAccent, setAccent, immersive, setImmersive } = useTheme()
   // The header and the sidebar each mount a panel.
   const immersiveId = useId()
   // Reading i18n.language re-renders the picker when the language changes.
@@ -52,13 +49,9 @@ function AppearanceMenu({ active, beside = false }: { active: boolean; beside?: 
   ]
 
   const onStyle = (next: Style) => {
-    // A style with another chrome layout moves this button away (tablets and desktops): close the
-    // panel while the chrome slides, then show it again from the button in the new layout, so it
-    // stays open across every style like it does when the layout is unchanged.
-    if (!isMobile && STYLE_CHROME[next] !== STYLE_CHROME[style]) {
-      setPanel(false)
-      window.setTimeout(() => setPanel(true), CHROME_MOTION_MS)
-    }
+    // A style with another chrome layout moves this button away (tablets and desktops): the panel
+    // closes with it instead of following the chrome.
+    if (!isMobile && STYLE_CHROME[next] !== STYLE_CHROME[style]) setPanel(false)
     setStyle(next)
   }
 
@@ -80,7 +73,7 @@ function AppearanceMenu({ active, beside = false }: { active: boolean; beside?: 
           <Segmented label={t('theme.label')} value={theme} onChange={setTheme} options={themes} />
           <div className="grid gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">{t('style.label')}</span>
-            <StylePicker value={style} accent={accent} immersive={immersive} onChange={onStyle} />
+            <StylePicker value={style} accent={savedAccent} immersive={immersive} onChange={onStyle} />
           </div>
           <div className="grid gap-1.5">
             <div className="flex min-h-6 items-center justify-between gap-3">

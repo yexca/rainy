@@ -16,12 +16,88 @@ export type Style = (typeof STYLES)[number]
 export const DEFAULT_STYLE: Style = 'apple'
 
 /**
- * `original` keeps the style's own `--primary`; the others override it. In immersive mode
- * `original` instead takes the highlight from the cover (the style's own until there is one).
+ * Highlight colours. `original` is the style's own `--primary`; each style offers only the hues
+ * its design source publishes (`STYLE_ACCENTS`), and a hue it lacks shows as `original`. In
+ * immersive mode `original` instead takes the highlight from the cover (the style's own until
+ * there is one).
  */
-export const ACCENTS = ['original', 'rain', 'rose', 'violet', 'emerald', 'amber', 'graphite'] as const
+export const ACCENTS = ['original', 'blue', 'green', 'purple', 'pink', 'orange'] as const
 export type Accent = (typeof ACCENTS)[number]
 export const DEFAULT_ACCENT: Accent = 'original'
+
+/** Accent values stored before the per-style palettes, read as their closest hue. */
+export const RETIRED_ACCENTS: Readonly<Record<string, Accent>> = {
+  rain: 'blue',
+  rose: 'pink',
+  violet: 'purple',
+  emerald: 'green',
+  amber: 'orange',
+  graphite: 'original',
+}
+
+/** A highlight in one theme: `--primary` and the text on it (`--primary-foreground`). */
+export interface AccentColors {
+  primary: string
+  foreground: string
+}
+
+export type AccentSwatch = Readonly<Record<ResolvedTheme, AccentColors>>
+
+const WHITE = '#ffffff'
+
+/**
+ * Each style's highlights, light and dark, as the `[data-style][data-accent]` rules in index.css
+ * set them (the swatches show the current theme's value). Sources, read 2026-11-27:
+ * - apple: Human Interface Guidelines system colours (June 2025 values), white text.
+ * - google-md: Material 3 tones of Google palette seeds (material-color-utilities 0.3.0):
+ *   primary tone 40 / on-primary 100 light, tone 80 / 20 dark.
+ * - openai: Apps SDK (`@openai/apps-sdk-ui` 0.2.2): the gray primary solid with inverse text,
+ *   and the info, discovery and warning solids with white text in both themes.
+ * - anthropic: the brand Orange, Blue and Green with the brand Dark text in dark; in light the
+ *   brand hue and chroma (OKLCH) at the lightness that reaches 4.6:1 on the page, with the brand
+ *   Light text (the brand colours are too light for text on a pale page).
+ */
+export const STYLE_ACCENTS: Readonly<Record<Style, Readonly<{ original: AccentSwatch } & Partial<Record<Accent, AccentSwatch>>>>> = {
+  anthropic: {
+    original: { light: { primary: '#b15333', foreground: '#faf9f5' }, dark: { primary: '#d97757', foreground: '#141413' } },
+    blue: { light: { primary: '#4272a0', foreground: '#faf9f5' }, dark: { primary: '#6a9bcc', foreground: '#141413' } },
+    green: { light: { primary: '#627547', foreground: '#faf9f5' }, dark: { primary: '#788c5d', foreground: '#141413' } },
+  },
+  openai: {
+    original: { light: { primary: '#181818', foreground: WHITE }, dark: { primary: '#f3f3f3', foreground: '#0d0d0d' } },
+    blue: { light: { primary: '#0285ff', foreground: WHITE }, dark: { primary: '#0285ff', foreground: WHITE } },
+    purple: { light: { primary: '#924ff7', foreground: WHITE }, dark: { primary: '#924ff7', foreground: WHITE } },
+    orange: { light: { primary: '#e25507', foreground: WHITE }, dark: { primary: '#e25507', foreground: WHITE } },
+  },
+  apple: {
+    original: { light: { primary: '#0088ff', foreground: WHITE }, dark: { primary: '#0091ff', foreground: WHITE } },
+    purple: { light: { primary: '#cb30e0', foreground: WHITE }, dark: { primary: '#db34f2', foreground: WHITE } },
+    pink: { light: { primary: '#ff2d55', foreground: WHITE }, dark: { primary: '#ff375f', foreground: WHITE } },
+    orange: { light: { primary: '#ff8d28', foreground: WHITE }, dark: { primary: '#ff9230', foreground: WHITE } },
+  },
+  'google-md': {
+    original: { light: { primary: '#005bc0', foreground: WHITE }, dark: { primary: '#adc7ff', foreground: '#002e68' } },
+    green: { light: { primary: '#006e2a', foreground: WHITE }, dark: { primary: '#73dc82', foreground: '#003912' } },
+    purple: { light: { primary: '#8622d9', foreground: WHITE }, dark: { primary: '#deb7ff', foreground: '#4a0080' } },
+    orange: { light: { primary: '#994700', foreground: WHITE }, dark: { primary: '#ffb68a', foreground: '#522300' } },
+  },
+}
+
+/** The accents a style offers, `original` first. */
+export function styleAccents(style: Style): Accent[] {
+  return ACCENTS.filter((accent) => accent in STYLE_ACCENTS[style])
+}
+
+/** What the style shows for the chosen accent: `original` for a hue it does not offer (the choice itself is kept). */
+export function resolveAccent(accent: Accent, style: Style): Accent {
+  return accent in STYLE_ACCENTS[style] ? accent : 'original'
+}
+
+/** A stored accent value: current, retired (mapped to its hue) or unknown (`original`). */
+export function parseAccent(value: unknown): Accent {
+  if (isAccent(value)) return value
+  return typeof value === 'string' && Object.hasOwn(RETIRED_ACCENTS, value) ? RETIRED_ACCENTS[value] : DEFAULT_ACCENT
+}
 
 /** Immersive mode (the whole app takes its colours from the cover on screen or playing) per style, until the user sets it. */
 export const STYLE_IMMERSIVE: Readonly<Record<Style, boolean>> = {
@@ -73,41 +149,29 @@ export const STYLE_RAIL: Readonly<Record<Style, Rail>> = {
   'google-md': 'labels',
 }
 
-/** Swatch colours for accent pickers (the light-theme `--primary` of each preset in index.css). */
-export const ACCENT_SWATCHES: Readonly<Record<Exclude<Accent, 'original'>, string>> = {
-  rain: 'oklch(0.62 0.17 255)',
-  rose: 'oklch(0.62 0.22 12)',
-  violet: 'oklch(0.57 0.23 293)',
-  emerald: 'oklch(0.58 0.14 163)',
-  amber: 'oklch(0.7 0.16 62)',
-  graphite: 'oklch(0.3 0.008 270)',
-}
-
 export interface StylePreview {
-  /** Light-theme `--primary` (the `original` accent). */
-  primary: string
   /** Light and dark page backgrounds = browser chrome colour (`<meta name="theme-color">`). */
   background: Readonly<Record<ResolvedTheme, string>>
 }
 
 export const STYLE_PREVIEWS: Readonly<Record<Style, StylePreview>> = {
-  anthropic: { primary: '#ac4e2f', background: { light: '#f7f3ed', dark: '#191614' } },
-  openai: { primary: '#171717', background: { light: '#fafafa', dark: '#141414' } },
-  apple: { primary: '#006adb', background: { light: '#f3f3f7', dark: '#111113' } },
-  'google-md': { primary: '#1663df', background: { light: '#f8fafc', dark: '#121416' } },
+  anthropic: { background: { light: '#faf9f5', dark: '#141413' } },
+  openai: { background: { light: '#ffffff', dark: '#212121' } },
+  apple: { background: { light: '#f2f2f7', dark: '#111113' } },
+  'google-md': { background: { light: '#f9f9ff', dark: '#10131a' } },
 }
 
 /** Picker fill for `original` in immersive mode: the highlight comes from the cover, so a wheel of cover-like hues. */
 export const IMMERSIVE_SWATCH = 'conic-gradient(from 200deg, #e8607a, #f0a24c, #58c08c, #4c9bea, #9a6cea, #e8607a)'
 
-/** The accent's solid colour under a style. */
-export function accentSwatch(accent: Accent, style: Style): string {
-  return accent === 'original' ? STYLE_PREVIEWS[style].primary : ACCENT_SWATCHES[accent]
+/** The accent's colours under a style (its `original` for a hue the style does not offer). */
+export function accentSwatch(accent: Accent, style: Style): AccentSwatch {
+  return STYLE_ACCENTS[style][resolveAccent(accent, style)] ?? STYLE_ACCENTS[style].original
 }
 
-/** CSS `background` of the accent's swatch in a picker. */
-export function accentFill(accent: Accent, style: Style, immersive = false): string {
-  return immersive && accent === 'original' ? IMMERSIVE_SWATCH : accentSwatch(accent, style)
+/** Whether a picker draws the accent as the cover colour wheel (`original` in immersive mode). */
+export function showsCoverWheel(accent: Accent, style: Style, immersive: boolean): boolean {
+  return immersive && resolveAccent(accent, style) === 'original'
 }
 
 /**

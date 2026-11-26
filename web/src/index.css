@@ -22,26 +22,29 @@
     ui-serif, Georgia, Cambria, "Times New Roman", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
     "Noto Sans CJK SC", serif;
 
-  --background: hsl(36 38% 95%);
-  --foreground: hsl(24 12% 17%);
-  --card: hsl(40 33% 98%);
-  --card-foreground: hsl(24 12% 17%);
-  --popover: hsl(36 28% 98%);
-  --popover-foreground: hsl(24 12% 17%);
-  --secondary: hsl(34 24% 90%);
-  --secondary-foreground: hsl(24 18% 23%);
-  --muted: hsl(34 26% 92%);
-  --muted-foreground: hsl(24 8% 43%);
-  --accent: hsl(34 24% 86%);
-  --accent-foreground: hsl(24 18% 21%);
+  /* Anthropic brand neutrals: Light page, Dark text, Light Gray fills and borders, Mid Gray
+     input outlines; the card, the muted fill and the secondary text are derived at the brand
+     neutral hue in OKLCH (secondary text at 4.6:1 on Light Gray). */
+  --background: #faf9f5;
+  --foreground: #141413;
+  --card: #fcfcf9;
+  --card-foreground: #141413;
+  --popover: #fcfcf9;
+  --popover-foreground: #141413;
+  --secondary: #e8e6dc;
+  --secondary-foreground: #141413;
+  --muted: #f2f0ea;
+  --muted-foreground: #686660;
+  --accent: #e8e6dc;
+  --accent-foreground: #141413;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: hsl(32 22% 84%);
-  --input: hsl(30 18% 77%);
+  --border: #e8e6dc;
+  --input: #b0aea5;
 
   /* The style's own accent ("original"; overridden by [data-accent] below). */
-  --primary: hsl(15 57% 43%);
-  --primary-foreground: hsl(30 33% 98%);
-  --ring: hsl(15 62% 52%);
+  --primary: #b15333;
+  --primary-foreground: #faf9f5;
+  --ring: #b15333;
 
   --chart-1: var(--primary);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -105,25 +108,27 @@
 /* Dark (base "anthropic" style)                                                              */
 /* ------------------------------------------------------------------------------------------ */
 .dark {
-  --background: hsl(24 11% 9%);
-  --foreground: hsl(35 19% 90%);
-  --card: hsl(24 10% 12%);
-  --card-foreground: hsl(35 19% 90%);
-  --popover: hsl(24 10% 15%);
-  --popover-foreground: hsl(35 19% 90%);
-  --secondary: hsl(24 9% 19%);
-  --secondary-foreground: hsl(34 18% 88%);
-  --muted: hsl(24 7% 17%);
-  --muted-foreground: hsl(30 8% 64%);
-  --accent: hsl(24 10% 23%);
-  --accent-foreground: hsl(34 18% 91%);
+  /* Brand Dark page, Light text, Mid Gray secondary text; the surfaces above the page step up in
+     OKLCH lightness at the brand neutral hue. */
+  --background: #141413;
+  --foreground: #faf9f5;
+  --card: #1c1c1a;
+  --card-foreground: #faf9f5;
+  --popover: #272624;
+  --popover-foreground: #faf9f5;
+  --secondary: #2e2e2c;
+  --secondary-foreground: #faf9f5;
+  --muted: #21201e;
+  --muted-foreground: #b0aea5;
+  --accent: #383836;
+  --accent-foreground: #faf9f5;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: hsl(24 7% 21%);
-  --input: hsl(24 8% 28%);
+  --border: #2e2e2c;
+  --input: #484845;
 
-  --primary: hsl(19 76% 70%);
-  --primary-foreground: hsl(20 42% 12%);
-  --ring: hsl(19 76% 70%);
+  --primary: #d97757;
+  --primary-foreground: #141413;
+  --ring: #d97757;
 
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -142,42 +147,48 @@
   --app-font-latin: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI";
   --app-font-heading: var(--app-font);
 
-  --background: hsl(0 0% 98%);
-  --foreground: hsl(0 0% 12%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(0 0% 12%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 12%);
-  --secondary: hsl(0 0% 92%);
-  --secondary-foreground: hsl(0 0% 20%);
-  --muted: hsl(0 0% 95%);
-  --muted-foreground: hsl(0 0% 40%);
-  --accent: hsl(0 0% 90%);
-  --accent-foreground: hsl(0 0% 16%);
-  --border: hsl(0 0% 83%);
-  --input: hsl(0 0% 78%);
-  --primary: hsl(0 0% 9%);
-  --primary-foreground: hsl(0 0% 100%);
-  --ring: hsl(0 0% 45%);
+  /* Apps SDK (@openai/apps-sdk-ui 0.2.2) gray scale: surface gray-0 page, surface-secondary
+     gray-50 card and sidebar, surface-elevated popover, secondary-soft gray-100 fills, text
+     gray-1000 / text-secondary gray-500, alpha-10 / alpha-15 borders, blue-500 focus ring. */
+  --background: #ffffff;
+  --foreground: #0d0d0d;
+  --card: #f9f9f9;
+  --card-foreground: #0d0d0d;
+  --popover: #ffffff;
+  --popover-foreground: #0d0d0d;
+  --secondary: #ededed;
+  --secondary-foreground: #0d0d0d;
+  --muted: #f3f3f3;
+  --muted-foreground: #5d5d5d;
+  --accent: #ededed;
+  --accent-foreground: #0d0d0d;
+  --border: rgb(0 0 0 / 0.1);
+  --input: rgb(0 0 0 / 0.15);
+  --primary: #181818;
+  --primary-foreground: #ffffff;
+  --ring: #0169cc;
 }
 :root.dark[data-style="openai"] {
-  --background: hsl(0 0% 8%);
-  --foreground: hsl(0 0% 92%);
-  --card: hsl(0 0% 11%);
-  --card-foreground: hsl(0 0% 92%);
-  --popover: hsl(0 0% 14%);
-  --popover-foreground: hsl(0 0% 92%);
-  --secondary: hsl(0 0% 18%);
-  --secondary-foreground: hsl(0 0% 88%);
-  --muted: hsl(0 0% 16%);
-  --muted-foreground: hsl(0 0% 65%);
-  --accent: hsl(0 0% 23%);
-  --accent-foreground: hsl(0 0% 94%);
-  --border: hsl(0 0% 25%);
-  --input: hsl(0 0% 29%);
-  --primary: hsl(0 0% 95%);
-  --primary-foreground: hsl(0 0% 9%);
-  --ring: hsl(0 0% 62%);
+  /* The dark gray scale: surface gray-200 page, surface-secondary card, surface-elevated popover,
+     secondary-soft gray-300 fills, gray-350 hover (ghost-hover alpha-12 over the page),
+     text-secondary gray-700, alpha-12 / alpha-20 borders, blue-400 focus ring. */
+  --background: #212121;
+  --foreground: #ffffff;
+  --card: #181818;
+  --card-foreground: #ffffff;
+  --popover: #303030;
+  --popover-foreground: #ffffff;
+  --secondary: #303030;
+  --secondary-foreground: #ffffff;
+  --muted: #282828;
+  --muted-foreground: #afafaf;
+  --accent: #393939;
+  --accent-foreground: #ffffff;
+  --border: rgb(255 255 255 / 0.12);
+  --input: rgb(255 255 255 / 0.2);
+  --primary: #f3f3f3;
+  --primary-foreground: #0d0d0d;
+  --ring: #0285ff;
 }
 
 /* OpenAI: buttons are pills (unlayered, so it wins over the `rounded-*` utilities). */
@@ -190,42 +201,48 @@
   --app-font-latin: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI";
   --app-font-heading: var(--app-font);
 
-  --background: hsl(240 20% 96%);
+  /* HIG system grays (June 2025 values): a grouped page in systemGray6 with white cards,
+     systemGray5 fills, systemGray4 borders, systemGray3 input outlines, and the accessible
+     systemGray for secondary text. HIG gives the label colours no values; the text is near-black. */
+  --background: #f2f2f7;
   --foreground: hsl(240 4% 11%);
-  --card: hsl(0 0% 100%);
+  --card: #ffffff;
   --card-foreground: hsl(240 4% 11%);
-  --popover: hsl(240 20% 99%);
+  --popover: #ffffff;
   --popover-foreground: hsl(240 4% 11%);
-  --secondary: hsl(240 8% 92%);
-  --secondary-foreground: hsl(240 4% 20%);
-  --muted: hsl(240 10% 94%);
-  --muted-foreground: hsl(240 3% 40%);
-  --accent: hsl(240 9% 89%);
-  --accent-foreground: hsl(240 4% 16%);
-  --border: hsl(240 6% 82%);
-  --input: hsl(240 5% 77%);
-  --primary: hsl(211 100% 43%);
-  --primary-foreground: hsl(0 0% 100%);
-  --ring: hsl(211 100% 50%);
+  --secondary: #e5e5ea;
+  --secondary-foreground: hsl(240 4% 11%);
+  --muted: #f2f2f7;
+  --muted-foreground: #6c6c70;
+  --accent: #e5e5ea;
+  --accent-foreground: hsl(240 4% 11%);
+  --border: #d1d1d6;
+  --input: #c7c7cc;
+  --primary: #0088ff;
+  --primary-foreground: #ffffff;
+  --ring: #0088ff;
 }
 :root.dark[data-style="apple"] {
+  /* Dark system grays: systemGray6 cards, systemGray5 popovers and fills, systemGray4 hover and
+     borders, systemGray3 input outlines, the accessible systemGray for secondary text. The page
+     (HIG names no value for it) sits below systemGray6. */
   --background: hsl(240 5% 7%);
   --foreground: hsl(240 5% 93%);
-  --card: hsl(240 4% 11%);
+  --card: #1c1c1e;
   --card-foreground: hsl(240 5% 93%);
-  --popover: hsl(240 4% 15%);
+  --popover: #2c2c2e;
   --popover-foreground: hsl(240 5% 93%);
-  --secondary: hsl(240 4% 19%);
-  --secondary-foreground: hsl(240 5% 89%);
-  --muted: hsl(240 4% 17%);
-  --muted-foreground: hsl(240 3% 65%);
-  --accent: hsl(240 4% 24%);
-  --accent-foreground: hsl(240 5% 94%);
-  --border: hsl(240 4% 27%);
-  --input: hsl(240 4% 31%);
-  --primary: hsl(211 100% 66%);
-  --primary-foreground: hsl(211 65% 10%);
-  --ring: hsl(211 100% 66%);
+  --secondary: #2c2c2e;
+  --secondary-foreground: hsl(240 5% 93%);
+  --muted: #1c1c1e;
+  --muted-foreground: #aeaeb2;
+  --accent: #3a3a3c;
+  --accent-foreground: hsl(240 5% 93%);
+  --border: #3a3a3c;
+  --input: #48484a;
+  --primary: #0091ff;
+  --primary-foreground: #ffffff;
+  --ring: #0091ff;
 }
 
 :root[data-style="google-md"] {
@@ -233,42 +250,47 @@
   --app-font-latin: Roboto, "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text";
   --app-font-heading: var(--app-font);
 
-  --background: hsl(210 33% 98%);
-  --foreground: hsl(220 6% 13%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(220 6% 13%);
-  --popover: hsl(210 25% 99%);
-  --popover-foreground: hsl(220 6% 13%);
-  --secondary: hsl(214 55% 92%);
-  --secondary-foreground: hsl(216 35% 22%);
-  --muted: hsl(210 12% 94%);
-  --muted-foreground: hsl(220 5% 41%);
-  --accent: hsl(214 60% 88%);
-  --accent-foreground: hsl(216 42% 20%);
-  --border: hsl(214 15% 80%);
-  --input: hsl(214 16% 75%);
-  --primary: hsl(217 82% 48%);
-  --primary-foreground: hsl(0 0% 100%);
-  --ring: hsl(217 82% 55%);
+  /* Material 3 roles of the Google Blue seed #1a73e8 (SchemeFidelity, material-color-utilities
+     0.3.0): surface page, surfaceContainerLow card and sidebar, surfaceContainer menus,
+     surfaceContainerHigh muted fill, surfaceContainerHighest hover and selection (neutral, so it
+     suits every accent), secondaryContainer tonal buttons, onSurface / onSurfaceVariant text,
+     outlineVariant borders, outline input outlines. */
+  --background: #f9f9ff;
+  --foreground: #191c23;
+  --card: #f2f3fd;
+  --card-foreground: #191c23;
+  --popover: #ecedf7;
+  --popover-foreground: #191c23;
+  --secondary: #b2c9fe;
+  --secondary-foreground: #3d5481;
+  --muted: #e6e8f2;
+  --muted-foreground: #414754;
+  --accent: #e0e2ec;
+  --accent-foreground: #191c23;
+  --border: #c1c6d6;
+  --input: #727785;
+  --primary: #005bc0;
+  --primary-foreground: #ffffff;
+  --ring: hsl(214 82% 51%);
 }
 :root.dark[data-style="google-md"] {
-  --background: hsl(220 10% 8%);
-  --foreground: hsl(210 14% 91%);
-  --card: hsl(220 9% 12%);
-  --card-foreground: hsl(210 14% 91%);
-  --popover: hsl(220 9% 15%);
-  --popover-foreground: hsl(210 14% 91%);
-  --secondary: hsl(216 22% 20%);
-  --secondary-foreground: hsl(214 42% 89%);
-  --muted: hsl(220 8% 17%);
-  --muted-foreground: hsl(216 7% 65%);
-  --accent: hsl(216 28% 25%);
-  --accent-foreground: hsl(214 42% 92%);
-  --border: hsl(216 10% 27%);
-  --input: hsl(216 11% 31%);
-  --primary: hsl(216 86% 76%);
-  --primary-foreground: hsl(216 55% 12%);
-  --ring: hsl(216 86% 76%);
+  --background: #10131a;
+  --foreground: #e0e2ec;
+  --card: #191c23;
+  --card-foreground: #e0e2ec;
+  --popover: #1d2027;
+  --popover-foreground: #e0e2ec;
+  --secondary: #2e4673;
+  --secondary-foreground: #9eb5e8;
+  --muted: #272a31;
+  --muted-foreground: #c1c6d6;
+  --accent: #32353c;
+  --accent-foreground: #e0e2ec;
+  --border: #414754;
+  --input: #8b909f;
+  --primary: #adc7ff;
+  --primary-foreground: #002e68;
+  --ring: #adc7ff;
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -318,74 +340,202 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Accent presets: <html data-accent="original|rain|rose|violet|emerald|amber|graphite">     */
-/* "original" keeps the style's --primary. The presets come after the styles and set all      */
-/* three tokens in light and dark, so they win over every style.                              */
+/* Accents: <html data-accent="original|blue|green|purple|pink|orange">, always the value the */
+/* style offers (resolveAccent). "original" is the style's --primary above; each style offers  */
+/* the hues of its design source, as STYLE_ACCENTS in lib/theme-styles.ts lists them (sources  */
+/* there). Every light rule has a dark one, and the dark rules are more specific.              */
 /* ------------------------------------------------------------------------------------------ */
-:root[data-accent="rain"] {
-  --primary: oklch(0.62 0.17 255);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.62 0.17 255);
+:root[data-style="anthropic"][data-accent="blue"] {
+  --primary: #4272a0;
+  --primary-foreground: #faf9f5;
+  --ring: #4272a0;
 }
-:root.dark[data-accent="rain"] {
-  --primary: oklch(0.67 0.16 255);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.67 0.16 255);
+:root.dark[data-style="anthropic"][data-accent="blue"] {
+  --primary: #6a9bcc;
+  --primary-foreground: #141413;
+  --ring: #6a9bcc;
 }
-
-:root[data-accent="rose"] {
-  --primary: oklch(0.62 0.22 12);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.62 0.22 12);
+:root[data-style="anthropic"][data-accent="green"] {
+  --primary: #627547;
+  --primary-foreground: #faf9f5;
+  --ring: #627547;
 }
-:root.dark[data-accent="rose"] {
-  --primary: oklch(0.68 0.2 12);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.68 0.2 12);
-}
-
-:root[data-accent="violet"] {
-  --primary: oklch(0.57 0.23 293);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.57 0.23 293);
-}
-:root.dark[data-accent="violet"] {
-  --primary: oklch(0.66 0.2 293);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.66 0.2 293);
+:root.dark[data-style="anthropic"][data-accent="green"] {
+  --primary: #788c5d;
+  --primary-foreground: #141413;
+  --ring: #788c5d;
 }
 
-:root[data-accent="emerald"] {
-  --primary: oklch(0.58 0.14 163);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.58 0.14 163);
+/* OpenAI: the Apps SDK info, discovery and warning solids, the same in both themes. */
+:root[data-style="openai"][data-accent="blue"],
+:root.dark[data-style="openai"][data-accent="blue"] {
+  --primary: #0285ff;
+  --primary-foreground: #ffffff;
+  --ring: #0285ff;
 }
-:root.dark[data-accent="emerald"] {
-  --primary: oklch(0.72 0.15 163);
-  --primary-foreground: oklch(0.2 0.04 163);
-  --ring: oklch(0.72 0.15 163);
+:root[data-style="openai"][data-accent="purple"],
+:root.dark[data-style="openai"][data-accent="purple"] {
+  --primary: #924ff7;
+  --primary-foreground: #ffffff;
+  --ring: #924ff7;
 }
-
-:root[data-accent="amber"] {
-  --primary: oklch(0.7 0.16 62);
-  --primary-foreground: oklch(0.22 0.04 60);
-  --ring: oklch(0.7 0.16 62);
-}
-:root.dark[data-accent="amber"] {
-  --primary: oklch(0.79 0.16 72);
-  --primary-foreground: oklch(0.22 0.04 60);
-  --ring: oklch(0.79 0.16 72);
+:root[data-style="openai"][data-accent="orange"],
+:root.dark[data-style="openai"][data-accent="orange"] {
+  --primary: #e25507;
+  --primary-foreground: #ffffff;
+  --ring: #e25507;
 }
 
-:root[data-accent="graphite"] {
-  --primary: oklch(0.3 0.008 270);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.55 0.01 270);
+:root[data-style="apple"][data-accent="purple"] {
+  --primary: #cb30e0;
+  --primary-foreground: #ffffff;
+  --ring: #cb30e0;
 }
-:root.dark[data-accent="graphite"] {
-  --primary: oklch(0.9 0.004 270);
-  --primary-foreground: oklch(0.2 0 0);
-  --ring: oklch(0.6 0.01 270);
+:root.dark[data-style="apple"][data-accent="purple"] {
+  --primary: #db34f2;
+  --primary-foreground: #ffffff;
+  --ring: #db34f2;
+}
+:root[data-style="apple"][data-accent="pink"] {
+  --primary: #ff2d55;
+  --primary-foreground: #ffffff;
+  --ring: #ff2d55;
+}
+:root.dark[data-style="apple"][data-accent="pink"] {
+  --primary: #ff375f;
+  --primary-foreground: #ffffff;
+  --ring: #ff375f;
+}
+:root[data-style="apple"][data-accent="orange"] {
+  --primary: #ff8d28;
+  --primary-foreground: #ffffff;
+  /* The focus ring needs 3:1 on the page, which the default orange (2.1:1) misses: the
+     increased-contrast orange (4.1:1). */
+  --ring: #c55300;
+}
+:root.dark[data-style="apple"][data-accent="orange"] {
+  --primary: #ff9230;
+  --primary-foreground: #ffffff;
+  --ring: #ff9230;
+}
+
+/* Google MD: Material 3 primary tone 40 / 80, on-primary 100 / 20, ring tone 50 in light. */
+:root[data-style="google-md"][data-accent="green"] {
+  --primary: #006e2a;
+  --primary-foreground: #ffffff;
+  --ring: hsl(139 72% 31%);
+}
+:root.dark[data-style="google-md"][data-accent="green"] {
+  --primary: #73dc82;
+  --primary-foreground: #003912;
+  --ring: #73dc82;
+}
+:root[data-style="google-md"][data-accent="purple"] {
+  --primary: #8622d9;
+  --primary-foreground: #ffffff;
+  --ring: hsl(272 89% 61%);
+}
+:root.dark[data-style="google-md"][data-accent="purple"] {
+  --primary: #deb7ff;
+  --primary-foreground: #4a0080;
+  --ring: #deb7ff;
+}
+:root[data-style="google-md"][data-accent="orange"] {
+  --primary: #994700;
+  --primary-foreground: #ffffff;
+  --ring: hsl(28 100% 37%);
+}
+:root.dark[data-style="google-md"][data-accent="orange"] {
+  --primary: #ffb68a;
+  --primary-foreground: #522300;
+  --ring: #ffb68a;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+/* More contrast (the system setting): accents that read as text and under white text.        */
+/* Apple: the HIG increased-contrast values, dark text on the lighter dark ones. OpenAI: the   */
+/* Apps SDK step darker (light) or lighter (dark, with the SDK's near-black text). Anthropic   */
+/* light: the brand hue and chroma at 7:1 on the page. Google MD's tones already pass.         */
+/* Light rules use :not(.dark); every rule names its accent, so none leaks into another.       */
+/* ------------------------------------------------------------------------------------------ */
+@media (prefers-contrast: more) {
+  :root:not(.dark)[data-style="anthropic"][data-accent="original"] {
+    --primary: #8f3413;
+    --ring: #8f3413;
+  }
+  :root:not(.dark)[data-style="anthropic"][data-accent="blue"] {
+    --primary: #255481;
+    --ring: #255481;
+  }
+  :root:not(.dark)[data-style="anthropic"][data-accent="green"] {
+    --primary: #46582b;
+    --ring: #46582b;
+  }
+
+  :root:not(.dark)[data-style="openai"][data-accent="blue"] {
+    --primary: #0169cc;
+    --ring: #0169cc;
+  }
+  :root:not(.dark)[data-style="openai"][data-accent="purple"] {
+    --primary: #8046d9;
+    --ring: #8046d9;
+  }
+  :root:not(.dark)[data-style="openai"][data-accent="orange"] {
+    --primary: #b9480d;
+    --ring: #b9480d;
+  }
+  :root.dark[data-style="openai"][data-accent="blue"] {
+    --primary: #339cff;
+    --primary-foreground: #0d0d0d;
+    --ring: #339cff;
+  }
+  :root.dark[data-style="openai"][data-accent="purple"] {
+    --primary: #ad7bf9;
+    --primary-foreground: #0d0d0d;
+    --ring: #ad7bf9;
+  }
+  :root.dark[data-style="openai"][data-accent="orange"] {
+    --primary: #ff8549;
+    --primary-foreground: #0d0d0d;
+    --ring: #ff8549;
+  }
+
+  :root:not(.dark)[data-style="apple"][data-accent="original"] {
+    --primary: #1e6ef4;
+    --ring: #1e6ef4;
+  }
+  :root:not(.dark)[data-style="apple"][data-accent="purple"] {
+    --primary: #b02fc2;
+    --ring: #b02fc2;
+  }
+  :root:not(.dark)[data-style="apple"][data-accent="pink"] {
+    --primary: #e7124d;
+    --ring: #e7124d;
+  }
+  :root:not(.dark)[data-style="apple"][data-accent="orange"] {
+    --primary: #c55300;
+    --ring: #c55300;
+  }
+  :root.dark[data-style="apple"][data-accent="original"] {
+    --primary: #5cb8ff;
+    --primary-foreground: hsl(206 65% 10%);
+    --ring: #5cb8ff;
+  }
+  :root.dark[data-style="apple"][data-accent="purple"] {
+    --primary: #ea8dff;
+    --primary-foreground: hsl(289 55% 12%);
+    --ring: #ea8dff;
+  }
+  :root.dark[data-style="apple"][data-accent="pink"] {
+    --primary: #ff8ac4;
+    --primary-foreground: hsl(330 60% 12%);
+    --ring: #ff8ac4;
+  }
+  :root.dark[data-style="apple"][data-accent="orange"] {
+    --primary: #ffa056;
+    --primary-foreground: hsl(26 80% 10%);
+    --ring: #ffa056;
+  }
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -757,6 +907,17 @@
     &::after {
       transform: scaleY(0.5);
     }
+  }
+}
+
+/* An accent swatch in a picker: --swatch (fill) and --swatch-fg (text on it) take the current
+   theme's value of the inline --swatch-light / --swatch-dark / --swatch-fg-light / --swatch-fg-dark. */
+@utility accent-swatch {
+  --swatch: var(--swatch-light);
+  --swatch-fg: var(--swatch-fg-light);
+  &:is(.dark *) {
+    --swatch: var(--swatch-dark);
+    --swatch-fg: var(--swatch-fg-dark);
   }
 }
 

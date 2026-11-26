@@ -20,5 +20,21 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   you hover or press the album.
 - Loading placeholders appear only when a page takes longer than a moment,
   so quick page changes no longer flash them.
+- Accent colours follow each style's design source: Apple uses its system
+  colours (Purple, Pink, Orange besides its blue), Google MD Material 3 tones
+  (Green, Purple, Orange), OpenAI its Apps SDK colours (Blue, Purple, Orange),
+  and Anthropic its brand Blue and Green. Each style's own accent moves to the
+  same source. A saved Rain, Rose, Violet, Emerald, or Amber becomes the
+  nearest hue, and Graphite becomes Original. The swatches show the colour
+  you get in dark mode too, and the system's increased-contrast setting
+  switches to stronger shades.
+- Backgrounds, cards, menus, borders, and secondary text follow each style's
+  design source as well: Anthropic's brand neutrals, the Apps SDK grays
+  (OpenAI's dark page is now `#212121`, its light page white), Apple's system
+  grays, and Material 3 surface roles. The browser bar matches the new page
+  colours.
+- On tablets and desktops, the Appearance panel closes when a style moves the
+  appearance button between the header and the sidebar, instead of reopening
+  from its new place.
 
 </details>

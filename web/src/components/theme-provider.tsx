@@ -13,6 +13,7 @@ import {
   readImmersive,
   readStyle,
   readTheme,
+  resolveAccent,
   storeAccent,
   storeImmersive,
   storeStyle,
@@ -36,7 +37,9 @@ import {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readTheme)
   const [style, setStyleState] = useState<Style>(readStyle)
-  const [accent, setAccentState] = useState<Accent>(readAccent)
+  const [storedAccent, setAccentState] = useState<Accent>(readAccent)
+  // The saved hue stays when a style lacks it, so switching back restores it.
+  const accent = resolveAccent(storedAccent, style)
   const [immersive, setImmersiveState] = useState<boolean>(() => readImmersive())
   const [override, setOverride] = useState<ThemeOverride | null>(null)
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
@@ -88,6 +91,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       resolvedTheme,
       style,
       accent,
+      savedAccent: storedAccent,
       immersive,
       setTheme,
       setStyle,
@@ -95,7 +99,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setImmersive,
       setOverride,
     }),
-    [theme, resolvedTheme, style, accent, immersive, setTheme, setStyle, setAccent, setImmersive],
+    [theme, resolvedTheme, style, accent, storedAccent, immersive, setTheme, setStyle, setAccent, setImmersive],
   )
 
   return <ThemeContext value={value}>{children}</ThemeContext>

@@ -4,12 +4,11 @@
  */
 
 import {
-  DEFAULT_ACCENT,
   DEFAULT_STYLE,
   STYLE_CHROME,
   STYLE_IMMERSIVE,
-  isAccent,
   isStyle,
+  parseAccent,
   themeColor,
   type Accent,
   type ResolvedTheme,
@@ -68,9 +67,9 @@ export function readStyle(): Style {
   return isStyle(value) ? value : DEFAULT_STYLE
 }
 
+/** The saved choice (a retired value as its hue); `resolveAccent` gives what a style shows for it. */
 export function readAccent(): Accent {
-  const value = readStorage(ACCENT_STORAGE_KEY)
-  return isAccent(value) ? value : DEFAULT_ACCENT
+  return parseAccent(readStorage(ACCENT_STORAGE_KEY))
 }
 
 /** The saved choice, or what the style starts with. */

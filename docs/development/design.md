@@ -54,9 +54,36 @@ explains the rules every UI change must keep.
   starts immersive). Entering `apple`
   turns immersive mode on and leaving it turns it off; between the other
   styles it stays as the user set it.
-- Accent presets set `--primary`: `original` (default, the style's own
-  accent), `rain` (periwinkle blue), `rose`, `violet`, `emerald`, `amber`, and
-  `graphite`. A preset wins over every style.
+- **Surfaces follow each style's design source too.** Page, card, menu,
+  fill, border, and text colours come from the same place as the accents:
+  `anthropic` the brand Light, Dark, Light Gray, and Mid Gray (the steps in
+  between derived at the brand's neutral hue), `openai` the Apps SDK gray
+  scale and its translucent borders (white page, grey sidebar; `#212121` page
+  in dark), `apple` the HIG system grays (a grouped `systemGray6` page with
+  white cards; the accessible gray for secondary text), and `google-md`
+  Material 3 surface, container, and outline roles of the Google Blue seed.
+  Where a source gives no value (Apple's label colours and dark page), the
+  style keeps its own. Text keeps 7:1 on page, card, and menu, and secondary
+  text 4.5:1 on page, card, and muted fills. The browser chrome colour is
+  the page colour.
+- **Accents follow each style's design source.** `original` (default) is the
+  style's own accent; the others are the hues that source publishes, and a
+  style offers only those: `anthropic` Blue and Green (brand colours), `openai`
+  Blue, Purple, and Orange (Apps SDK solid colours), `apple` Purple, Pink, and
+  Orange (HIG system colours), `google-md` Green, Purple, and Orange (Material
+  3 tones). The values are the published ones: Apple's system colours and the
+  Apps SDK solids keep white text even where it falls below 4.5:1, Material's
+  tones pass on their own, and Anthropic's brand colours are kept in dark and
+  darkened in light at the brand hue until they pass on the page. A hue the
+  style does not offer shows as `original`, and choosing that style again
+  brings the hue back. Swatches show the current theme's colour. The focus
+  ring (`--ring`) is the accent unless that falls below 3:1 on the page; then
+  it takes the source's higher-contrast value (Apple's light Orange uses its
+  increased-contrast orange).
+- **More contrast.** When the system asks for more contrast
+  (`prefers-contrast: more`), Apple uses its increased-contrast colours, OpenAI
+  the next Apps SDK step (dark text on the lighter dark-theme colours), and
+  Anthropic's light accents reach 7:1; Material's tones stay.
 - **Covers never colour a style.** With immersive mode off, album, playlist,
   and artist pages look like every other page of the style in use: the
   style's own surfaces and accent, no colours taken from the artwork, and
@@ -139,9 +166,9 @@ controls its own way; phones always get the glass header above.
 Switching between a header style and a sidebar style animates: the header
 slides up while the account row rises in the corner, and back again. Mark
 elements that take part with `data-chrome-motion`; they may transition
-position and size but never colours. The Appearance panel stays open across
-every style: when its button moves to the other chrome, the panel closes while
-the chrome slides and opens again from the new button.
+position and size but never colours. The Appearance panel stays open while a
+style keeps the chrome; when its button moves to the other chrome, the panel
+closes.
 
 The Search button and field name the shortcut, Ctrl+K (⌘K on Apple devices),
 which opens the Spotlight palette from anywhere — a centered dialog from

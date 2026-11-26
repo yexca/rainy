@@ -9,8 +9,10 @@ export interface ThemeContextValue {
   resolvedTheme: ResolvedTheme
   /** Style preset (surfaces, radius, fonts, the `original` accent and the chrome layout). */
   style: Style
-  /** The highlight; in immersive mode `original` takes it from the cover and a preset keeps its own. */
+  /** The highlight the style shows (the saved one, or `original` for a hue the style lacks); in immersive mode `original` takes it from the cover and the others keep their own. */
   accent: Accent
+  /** The accent the user chose, kept when a style lacks it (style cards preview it per style). */
+  savedAccent: Accent
   /** Immersive mode: the whole app takes its colours from the cover on screen or playing. */
   immersive: boolean
   setTheme: (theme: Theme) => void

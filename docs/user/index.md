@@ -22,7 +22,11 @@ in the **Appearance** panel (the palette button beside your account) or under
 **Settings → Appearance**.
 Both places also pick the theme (light, dark, or system), one of four styles
 (Anthropic; OpenAI; Apple, the default; Google MD), and the accent colour; the
-**Original** accent follows the style. A style also sets the layout: on tablets
+**Original** accent follows the style, and each style offers the other colours
+of the design it takes after, so the list changes with the style. A colour the
+style does not offer shows as Original until you pick a style that has it.
+With your system's increased-contrast setting on, the Apple, OpenAI, and
+Anthropic accents switch to darker or stronger shades. A style also sets the layout: on tablets
 and desktops Apple and OpenAI have no bar across the top and keep your account
 and the appearance button in the bottom-left corner of the sidebar, OpenAI and
 Google MD show Search as a field in the sidebar or header, and Google MD labels
