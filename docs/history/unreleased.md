@@ -18,5 +18,7 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   its page loads and then changes them once, instead of briefly showing the
   playing song's colours or the plain theme. Album colours are prepared when
   you hover or press the album.
+- Loading placeholders appear only when a page takes longer than a moment,
+  so quick page changes no longer flash them.
 
 </details>

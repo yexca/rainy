@@ -212,6 +212,9 @@ two-column reading layout inside the centered column.
   tabs, breadcrumbs, lyrics); do not restyle one bar on its own.
 - Motion uses `motion/react` springs and honours the user's reduced-motion
   preference. Mobile presses scale down slightly for feedback.
+- Skeletons hold their place invisibly for the first 150 ms and then fade in
+  and pulse (`animate-skeleton`), so content that arrives quickly never
+  flashes a skeleton first and nothing shifts when it does show.
 - Icons come from lucide-react at `size-4` or `size-5` with a 1.75 stroke.
   The desktop player bar's side controls use 18 px icons with a 1.9 stroke,
   and transport controls use filled glyphs.
