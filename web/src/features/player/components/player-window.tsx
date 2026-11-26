@@ -59,7 +59,7 @@ export function PlayerWindow({ track }: { track: PlayableTrack }) {
           <span className="h-[5px] w-9 rounded-full bg-white/40 transition-colors group-hover/grab:bg-white/70" />
         </button>
         <div className="flex items-center justify-end gap-1">
-          <DockModeMenu tone="sheet" />
+          <DockModeMenu />
           <ModeToggle
             tone="sheet"
             active={false}

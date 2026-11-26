@@ -6,6 +6,7 @@
   "close": "关闭",
   "panel": "侧边面板",
   "closePanel": "关闭面板",
+  "options": "播放器选项",
   "seek": "播放进度",
   "position": "{{elapsed}} / {{total}}",
   "volume": "音量",

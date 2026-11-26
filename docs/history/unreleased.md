@@ -56,6 +56,19 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 </details>
 
 <details>
+<summary><strong>Playback And The Web Player</strong></summary>
+
+- The bottom bar leaves more room for the song title. The elapsed and
+  remaining times and the star appear over the end of the title while you
+  hover the song (a favorite keeps its star in view), and the volume slider
+  slides out when you hover the speaker. Player layout, picture-in-picture
+  lyrics, and the auto-stop timer moved into a new **Player options** menu;
+  while picture-in-picture lyrics or a timer is on, its highlighted button
+  stays next to the menu. On wide screens the bar grows to 1040 px.
+
+</details>
+
+<details>
 <summary><strong>Library Management</strong></summary>
 
 - Online metadata lookups in the tag editor follow redirects only over HTTPS

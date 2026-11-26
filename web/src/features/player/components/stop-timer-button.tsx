@@ -1,12 +1,11 @@
 import { Timer } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ComponentProps, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -14,76 +13,48 @@ import { parseMinutes, remainingSeconds, STOP_TOAST_ID, TIMER_MINUTES, TIMER_MOD
 import { useStopTimer } from '../stop-timer'
 import { ModeToggle } from './transport'
 
-/** After the panel closes, ignore the tooltip opening from the focus Radix returns (ms). */
-const TOOLTIP_QUIET = 400
-
 /**
  * Auto-stop timer (§9.4): one button, tinted while a timer is on, that opens a panel with a tab
  * per mode (sleep / inactivity) and the times below, presets plus a field for any number of
- * minutes; picking or entering a time starts that mode. `bar`:
- * bottom bar, `sheet`: phone Now Playing and floating window action row, `stage`: desktop
- * full-screen header.
+ * minutes; picking or entering a time starts that mode. `sheet`: phone Now Playing and floating
+ * window action row, `stage`: desktop full-screen header. The bottom bar opens the same panel
+ * (`<TimerPanelContent/>`) from its options menu (`bar-options.tsx`).
  */
-export function StopTimerButton({
-  tone,
-  className,
-  onOpenChange,
-}: {
-  tone: 'bar' | 'sheet' | 'stage'
-  className?: string
-  onOpenChange?: (open: boolean) => void
-}) {
+export function StopTimerButton({ tone, className }: { tone: 'sheet' | 'stage'; className?: string }) {
   const { t } = useTranslation('player')
   const active = useStopTimer((s) => s.mode !== null)
   const label = t('timer.title')
-  const [tooltip, setTooltip] = useState(false)
-  const quietUntil = useRef(0)
-
-  const onPanelOpenChange = (open: boolean) => {
-    setTooltip(false)
-    // The "stopped playback" message sits where the bar's panel opens, and the panel says more.
-    if (open) toast.dismiss(STOP_TOAST_ID)
-    else quietUntil.current = Date.now() + TOOLTIP_QUIET
-    onOpenChange?.(open)
-  }
-
-  const trigger = (
-    <PopoverTrigger asChild>
-      <ModeToggle
-        tone={tone === 'bar' ? 'bar' : 'sheet'}
-        active={active}
-        aria-label={label}
-        title={tone === 'bar' ? undefined : label}
-        className={cn(
-          tone === 'bar' ? 'size-8 rounded-md' : tone === 'stage' ? 'size-10 rounded-full hover:bg-white/10' : 'size-11',
-          className,
-        )}
-      >
-        <Timer className={tone === 'sheet' ? 'size-[22px]' : 'size-[18px]'} strokeWidth={1.9} />
-      </ModeToggle>
-    </PopoverTrigger>
-  )
 
   return (
-    <Popover onOpenChange={onPanelOpenChange}>
-      {tone === 'bar' ? (
-        <Tooltip open={tooltip} onOpenChange={(open) => setTooltip(open && Date.now() >= quietUntil.current)}>
-          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-          <TooltipContent side="top">{label}</TooltipContent>
-        </Tooltip>
-      ) : (
-        trigger
-      )}
-      <PopoverContent
-        aria-label={label}
-        side={tone === 'stage' ? 'bottom' : 'top'}
-        align="end"
-        sideOffset={8}
-        className="w-72 rounded-xl p-3"
-      >
-        <TimerPanel />
-      </PopoverContent>
+    <Popover
+      onOpenChange={(open) => {
+        // The "stopped playback" message sits where the panel opens, and the panel says more.
+        if (open) toast.dismiss(STOP_TOAST_ID)
+      }}
+    >
+      <PopoverTrigger asChild>
+        <ModeToggle
+          tone="sheet"
+          active={active}
+          aria-label={label}
+          title={label}
+          className={cn(tone === 'stage' ? 'size-10 rounded-full hover:bg-white/10' : 'size-11', className)}
+        >
+          <Timer className={tone === 'sheet' ? 'size-[22px]' : 'size-[18px]'} strokeWidth={1.9} />
+        </ModeToggle>
+      </PopoverTrigger>
+      <TimerPanelContent side={tone === 'stage' ? 'bottom' : 'top'} />
     </Popover>
+  )
+}
+
+/** The timer panel inside a `PopoverContent` aligned to the end of its trigger or anchor. */
+export function TimerPanelContent(props: ComponentProps<typeof PopoverContent>) {
+  const { t } = useTranslation('player')
+  return (
+    <PopoverContent aria-label={t('timer.title')} align="end" sideOffset={8} className="w-72 rounded-xl p-3" {...props}>
+      <TimerPanel />
+    </PopoverContent>
   )
 }
 

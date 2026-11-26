@@ -1,5 +1,5 @@
 import { ListMusic, Maximize2, MessageSquareQuote, Music, Radio } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CoverArt } from '@/components/cover-art'
@@ -14,26 +14,26 @@ import { useSliderDrag } from '../hooks/use-slider-drag'
 import { pointerRatio } from '../lib/dock'
 import { useCurrentTrack, usePlayback, usePlayer, type PlaybackState } from '../store'
 import type { PlayableTrack, PlayerPanel } from '../types'
-import { DockModeMenu } from './dock-mode-menu'
+import { BarOptions } from './bar-options'
 import { LiveBadge } from './live-badge'
 import { Marquee } from './now-playing-parts'
-import { PipLyricsButton } from './pip-lyrics-button'
 import { StarButton } from './star-button'
-import { StopTimerButton } from './stop-timer-button'
 import { ModeToggle, NextButton, PlayPauseButton, PrevButton, RepeatButton, ShuffleButton } from './transport'
 import { BarVolume } from './volume-control'
 
 /**
  * Desktop / tablet bottom bar (the `bar` dock mode), laid out like the Apple Music web player:
- * a floating, fully rounded glass pill (56px high, at most 880px wide, centred over the content) with the transport on the
- * left, the current song in the middle (artwork, left-aligned title over "artist — album", star
- * and "…", the progress line underneath across the whole middle) and the toggles on the right.
- * The artwork opens full-screen Now Playing and the title opens the floating window; the
- * progress seeks to where the pointer is, with a time preview while hovering. Rendered by
- * `<PlayerDock/>` inside a `fixed inset-x-0 bottom-0` slot that adds the `--playerbar-gap`
- * margins and safe areas; owns its height (`--playerbar-h`) and always renders (idle state when
- * empty). `onMenuOpenChange` lets the auto-hiding slot stay up while the layout menu, the
- * auto-stop timer panel or the "…" menu is open.
+ * a floating, fully rounded glass pill (56px high, at most 880px wide, 1040px from `2xl`, centred
+ * over the content) with the transport on the left, the current song in the middle (artwork,
+ * left-aligned title over "artist — album", the times and star over the title's end on hover, a
+ * starred star and "…", the progress line underneath across the whole middle) and lyrics,
+ * queue, volume and the options menu on the right. Controls used now and then live in the
+ * options menu so the title keeps the room. The artwork opens full-screen Now Playing and the
+ * title opens the floating window; the progress seeks to where the pointer is, with a time
+ * preview while hovering. Rendered by `<PlayerDock/>` inside a `fixed inset-x-0 bottom-0` slot
+ * that adds the `--playerbar-gap` margins and safe areas; owns its height (`--playerbar-h`) and
+ * always renders (idle state when empty). `onMenuOpenChange` lets the auto-hiding slot stay up
+ * while the options menu, the auto-stop timer panel or the "…" menu is open.
  */
 export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: boolean) => void }) {
   const { t } = useTranslation('player')
@@ -46,7 +46,7 @@ export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: bool
     <div
       role="region"
       aria-label={t('region')}
-      className="ui-chrome glass mx-auto grid h-(--playerbar-h) w-full max-w-[880px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-border/60 px-4 shadow-xl shadow-black/10 lg:gap-5 dark:shadow-black/40"
+      className="ui-chrome glass mx-auto grid h-(--playerbar-h) w-full max-w-[880px] 2xl:max-w-[1040px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-border/60 px-4 shadow-xl shadow-black/10 lg:gap-5 dark:shadow-black/40"
     >
       <div className="flex items-center gap-0.5 lg:gap-1.5">
         {/* From `lg`: the narrower bar keeps them in full-screen Now Playing and the window. */}
@@ -68,14 +68,11 @@ export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: bool
         >
           <MessageSquareQuote className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>
-        <PipLyricsButton tone="bar" />
         <BarToggle label={t('queue.title')} active={panel === 'queue'} onClick={() => togglePanel('queue')}>
           <ListMusic className="size-[18px]" strokeWidth={1.9} />
         </BarToggle>
-        {/* From `lg`: the narrower bar has no room for it (full-screen Now Playing has one). */}
-        <StopTimerButton tone="bar" className="hidden lg:grid" onOpenChange={onMenuOpenChange} />
-        <BarVolume className="ml-1" />
-        <DockModeMenu tone="bar" onOpenChange={onMenuOpenChange} />
+        <BarVolume />
+        <BarOptions onMenuOpenChange={onMenuOpenChange} />
       </div>
     </div>
   )
@@ -116,7 +113,6 @@ function BarNowPlaying({
 }) {
   const { t } = useTranslation('player')
   const setNowPlayingOpen = usePlayer((s) => s.setNowPlayingOpen)
-  const setMode = usePlayerDock((s) => s.setMode)
 
   if (!track) {
     return (
@@ -157,32 +153,9 @@ function BarNowPlaying({
           <TooltipContent side="top">{t('expand')}</TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => setMode('window')}
-              aria-label={t('dock.openWindow')}
-              className="min-w-0 flex-1 rounded-md text-left leading-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-            >
-              <Marquee className="text-[13px] font-medium">{track.title}</Marquee>
-              {track.isRadio ? (
-                <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <LiveBadge tone="bar" className="px-1.5 py-0 text-[9px]" />
-                  <span className="truncate">{t('live.radio')}</span>
-                </span>
-              ) : (
-                <Marquee className="text-xs font-medium text-muted-foreground">
-                  {track.album ? `${track.artist} — ${track.album}` : track.artist}
-                </Marquee>
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top">{t('dock.openWindow')}</TooltipContent>
-        </Tooltip>
-
-        {track.isRadio ? null : <BarTimes />}
-        <StarButton track={track} tone="bar" className="hidden lg:grid" />
+        <BarTitle track={track} />
+        {/* A starred song keeps its star in view from `lg`; otherwise it shows over the title on hover. */}
+        {track.starred ? <StarButton track={track} tone="bar" className="hidden lg:grid" /> : null}
         {track.isRadio ? null : (
           <TrackActionsMenu tracks={[track]} onOpenChange={onMenuOpenChange} className="size-8 rounded-full" />
         )}
@@ -198,16 +171,95 @@ function BarNowPlaying({
   )
 }
 
-/** Elapsed / −remaining beside the title, shown while the middle is hovered or the progress has focus. */
+/** Shows the hover extras while the song area is hovered or something in it has keyboard focus. */
+const NP_REVEAL = 'group-hover/np:opacity-100 group-has-[:focus-visible]/np:opacity-100'
+/** Fades the title out under the hover extras (`--np-fade`, written by `BarTitle`). */
+const NP_FADE = 'group-hover/np:[mask-image:var(--np-fade)] group-has-[:focus-visible]/np:[mask-image:var(--np-fade)]'
+
+/**
+ * Title over "artist — album" (click → floating window). Elapsed / −remaining and, for a song
+ * that is not starred (or below `lg`, where the starred star is hidden), the star sit over the
+ * end of the title instead of beside it: they appear while the song area is hovered or focused,
+ * and the title fades out beneath them, so the title gets the whole width the rest of the time.
+ */
+function BarTitle({ track }: { track: PlayableTrack }) {
+  const { t } = useTranslation('player')
+  const setMode = usePlayerDock((s) => s.setMode)
+  const titleRef = useRef<HTMLButtonElement>(null)
+  const extrasRef = useRef<HTMLDivElement>(null)
+
+  // The fade follows the extras' width (the times grow past an hour; the star comes and goes).
+  useLayoutEffect(() => {
+    const title = titleRef.current
+    const extras = extrasRef.current
+    if (!title || !extras) return
+    const measure = () => {
+      const width = extras.offsetWidth
+      title.style.setProperty(
+        '--np-fade',
+        width > 0 ? `linear-gradient(to left, transparent ${width}px, #000 calc(${width}px + 1.25rem))` : 'none',
+      )
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(extras)
+    return () => observer.disconnect()
+  }, [track.isRadio])
+
+  return (
+    <div className="relative flex min-w-0 flex-1 items-center">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            ref={titleRef}
+            type="button"
+            onClick={() => setMode('window')}
+            aria-label={t('dock.openWindow')}
+            className={cn(
+              'min-w-0 flex-1 rounded-md text-left leading-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
+              NP_FADE,
+            )}
+          >
+            <Marquee className="text-[13px] font-medium">{track.title}</Marquee>
+            {track.isRadio ? (
+              <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <LiveBadge tone="bar" className="px-1.5 py-0 text-[9px]" />
+                <span className="truncate">{t('live.radio')}</span>
+              </span>
+            ) : (
+              <Marquee className="text-xs font-medium text-muted-foreground">
+                {track.album ? `${track.artist} — ${track.album}` : track.artist}
+              </Marquee>
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{t('dock.openWindow')}</TooltipContent>
+      </Tooltip>
+
+      {track.isRadio ? null : (
+        // Clicks pass through to the title, except on the star while it shows (touch never shows it).
+        <div
+          ref={extrasRef}
+          className={cn(
+            'pointer-events-none absolute inset-y-0 right-0 flex items-center gap-1 opacity-0 transition-opacity',
+            NP_REVEAL,
+          )}
+        >
+          <BarTimes />
+          <StarButton track={track} tone="bar" className={cn('group-hover/np:pointer-events-auto', track.starred && 'lg:hidden')} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Elapsed / −remaining, among the hover extras over the end of the title. */
 function BarTimes() {
   const duration = usePlayback((s) => s.duration)
   const seconds = usePlayback((s) => Math.floor(s.currentTime))
   if (!(duration > 0)) return null
   return (
-    <span
-      aria-hidden
-      className="tnum shrink-0 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover/np:opacity-100 group-has-[[role=slider]:focus-visible]/np:opacity-100"
-    >
+    <span aria-hidden className="tnum shrink-0 text-[11px] text-muted-foreground">
       {formatDuration(seconds)} / −{formatDuration(Math.max(0, duration - seconds))}
     </span>
   )

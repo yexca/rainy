@@ -7,17 +7,24 @@ installed as an app (PWA).
 
 - **On phones**, a floating mini player sits above the tab bar. Tap it or swipe
   up to open **Now Playing**, and drag down to close it.
-- **On tablets and desktops**, the **Player layout** button picks how the
-  player sits on the page; the choice is saved in this browser:
+- **On tablets and desktops**, **Player layout** picks how the player sits on
+  the page; the choice is saved in this browser. The bottom bar has it at the
+  top of its **Player options** menu, and the floating window has its own
+  button:
   - **Bottom bar** (the default) spans the bottom of the window, laid out like
     the Apple Music web player: playback controls on the left, the current
-    song in the middle, and lyrics, queue, volume, and the layout menu on the
-    right. Click the artwork to open the full-screen player, or the title to
-    switch to the floating window. Click anywhere on the thin progress line
-    under the title to jump there; hovering shows the time at the pointer.
-    Open the queue or lyrics in a side panel. The tab above the bar hides it,
-    and its pin chooses between keeping the bar open and hiding it until the
-    pointer reaches the bottom edge.
+    song in the middle, and lyrics, queue, volume, and **Player options** on
+    the right. Click the artwork to open the full-screen player, or the title to
+    switch to the floating window. Hover over the song to see the elapsed and
+    remaining time and a star to add it to your favorites; a favorite keeps
+    its star in view. Hover over the speaker to slide out the volume slider.
+    Click anywhere on the thin progress line under the title to jump there;
+    hovering shows the time at the pointer. Open the queue or lyrics in a
+    side panel. **Player options** also holds picture-in-picture lyrics and
+    the auto-stop timer; while either is on, its highlighted button sits next
+    to the menu. The tab above the bar hides it, and its pin chooses between
+    keeping the bar open and hiding it until the pointer reaches the bottom
+    edge.
   - **Floating window** is a small Now Playing window in the bottom-right
     corner. Its grabber shrinks it back to the bottom bar.
   - **Full-screen player** opens Now Playing over the page and returns to the
@@ -78,8 +85,8 @@ and the choice is saved on the device.
 
 ## Auto-Stop Timer
 
-The timer button (in Now Playing, the floating window, and the player bar on
-wider windows) stops the music for you. Pick a mode at the top, then a time
+The timer button (in Now Playing and the floating window, and under **Player
+options** in the bottom bar) stops the music for you. Pick a mode at the top, then a time
 from 15 minutes to 2 hours, or type your own number of minutes (up to 1440,
 a full day) and choose **Start**:
 
@@ -115,8 +122,8 @@ lyrics; see [Management](management.md#lyrics).
 
 ### Picture-in-Picture Lyrics
 
-The picture-in-picture button (next to the lyrics button in the player bar,
-Now Playing, and the floating window) opens a small window that stays on top
+The picture-in-picture button (in Now Playing and the floating window, and
+under **Player options** in the bottom bar) opens a small window that stays on top
 of other apps and windows. It shows the song, previous / play-pause / next,
 the line being sung with its translation, and the next line dimmed. Press the
 button again or close the window to stop.

@@ -6,6 +6,7 @@
   "close": "Close",
   "panel": "Side panel",
   "closePanel": "Close panel",
+  "options": "Player options",
   "seek": "Playback position",
   "position": "{{elapsed}} of {{total}}",
   "volume": "Volume",

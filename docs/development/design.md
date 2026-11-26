@@ -313,22 +313,27 @@ The player is Rainy's signature surface. Changes must keep this behavior:
 - **Desktop player bar.** Laid out like the Apple Music web player: a 56 px
   glass pill floating above the bottom edge, centred over the content (the
   sidebar and side panel run to the bottom beside it). Transport on the left;
-  in the middle a small artwork, the left-aligned title over "artist — album",
-  a star and the "…" menu, with the progress line running underneath; lyrics,
-  floating (picture-in-picture) lyrics, queue, the auto-stop timer, volume,
-  and the layout menu on the right. Clicking the artwork opens full-screen Now
-  Playing; clicking the title switches to the floating window. The mouse
-  seeks to wherever it presses on the progress, hovering previews that time,
-  and the elapsed and remaining times show while the song area is hovered.
-  Queue and lyrics open in a 360 px side panel.
-- **Auto-stop timer.** One timer button (player bar from 1024 px, Now
-  Playing, floating window) opens a small panel: a tab per mode, a line saying
+  in the middle a small artwork, the left-aligned title over "artist — album"
+  and the "…" menu, with the progress line running underneath; lyrics, queue,
+  volume, and a player options menu on the right. The title gets the room:
+  the elapsed and remaining times and the star appear over its end only while
+  the song area is hovered (a starred song keeps its star in view), the volume
+  slider slides out from the speaker on hover, and the layout choice, floating
+  (picture-in-picture) lyrics, and the auto-stop timer live in the options
+  menu, with a tinted button beside it while either of the last two is on.
+  Clicking the artwork opens full-screen Now Playing; clicking the title
+  switches to the floating window. The mouse seeks to wherever it presses on
+  the progress, and hovering previews that time. Queue and lyrics open in a
+  360 px side panel.
+- **Auto-stop timer.** One timer button (Now Playing, floating window; the
+  player bar's options menu) opens a small panel: a tab per mode, a line saying
   what the mode does, the times to pick from, and a field for any number of
   minutes. Sleep stops playback once after the time; Inactivity stops it when
   nothing was operated for that long and stays on until turned off. The button is tinted while a mode is on, and the panel
   shows what is running with a way to turn it off. When the timer stops the
   music, a message stays on screen until it is closed or playback resumes.
-- **Player layouts (tablet and desktop).** The layout menu lists three
+- **Player layouts (tablet and desktop).** The layout menu (the floating
+  window's layout button, the top of the bar's options menu) lists three
   options, top to bottom: full screen, a floating window in the bottom-right
   corner, and the bottom bar; full screen covers either of the others and
   returns to it on close. The bottom bar's handle holds a chevron

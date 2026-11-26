@@ -55,6 +55,7 @@ function VolumeSlider({ tone, className }: { tone: PlayerTone; className?: strin
       aria-valuemax={100}
       aria-valuenow={Math.round(shown * 100)}
       aria-valuetext={`${Math.round(shown * 100)}%`}
+      data-dragging={dragging || undefined}
       onKeyDown={onKeyDown}
       {...handlers}
       className={cn(
@@ -102,7 +103,11 @@ export function SheetVolume({ className }: { className?: string }) {
   )
 }
 
-/** Player bar volume: mute toggle + slider (slider from `lg`). */
+/**
+ * Player bar volume: mute toggle + slider (slider from `lg`). On devices with hover the slider
+ * folds away and slides out to the left of the speaker while the pair is hovered, focused or
+ * dragged, so the speaker stays under the pointer and the song keeps the room otherwise.
+ */
 export function BarVolume({ className }: { className?: string }) {
   const { t } = useTranslation('player')
   const volume = usePlayer((s) => s.volume)
@@ -110,7 +115,8 @@ export function BarVolume({ className }: { className?: string }) {
   const toggleMute = usePlayer((s) => s.toggleMute)
   if (!canControlVolume()) return null
   return (
-    <div className={cn('flex items-center gap-1', className)}>
+    // Speaker first for the tab order, shown after the slider.
+    <div className={cn('group/bvol flex flex-row-reverse items-center', className)}>
       <button
         type="button"
         onClick={toggleMute}
@@ -120,7 +126,17 @@ export function BarVolume({ className }: { className?: string }) {
       >
         <VolumeIcon level={muted ? 0 : volume} className="size-[18px]" />
       </button>
-      <VolumeSlider tone="bar" className="hidden w-16 flex-none lg:flex xl:w-24" />
+      <div
+        className={cn(
+          'hidden overflow-hidden transition-[width,opacity] duration-200 ease-out motion-reduce:transition-none lg:flex',
+          'w-0 opacity-0 group-hover/bvol:w-24 group-hover/bvol:opacity-100',
+          'group-has-[:focus-visible]/bvol:w-24 group-has-[:focus-visible]/bvol:opacity-100',
+          'has-[[data-dragging]]:w-24 has-[[data-dragging]]:opacity-100',
+          '[@media(hover:none)]:w-24 [@media(hover:none)]:opacity-100',
+        )}
+      >
+        <VolumeSlider tone="bar" className="mx-1.5" />
+      </div>
     </div>
   )
 }

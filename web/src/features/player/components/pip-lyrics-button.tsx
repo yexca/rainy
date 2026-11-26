@@ -2,7 +2,6 @@ import { PictureInPicture } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 import { pipLyricsSupport, togglePipLyrics, usePipLyrics } from '../pip/pip-lyrics'
@@ -12,9 +11,10 @@ import { ModeToggle } from './transport'
 /**
  * Opens or closes the picture-in-picture lyrics window (§9.4). Renders nothing where the browser
  * has no picture-in-picture (Firefox). `sheet`: phone Now Playing and floating window action row,
- * `stage`: desktop full-screen header, `panel`: side panel header, `bar`: bottom bar.
+ * `stage`: desktop full-screen header, `panel`: side panel header. The bottom bar has it
+ * in its options menu (`bar-options.tsx`).
  */
-export function PipLyricsButton({ tone }: { tone: 'sheet' | 'stage' | 'panel' | 'bar' }) {
+export function PipLyricsButton({ tone }: { tone: 'sheet' | 'stage' | 'panel' }) {
   const { t } = useTranslation('player')
   const [supported] = useState(() => pipLyricsSupport() !== null)
   const open = usePipLyrics((s) => s.mode !== null)
@@ -24,26 +24,11 @@ export function PipLyricsButton({ tone }: { tone: 'sheet' | 'stage' | 'panel' | 
   const disabled = !track && !open
   const icon = <PictureInPicture className={tone === 'sheet' ? 'size-[22px]' : tone === 'panel' ? 'size-4' : 'size-[18px]'} strokeWidth={1.9} />
 
-  if (tone === 'sheet' || tone === 'bar') {
-    const button = (
-      <ModeToggle
-        tone={tone}
-        active={open}
-        disabled={disabled}
-        onClick={togglePipLyrics}
-        aria-label={label}
-        title={tone === 'sheet' ? label : undefined}
-        className={tone === 'sheet' ? 'size-11' : 'size-8 rounded-md'}
-      >
+  if (tone === 'sheet') {
+    return (
+      <ModeToggle tone="sheet" active={open} disabled={disabled} onClick={togglePipLyrics} aria-label={label} title={label} className="size-11">
         {icon}
       </ModeToggle>
-    )
-    if (tone === 'sheet') return button
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
-        <TooltipContent side="top">{label}</TooltipContent>
-      </Tooltip>
     )
   }
   return (
