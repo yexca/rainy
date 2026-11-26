@@ -1,6 +1,7 @@
 /** Display helpers for library pages. */
 import type { Track } from '@/lib/api/types'
 import { formatSampleRate } from '@/lib/format'
+import { currentLocale } from '@/lib/i18n'
 
 const LOSSLESS = new Set(['flac', 'alac', 'wav', 'aif', 'aiff', 'ape', 'wv', 'tta', 'dsf', 'dff'])
 
@@ -51,6 +52,27 @@ export function formatQuality(tracks: readonly Track[]): string {
   if (bitrates.length === 0) return label
   const avg = Math.round(bitrates.reduce((a, b) => a + b, 0) / bitrates.length)
   return `${label} · ${avg} kbps`
+}
+
+/**
+ * Compact audio quality of one file, e.g. `FLAC 24/96` or `MP3 320 kbps` (`''` when unknown).
+ * The full form is `formatQuality([track])`.
+ */
+export function trackQuality(track: Track): string {
+  const suffix = track.suffix.toLowerCase()
+  if (!suffix) return ''
+  const label = formatLabel(suffix, track.codec)
+  if (LOSSLESS.has(suffix) || label === 'ALAC') {
+    const khz =
+      track.sampleRate > 0
+        ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(track.sampleRate / 1000)
+        : ''
+    if (track.bitDepth > 0 && khz) return `${label} ${track.bitDepth}/${khz}`
+    if (khz) return `${label} ${khz} kHz`
+    if (track.bitDepth > 0) return `${label} ${track.bitDepth}-bit`
+    return label
+  }
+  return track.bitrate > 0 ? `${label} ${track.bitrate} kbps` : label
 }
 
 /** Sum of track durations in seconds. */

@@ -237,7 +237,9 @@
     "nowPlaying": "正在播放",
     "paused": "已暂停",
     "playTitle": "播放《{{title}}》",
-    "favorited": "已收藏"
+    "favorited": "已收藏",
+    "quality": "音质",
+    "hasLyrics": "有歌词"
   },
   "toast": {
     "nothingToPlay": "这里暂时没有可播放的内容",

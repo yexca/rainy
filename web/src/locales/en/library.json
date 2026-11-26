@@ -242,7 +242,9 @@
     "nowPlaying": "Now playing",
     "paused": "Paused",
     "playTitle": "Play {{title}}",
-    "favorited": "In favorites"
+    "favorited": "In favorites",
+    "quality": "Quality",
+    "hasLyrics": "Has lyrics"
   },
   "toast": {
     "nothingToPlay": "Nothing to play here yet",

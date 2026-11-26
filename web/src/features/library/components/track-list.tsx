@@ -1,5 +1,5 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import { Clock3, Pause, Play, Star } from 'lucide-react'
+import { Clock3, Flame, MessageSquareQuote, Pause, Play, Star } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -10,10 +10,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { usePlayer } from '@/features/player/store'
 import { useIsMobile } from '@/hooks/use-media-query'
 import type { Track } from '@/lib/api/types'
-import { formatDuration } from '@/lib/format'
+import { formatDuration, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { ActionMenuContext, type ActionMenuContextValue } from '../lib/actions'
+import { formatQuality, trackQuality } from '../lib/format'
 import type { TrackActionsContext } from '../lib/track-action-items'
 import { createTrackRows, type TrackSection } from '../lib/track-rows'
 import { useElementGeometry } from '../lib/use-element-geometry'
@@ -94,6 +95,8 @@ export function TrackList({
   const art = showArt ?? !isAlbum
   const album = (showAlbum ?? !isAlbum) && !isMobile
   const count = Math.max(total ?? tracks.length, tracks.length)
+  // Album variant: a plays column relative to the album's most played song, once any song was played.
+  const maxPlays = useMemo(() => (isAlbum ? Math.max(0, ...tracks.map((t) => t.playCount)) : 0), [isAlbum, tracks])
 
   const rows = useMemo(() => createTrackRows(tracks, count, sectionOf), [tracks, count, sectionOf])
 
@@ -137,12 +140,23 @@ export function TrackList({
           aria-hidden
           className={cn(
             'grid h-9 items-center gap-3 border-b border-border/60 px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase',
-            gridColumns(isAlbum, album),
+            gridColumns(isAlbum, album, maxPlays > 0),
           )}
         >
           <span className="text-center">#</span>
           <span>{t('library:track.title')}</span>
           {album ? <span>{t('library:track.album')}</span> : null}
+          {isAlbum ? (
+            <span className="flex justify-center">
+              <MessageSquareQuote className="size-3.5" strokeWidth={1.75} />
+            </span>
+          ) : null}
+          {isAlbum ? <span>{t('library:track.quality')}</span> : null}
+          {maxPlays > 0 ? (
+            <span className="flex">
+              <Flame className="size-3.5" strokeWidth={1.75} />
+            </span>
+          ) : null}
           <span className="flex justify-end pr-1">
             <Clock3 className="size-3.5" strokeWidth={1.75} />
           </span>
@@ -199,6 +213,7 @@ export function TrackList({
                   art={art}
                   isAlbum={isAlbum}
                   showAlbum={album}
+                  maxPlays={maxPlays}
                   albumArtist={albumArtist}
                   hideArtist={hideArtist}
                   playlist={playlist}
@@ -215,8 +230,14 @@ export function TrackList({
   )
 }
 
-function gridColumns(isAlbum: boolean, showAlbum: boolean): string {
-  if (isAlbum || !showAlbum) return 'grid-cols-[2.25rem_minmax(0,1fr)_3.5rem_2rem_2rem]'
+function gridColumns(isAlbum: boolean, showAlbum: boolean, plays = false): string {
+  if (isAlbum) {
+    // # · title · lyrics · quality · [plays] · duration · star · menu
+    return plays
+      ? 'grid-cols-[2.25rem_minmax(0,1fr)_1.5rem_7rem_3rem_3.5rem_2rem_2rem]'
+      : 'grid-cols-[2.25rem_minmax(0,1fr)_1.5rem_7rem_3.5rem_2rem_2rem]'
+  }
+  if (!showAlbum) return 'grid-cols-[2.25rem_minmax(0,1fr)_3.5rem_2rem_2rem]'
   return 'grid-cols-[2.25rem_minmax(0,1.2fr)_minmax(0,1fr)_3.5rem_2rem_2rem]'
 }
 
@@ -231,6 +252,28 @@ function playlistContext(
 function trackNumberLabel(track: Track, index: number, isAlbum: boolean): string {
   if (isAlbum) return track.trackNumber > 0 ? String(track.trackNumber) : '–'
   return String(index + 1)
+}
+
+function LyricsMark() {
+  const { t } = useTranslation()
+  const label = t('library:track.hasLyrics')
+  return (
+    <span role="img" aria-label={label} title={label} className="shrink-0 text-muted-foreground">
+      <MessageSquareQuote className="size-3.5" strokeWidth={1.75} />
+    </span>
+  )
+}
+
+/** The user's plays of a song relative to the album's most played one. */
+function PlaysBar({ plays, max }: { plays: number; max: number }) {
+  const { t } = useTranslation()
+  const label = t('library:listening.plays', { count: plays, formatted: formatNumber(plays) })
+  const width = plays > 0 ? Math.max(8, Math.round((plays / max) * 100)) : 0
+  return (
+    <div role="img" aria-label={label} title={label} className="h-1 w-9 overflow-hidden rounded-full bg-foreground/10">
+      <div className="h-full rounded-full bg-muted-foreground/70" style={{ width: `${width}%` }} />
+    </div>
+  )
 }
 
 interface RowProps {
@@ -250,13 +293,14 @@ const DesktopTrackRow = memo(function DesktopTrackRow({
   art,
   isAlbum,
   showAlbum,
+  maxPlays,
   albumArtist,
   hideArtist,
   playlist,
   selected,
   onSelect,
   onPlay,
-}: RowProps & { showAlbum: boolean; selected: boolean; onSelect: (id: string) => void }) {
+}: RowProps & { showAlbum: boolean; maxPlays: number; selected: boolean; onSelect: (id: string) => void }) {
   const { t } = useTranslation()
   const state = useTrackState(track.id)
   const current = state !== 'none'
@@ -292,7 +336,7 @@ const DesktopTrackRow = memo(function DesktopTrackRow({
             'focus-visible:ring-2 focus-visible:ring-ring/50',
             selected || menuOpen ? 'bg-accent' : 'hover:bg-accent/60',
             track.missing && 'opacity-50',
-            gridColumns(isAlbum, showAlbum),
+            gridColumns(isAlbum, showAlbum, maxPlays > 0),
           )}
         >
           {/* # / playing indicator / hover play button */}
@@ -374,6 +418,16 @@ const DesktopTrackRow = memo(function DesktopTrackRow({
             </div>
           ) : null}
 
+          {isAlbum ? <div className="flex justify-center">{track.hasLyrics ? <LyricsMark /> : null}</div> : null}
+
+          {isAlbum ? (
+            <div className="tnum truncate text-xs text-muted-foreground" title={formatQuality([track])}>
+              {trackQuality(track)}
+            </div>
+          ) : null}
+
+          {maxPlays > 0 ? <PlaysBar plays={track.playCount} max={maxPlays} /> : null}
+
           <div className="tnum pr-1 text-right text-[13px] text-muted-foreground">{formatDuration(track.duration)}</div>
 
           <div
@@ -414,8 +468,11 @@ const MobileTrackRow = memo(function MobileTrackRow({
   const state = useTrackState(track.id)
   const current = state !== 'none'
   const showArtist = !isAlbum || (!!track.artist && track.artist !== albumArtist)
+  const quality = isAlbum ? trackQuality(track) : ''
   const subtitle = isAlbum
-    ? track.artist
+    ? showArtist
+      ? track.artist
+      : ''
     : [hideArtist ? '' : track.artist, track.album].filter(Boolean).join(' · ')
 
   return (
@@ -451,7 +508,16 @@ const MobileTrackRow = memo(function MobileTrackRow({
         )}
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate text-[16px] leading-snug', current && 'text-primary')}>{track.title}</span>
-          {showArtist && subtitle ? (
+          {isAlbum ? (
+            subtitle || quality ? (
+              // Artist · quality; the quality never truncates.
+              <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug text-muted-foreground">
+                {subtitle ? <span className="min-w-0 truncate">{subtitle}</span> : null}
+                {subtitle && quality ? <span aria-hidden>·</span> : null}
+                {quality ? <span className="shrink-0">{quality}</span> : null}
+              </span>
+            ) : null
+          ) : showArtist && subtitle ? (
             <span className="block truncate text-[14px] leading-snug text-muted-foreground">{subtitle}</span>
           ) : null}
         </span>
@@ -465,6 +531,8 @@ const MobileTrackRow = memo(function MobileTrackRow({
           aria-label={t('library:track.favorited')}
         />
       ) : null}
+      {/* Lyrics column: next to the menu, so the marks line up whether or not the song is starred. */}
+      {isAlbum ? <span className="ml-2 grid w-3.5 shrink-0 place-items-center">{track.hasLyrics ? <LyricsMark /> : null}</span> : null}
       <TrackActionsMenu tracks={[track]} context={playlistContext(playlist, index)} className="-mr-2.5" />
       {last ? null : (
         <Hairline inset={`calc(var(--page-px) + var(--safe-left) + ${art ? 56 : 40}px)`} />

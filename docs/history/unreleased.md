@@ -40,6 +40,16 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 </details>
 
 <details>
+<summary><strong>Library Browsing And Search</strong></summary>
+
+- An album's song list shows each file's own quality (such as `FLAC 24/96` or
+  `MP3 320 kbps`) and a lyrics column marking songs with lyrics. On tablets and
+  desktops, once you have played songs from the album, a bar shows how often
+  you played each one compared with your most played song there.
+
+</details>
+
+<details>
 <summary><strong>Library Management</strong></summary>
 
 - Online metadata lookups in the tag editor follow redirects only over HTTPS

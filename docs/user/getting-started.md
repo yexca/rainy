@@ -38,6 +38,12 @@ Tap an album to play it, or use the "…" menu on any track to play it next, add
 it to the queue or a playlist, go to its album or artist, add it to favorites,
 download it, and (for managers) edit its tags.
 
+An album's song list shows each file's own quality (such as `FLAC 24/96` or
+`MP3 320 kbps`) and a lyrics column that marks songs with lyrics. Once you have
+played songs from the album, a bar shows how often you played each one
+compared with your most played song there. Phones show the quality under the
+title and the lyrics mark beside the "…" menu, without the bar.
+
 ## 4. Add People
 
 Under **Admin → Users**, create accounts for everyone who should listen. Grant
