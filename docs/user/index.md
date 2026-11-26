@@ -21,7 +21,7 @@ The web app is available in English and Simplified Chinese. Change the language
 in the **Appearance** panel (the palette button beside your account) or under
 **Settings → Appearance**.
 Both places also pick the theme (light, dark, or system), one of four styles
-(Anthropic, the default; OpenAI; Apple; Google MD), and the accent colour; the
+(Anthropic; OpenAI; Apple, the default; Google MD), and the accent colour; the
 **Original** accent follows the style. A style also sets the layout: on tablets
 and desktops Apple and OpenAI have no bar across the top and keep your account
 and the appearance button in the bottom-left corner of the sidebar, OpenAI and

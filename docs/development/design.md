@@ -39,18 +39,19 @@ explains the rules every UI change must keep.
 - shadcn/ui `new-york` components themed by CSS variables.
 - Light and dark themes follow the system unless the user overrides them.
 - **Styles.** Four presets set the surfaces, borders, radius, fonts, and their
-  own accent for both themes: `anthropic` (default: warm paper tones, a
-  terracotta accent, serif page titles), `openai` (neutral greys, an ink
-  accent that is near-black in light and near-white in dark, pill buttons,
-  Inter), `apple` (cool greys, a blue accent, the system font, larger
-  radius), and `google-md` (blue-tinted surfaces, a Material blue accent,
+  own accent for both themes: `anthropic` (warm paper tones, a terracotta
+  accent, serif page titles), `openai` (neutral greys, an ink accent that is
+  near-black in light and near-white in dark, pill buttons, Inter), `apple`
+  (default: cool greys, a blue accent, the system font, larger radius), and
+  `google-md` (blue-tinted surfaces, a Material blue accent,
   Roboto). Styles only bundle what Rainy already ships (Inter); other faces
   are used when the system has them. Keep each style's light and dark blocks
   complete so no token leaks from another style.
 - **A style is more than colours.** Each one also picks its layout (see
   [Layout](#layout): where the chrome sits, how Search & quick actions shows, and what
   the collapsed sidebar looks like) and
-  whether it starts in immersive mode (only `apple` does). Entering `apple`
+  whether it starts in immersive mode (only `apple` does, so a new browser
+  starts immersive). Entering `apple`
   turns immersive mode on and leaving it turns it off; between the other
   styles it stays as the user set it.
 - Accent presets set `--primary`: `original` (default, the style's own

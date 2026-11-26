@@ -7,8 +7,8 @@
     <meta name="description" content="Rainy — your self-hosted music library. 自托管的私人音乐库。" />
     <meta name="application-name" content="Rainy" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f3ed" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#191614" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111113" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/pwa-64x64.png" sizes="64x64" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
@@ -21,12 +21,12 @@
     <style>
       /* Page colour before the stylesheet loads (no white flash in dark mode / PWA launch).
          Keep in sync with STYLE_PREVIEWS in lib/theme.ts. */
-      html { background-color: #f7f3ed; }
-      html.dark { background-color: #191614; }
+      html { background-color: #f3f3f7; }
+      html.dark { background-color: #111113; }
+      html[data-style="anthropic"] { background-color: #f7f3ed; }
+      html.dark[data-style="anthropic"] { background-color: #191614; }
       html[data-style="openai"] { background-color: #fafafa; }
       html.dark[data-style="openai"] { background-color: #141414; }
-      html[data-style="apple"] { background-color: #f3f3f7; }
-      html.dark[data-style="apple"] { background-color: #111113; }
       html[data-style="google-md"] { background-color: #f8fafc; }
       html.dark[data-style="google-md"] { background-color: #121416; }
     </style>
@@ -43,7 +43,7 @@
           }
           var theme = localStorage.getItem('rainy.theme') || 'system'
           var style = localStorage.getItem('rainy.style')
-          if (!Object.prototype.hasOwnProperty.call(colors, style)) style = 'anthropic'
+          if (!Object.prototype.hasOwnProperty.call(colors, style)) style = 'apple'
           var accent = localStorage.getItem('rainy.accent') || 'original'
           var dark =
             theme === 'dark' ||

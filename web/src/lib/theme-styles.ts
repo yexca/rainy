@@ -13,7 +13,7 @@ export type ResolvedTheme = 'light' | 'dark'
  */
 export const STYLES = ['anthropic', 'openai', 'apple', 'google-md'] as const
 export type Style = (typeof STYLES)[number]
-export const DEFAULT_STYLE: Style = 'anthropic'
+export const DEFAULT_STYLE: Style = 'apple'
 
 /**
  * `original` keeps the style's own `--primary`; the others override it. In immersive mode

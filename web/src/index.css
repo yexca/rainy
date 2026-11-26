@@ -7,8 +7,8 @@
 @custom-variant standalone (@media (display-mode: standalone));
 
 /* ------------------------------------------------------------------------------------------ */
-/* Design tokens, light. The base is the default "anthropic" style; <html data-style> picks   */
-/* another one below (lib/theme.ts STYLES).                                                   */
+/* Design tokens, light. The base is the "anthropic" style; <html data-style> (always set;     */
+/* DEFAULT_STYLE in lib/theme-styles.ts is "apple") picks another one below.                  */
 /* ------------------------------------------------------------------------------------------ */
 :root {
   --radius: 0.625rem;
@@ -102,7 +102,7 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Dark (default "anthropic" style)                                                           */
+/* Dark (base "anthropic" style)                                                              */
 /* ------------------------------------------------------------------------------------------ */
 .dark {
   --background: hsl(24 11% 9%);
@@ -134,7 +134,7 @@
 }
 
 /* ------------------------------------------------------------------------------------------ */
-/* Styles: <html data-style="anthropic|openai|apple|google-md">. "anthropic" is the default   */
+/* Styles: <html data-style="anthropic|openai|apple|google-md">. "anthropic" is the base      */
 /* defined above. Every colour a light block sets is set again by its dark block.             */
 /* ------------------------------------------------------------------------------------------ */
 :root[data-style="openai"] {
