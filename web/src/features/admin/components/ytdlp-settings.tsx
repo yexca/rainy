@@ -4,20 +4,20 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { ErrorState } from '@/components/error-state'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
+import { adminKeys, ytdlpQuery } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { CookieInfo, DownloadSite, Settings, YtdlpInfo } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
 import { formatDate, formatNumber, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { adminKeys, ytdlpQuery } from '../queries'
 import { CookieDialog } from './cookie-dialog'
 
 /** Newer-than comparison of yt-dlp versions ("2026.08.19", "2026.08.19.1"). */

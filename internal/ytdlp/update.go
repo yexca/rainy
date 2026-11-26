@@ -20,6 +20,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"rainy/internal/outbound"
+	"rainy/internal/util"
 )
 
 // The official release channel. Rainy asks the GitHub API for the latest tag, then builds
@@ -120,7 +123,7 @@ func (s *Service) CheckLatest(ctx context.Context) (string, error) {
 		return "", err
 	}
 	s.mu.Lock()
-	s.latest, s.checkedAt = tag, time.Now().UnixMilli()
+	s.latest, s.checkedAt = tag, util.NowMs()
 	s.mu.Unlock()
 	return tag, nil
 }
@@ -146,12 +149,12 @@ func (s *Service) get(ctx context.Context, target string, limit int64, accept st
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	b, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
+	b, err := outbound.ReadAll(resp.Body, limit)
+	if errors.Is(err, outbound.ErrTooLarge) {
+		return nil, fmt.Errorf("%w: the answer from %s is too large", ErrUpstream, hostOf(target))
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w: reading %s: %v", ErrUpstream, hostOf(target), err)
-	}
-	if int64(len(b)) > limit {
-		return nil, fmt.Errorf("%w: the answer from %s is too large", ErrUpstream, hostOf(target))
 	}
 	return b, nil
 }
@@ -203,13 +206,13 @@ func (s *Service) StartInstall() error {
 		version, err := s.install1(ctx)
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		s.install = InstallState{FinishedAt: time.Now().UnixMilli()}
+		s.install = InstallState{FinishedAt: util.NowMs()}
 		if err != nil {
 			s.install.Error = err.Error()
 			slog.Warn("ytdlp: installing yt-dlp failed", "err", err)
 			return
 		}
-		s.latest, s.checkedAt = version, time.Now().UnixMilli()
+		s.latest, s.checkedAt = version, util.NowMs()
 		slog.Info("ytdlp: installed yt-dlp", "version", version)
 	}()
 	return nil
@@ -285,21 +288,14 @@ func (s *Service) install1(ctx context.Context) (string, error) {
 // newHTTPClient returns the client for GitHub requests: proxies from the environment,
 // bounded timeouts, HTTPS only, and redirects only to GitHub's own download hosts.
 func newHTTPClient() *http.Client {
-	tr := http.DefaultTransport.(*http.Transport).Clone()
-	tr.Proxy = http.ProxyFromEnvironment
-	tr.ResponseHeaderTimeout = 30 * time.Second
-	return &http.Client{
-		Transport: tr,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 5 {
-				return errors.New("too many redirects")
-			}
-			if req.URL.Scheme != "https" || !githubHost(req.URL.Hostname()) {
-				return fmt.Errorf("refusing redirect to %s", req.URL.Hostname())
-			}
-			return nil
-		},
-	}
+	return outbound.NewClient(outbound.Options{Redirects: githubRedirects})
+}
+
+// githubRedirects follows release downloads to GitHub's asset hosts.
+var githubRedirects = outbound.Redirects{
+	Max:       5,
+	HTTPSOnly: true,
+	Allow:     func(target, _ *url.URL) bool { return githubHost(target.Hostname()) },
 }
 
 func githubHost(h string) bool {

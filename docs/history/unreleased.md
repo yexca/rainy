@@ -38,3 +38,29 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   from its new place.
 
 </details>
+
+<details>
+<summary><strong>Library Management</strong></summary>
+
+- Online metadata lookups in the tag editor follow redirects only over HTTPS
+  on the provider's own host, at most three, so a provider redirect to plain
+  HTTP is refused instead of followed.
+
+</details>
+
+<details>
+<summary><strong>Development And Docs</strong></summary>
+
+- Every outbound HTTP client comes from one constructor in
+  `internal/outbound` with an explicit redirect policy and response-size
+  limit; a test rejects clients built any other way.
+- Lint enforces the backend package layering (`depguard`), explained
+  suppressions (`nolintlint`), and `util.NowMs()` for timestamps.
+- Web features import each other only through the documented contracts in
+  contract §9.2; shared dialogs, form fields, and admin queries live in
+  `src/components`, `src/hooks`, and `src/lib`. `eslint-disable` comments
+  need a reason, and files warn at 600 lines and fail at 800.
+- Claude Code may not edit the lint configurations, CI workflows, or the
+  outbound guard test (`.claude/settings.json`).
+
+</details>

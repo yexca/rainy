@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/jpeg"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	_ "image/gif" // decoders registered for image.Decode
+	_ "image/jpeg"
 	_ "image/png"
 
 	"golang.org/x/image/draw"
@@ -86,7 +86,7 @@ func prepareCover(data []byte) (*preparedCover, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: cannot decode image: %v", store.ErrInvalid, err)
 	}
-	out, err := encodeJPEG(fit(img, coverTargetDim))
+	out, err := artwork.EncodeJPEG(fit(img, coverTargetDim), coverQuality)
 	if err != nil {
 		return nil, err
 	}
@@ -110,14 +110,6 @@ func fit(img image.Image, dim int) image.Image {
 	draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
 	draw.CatmullRom.Scale(dst, dst.Bounds(), img, b, draw.Over, nil)
 	return dst
-}
-
-func encodeJPEG(img image.Image) ([]byte, error) {
-	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: coverQuality}); err != nil {
-		return nil, fmt.Errorf("encoding jpeg: %w", err)
-	}
-	return buf.Bytes(), nil
 }
 
 // writePicture sets (img != nil) or removes (nil) the embedded front cover of a file.

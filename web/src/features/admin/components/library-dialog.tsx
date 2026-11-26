@@ -5,17 +5,16 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { FormField } from '@/components/form-field'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FormField } from '@/features/auth/components/form-field'
-import { ResponsiveDialog } from '@/features/manage/components/responsive-dialog'
+import { adminKeys } from '@/lib/admin-queries'
 import { isApiError } from '@/lib/api/client'
 import { api } from '@/lib/api/endpoints'
 import type { LibraryInfo } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
-
-import { adminKeys } from '../queries'
 
 const schema = z.object({
   name: z.string().trim().min(1, 'libraries.validation.nameRequired').max(100),

@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"rainy/internal/util"
 )
 
 const (
@@ -170,7 +172,7 @@ func (s *Service) ClearCache() (freed int64, err error) {
 	var errs []error
 	for _, e := range entries {
 		p := filepath.Join(s.cacheDir, e.Name())
-		n, _ := dirSize(p)
+		n, _ := util.DirSize(p)
 		if err := os.RemoveAll(p); err != nil {
 			errs = append(errs, err)
 			continue
@@ -186,25 +188,9 @@ func (s *Service) CacheSize() (int64, error) {
 	if s.cacheDir == "" {
 		return 0, nil
 	}
-	n, err := dirSize(s.cacheDir)
+	n, err := util.DirSize(s.cacheDir)
 	if errors.Is(err, fs.ErrNotExist) {
 		return 0, nil
 	}
 	return n, err
-}
-
-func dirSize(root string) (int64, error) {
-	var total int64
-	err := filepath.WalkDir(root, func(_ string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			if fi, err := d.Info(); err == nil {
-				total += fi.Size()
-			}
-		}
-		return nil
-	})
-	return total, err
 }

@@ -34,6 +34,8 @@ export const queryKeys = {
   /** `/api/me/scrobbling`. */
   scrobbling: ['scrobbling'] as const,
   manage: ['manage'] as const,
+  /** Manage placement status (`/api/manage/placement`); admin settings changes invalidate it. */
+  managePlacement: ['manage', 'placement'] as const,
   admin: ['admin'] as const,
 } as const
 

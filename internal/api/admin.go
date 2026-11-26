@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -732,23 +731,6 @@ type SystemInfo struct {
 	Libraries []LibraryInfo `json:"libraries"`
 }
 
-// dirSize sums the sizes of regular files under dir (0 when it does not exist).
-func dirSize(dir string) int64 {
-	var n int64
-	_ = filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil
-		}
-		if d.Type().IsRegular() {
-			if fi, err := d.Info(); err == nil {
-				n += fi.Size()
-			}
-		}
-		return nil
-	})
-	return n
-}
-
 func fileSize(p string) int64 {
 	if fi, err := os.Stat(p); err == nil {
 		return fi.Size()
@@ -764,14 +746,16 @@ func (a *API) adminSystem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := cfg.DBPath()
+	cache, _ := util.DirSize(cfg.CacheDir()) // partial or 0 when unreadable or missing
+	trash, _ := util.DirSize(cfg.TrashDir())
 	info := SystemInfo{
 		Version: buildinfo.Version, Commit: buildinfo.Commit, BuildDate: buildinfo.BuildDate,
 		GoVersion: buildinfo.GoVersion(), OS: runtime.GOOS, Arch: runtime.GOARCH,
 		UptimeSec: int64(time.Since(a.app.StartedAt).Seconds()),
 		DataDir:   cfg.DataDir,
 		DBSize:    fileSize(db) + fileSize(db+"-wal") + fileSize(db+"-shm"),
-		CacheSize: dirSize(cfg.CacheDir()),
-		TrashSize: dirSize(cfg.TrashDir()),
+		CacheSize: cache,
+		TrashSize: trash,
 		FFmpeg:    FFmpegInfo{Path: a.app.Transcoder.Path()},
 		Libraries: nonNil(libs),
 	}

@@ -66,7 +66,7 @@ func (kuwo) search(ctx context.Context, c *client, query string, limit int, _ st
 		r := Result{
 			ID:       id,
 			Title:    util.FirstNonEmpty(s.SongName, s.Name),
-			Artists:  splitArtists(s.Artist, "&"),
+			Artists:  SplitArtists(s.Artist, "&"),
 			Album:    s.Album,
 			Duration: float64(s.Duration),
 		}
@@ -109,7 +109,7 @@ func (kuwo) lyrics(ctx context.Context, c *client, id string) (*Lyrics, error) {
 			continue
 		}
 		b.WriteString(lrcStamp(sec))
-		b.WriteString(clean(l.Text))
+		b.WriteString(CleanText(l.Text))
 		b.WriteByte('\n')
 	}
 	return &Lyrics{Text: b.String()}, nil

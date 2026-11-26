@@ -4,16 +4,15 @@ import { useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ResponsiveDialog } from '@/features/manage/components/responsive-dialog'
+import { adminKeys } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { DownloadSite } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
-
-import { adminKeys } from '../queries'
 
 /** The browser extension recommended for exporting cookies.txt (runs locally, no upload). */
 export const COOKIE_EXTENSION_URL = 'https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc'

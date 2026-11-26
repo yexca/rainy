@@ -13,14 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { RENAME_TOKENS } from '@/features/manage/lib/rename-tokens'
-import { manageKeys } from '@/features/manage/queries'
+import { DEFAULT_RENAME_PATTERN, adminKeys } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { Settings } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
+import { queryKeys } from '@/lib/query-keys'
+import { RENAME_TOKENS } from '@/lib/rename-tokens'
 import { cn } from '@/lib/utils'
-
-import { DEFAULT_RENAME_PATTERN, adminKeys } from '../queries'
 
 const DURATION_RE = /^(0|(\d+(\.\d+)?(ns|us|µs|ms|s|m|h))+)$/
 const INTERVAL_PRESETS = ['0', '15m', '30m', '1h', '6h', '12h', '24h'] as const
@@ -75,7 +74,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
     },
     onSuccess: (saved) => {
       queryClient.setQueryData(adminKeys.settings, saved)
-      void queryClient.invalidateQueries({ queryKey: manageKeys.placement })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.managePlacement })
       reset(saved)
       toast.success(t('settings.saved'))
     },

@@ -8,9 +8,21 @@ Read [Frontend architecture](../architecture/frontend.md),
 
 - Put domain pages and workflows in `web/src/features/<area>`.
 - Keep shared components, hooks, stores, and `lib` independent of features.
-  Communicate through the small shared contracts documented in contract §9.2
-  (such as `useUI` and the `usePlayer` store in `@/features/player/store`)
-  instead of deep imports into another feature.
+  A feature imports another feature only through the `@/features/…`
+  contracts in [contract §9.2](../architecture/contract.md#92-cross-feature-contracts):
+  `player/store`, `player/types`, `player/dock`, `player/settings-api`, and
+  `library/components/track-actions`. Shared code imports only the player
+  contracts and the shell slots listed there. ESLint enforces both lists.
+- Code two features need moves to shared code rather than a new deep
+  import: generic UI to `web/src/components` (`ResponsiveDialog`,
+  `ConfirmDialog`, `FormField`, `PasswordInput`, `Segmented`), hooks to
+  `web/src/hooks` (`useLibraries`), and helpers to `web/src/lib`
+  (`admin-queries`, `batch`, `rename-tokens`, `query-keys`). A new contract
+  is added to contract §9.2 and the allow-list in `web/eslint.config.js`
+  together.
+- Keep files under 600 lines of code (ESLint warns; 800 is an error). Every
+  `eslint-disable` comment states its reason after `--`, and unused
+  directives are errors.
 - Use TanStack Query for server state and the existing player stores for
   transport and queue state. Avoid a second audio engine or queue identity.
 - Keep the player mounted across navigation. Failures in a page or optional

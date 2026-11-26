@@ -28,7 +28,7 @@ func (s *Service) Placeholder(size int) *Image {
 		return v.(*Image)
 	}
 	img := renderPlaceholder(size)
-	data, err := encodeJPEG(img)
+	data, err := EncodeJPEG(img, jpegQuality)
 	if err != nil {
 		// Encoding an in-memory RGBA image cannot realistically fail; keep the contract.
 		data = nil

@@ -4,18 +4,17 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ResponsiveDialog } from '@/features/manage/components/responsive-dialog'
+import { adminKeys } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { LxSource } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
-
-import { adminKeys } from '../queries'
 
 /** lx-music accepts scripts up to 9,000,000 characters; the server checks bytes. */
 const MAX_SCRIPT = 9_000_000

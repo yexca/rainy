@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"rainy/internal/outbound"
 )
 
 // Outbound requests on behalf of source scripts (and downloads of the links they return) may
@@ -180,16 +182,14 @@ func newTransport(allowPrivate bool) *guardedTransport {
 			return nil
 		},
 	}
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.Proxy = http.ProxyFromEnvironment
-	t.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if proxies[addr] {
-			return plain.DialContext(ctx, network, addr)
-		}
-		return guarded.DialContext(ctx, network, addr)
-	}
-	t.ResponseHeaderTimeout = 30 * time.Second
-	t.MaxResponseHeaderBytes = 1 << 20
+	t := outbound.NewTransport(outbound.TransportOptions{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			if proxies[addr] {
+				return plain.DialContext(ctx, network, addr)
+			}
+			return guarded.DialContext(ctx, network, addr)
+		},
+	})
 	t.MaxIdleConnsPerHost = 4
 	t.IdleConnTimeout = 60 * time.Second
 	return &guardedTransport{base: t, allowPrivate: allowPrivate}
@@ -203,19 +203,9 @@ const maxRedirects = 5
 // (following up to maxRedirects redirects, each one checked again).
 func newClients(allowPrivate bool) (script, fetch *http.Client) {
 	t := newTransport(allowPrivate)
-	script = &http.Client{
-		Transport:     t,
-		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
-	}
-	fetch = &http.Client{
-		Transport: t,
-		CheckRedirect: func(_ *http.Request, via []*http.Request) error {
-			if len(via) > maxRedirects {
-				return errors.New("too many redirects")
-			}
-			return nil
-		},
-	}
+	script = outbound.NewClient(outbound.Options{Transport: t})
+	// Any host: the guarded transport checks every hop's URL and dialled address.
+	fetch = outbound.NewClient(outbound.Options{Transport: t, Redirects: outbound.Redirects{Max: maxRedirects}})
 	return script, fetch
 }
 

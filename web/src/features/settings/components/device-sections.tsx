@@ -2,7 +2,7 @@ import { Download, Share, SquarePlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { promptInstall, useInstallPrompt } from '@/features/player/lib/install-prompt'
+import { promptInstall, useInstallPrompt } from '@/features/player/settings-api'
 import { isIOS, isStandalone } from '@/lib/platform'
 
 import { SettingsRow, SettingsSection } from './settings-ui'

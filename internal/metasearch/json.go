@@ -71,16 +71,18 @@ func decode(data []byte, host string, v any) error {
 	return nil
 }
 
-// clean decodes HTML entities (Kuwo and QQ escape some names) and collapses whitespace.
-func clean(s string) string {
+// CleanText decodes HTML entities (several catalogues escape names) and collapses whitespace.
+// lxmusic shares it and CleanList and SplitArtists for its catalogue results.
+func CleanText(s string) string {
 	return strings.Join(strings.Fields(html.UnescapeString(s)), " ")
 }
 
-func cleanList(list []string) []string {
+// CleanList cleans every name with CleanText and drops empty and repeated ones.
+func CleanList(list []string) []string {
 	out := make([]string, 0, len(list))
 	seen := map[string]bool{}
 	for _, v := range list {
-		v = clean(v)
+		v = CleanText(v)
 		if v != "" && !seen[v] {
 			seen[v] = true
 			out = append(out, v)
@@ -89,8 +91,8 @@ func cleanList(list []string) []string {
 	return out
 }
 
-// splitArtists splits a display string such as "A、B" or "A&B" into names.
-func splitArtists(s string, seps string) []string {
+// SplitArtists splits a display string such as "A、B" or "A&B" into names.
+func SplitArtists(s string, seps string) []string {
 	return strings.FieldsFunc(html.UnescapeString(s), func(r rune) bool { return strings.ContainsRune(seps, r) })
 }
 

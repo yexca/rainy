@@ -11,14 +11,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { adminKeys, scrobblingQuery } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { ScrobbleAccount, ScrobbleService, ScrobblingAdmin, Settings } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
 import { formatNumber } from '@/lib/format'
 import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
-
-import { adminKeys, scrobblingQuery } from '../queries'
 
 const LASTFM_CREATE_URL = 'https://www.last.fm/api/account/create'
 const HEX32 = /^[0-9a-fA-F]{32}$/

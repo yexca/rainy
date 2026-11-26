@@ -1,6 +1,6 @@
 import { MicVocal, Radio } from 'lucide-react'
 import { useReducedMotion } from 'motion/react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Spinner } from '@/components/spinner'
@@ -152,18 +152,26 @@ function SyncedLyrics({ lines, tone, translate }: { lines: DisplayLine[]; tone: 
     scroller.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduceMotion ? 'smooth' : 'auto' })
   }
 
-  useEffect(() => {
+  // Effect events always see the latest `centre`, `active` and `lines`, so each effect below
+  // lists only the change that should trigger it.
+  const followLine = useEffectEvent((index: number) => {
     if (Date.now() < pausedUntil.current) return
-    centre(active, true)
-    // `centre` only reads refs; re-run on line changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    centre(index, true)
+  })
+  const jumpToLine = useEffectEvent(() => centre(active, false))
+  const recentre = useEffectEvent(() => {
+    if (Date.now() >= pausedUntil.current) centre(activeLineIndex(lines, usePlayback.getState().currentTime * 1000), false)
+  })
+
+  // Scroll to each new active line.
+  useEffect(() => {
+    followLine(active)
   }, [active])
 
   // First paint: jump straight to the current line.
   useEffect(() => {
-    centre(active, false)
+    jumpToLine()
     return () => clearTimeout(resumeTimer.current)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const onUserScroll = () => {
@@ -178,8 +186,7 @@ function SyncedLyrics({ lines, tone, translate }: { lines: DisplayLine[]; tone: 
 
   // Showing or hiding translations moves every line: re-centre without animation.
   useEffect(() => {
-    if (Date.now() >= pausedUntil.current) centre(activeLineIndex(lines, usePlayback.getState().currentTime * 1000), false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    recentre()
   }, [translate])
 
   const seekTo = (line: DisplayLine) => {

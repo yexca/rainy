@@ -2,6 +2,7 @@ import { ArrowRight, TriangleAlert } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -10,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { TrackTags } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 
-import { ResponsiveDialog } from '../components/responsive-dialog'
 import { FIELDS, TEXT_FIELDS, type FieldId } from '../lib/tag-fields'
 import type { Edits } from '../lib/tag-state'
 import {

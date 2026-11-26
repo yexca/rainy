@@ -6,21 +6,20 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { FormField } from '@/components/form-field'
+import { PasswordInput } from '@/components/password-input'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { FormField } from '@/features/auth/components/form-field'
-import { PasswordInput } from '@/features/auth/components/password-input'
-import { ResponsiveDialog } from '@/features/manage/components/responsive-dialog'
+import { adminKeys, librariesQuery } from '@/lib/admin-queries'
 import { isApiError } from '@/lib/api/client'
 import { api, type CreateUserInput } from '@/lib/api/endpoints'
 import type { User } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
-
-import { adminKeys, librariesQuery } from '../queries'
 
 export const PASSWORD_MIN = 4
 const USERNAME_MAX = 64

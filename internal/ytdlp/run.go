@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"rainy/internal/outbound"
 	"rainy/internal/tags"
 	"rainy/internal/util"
 )
@@ -272,7 +273,7 @@ func (s *Service) resolveShort(ctx context.Context, t Target) (Target, error) {
 	}
 	req.Header.Set("User-Agent", s.opt.UserAgent)
 	client := *s.client
-	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	client.CheckRedirect = outbound.Redirects{}.Check // follow none: the Location is checked below
 	resp, err := client.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {

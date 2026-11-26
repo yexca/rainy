@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/scripts/golangci-lint.yml)",
+      "Edit(/web/eslint.config.js)",
+      "Edit(/.github/workflows/**)",
+      "Edit(/.github/actions/**)",
+      "Edit(/internal/outbound/guard_test.go)",
+      "Edit(/.claude/settings.json)"
+    ]
+  }
+}

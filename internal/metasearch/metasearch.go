@@ -17,12 +17,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"rainy/internal/outbound"
 )
 
 // Errors returned by the Service. Upstream failures wrap ErrUpstream.
@@ -92,15 +93,24 @@ type Service struct {
 	order     []string
 }
 
+// redirects keeps redirects on the requested host and on HTTPS (a provider may upgrade a
+// plain-HTTP API URL), so an allow-listed URL cannot bounce the request elsewhere.
+var redirects = outbound.Redirects{Max: 3, HTTPSOnly: true, Allow: outbound.SameHost}
+
 // New creates the service. A nil httpClient uses a client with a request timeout and the
-// environment's proxy settings (HTTPS_PROXY / HTTP_PROXY).
+// environment's proxy settings (HTTPS_PROXY / HTTP_PROXY). The redirect policy above
+// replaces httpClient's own.
 func New(httpClient *http.Client) *Service {
 	if httpClient == nil {
-		transport := http.DefaultTransport.(*http.Transport).Clone()
-		transport.DialContext = (&net.Dialer{Timeout: 10 * time.Second}).DialContext
-		transport.ResponseHeaderTimeout = requestTimeout
-		httpClient = &http.Client{Timeout: requestTimeout, Transport: transport}
+		httpClient = outbound.NewClient(outbound.Options{
+			Timeout:   requestTimeout,
+			Transport: outbound.NewTransport(outbound.TransportOptions{ResponseHeaderTimeout: requestTimeout}),
+		})
+	} else {
+		c := *httpClient
+		httpClient = &c
 	}
+	httpClient.CheckRedirect = redirects.Check
 	s := &Service{c: &client{http: httpClient}, providers: map[string]provider{}}
 	for _, p := range []provider{netease{}, qqMusic{}, kugou{}, kuwo{}, itunes{}} {
 		id := p.info().ID
@@ -178,11 +188,11 @@ func (s *Service) Search(ctx context.Context, providerID, query string, limit in
 	out := results[:0]
 	for _, r := range results {
 		r.Provider = providerID
-		r.Title = clean(r.Title)
-		r.Album = clean(r.Album)
-		r.AlbumArtist = clean(r.AlbumArtist)
-		r.Genre = clean(r.Genre)
-		r.Artists = cleanList(r.Artists)
+		r.Title = CleanText(r.Title)
+		r.Album = CleanText(r.Album)
+		r.AlbumArtist = CleanText(r.AlbumArtist)
+		r.Genre = CleanText(r.Genre)
+		r.Artists = CleanList(r.Artists)
 		r.CoverURL = httpsURL(r.CoverURL)
 		r.ThumbURL = httpsURL(r.ThumbURL)
 		if r.ID == "" || r.Title == "" {
@@ -301,16 +311,7 @@ func (c *client) do(ctx context.Context, method, rawURL string, header http.Head
 	for k, v := range header {
 		req.Header[k] = v
 	}
-	// Redirects stay on the same host (image CDNs sometimes switch scheme); anything else
-	// is refused so an allow-listed URL cannot bounce the request elsewhere.
-	cl := *c.http
-	cl.CheckRedirect = func(r *http.Request, via []*http.Request) error {
-		if len(via) >= 3 || !strings.EqualFold(r.URL.Hostname(), via[0].URL.Hostname()) {
-			return fmt.Errorf("redirect to %s refused", r.URL.Hostname())
-		}
-		return nil
-	}
-	resp, err := cl.Do(req)
+	resp, err := c.http.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
@@ -324,12 +325,12 @@ func (c *client) do(ctx context.Context, method, rawURL string, header http.Head
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return nil, fmt.Errorf("%w: %s answered %d", ErrUpstream, req.URL.Hostname(), resp.StatusCode)
 	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
+	data, err := outbound.ReadAll(resp.Body, limit)
+	if errors.Is(err, outbound.ErrTooLarge) {
+		return nil, fmt.Errorf("%w: %s sent more than %d bytes", ErrUpstream, req.URL.Hostname(), limit)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w: reading %s: %v", ErrUpstream, req.URL.Hostname(), err)
-	}
-	if int64(len(data)) > limit {
-		return nil, fmt.Errorf("%w: %s sent more than %d bytes", ErrUpstream, req.URL.Hostname(), limit)
 	}
 	return data, nil
 }

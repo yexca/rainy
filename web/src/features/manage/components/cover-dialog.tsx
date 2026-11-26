@@ -4,19 +4,19 @@ import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { api } from '@/lib/api/endpoints'
+import { reportBatch, toastError } from '@/lib/batch'
 import { formatBytes } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary } from '../queries'
-import { ConfirmDialog } from './confirm-dialog'
-import { ResponsiveDialog } from './responsive-dialog'
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 

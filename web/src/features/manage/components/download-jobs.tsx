@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { api } from '@/lib/api/endpoints'
 import type { DownloadJob } from '@/lib/api/types'
+import { toastError } from '@/lib/batch'
 import { formatBytes } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
-import { toastError } from '../lib/batch'
 import { formatEta, isActiveJob, jobName } from '../lib/downloads'
 import { manageKeys } from '../queries'
 

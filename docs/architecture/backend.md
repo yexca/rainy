@@ -38,6 +38,7 @@ are documented in [Database](../operations/database.md#backups).
 | `db` | Opens SQLite, applies embedded migrations; `db/dbtest` gives tests a migrated temporary database |
 | `model` | Shared structs whose JSON form is the native API shape |
 | `util` | IDs, time, search normalization, cover-art IDs, MIME types, and the path guards `SafeJoin` and `EnsureWithinRoot` |
+| `outbound` | The constructor for every outbound HTTP client: redirect policy, proxy, dial and header timeouts, and capped body reads |
 | `store` | All shared SQL (the repository layer) |
 | `auth` | Password encryption, sessions, API keys, middleware, and login rate limiting |
 | `events`, `nowplaying` | In-process pub/sub for server-sent events, and the in-memory "now playing" list |
@@ -70,11 +71,11 @@ manage, scrobble, backup
 scanner
 artwork, auth, listening, recommend, lxmusic
 store, metasearch, transcode, lyrics, ytdlp
-db, model, util, config, buildinfo, events, nowplaying, tags
+db, model, util, config, buildinfo, events, nowplaying, tags, outbound
 ```
 
-- `model`, `util`, `config`, `buildinfo`, `events`, `nowplaying`, `tags`, and
-  `db` import nothing internal.
+- `model`, `util`, `config`, `buildinfo`, `events`, `nowplaying`, `tags`,
+  `outbound`, and `db` import nothing internal.
 - `store` imports only `db`, `model`, and `util`.
 - Services import `store` and lower services but never `api`, `subsonic`,
   `server`, or `app`.
@@ -82,6 +83,8 @@ db, model, util, config, buildinfo, events, nowplaying, tags
   The handler packages `api` and `subsonic` receive the `*app.App`, and
   `server` mounts them. `cmd/rainy` builds the `App` and the server, and opens
   the store directly for its maintenance commands.
+- `depguard` in `scripts/golangci-lint.yml` enforces these rules in
+  `make backend-lint`; each finding says where the code belongs instead.
 
 The full conventions (IDs, timestamps, paths, logging, errors, context) are in
 [contract §3](contract.md#3-conventions).

@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { useUI } from '@/stores/ui'
 
-import { ConfirmDialog } from './components/confirm-dialog'
 import { TagEditor } from './tag-editor/tag-editor'
 
 /**

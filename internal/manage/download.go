@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"rainy/internal/artwork"
 	"rainy/internal/model"
 	"rainy/internal/store"
 	"rainy/internal/tags"
@@ -523,5 +524,5 @@ func squareCover(p string) ([]byte, error) {
 		x, y := b.Min.X+(b.Dx()-side)/2, b.Min.Y+(b.Dy()-side)/2
 		img = si.SubImage(image.Rect(x, y, x+side, y+side))
 	}
-	return encodeJPEG(fit(img, coverTargetDim))
+	return artwork.EncodeJPEG(fit(img, coverTargetDim), coverQuality)
 }

@@ -68,7 +68,7 @@ func (kugou) search(ctx context.Context, c *client, query string, limit int, _ s
 		r := Result{
 			ID:       strings.ToLower(s.Hash),
 			Title:    emTags.Replace(s.SongName),
-			Artists:  splitArtists(emTags.Replace(s.SingerName), "、"),
+			Artists:  SplitArtists(emTags.Replace(s.SingerName), "、"),
 			Album:    emTags.Replace(s.AlbumName),
 			Duration: float64(s.Duration),
 		}

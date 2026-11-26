@@ -6,7 +6,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { create } from 'zustand'
 
-import { DEFAULT_RENAME_PATTERN, useLibraries } from '@/features/admin/queries'
+import { useLibraries } from '@/hooks/use-libraries'
+import { DEFAULT_RENAME_PATTERN } from '@/lib/admin-queries'
 import type { LibraryInfo } from '@/lib/api/types'
 
 import { placementQuery } from '../queries'

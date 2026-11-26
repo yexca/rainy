@@ -53,6 +53,7 @@ rainy/
 │   ├── db/                      Open, Migrate, migrations/*.sql (embedded), dbtest helper
 │   ├── model/                   shared structs (DB rows + JSON shapes)
 │   ├── util/                    ids, time, text normalization, cover-art ids, mime, safe paths
+│   ├── outbound/                the only outbound HTTP client constructor: redirect policy, proxy, timeouts, size limit (§5.20)
 │   ├── store/                   all shared SQL (repository layer)
 │   ├── auth/                    password crypto, sessions, middleware, rate limit
 │   ├── events/                  in-process pub/sub (SSE feed)
@@ -101,10 +102,12 @@ rainy/
   missing rows (HTTP 404 / Subsonic error 70), `store.ErrConflict` for unique violations (409) and
   `store.ErrInvalid` for bad arguments (400).
 - Context: every store / service method takes `ctx context.Context` first.
-- Keep packages free of import cycles: `db`, `model`, `util`, `config`, `buildinfo`, `tags`,
-  `events` and `nowplaying` import nothing internal; `store` imports `db`, `model`, `util`;
-  `auth` imports `store` and `model`; services import `store` but never `api`, `subsonic`,
-  `server` or `app` (layering in the [backend agent guide](../../internal/AGENTS.md#layering)).
+- Keep packages free of import cycles: `db`, `model`, `util`, `config`, `buildinfo`, `deps`,
+  `tags`, `events`, `nowplaying` and `outbound` import nothing internal; `store` imports `db`,
+  `model`, `util`; `auth` imports `store` and primitives; services import `store` but never
+  `api`, `subsonic`, `server` or `app` (layering in the
+  [backend agent guide](../../internal/AGENTS.md#layering)). The `depguard` rules in
+  `scripts/golangci-lint.yml` enforce this.
 
 ### Go style
 - Idiomatic, small functions, table-driven tests (`*_test.go` next to code).
@@ -377,6 +380,7 @@ func IsWithin(root, abs string) bool; func ToRel(root, abs string) (string, erro
 func PathParts(rel string) (dir, filename, suffix string) // suffix lower-case, without dot
 func IsHiddenOrSystem(name string) bool           // ".*" (incl. ".@__thumb"), "@eaDir", "#recycle", "#snapshot", "@Recycle",
                                                   // "$RECYCLE.BIN", "lost+found", "System Volume Information" (case-insensitive)
+func DirSize(root string) (int64, error)         // sum of regular files; skips unreadable entries, returns the first error
 ```
 
 ### 5.4 store (`internal/store`)
@@ -608,6 +612,7 @@ func UserFrom(ctx context.Context) *model.User
 func RequestToken(r *http.Request) (token string, fromCookie bool); func ClientIP(r *http.Request) string
 func SetSessionCookie(w http.ResponseWriter, r *http.Request, token string, ttl time.Duration) // HttpOnly, SameSite=Lax, Secure if TLS/X-Forwarded-Proto=https, Path=/
 func ClearSessionCookie(w http.ResponseWriter, r *http.Request)
+func WriteError(w http.ResponseWriter, status int, code, msg string) // the §7 error envelope; api writes its errors with it
 var ErrInvalidCredentials, ErrRateLimited, ErrDecrypt error
 var ErrValidation error // wrapped by ErrInvalidUsername, ErrWeakPassword
 ```
@@ -758,6 +763,7 @@ func (s *Service) ClearCache() (freed int64, err error)
 func (s *Service) CacheSize() (int64, error)
 func FindFolderImage(dir string, patterns []string) string // first match by pattern priority, case-insensitive; jpg/jpeg/png/webp
 func MatchFolderImage(names []string, patterns []string) string
+func EncodeJPEG(img image.Image, quality int) ([]byte, error) // q85 for the cache; manage writes covers at q90
 ```
 The disk cache (`<cacheDir>/<k[0:2]>/<k>.img`) is keyed by the identity of the source image (file path + mtime +
 size, or track id + `updated_at` for embedded pictures) and the size, so edited covers never serve stale bytes and
@@ -871,7 +877,8 @@ The only package that sends requests to third-party services. It is used only by
 is on, and it never writes files: results fill the tag editor's draft and reach the files through
 the normal save endpoints.
 ```go
-func New(httpClient *http.Client) *metasearch.Service // nil → 15 s timeout, HTTPS_PROXY/HTTP_PROXY honoured
+func New(httpClient *http.Client) *metasearch.Service // nil → 15 s timeout, HTTPS_PROXY/HTTP_PROXY honoured; the
+                                                      // redirect policy below replaces httpClient's own
 func (s *Service) Providers() []ProviderInfo                // netease, qq, kugou, kuwo, itunes (display order)
 func (s *Service) Search(ctx, provider, query string, limit int, region string, opts Options) ([]Result, error)
 func (s *Service) Lyrics(ctx, provider, id string, opts Options) (*Lyrics, error) // ErrNotFound when none
@@ -884,12 +891,14 @@ type Result struct { Provider, ID, Title string; Artists []string; Album, AlbumA
     CoverURL, ThumbURL string }                                        // json camelCase (coverUrl, thumbUrl)
 type Lyrics struct { Text, Translation string }                        // json: text translation
 var ErrUnknownProvider, ErrInvalid, ErrNotFound, ErrUpstream error
+func CleanText(s string) string; func CleanList(list []string) []string // unescape HTML, collapse spaces; drop empty and repeats
+func SplitArtists(s, seps string) []string // split a display string on any rune in seps (shared with §5.15)
 ```
 Rules: fixed endpoint URLs; the query is one encoded parameter (or a JSON value), ≤ 200 characters;
 provider ids are validated per provider before any request; responses are capped (4 MiB JSON,
 20 MiB images); covers come only from `music.126.net`, `y.gtimg.cn`, `y.qq.com`, `kugou.com`,
 `kuwo.cn`, `mzstatic.com`, and `migu.cn` (for §5.15; host or subdomain, default port, no userinfo), redirects stay on
-the same host, and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
+the same host over HTTPS (≤ 3), and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
 QQ Music falls back to its older mobile search (no track numbers) when the desktop search refuses.
 With `Options.ChinaIP`, requests to the NetEase, QQ Music, Kugou, and Kuwo APIs carry an
 `X-Real-IP` header with a random address from a few mainland-China ISP /16 blocks (a new one per
@@ -1173,6 +1182,26 @@ It rejects snapshot journals and never applies migrations or restores files.
 Database files are capped at 16 GiB, manifests at 64 KiB, and CLI operations at
 ten minutes with signal cancellation. Music, trash, caches and yt-dlp files
 are outside the snapshot; see [backup and restore](../operations/database.md#backups).
+
+### 5.20 outbound
+
+`internal/outbound` builds every outbound HTTP client and imports only the standard library.
+
+```go
+type Redirects struct { Max int; HTTPSOnly bool; Allow func(target, first *url.URL) bool } // zero value: follow none
+func (r Redirects) Check(req *http.Request, via []*http.Request) error // CheckRedirect; refuses userinfo and non-http(s)
+func SameHost(target, first *url.URL) bool
+type TransportOptions struct { DialTimeout, ResponseHeaderTimeout time.Duration
+    DialContext func(ctx, network, addr string) (net.Conn, error); Proxy func(*http.Request) (*url.URL, error) }
+func NewTransport(o TransportOptions) *http.Transport // defaults: 10 s dial, 30 s headers, 1 MiB headers, env proxy
+type Options struct { Timeout time.Duration; Transport http.RoundTripper; Redirects Redirects }
+func NewClient(o Options) *http.Client
+func ReadAll(r io.Reader, limit int64) ([]byte, error) // ErrTooLarge past limit
+var ErrRedirect, ErrTooLarge error
+```
+Refused redirects name only the target host. A guard test fails on any other `http.Client` construction and on
+`http.DefaultClient`, `http.DefaultTransport`, `http.Get`, `http.Head`, `http.Post`, or `http.PostForm` in
+production code.
 
 ## 6. Subsonic / OpenSubsonic (`/rest`)
 
@@ -1812,6 +1841,10 @@ component; `router.tsx` lazy-loads them. Manage routes are guarded (canManage/ad
 guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup` when not initialized); any other path shows the not-found page.
 
 ### 9.2 Cross-feature contracts
+A feature imports another feature only through the `@/features/…` modules listed in this section (player store, types,
+dock and settings API, and track actions). Shared code (`components`, `hooks`, `lib`, `stores`, `layouts`) imports
+features only through the player store, types and dock and the shell slots listed here; `src/router.tsx` composes pages.
+`web/eslint.config.js` enforces both lists.
 - `@/lib/api/endpoints` — `api.albums.list(params)`, `api.albums.get(id)`, … one function per endpoint in §7.
   Errors throw `ApiError { status, code, message }`. `401` from any call (except auth endpoints)
   invalidates the `['auth']` query so the router redirects to `/login`.
@@ -1861,12 +1894,22 @@ guarded (isAdmin); unauthenticated users are redirected to `/login` (or `/setup`
   `undefined`); when it is long, or when every song in the list is long, the list is queued unchanged. `appendAuto` drops long suggestions silently.
   `restoreQueue` never filters.
   Playback position lives in a separate high-frequency store `usePlayback` (`currentTime, duration, buffered, buffering, seek(t)`; the engine publishes with `update` and registers its seek handler) so lists don't re-render.
+- `@/features/player/types` — `PlayableTrack`, `RepeatMode`, `PlayerPanel`, `isLive(track)`, and the stream quality,
+  transcode format and ReplayGain mode lists and types.
 - Shell slots imported from the player feature: `<PlayerDock/>` (tablet/desktop: bottom bar or floating window; positions itself), `<MiniPlayer/>` (mobile, above tab bar), `<NowPlayingSheet/>`, `<AudioEngine/>` (headless), `<MascotCompanion/>` (tablet/desktop while `mascotCompanion` is on; positions itself above the player chrome).
+- Other shell slots: `<ImmersiveTheme/>` (from `@/features/library/components/immersive-theme`) and the header's
+  appearance controls `StylePicker`, `AccentPicker` and `ImmersiveSwitch` (from `@/features/settings/components/appearance-section`).
+- `@/features/player/settings-api` — what the settings pages read and change in the player: `usePlaybackPrefs`,
+  `clampLongTrackMinutes`, `MIN_LONG_TRACK_MINUTES`/`MAX_LONG_TRACK_MINUTES`, `useInstallPrompt`/`promptInstall`, and
+  `canControlVolume()`/`canPlayFormat(format)`.
 - `@/features/player/dock` — `usePlayerDock` zustand store (persisted as `rainy.player-dock`): `mode: 'window' | 'bar'` (unknown values, including the retired `compact`, fall back to `bar`), `barAutoHide: boolean` (the bar is unpinned), `setMode(mode)`, `setBarAutoHide(b)`. `<PlayerDock/>` mirrors it to `<html data-player-dock="bar|collapsed|window|idle">`, which `index.css` maps to `--player-reserve` (full-width bottom space: sidebar, side panel; none for the floating bar), `--player-clearance` (`.page-pad`, sticky footers) and `--player-toast-bottom/right`.
 - `@/lib/query-keys` — `queryKeys` and `LIBRARY_QUERY_ROOTS`: every query showing library data starts with one of these
   roots so `library` server events refresh it; `random` (`['random', …]`, e.g. the home song picks) is deliberately not a
   root so shuffled lists don't reshuffle under the user. Inside the library feature, `lib/star.ts` (`useToggleStar`,
   `patchStarred`) patches starred state into cached queries; the player has its own `hooks/use-toggle-star.ts`.
+- `@/lib/admin-queries` — `adminKeys` and the admin `queryOptions` (`librariesQuery`, `settingsQuery`, …) plus
+  `DEFAULT_RENAME_PATTERN`; `@/hooks/use-libraries` — `useLibraries()` (managers who cannot list libraries get the
+  default library), `useOptionalSettings()`, `useDefaultRenamePattern()`. Shared by the admin and manage areas.
 - `@/features/library/components/track-actions` — `<TrackActionsMenu tracks={Track[]} context?:{playlistId?:string, position?:number} trigger?>` renders a "…" button (DropdownMenu on desktop, Drawer action sheet on mobile) with: Play next, Add to queue, Add to playlist, Go to album, Go to artist, Star/Unstar, Download, Edit tags (managers → `openTagEditor`), Remove from playlist (when in playlist context).
 
 ### 9.3 Design system

@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -158,4 +159,32 @@ func IsHiddenOrSystem(name string) bool {
 		return true
 	}
 	return systemNames[strings.ToLower(name)]
+}
+
+// DirSize sums the sizes of the regular files under root. Unreadable entries are skipped;
+// the first error met (fs.ErrNotExist for a missing root) is returned with the partial sum.
+func DirSize(root string) (int64, error) {
+	var total int64
+	var first error
+	keep := func(err error) {
+		if first == nil {
+			first = err
+		}
+	}
+	_ = filepath.WalkDir(root, func(_ string, d fs.DirEntry, err error) error {
+		if err != nil {
+			keep(err)
+			return nil
+		}
+		if d.Type().IsRegular() {
+			fi, err := d.Info()
+			if err != nil {
+				keep(err)
+				return nil
+			}
+			total += fi.Size()
+		}
+		return nil
+	})
+	return total, first
 }

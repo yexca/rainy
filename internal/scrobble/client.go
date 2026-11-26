@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"net"
 	"net/http"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"rainy/internal/outbound"
 )
 
 const (
@@ -68,16 +68,10 @@ func serviceName(service string) string {
 // newHTTPClient returns the client for the scrobbling APIs: bounded time, HTTPS_PROXY /
 // HTTP_PROXY honoured, no redirects (the APIs never redirect).
 func newHTTPClient() *http.Client {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.DialContext = (&net.Dialer{Timeout: 10 * time.Second}).DialContext
-	transport.ResponseHeaderTimeout = requestTimeout
-	return &http.Client{
+	return outbound.NewClient(outbound.Options{
 		Timeout:   requestTimeout,
-		Transport: transport,
-		CheckRedirect: func(*http.Request, []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
+		Transport: outbound.NewTransport(outbound.TransportOptions{ResponseHeaderTimeout: requestTimeout}),
+	})
 }
 
 // do sends req and returns the status and at most maxResponse bytes of the body. Transport
@@ -92,12 +86,12 @@ func do(c *http.Client, req *http.Request, service string) (int, []byte, error) 
 		return 0, nil, &Error{Service: service, Message: msg, kind: kindRetry}
 	}
 	defer func() { _ = resp.Body.Close() }()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponse+1))
+	body, err := outbound.ReadAll(resp.Body, maxResponse)
+	if errors.Is(err, outbound.ErrTooLarge) {
+		return 0, nil, &Error{Service: service, Message: "the response is too large", kind: kindRetry}
+	}
 	if err != nil {
 		return 0, nil, &Error{Service: service, Message: "reading the response failed", kind: kindRetry}
-	}
-	if len(body) > maxResponse {
-		return 0, nil, &Error{Service: service, Message: "the response is too large", kind: kindRetry}
 	}
 	return resp.StatusCode, body, nil
 }

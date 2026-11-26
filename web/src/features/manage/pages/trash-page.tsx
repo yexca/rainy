@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
@@ -16,11 +17,10 @@ import { TOOLS_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { TrashEntry } from '@/lib/api/types'
+import { reportBatch, toastError } from '@/lib/batch'
 import { formatBytes, formatDateTime, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { ConfirmDialog } from '../components/confirm-dialog'
-import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary, manageKeys } from '../queries'
 
 export default function TrashPage() {

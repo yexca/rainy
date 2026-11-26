@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -20,7 +21,6 @@ import type { MetadataProvider, MetadataProviderId, MetadataResult, TrackTags } 
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { ResponsiveDialog } from '../components/responsive-dialog'
 import {
   coverFileName,
   defaultQuery,

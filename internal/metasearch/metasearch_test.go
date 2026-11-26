@@ -384,6 +384,10 @@ func TestCover(t *testing.T) {
 				_, _ = io.WriteString(w, "<html><script>alert(1)</script></html>")
 			case "/elsewhere.jpg":
 				http.Redirect(w, r, "https://example.com/x.jpg", http.StatusFound)
+			case "/moved.jpg":
+				http.Redirect(w, r, "https://p1.music.126.net/img.jpg", http.StatusFound)
+			case "/downgrade.jpg":
+				http.Redirect(w, r, "http://p1.music.126.net/img.jpg", http.StatusFound)
 			default:
 				http.NotFound(w, r)
 			}
@@ -403,10 +407,20 @@ func TestCover(t *testing.T) {
 	if _, _, err := s.Cover(ctx, "https://p1.music.126.net/elsewhere.jpg"); !errors.Is(err, ErrUpstream) {
 		t.Fatalf("cross-host redirect err = %v", err)
 	}
+	if data, _, err := s.Cover(ctx, "https://p1.music.126.net/moved.jpg"); err != nil || !bytes.Equal(data, jpegBytes) {
+		t.Fatalf("same-host HTTPS redirect = %d bytes, %v", len(data), err)
+	}
+	n := len(f.requests)
+	if _, _, err := s.Cover(ctx, "https://p1.music.126.net/downgrade.jpg"); !errors.Is(err, ErrUpstream) {
+		t.Fatalf("HTTPS-to-HTTP redirect err = %v", err)
+	}
+	if len(f.requests) != n+1 {
+		t.Fatalf("downgrade redirect was followed: %d requests", len(f.requests)-n)
+	}
 	if _, _, err := s.Cover(ctx, "https://p1.music.126.net/missing.jpg"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("missing err = %v", err)
 	}
-	n := len(f.requests)
+	n = len(f.requests)
 	if _, _, err := s.Cover(ctx, "https://example.com/x.jpg"); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("foreign host err = %v", err)
 	}

@@ -93,11 +93,7 @@ func writeNoContent(w http.ResponseWriter) { w.WriteHeader(http.StatusNoContent)
 
 // writeError writes {"error":{"code":code,"message":msg}} with status.
 func writeError(w http.ResponseWriter, status int, code, msg string) {
-	h := w.Header()
-	h.Set("Content-Type", "application/json; charset=utf-8")
-	h.Set("Cache-Control", "no-store")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]string{"code": code, "message": msg}})
+	auth.WriteError(w, status, code, msg)
 }
 
 // errorFrom maps an error to (status, code, message):

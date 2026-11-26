@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMascotArt } from '@/hooks/use-mascot-art'
+import { adminKeys } from '@/lib/admin-queries'
 import type { LibraryInfo } from '@/lib/api/types'
 import { formatDateTime, formatDuration, formatNumber, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { adminKeys } from '../queries'
 import { useScanStatus, useStartScan } from '../scan'
 
 function useNow(enabled: boolean): number {

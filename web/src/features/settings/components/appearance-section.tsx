@@ -2,6 +2,7 @@ import { Check, Circle, Feather, Layers3, Monitor, Moon, Shapes, Sun, type Lucid
 import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Segmented } from '@/components/segmented'
 import { Switch } from '@/components/ui/switch'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage, type Language } from '@/lib/i18n'
@@ -20,7 +21,7 @@ import {
 } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
-import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
+import { SettingsRow, SettingsSection } from './settings-ui'
 
 export function AppearanceSection() {
   const { t, i18n } = useTranslation('settings')

@@ -3,10 +3,10 @@ package subsonic
 import (
 	"errors"
 	"strings"
-	"time"
 
 	"rainy/internal/model"
 	"rainy/internal/store"
+	"rainy/internal/util"
 )
 
 // albumListQuery builds the store query for getAlbumList(2) (type, size, offset,
@@ -202,7 +202,7 @@ func (a *API) getSongsByGenre(q *request) (*Response, error) {
 func (a *API) getNowPlaying(q *request) (*Response, error) {
 	entries := a.app.NowPlaying.List()
 	out := make([]NowPlayingEntry, 0, len(entries))
-	now := time.Now().UnixMilli()
+	now := util.NowMs()
 	for _, e := range entries {
 		t, err := a.app.Store.GetTrack(q.ctx, e.TrackID, e.UserID)
 		if errors.Is(err, store.ErrNotFound) {

@@ -31,14 +31,20 @@ should use the [Security Policy](../../SECURITY.md).
 ## Outbound Requests
 
 Rainy makes no outbound request unless an administrator turns on the setting
-of the feature that needs it; every such setting is off by default. There is
-no shared outbound transport or global egress policy: each package below
-builds its own `http.Client` from a clone of Go's default transport, so the
-environment's `HTTPS_PROXY`/`HTTP_PROXY` apply, and adds its own controls.
+of the feature that needs it; every such setting is off by default. Every
+client comes from `outbound.NewClient` (`internal/outbound`), which takes an
+explicit redirect policy (`outbound.Redirects`: none, or a maximum count with
+an HTTPS-only flag and a host check), applies the environment's
+`HTTPS_PROXY`/`HTTP_PROXY`, and bounds dial and response-header time. A
+package may pass its own transport, as `internal/lxmusic` does with its
+guarded one. `TestOutboundClientsUseThisPackage` fails when production code
+builds an `http.Client` any other way or uses `http.DefaultClient`,
+`http.DefaultTransport`, `http.Get`, or `http.Post`. There is no global egress
+policy: each package below adds its own controls.
 
 | Package | Admin setting | Destinations | Package-specific controls |
 | --- | --- | --- | --- |
-| `internal/metasearch` (online metadata in the tag editor; managers search) | `onlineMetadata` | Fixed API URLs of NetEase Cloud Music, QQ Music, Kugou, Kuwo, and the iTunes Search API | Redirects stay on the same host (at most three); covers are fetched only from the provider image hosts in `coverHosts` |
+| `internal/metasearch` (online metadata in the tag editor; managers search) | `onlineMetadata` | Fixed API URLs of NetEase Cloud Music, QQ Music, Kugou, Kuwo, and the iTunes Search API | Redirects stay on the same host over HTTPS (at most three); covers are fetched only from the provider image hosts in `coverHosts` |
 | `internal/ytdlp` (link downloads; managers submit links, administrators install yt-dlp) | `ytdlpEnabled` | YouTube and bilibili through yt-dlp; GitHub for the yt-dlp binary; `b23.tv` share links | See below |
 | `internal/lxmusic` (online music; administrators import source scripts) | `lxSourcesEnabled` | Catalogue search APIs, script links, and whatever source scripts request | Public internet addresses only, checked on the URL, after DNS resolution on every dialled address, and on every redirect (at most five); a configured proxy is exempt from the address check |
 | `internal/scrobble` (Last.fm and ListenBrainz) | `lastfmEnabled`, `listenBrainzEnabled` | The fixed Last.fm and ListenBrainz API URLs | Redirects are never followed |
@@ -46,7 +52,8 @@ environment's `HTTPS_PROXY`/`HTTP_PROXY` apply, and adds its own controls.
 Every outbound client keeps these rules:
 
 - Bound each request: a dial timeout plus a request or response-header
-  timeout, and read every response body through a size cap.
+  timeout, and read every response body through a size cap
+  (`outbound.ReadAll`).
 - Use fixed endpoint URLs and pass user input only as an encoded parameter.
   Validate provider and song ids before they reach a request.
 - Report failures by host. Errors drop Go's `*url.Error` wrapper, whose

@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -110,7 +109,7 @@ func Create(ctx context.Context, dataDir, name, version string) (*Manifest, erro
 	if err != nil {
 		return nil, err
 	}
-	m := &Manifest{Format: 1, CreatedAt: time.Now().UnixMilli(), Version: version, Migrations: versions, Files: map[string]File{}}
+	m := &Manifest{Format: 1, CreatedAt: util.NowMs(), Version: version, Migrations: versions, Files: map[string]File{}}
 	for _, name := range fileNames {
 		p, err := safePath(target, name)
 		if err != nil {

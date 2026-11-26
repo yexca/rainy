@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
@@ -19,10 +20,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { ADMIN_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
+import { adminKeys, librariesQuery } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { LibraryInfo } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -30,7 +31,6 @@ import { formatNumber, formatRelative } from '@/lib/format'
 
 import { LibraryDialog } from '../components/library-dialog'
 import { ScanPanel } from '../components/scan-panel'
-import { adminKeys, librariesQuery } from '../queries'
 import { useScanStatus, useStartScan } from '../scan'
 
 export default function LibrariesPage() {

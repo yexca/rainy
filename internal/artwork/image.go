@@ -102,7 +102,7 @@ func resize(data []byte, size int) ([]byte, error) {
 	dst := image.NewRGBA(image.Rect(0, 0, w, h))
 	draw.Draw(dst, dst.Bounds(), image.White, image.Point{}, draw.Src) // flatten alpha on white
 	draw.CatmullRom.Scale(dst, dst.Bounds(), img, b, draw.Over, nil)
-	return encodeJPEG(dst)
+	return EncodeJPEG(dst, jpegQuality)
 }
 
 // mosaic renders four covers as a 2×2 grid of size×size (each cover centre-cropped to a
@@ -130,7 +130,7 @@ func mosaic(srcs []*source, size int) ([]byte, error) {
 	if loaded == 0 {
 		return nil, ErrNotFound
 	}
-	return encodeJPEG(dst)
+	return EncodeJPEG(dst, jpegQuality)
 }
 
 // decodeSource decodes the image of src, moving on to its fallback candidates while a
@@ -164,9 +164,10 @@ func squareCrop(r image.Rectangle) image.Rectangle {
 	return image.Rect(r.Min.X, r.Min.Y+off, r.Max.X, r.Min.Y+off+w)
 }
 
-func encodeJPEG(img image.Image) ([]byte, error) {
+// EncodeJPEG encodes img at quality (1–100). manage uses it for the covers it writes.
+func EncodeJPEG(img image.Image, quality int) ([]byte, error) {
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: jpegQuality}); err != nil {
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality}); err != nil {
 		return nil, fmt.Errorf("encoding JPEG: %w", err)
 	}
 	if buf.Len() == 0 {

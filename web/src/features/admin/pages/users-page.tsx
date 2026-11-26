@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
@@ -19,11 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
 import { useCurrentUser } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { ADMIN_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
+import { adminKeys } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { User } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
@@ -32,7 +33,6 @@ import { initials } from '@/lib/utils'
 
 import { PasswordDialog } from '../components/password-dialog'
 import { UserDialog } from '../components/user-dialog'
-import { adminKeys } from '../queries'
 
 export default function UsersPage() {
   const { t } = useTranslation('admin')

@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
+import { FormField } from '@/components/form-field'
+import { PasswordInput } from '@/components/password-input'
 import { Spinner } from '@/components/spinner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -14,8 +16,6 @@ import { isTouch } from '@/lib/platform'
 
 import { authErrorMessage } from '../auth-errors'
 import { AuthCard } from '../components/auth-card'
-import { FormField } from '../components/form-field'
-import { PasswordInput } from '../components/password-input'
 
 const PASSWORD_MIN = 4
 const USERNAME_MAX = 64

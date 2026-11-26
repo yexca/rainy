@@ -338,3 +338,22 @@ func TestFirstNonEmpty(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+// DirSize backs the admin system page and the artwork cache size.
+func TestDirSize(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for name, size := range map[string]int{"x": 3, "a/y": 5, "a/b/z": 7} {
+		if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(name)), make([]byte, size), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if n, err := DirSize(root); err != nil || n != 15 {
+		t.Fatalf("DirSize = %d, %v; want 15", n, err)
+	}
+	if n, err := DirSize(filepath.Join(root, "missing")); !errors.Is(err, os.ErrNotExist) || n != 0 {
+		t.Fatalf("missing root: %d, %v", n, err)
+	}
+}

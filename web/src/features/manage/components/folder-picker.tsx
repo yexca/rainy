@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ErrorState } from '@/components/error-state'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api/endpoints'
 
 import { manageKeys } from '../queries'
-import { ResponsiveDialog } from './responsive-dialog'
 
 export interface FolderPickerProps {
   open: boolean

@@ -7,11 +7,10 @@ import { toast } from 'sonner'
 import { ErrorState } from '@/components/error-state'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
+import { adminKeys } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import { errorMessage } from '@/lib/errors'
 import { formatBytes, formatDateTime, formatDurationLong, formatNumber } from '@/lib/format'
-
-import { adminKeys } from '../queries'
 
 /** Versions, ffmpeg, storage sizes, library statistics, cache clearing. */
 export function SystemInfo() {

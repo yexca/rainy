@@ -21,6 +21,10 @@ change needs.
   in the same change.
 - Feature boundaries, state ownership, IME-aware inputs, and the UI checklist
   are in [Frontend guidelines](../docs/development/frontend-guidelines.md).
+- A feature never imports another feature's internals; use the contracts in
+  [contract §9.2](../docs/architecture/contract.md#92-cross-feature-contracts)
+  or move shared code to `src/components`, `src/hooks`, or `src/lib`.
+  `eslint.config.js` enforces the allow-list.
 - Browser checks use accessible roles and labels; see
   [Browser checks](../docs/development/testing.md#browser-checks).
 - When visible behavior changes, update the matching

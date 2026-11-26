@@ -1,21 +1,23 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Segmented } from '@/components/segmented'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { canControlVolume, canPlayFormat } from '@/features/player/lib/audio-support'
 import {
+  canControlVolume,
+  canPlayFormat,
   clampLongTrackMinutes,
   MAX_LONG_TRACK_MINUTES,
   MIN_LONG_TRACK_MINUTES,
-} from '@/features/player/lib/long-tracks'
-import { usePlaybackPrefs } from '@/features/player/prefs'
+  usePlaybackPrefs,
+} from '@/features/player/settings-api'
 import { usePlayer } from '@/features/player/store'
 import type { ReplayGainMode, StreamQuality, TranscodeFormat } from '@/features/player/types'
 import { formatNumber } from '@/lib/format'
 import { isIOS } from '@/lib/platform'
 
-import { Segmented, SettingsRow, SettingsSection } from './settings-ui'
+import { SettingsRow, SettingsSection } from './settings-ui'
 
 /** Approximate data use in MB per hour for a bit rate (kbps). */
 function mbPerHour(kbps: number): number {

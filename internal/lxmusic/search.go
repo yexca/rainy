@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html"
 	"io"
 	"math"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
+
+	"rainy/internal/metasearch"
 )
 
 // Song search in the five catalogues. Results carry the ids the catalogues (and source
@@ -100,9 +101,9 @@ func (s *Service) Search(ctx context.Context, platform, query string, page, limi
 	items := make([]Song, 0, len(res.Items))
 	for _, song := range res.Items {
 		song.Platform = platform
-		song.Title = cleanText(song.Title)
-		song.Album = cleanText(song.Album)
-		song.Artists = cleanList(song.Artists)
+		song.Title = metasearch.CleanText(song.Title)
+		song.Album = metasearch.CleanText(song.Album)
+		song.Artists = metasearch.CleanList(song.Artists)
 		song.CoverURL = httpsURL(song.CoverURL)
 		if song.Extra == nil {
 			song.Extra = map[string]string{}
@@ -214,28 +215,6 @@ func (f *flexString) UnmarshalJSON(b []byte) error {
 }
 
 // ---- text helpers
-
-// cleanText decodes HTML entities (several catalogues escape names) and collapses spaces.
-func cleanText(s string) string {
-	return strings.Join(strings.Fields(html.UnescapeString(s)), " ")
-}
-
-func cleanList(list []string) []string {
-	out := make([]string, 0, len(list))
-	seen := map[string]bool{}
-	for _, v := range list {
-		v = cleanText(v)
-		if v != "" && !seen[v] {
-			seen[v] = true
-			out = append(out, v)
-		}
-	}
-	return out
-}
-
-func splitArtists(s, seps string) []string {
-	return strings.FieldsFunc(html.UnescapeString(s), func(r rune) bool { return strings.ContainsRune(seps, r) })
-}
 
 // httpsURL upgrades plain-HTTP image links (every catalogue's image host serves HTTPS).
 func httpsURL(s string) string {

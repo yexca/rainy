@@ -16,6 +16,7 @@ import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { ErrorState } from '@/components/error-state'
 import { PageLoader, Spinner } from '@/components/spinner'
 import { Badge } from '@/components/ui/badge'
@@ -31,14 +32,13 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { ConfirmDialog } from '@/features/manage/components/confirm-dialog'
+import { adminKeys, sourcesQuery } from '@/lib/admin-queries'
 import { api } from '@/lib/api/endpoints'
 import type { LxSource, LxSourceMode, LxSourcesInfo, Settings } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
 import { formatBytes, formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { adminKeys, sourcesQuery } from '../queries'
 import { SourceImportDialog } from './source-import-dialog'
 
 /**

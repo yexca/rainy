@@ -21,6 +21,7 @@ import (
 	"rainy/internal/model"
 	"rainy/internal/store"
 	"rainy/internal/tags"
+	"rainy/internal/util"
 )
 
 // visibleTracks is the number of audio files in testdata/music outside ignored folders.
@@ -164,7 +165,7 @@ func TestScanTestLibrary(t *testing.T) {
 		if strings.Contains(tr.Path, "@eaDir") || strings.Contains(tr.Path, ".hidden") {
 			t.Errorf("ignored folder scanned: %s", tr.Path)
 		}
-		if tr.CreatedAt <= 0 || tr.CreatedAt > time.Now().UnixMilli() || tr.CreatedAt > tr.Mtime && tr.Mtime > 0 {
+		if tr.CreatedAt <= 0 || tr.CreatedAt > util.NowMs() || tr.CreatedAt > tr.Mtime && tr.Mtime > 0 {
 			t.Errorf("%s: created_at %d (mtime %d)", tr.Path, tr.CreatedAt, tr.Mtime)
 		}
 	}

@@ -122,6 +122,15 @@ built image in a disposable container. Without shellcheck on the path,
 publishes an image or release. Browser checks are manual; see
 [Testing](testing.md#browser-checks).
 
+## Guardrail Files
+
+The lint configurations (`scripts/golangci-lint.yml`, `web/eslint.config.js`),
+the workflows and composite actions in `.github/`, and the outbound guard test
+(`internal/outbound/guard_test.go`) define what CI enforces. The deny rules in
+`.claude/settings.json` stop Claude Code's file tools from editing them, so an
+agent reports a failing check instead of relaxing it. A person changes these
+files directly and reviews that diff separately from feature changes.
+
 ## Releases
 
 [Release](../../.github/workflows/release.yml) runs on tags matching

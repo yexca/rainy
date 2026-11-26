@@ -3,13 +3,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { toastError } from '@/features/manage/lib/batch'
 import { useServerEvent } from '@/hooks/use-server-events'
+import { adminKeys } from '@/lib/admin-queries'
 import { isApiError } from '@/lib/api/client'
 import { api } from '@/lib/api/endpoints'
 import type { ScanStatus } from '@/lib/api/types'
-
-import { adminKeys } from './queries'
+import { toastError } from '@/lib/batch'
 
 const POLL_MS = 2000
 

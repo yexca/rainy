@@ -10,13 +10,13 @@ import { useIsMobile } from '@/hooks/use-media-query'
 import { ADMIN_SECTION, groupedPages } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
 import { SubTabs } from '@/layouts/sub-tabs'
+import { settingsQuery } from '@/lib/admin-queries'
 
 import { ScrobblingSettings } from '../components/scrobbling-settings'
 import { SettingsForm } from '../components/settings-form'
 import { SourcesSettings } from '../components/sources-settings'
 import { SystemInfo } from '../components/system-info'
 import { YtdlpSettings } from '../components/ytdlp-settings'
-import { settingsQuery } from '../queries'
 
 type Tab = 'general' | 'ytdlp' | 'sources' | 'scrobbling' | 'system'
 const TABS: readonly Tab[] = ['general', 'ytdlp', 'sources', 'scrobbling', 'system']

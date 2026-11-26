@@ -39,13 +39,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useLibraries } from '@/features/admin/queries'
 import { useCurrentTrack, usePlayer } from '@/features/player/store'
+import { useLibraries } from '@/hooks/use-libraries'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { TOOLS_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { FileEntry, FolderListing } from '@/lib/api/types'
+import { toastError } from '@/lib/batch'
 import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
@@ -55,7 +56,6 @@ import { FolderBreadcrumb } from '../components/folder-breadcrumb'
 import { FolderDocRow, FolderImageTile, FolderTile, FolderTrackRow } from '../components/folder-file-rows'
 import { FolderRail, FolderRailToggle, FolderTreeButton } from '../components/folder-navigator'
 import { FolderPreviewDialog } from '../components/folder-preview-dialog'
-import { toastError } from '../lib/batch'
 import {
   ancestorDirs,
   buildFolderNavigatorRows,

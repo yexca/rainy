@@ -3,19 +3,19 @@ import { ArrowRight, Languages } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
+import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { api } from '@/lib/api/endpoints'
 import type { EncodingFix } from '@/lib/api/types'
+import { reportBatch, toastError } from '@/lib/batch'
 
-import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary } from '../queries'
-import { ConfirmDialog } from './confirm-dialog'
-import { ResponsiveDialog } from './responsive-dialog'
 
 export interface EncodingDialogProps {
   open: boolean

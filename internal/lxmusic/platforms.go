@@ -14,7 +14,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
+
+	"rainy/internal/metasearch"
+	"rainy/internal/util"
 )
 
 // Search endpoints per catalogue, following lx-music's search code
@@ -80,7 +82,7 @@ func searchKuwo(ctx context.Context, c *apiClient, query string, page, limit int
 		song := Song{
 			ID:       id,
 			Title:    it.Name,
-			Artists:  splitArtists(it.Artist, "&"),
+			Artists:  metasearch.SplitArtists(it.Artist, "&"),
 			Album:    it.Album,
 			AlbumID:  string(it.AlbumID),
 			Duration: float64(it.Duration),
@@ -213,7 +215,7 @@ func searchKugouMobile(ctx context.Context, c *apiClient, query string, page, li
 		song := Song{
 			ID:       string(it.AudioID),
 			Title:    em.Replace(it.SongName),
-			Artists:  splitArtists(em.Replace(it.SingerName), "、"),
+			Artists:  metasearch.SplitArtists(em.Replace(it.SingerName), "、"),
 			Album:    em.Replace(it.AlbumName),
 			AlbumID:  string(it.AlbumID),
 			Duration: float64(it.Duration),
@@ -282,7 +284,7 @@ func searchKugouV2(ctx context.Context, c *apiClient, query string, page, limit 
 			song.Artists = append(song.Artists, s.Name)
 		}
 		if len(song.Artists) == 0 {
-			song.Artists = splitArtists(it.SingerName, "、")
+			song.Artists = metasearch.SplitArtists(it.SingerName, "、")
 		}
 		for _, f := range []struct {
 			q    string
@@ -577,7 +579,7 @@ const (
 )
 
 func searchMigu(ctx context.Context, c *apiClient, query string, page, limit int) (*SearchResult, error) {
-	now := strconv.FormatInt(time.Now().UnixMilli(), 10)
+	now := strconv.FormatInt(util.NowMs(), 10)
 	sum := md5.Sum([]byte(query + miguSignSalt + "yyapp2d16148780a1dcc7408e06336b98cfd50" + miguDeviceID + now))
 	q := url.Values{
 		"isCorrect": {"0"}, "isCopyright": {"1"},

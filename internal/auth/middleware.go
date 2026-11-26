@@ -77,7 +77,7 @@ func (s *Service) Middleware(next http.Handler) http.Handler {
 func RequireUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if UserFrom(r.Context()) == nil {
-			writeError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
+			WriteError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -90,9 +90,9 @@ func RequireManager(next http.Handler) http.Handler {
 		u := UserFrom(r.Context())
 		switch {
 		case u == nil:
-			writeError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
+			WriteError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
 		case !u.CanEdit():
-			writeError(w, http.StatusForbidden, "forbidden", "library management permission required")
+			WriteError(w, http.StatusForbidden, "forbidden", "library management permission required")
 		default:
 			next.ServeHTTP(w, r)
 		}
@@ -105,9 +105,9 @@ func RequireAdmin(next http.Handler) http.Handler {
 		u := UserFrom(r.Context())
 		switch {
 		case u == nil:
-			writeError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
+			WriteError(w, http.StatusUnauthorized, "unauthorized", "authentication required")
 		case !u.IsAdmin:
-			writeError(w, http.StatusForbidden, "forbidden", "administrator permission required")
+			WriteError(w, http.StatusForbidden, "forbidden", "administrator permission required")
 		default:
 			next.ServeHTTP(w, r)
 		}
@@ -157,8 +157,9 @@ func ClientIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-// writeError writes the native API error envelope.
-func writeError(w http.ResponseWriter, status int, code, msg string) {
+// WriteError writes the native API error envelope {"error":{"code":code,"message":msg}} with
+// status. The api handlers use it too, so the envelope has one definition.
+func WriteError(w http.ResponseWriter, status int, code, msg string) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)

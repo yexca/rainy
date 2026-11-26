@@ -2,14 +2,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { api } from '@/lib/api/endpoints'
-
-import { reportBatch, toastError } from '../lib/batch'
 import { invalidateLibrary } from '../queries'
-import { ConfirmDialog } from './confirm-dialog'
 import { CoverDialog } from './cover-dialog'
 import { EncodingDialog } from './encoding-dialog'
 import { RenameDialog } from './rename-dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { api } from '@/lib/api/endpoints'
+import { reportBatch, toastError } from '@/lib/batch'
 
 export type BatchDialogKind = 'rename' | 'cover' | 'encoding' | 'rebuild' | 'delete'
 

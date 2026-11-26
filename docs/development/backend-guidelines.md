@@ -11,6 +11,9 @@ Read [Core boundaries](../architecture/core-boundaries.md) and the relevant
   tag access in `internal/tags`, and shared SQL in `internal/store`.
 - Direct dependencies downward as described in [Backend](../architecture/backend.md).
   Services never import transport or app packages; primitives import nothing internal.
+  `depguard` enforces this in `make backend-lint`.
+- Build outbound HTTP clients only with `outbound.NewClient`; see
+  [Outbound requests](security.md#outbound-requests).
 - Pass `context.Context` first, wrap errors with context, and log with `slog`.
   Public errors use stable codes and do not expose paths or credentials.
 - Keep Go dependencies compatible with `CGO_ENABLED=0`.

@@ -6,7 +6,7 @@ import { queryOptions, type QueryClient } from '@tanstack/react-query'
 
 import { api, type TrackListParams } from '@/lib/api/endpoints'
 import type { IssueType } from '@/lib/api/types'
-import { LIBRARY_QUERY_ROOTS } from '@/lib/query-keys'
+import { LIBRARY_QUERY_ROOTS, queryKeys } from '@/lib/query-keys'
 
 import { isActiveJob } from './lib/downloads'
 
@@ -21,7 +21,7 @@ export const manageKeys = {
   log: (trackId: string) => ['manage', 'log', trackId] as const,
   downloads: ['manage', 'downloads'] as const,
   online: ['manage', 'online'] as const,
-  placement: ['manage', 'placement'] as const,
+  placement: queryKeys.managePlacement,
   /** Downloads waiting for review; invalidating it also refreshes `stagingCount`. */
   staging: ['manage', 'staging'] as const,
   stagingCount: ['manage', 'staging', 'count'] as const,

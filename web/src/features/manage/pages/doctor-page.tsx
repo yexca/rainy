@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CoverArt } from '@/components/cover-art'
 import { EmptyState } from '@/components/empty-state'
 import { ErrorState } from '@/components/error-state'
@@ -29,13 +30,12 @@ import { TOOLS_SECTION } from '@/layouts/nav'
 import { SectionTabs } from '@/layouts/section-tabs'
 import { api } from '@/lib/api/endpoints'
 import type { Issue, IssueType, Track } from '@/lib/api/types'
+import { toastError } from '@/lib/batch'
 import { formatBytes, formatDuration, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
 import { BatchDialogs, type BatchDialogState } from '../components/batch-dialogs'
-import { ConfirmDialog } from '../components/confirm-dialog'
-import { toastError } from '../lib/batch'
 import { invalidateLibrary, manageKeys } from '../queries'
 
 const ISSUE_TYPES: readonly IssueType[] = ['missing_tags', 'no_cover', 'duplicates', 'missing_files', 'encoding']

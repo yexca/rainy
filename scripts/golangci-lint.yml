@@ -3,12 +3,150 @@ version: "2"
 run:
   timeout: 5m
   tests: true
+  # Report and match paths relative to go.mod, not to this file.
+  relative-path-mode: gomod
 
 linters:
   default: none
   enable:
+    - depguard
     - errcheck
+    - forbidigo
     - govet
     - ineffassign
+    - nolintlint
     - staticcheck
     - unused
+
+  settings:
+    # Package layering from internal/AGENTS.md:
+    #   cmd/rainy -> server -> api/subsonic -> app -> services -> store/auth -> primitives
+    # Primitives: util, model, config, db, events, tags, buildinfo, deps, nowplaying,
+    # outbound. Every other internal package is a service unless named below.
+    # Deny entries are prefixes; do not list a package and its subpackage in one rule.
+    depguard:
+      rules:
+        primitives:
+          list-mode: lax
+          files:
+            - "**/internal/buildinfo/**"
+            - "**/internal/config/**"
+            - "**/internal/db/*.go"
+            - "**/internal/deps/**"
+            - "**/internal/events/**"
+            - "**/internal/model/**"
+            - "**/internal/nowplaying/**"
+            - "**/internal/outbound/**"
+            - "**/internal/tags/**"
+            - "**/internal/util/**"
+            - "!**/internal/db/*_test.go"
+          deny:
+            - pkg: "rainy/"
+              desc: >-
+                primitive packages import only the standard library and modules; move the
+                shared code into a primitive, or move this code up into the service that
+                needs it
+        db-tests:
+          list-mode: lax
+          files:
+            - "**/internal/db/*_test.go"
+            - "**/internal/db/dbtest/**"
+          allow:
+            - "rainy/internal/db"
+          deny:
+            - pkg: "rainy/"
+              desc: "db tests and db/dbtest import only db and db/dbtest; test other packages in their own directory"
+        store:
+          list-mode: lax
+          files:
+            - "**/internal/store/**"
+          allow:
+            - "rainy/internal/db"
+            - "rainy/internal/model"
+            - "rainy/internal/store"
+            - "rainy/internal/util"
+          deny:
+            - pkg: "rainy/"
+              desc: "store imports only db, model, and util; put logic that needs a service in that service and call the store from it"
+        auth:
+          list-mode: lax
+          files:
+            - "**/internal/auth/**"
+          allow:
+            - "rainy/internal/auth"
+            - "rainy/internal/db"
+            - "rainy/internal/model"
+            - "rainy/internal/store"
+            - "rainy/internal/util"
+          deny:
+            - pkg: "rainy/"
+              desc: "auth imports only store and primitives; enforce roles in handlers and pass what auth needs as arguments"
+        below-app:
+          list-mode: lax
+          files:
+            - "**/internal/**"
+            - "!**/internal/api/**"
+            - "!**/internal/app/**"
+            - "!**/internal/server/**"
+            - "!**/internal/subsonic/**"
+          deny:
+            - pkg: "rainy/internal/api"
+              desc: "services never import handlers; return a value or a typed error and let the handler encode it"
+            - pkg: "rainy/internal/app"
+              desc: "services never import app; take the dependency as a constructor argument and let app wire it"
+            - pkg: "rainy/internal/server"
+              desc: "services never import server; only cmd/rainy builds the server"
+            - pkg: "rainy/internal/subsonic"
+              desc: "services never import handlers; return a value or a typed error and let the handler encode it"
+            - pkg: "rainy/web"
+              desc: "only internal/server embeds the web bundle"
+        app:
+          list-mode: lax
+          files:
+            - "**/internal/app/**"
+          deny:
+            - pkg: "rainy/internal/api"
+              desc: "app wires services and never imports handlers; handlers take *app.App"
+            - pkg: "rainy/internal/server"
+              desc: "app never imports server; only cmd/rainy builds the server"
+            - pkg: "rainy/internal/subsonic"
+              desc: "app wires services and never imports handlers; handlers take *app.App"
+            - pkg: "rainy/web"
+              desc: "only internal/server embeds the web bundle"
+        api:
+          list-mode: lax
+          files:
+            - "**/internal/api/**"
+          deny:
+            - pkg: "rainy/internal/server"
+              desc: "handlers never import server; server mounts the handlers"
+            - pkg: "rainy/internal/subsonic"
+              desc: "the native API and Subsonic stay separate; share the logic through app or a service"
+            - pkg: "rainy/web"
+              desc: "only internal/server embeds the web bundle"
+        subsonic:
+          list-mode: lax
+          files:
+            - "**/internal/subsonic/**"
+          deny:
+            - pkg: "rainy/internal/api"
+              desc: "the native API and Subsonic stay separate; share the logic through app or a service"
+            - pkg: "rainy/internal/server"
+              desc: "handlers never import server; server mounts the handlers"
+            - pkg: "rainy/web"
+              desc: "only internal/server embeds the web bundle"
+
+    forbidigo:
+      forbid:
+        - pattern: ^time\.Now\(\)\.UnixMilli$
+          msg: use util.NowMs() for the current time in milliseconds
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+  exclusions:
+    rules:
+      # util defines NowMs. db is a primitive and may not import util (see depguard).
+      - path: ^internal/(util|db)/
+        linters:
+          - forbidigo
