@@ -85,7 +85,7 @@ export default function PlaylistPage() {
   const query = useQuery(playlistQuery(id))
   const playlist = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
-  const coverTheme = useCoverTheme(playlist && playlist.songCount > 0 ? playlist.coverArt : undefined)
+  const coverTheme = useCoverTheme(playlist && playlist.songCount > 0 ? playlist.coverArt : undefined, query.isPending)
   const [dialog, setDialog] = useState<Dialog>(null)
   const [editing, setEditing] = useState(false)
 

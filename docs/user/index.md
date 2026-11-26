@@ -30,7 +30,9 @@ the icons of the collapsed sidebar. The **Immersive** switch next to the accent
 colour, on by default in Apple, colours the whole app — sidebar, player, and
 menus — with the album, playlist, or artist on screen, or with the song playing
 on other pages; the cover's colours glow softly behind the sidebar, the header,
-and the page, and those pages blur their artwork behind the header. With
+and the page, and those pages blur their artwork behind the header. Opening
+another album, playlist, or artist keeps the current colours while it loads,
+then shifts them smoothly to its cover; you can keep scrolling meanwhile. With
 Immersive off every page keeps the style's own look. While it is on, the first
 accent swatch takes the highlight from the cover too, and the other swatches
 keep a highlight colour of your choice.

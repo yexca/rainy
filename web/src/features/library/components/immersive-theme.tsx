@@ -23,7 +23,7 @@ function fieldVar(i: number): string {
  * The colour fields behind the whole app (radial gradients, no blur filters). The sidebar, the
  * header and the page are see-through over them (`:root[data-immersive]` in index.css). They
  * drift from tablets up while music plays. Their colours come from `<html>` with the other
- * tokens, so the next cover's colours reach the fields and the app in the same reveal.
+ * tokens, so the next cover's colours reach the fields and the app in the same glide.
  */
 function Backdrop({ count }: { count: number }) {
   const playing = usePlayer((s) => s.isPlaying)
@@ -46,8 +46,8 @@ function Backdrop({ count }: { count: number }) {
 /**
  * Immersive mode (Settings → Appearance): colours the whole app — sidebar, header, player,
  * menus — with the cover of the album / playlist / artist page on screen, or else with the
- * playing track's cover; the previous colours stay while the next cover is sampled and then give
- * way in a reveal (`applyTheme`, lib/theme-reveal.ts). The cover's
+ * playing track's cover; the previous colours stay while the next cover is sampled and then glide
+ * to the next ones (`applyTheme`, lib/theme-morph.ts). The cover's
  * colours also fill the window as soft colour fields that show through the sidebar, the header
  * and the page. The `original` accent takes the highlight from the cover too; an accent preset
  * keeps its own. Without a cover (or with the mode off) the user's theme applies and nothing is

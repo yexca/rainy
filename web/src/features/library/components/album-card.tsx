@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { ALBUM_CAPTION_HEIGHT } from '../lib/layout'
 import { usePlayCollection } from '../lib/play'
 import { albumQuery } from '../lib/queries'
+import { coverSeedsQuery, useImmersive } from '../lib/use-cover-theme'
 import { AlbumActionsMenu } from './collection-actions'
 
 export type AlbumCardSubtitle = 'artist' | 'year' | 'artistYear'
@@ -36,7 +37,8 @@ function subtitleText(album: Album, kind: AlbumCardSubtitle): string {
 
 /**
  * Album tile: square artwork with title + artist below. Desktop hover reveals a play button and a
- * "…" menu over the artwork; phones get press feedback. Hovering prefetches the album.
+ * "…" menu over the artwork; phones get press feedback. Hovering or pressing prefetches the album
+ * (and, in immersive mode, its cover's colours).
  */
 export const AlbumCard = memo(function AlbumCard({
   album,
@@ -52,8 +54,15 @@ export const AlbumCard = memo(function AlbumCard({
   const [menuOpen, setMenuOpen] = useState(false)
   const prefetchTimer = useRef<number | undefined>(undefined)
   const caption = subtitleText(album, subtitle)
+  const immersive = useImmersive()
 
   useEffect(() => () => window.clearTimeout(prefetchTimer.current), [])
+
+  // In immersive mode the cover's colours are sampled ahead too, so the album opens in them.
+  const prefetch = () => {
+    void queryClient.prefetchQuery(albumQuery(album.id))
+    if (immersive && album.coverArt) void queryClient.prefetchQuery(coverSeedsQuery(album.coverArt))
+  }
 
   const onPlay = () => {
     setStarting(true)
@@ -68,11 +77,9 @@ export const AlbumCard = memo(function AlbumCard({
         onPointerEnter={(event) => {
           if (event.pointerType !== 'mouse') return
           window.clearTimeout(prefetchTimer.current)
-          prefetchTimer.current = window.setTimeout(
-            () => void queryClient.prefetchQuery(albumQuery(album.id)),
-            PREFETCH_DELAY,
-          )
+          prefetchTimer.current = window.setTimeout(prefetch, PREFETCH_DELAY)
         }}
+        onPointerDown={prefetch}
         onPointerLeave={() => window.clearTimeout(prefetchTimer.current)}
       >
         <div className="transition-transform duration-150 ease-out active:scale-[0.97] md:active:scale-100">

@@ -15,7 +15,7 @@ import {
   type ResolvedTheme,
   type Style,
 } from '@/lib/theme-styles'
-import { revealColors, skipReveal } from '@/lib/theme-reveal'
+import { morphColors, registerColorTokens, stopMorph } from '@/lib/theme-morph'
 
 export * from '@/lib/theme-styles'
 
@@ -112,17 +112,15 @@ function withoutTransitions(fn: () => void): void {
 
 /** The override applied to `<html>` by the last applyTheme() (its inline properties to remove later). */
 let applied: ThemeOverride | null = null
-/** The last applyTheme() arguments: a reveal paints them once it has captured the old colours. */
-let latest: Parameters<typeof paint> | null = null
 
 /**
  * Apply the resolved theme, style (with its chrome layout) and accent to `<html>` and the browser
  * chrome colour. An `override` (immersive mode) replaces the colour tokens and the light / dark
  * choice, and marks `<html data-immersive>`. One override giving way to another (the next cover)
- * cross-fades (`revealColors`); other changes are instant.
+ * glides from the old colours to the new (`morphColors`, lib/theme-morph.ts); other changes are
+ * instant.
  */
 export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent, override: ThemeOverride | null = null): void {
-  latest = [resolved, style, accent, override]
   const root = document.documentElement
   const dark = override ? override.dark : resolved === 'dark'
   const changed =
@@ -134,9 +132,11 @@ export function applyTheme(resolved: ResolvedTheme, style: Style, accent: Accent
     paint(resolved, style, accent, override)
     return
   }
-  // The reveal paints the arguments of the latest call, so a later change is never undone by it.
-  if (applied && override && revealColors(() => withoutTransitions(() => latest && paint(...latest)))) return
-  skipReveal()
+  if (applied && override) {
+    const tokens = [...new Set([...Object.keys(applied.vars), ...Object.keys(override.vars)])]
+    if (morphColors(tokens, () => paint(resolved, style, accent, override))) return
+  }
+  stopMorph()
   withoutTransitions(() => paint(resolved, style, accent, override))
 }
 
@@ -144,9 +144,13 @@ function paint(resolved: ResolvedTheme, style: Style, accent: Accent, override: 
   const root = document.documentElement
   const dark = override ? override.dark : resolved === 'dark'
   if (applied) for (const key of Object.keys(applied.vars)) root.style.removeProperty(key)
-  if (override) for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
+  if (override) {
+    // Registered before the next cover arrives, so its colours can glide from these.
+    registerColorTokens(Object.keys(override.vars))
+    for (const [key, value] of Object.entries(override.vars)) root.style.setProperty(key, value)
+  }
   // The pre-paint <style> in index.html paints <html> in the style's colour; follow the cover.
-  root.style.backgroundColor = override?.vars['--background'] ?? ''
+  root.style.backgroundColor = override ? 'var(--background)' : ''
   // The chrome and the page turn see-through over the cover's backdrop (index.css).
   root.toggleAttribute('data-immersive', !!override)
   applied = override

@@ -34,7 +34,7 @@ export default function ArtistPage() {
   const query = useQuery(artistQuery(id))
   const artist = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
-  const coverTheme = useCoverTheme(artist?.coverArt)
+  const coverTheme = useCoverTheme(artist?.coverArt, query.isPending)
 
   return (
     // Like album pages, the app takes on the artwork's colours in immersive mode.

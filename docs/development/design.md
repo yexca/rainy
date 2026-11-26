@@ -72,9 +72,12 @@ explains the rules every UI change must keep.
   highlight follows the cover too (the style's own colour when there is no
   cover or it is greyscale), and the presets stay fixed highlights over the
   cover's surfaces. Without a cover the user's theme returns. The next cover's
-  colours never snap in: they spread out in a circle from the button, row, or
-  card just pressed, or from the playing song's artwork when the song changed
-  on its own, and change at once with reduced motion.
+  colours never snap in: the colours themselves glide to it while the page
+  stays live (nothing is captured or laid over the page, so scrolling and
+  loading during the change look as usual), and they change at once with
+  reduced motion. While a cover page loads, the colours on screen stay until
+  its cover is known, so going from one cover page to the next changes them
+  once.
   The cover's colours also fill the window as three soft colour fields (its
   own hue, the accent's, and a neighbouring one; radial gradients, no blur
   filters) behind the app, and the chrome is see-through over them: the
