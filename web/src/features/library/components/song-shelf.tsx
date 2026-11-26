@@ -8,12 +8,14 @@ import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/component
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePlayer } from '@/features/player/store'
 import type { Track } from '@/lib/api/types'
+import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { ActionMenuContext, type ActionMenuContextValue } from '../lib/actions'
 import { useTrackState } from '../lib/use-track-state'
 import { HorizontalShelf } from './horizontal-shelf'
 import { PlayingIndicator } from './playing-indicator'
+import { StarButton } from './star-button'
 import { TrackActionItems, TrackActionsMenu } from './track-actions'
 
 /** Songs per column. */
@@ -80,7 +82,24 @@ export function SongShelf({ title, playLabel, tabs, tracks, actions }: SongShelf
   )
 }
 
-const SongRow = memo(function SongRow({ track, index, onPlay }: { track: Track; index: number; onPlay: (index: number) => void }) {
+export interface SongRowProps {
+  track: Track
+  /** Position passed to `onPlay`. */
+  index: number
+  onPlay: (index: number) => void
+  /** Rank shown before the artwork (top songs). */
+  rank?: number
+  /** Second line (default: the artist). */
+  subtitle?: string
+  /** Show a star button (visible on hover unless the song is starred). */
+  star?: boolean
+}
+
+/**
+ * Compact song row: a tap plays from this song; "…" and right-click open its actions. The
+ * duration shows from tablet width up.
+ */
+export const SongRow = memo(function SongRow({ track, index, onPlay, rank, subtitle, star }: SongRowProps) {
   const state = useTrackState(track.id)
   const current = state !== 'none'
   const [menuOpen, setMenuOpen] = useState(false)
@@ -102,6 +121,9 @@ const SongRow = memo(function SongRow({ track, index, onPlay }: { track: Track; 
             aria-current={current ? 'true' : undefined}
             className="flex h-full min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           >
+            {rank !== undefined ? (
+              <span className="tnum w-5 shrink-0 text-right text-[13px] text-muted-foreground">{rank}</span>
+            ) : null}
             <span className="relative shrink-0">
               <CoverArt coverArt={track.coverArt} size={44} />
               <span
@@ -121,9 +143,22 @@ const SongRow = memo(function SongRow({ track, index, onPlay }: { track: Track; 
               <span className={cn('block truncate text-[15px] leading-snug font-medium md:text-sm', current && 'text-primary')}>
                 {track.title}
               </span>
-              <span className="block truncate text-[13px] leading-snug text-muted-foreground">{track.artist}</span>
+              <span className="block truncate text-[13px] leading-snug text-muted-foreground">{subtitle ?? track.artist}</span>
+            </span>
+            <span className="tnum hidden shrink-0 text-[13px] text-muted-foreground md:inline">
+              {formatDuration(track.duration)}
             </span>
           </button>
+          {star ? (
+            <span
+              className={cn(
+                'ml-1 grid shrink-0 place-items-center',
+                !track.starred && 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+              )}
+            >
+              <StarButton type="track" item={track} size="sm" silent />
+            </span>
+          ) : null}
           <TrackActionsMenu tracks={[track]} className="-mr-2 shrink-0 md:mr-0" />
         </div>
       </ContextMenuTrigger>

@@ -1,14 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { MicVocal } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { Page } from '@/components/page'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { usePlayer } from '@/features/player/store'
-import { useIsMobile } from '@/hooks/use-media-query'
-import type { ArtistDetail } from '@/lib/api/types'
+import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query'
+import type { ArtistDetail, Track } from '@/lib/api/types'
+import { cn } from '@/lib/utils'
 
 import { AlbumCard } from '../components/album-card'
 import { CardGrid } from '../components/card-grid'
@@ -19,18 +21,21 @@ import { HorizontalShelf } from '../components/horizontal-shelf'
 import { PlayShuffleButtons } from '../components/play-shuffle-buttons'
 import { QueryError } from '../components/query-error'
 import { SectionHeader } from '../components/section-header'
+import { SongRow } from '../components/song-shelf'
 import { StarButton } from '../components/star-button'
 import { TrackList, TrackListSkeleton } from '../components/track-list'
 import { usePlayCollection } from '../lib/play'
 import { artistQuery } from '../lib/queries'
 import { useCoverTheme } from '../lib/use-cover-theme'
 
+/** Top songs shown before "Show all" on phones and tablets. */
 const TOP_COLLAPSED = 5
 
 export default function ArtistPage() {
   const { t } = useTranslation('library')
   const { id = '' } = useParams()
   const isMobile = useIsMobile()
+  const isDesktop = useIsDesktop()
   const query = useQuery(artistQuery(id))
   const artist = query.data
   const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null)
@@ -58,7 +63,7 @@ export default function ArtistPage() {
         {query.isPending ? (
           <>
             <CollectionHeroSkeleton shape="circle" />
-            <TrackListSkeleton rows={5} />
+            {isDesktop ? <TopSongsGridSkeleton /> : <TrackListSkeleton rows={5} />}
           </>
         ) : query.isError ? (
           <QueryError
@@ -89,6 +94,7 @@ function ArtistContent({
 }) {
   const { t } = useTranslation('library')
   const play = usePlayCollection()
+  const isDesktop = useIsDesktop()
   const [expanded, setExpanded] = useState(false)
   const top = artist.topTracks
   const shownTop = expanded ? top : top.slice(0, TOP_COLLAPSED)
@@ -134,7 +140,7 @@ function ArtistContent({
           <SectionHeader
             title={t('artist.topSongs')}
             actions={
-              top.length > TOP_COLLAPSED ? (
+              !isDesktop && top.length > TOP_COLLAPSED ? (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -146,12 +152,16 @@ function ArtistContent({
               ) : null
             }
           />
-          <TrackList
-            tracks={shownTop}
-            showHeader={false}
-            hideArtist
-            onPlay={(index) => usePlayer.getState().playTracks(top, index)}
-          />
+          {isDesktop ? (
+            <TopSongsGrid tracks={top} />
+          ) : (
+            <TrackList
+              tracks={shownTop}
+              showHeader={false}
+              hideArtist
+              onPlay={(index) => usePlayer.getState().playTracks(top, index)}
+            />
+          )}
         </section>
       ) : null}
 
@@ -174,5 +184,61 @@ function ArtistContent({
         </HorizontalShelf>
       ) : null}
     </>
+  )
+}
+
+/**
+ * Desktop top songs: every song in columns filled top to bottom (two, three on wide screens, like
+ * the home song shelves), so the ranks read down one column and then the next. A row plays all
+ * top songs from that song.
+ */
+function TopSongsGrid({ tracks }: { tracks: Track[] }) {
+  const play = useCallback((index: number) => usePlayer.getState().playTracks(tracks, index), [tracks])
+  const rows = {
+    '--rows-2': Math.ceil(tracks.length / 2),
+    '--rows-3': Math.ceil(tracks.length / 3),
+  } as CSSProperties
+  return (
+    <ul
+      className="grid grid-flow-col grid-cols-2 grid-rows-[repeat(var(--rows-2),auto)] gap-x-5 xl:grid-cols-3 xl:grid-rows-[repeat(var(--rows-3),auto)]"
+      style={rows}
+    >
+      {tracks.map((track, index) => (
+        <li key={track.id} className="min-w-0">
+          <SongRow
+            track={track}
+            index={index}
+            onPlay={play}
+            rank={index + 1}
+            subtitle={[track.album, track.year > 0 ? String(track.year) : ''].filter(Boolean).join(' · ')}
+            star
+          />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function TopSongsGridSkeleton() {
+  return (
+    <div aria-hidden className="mt-2">
+      <Skeleton className="mb-4 h-6 w-36" />
+      <div className="grid grid-cols-2 gap-x-5 xl:grid-cols-3">
+        {Array.from({ length: 3 }, (_, c) => (
+          <div key={c} className={cn(c === 2 && 'hidden xl:block')}>
+            {Array.from({ length: 5 }, (_, r) => (
+              <div key={r} className={cn('flex h-14 items-center gap-3', r === 4 && 'xl:hidden')}>
+                <Skeleton className="h-3 w-5" />
+                <Skeleton className="size-11 rounded-md" />
+                <div className="flex flex-1 flex-col gap-1.5">
+                  <Skeleton className="h-3.5 w-2/5" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -46,6 +46,12 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   `MP3 320 kbps`) and a lyrics column marking songs with lyrics. On tablets and
   desktops, once you have played songs from the album, a bar shows how often
   you played each one compared with your most played song there.
+- On desktops, an artist's top songs fill two columns, three on wide windows,
+  like the home song shelves, with all ten shown at once and each row giving
+  the album and year, so wide windows no longer stretch five rows across the
+  page. Phones and tablets keep the single list with **Show all**.
+- Songs in the home song shelves, such as **Quick picks**, show their
+  duration on tablets and desktops.
 
 </details>
 
