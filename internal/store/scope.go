@@ -68,13 +68,6 @@ func andLibrary(ctx context.Context, col string) string {
 	return ""
 }
 
-// scope adds the library condition on col for a scoped context.
-func (w *where) scope(ctx context.Context, col string) {
-	if c := libraryCond(ctx, col); c != "" {
-		w.add(c)
-	}
-}
-
 // TracksFrom returns the tracks table as seen by ctx, to be used as "FROM <expr> t": the
 // plain table, or a sub-select of the readable libraries' tracks.
 func TracksFrom(ctx context.Context) string {
