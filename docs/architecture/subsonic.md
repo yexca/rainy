@@ -41,7 +41,8 @@ credentials automatically.
   starred in the web app.
 - **Folder browsing is simulated** from tags: `getIndexes` lists album artists,
   `getMusicDirectory` on an artist returns albums as directories, and on an
-  album returns its songs. `getMusicFolders` returns the libraries. See
+  album returns its songs. `getMusicFolders` returns the libraries the user may
+  read; `createUser` and `updateUser` take `musicFolderId` to limit a user. See
   [ADR-0002](../decisions/ADR-0002-simulated-folder-browsing.md).
 - **`search3` with an empty query** returns everything, paged. Clients such as
   Symfonium use this to synchronize the whole library.

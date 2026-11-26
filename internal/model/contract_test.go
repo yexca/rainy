@@ -43,7 +43,7 @@ func TestJSONMatchesTSContract(t *testing.T) {
 		want  string
 		extra string
 	}{
-		{"User", User{}, `id username displayName email isAdmin canManage canDownload hasApiKey
+		{"User", User{}, `id username displayName email isAdmin canManage canDownload restrictLibraries libraryIds hasApiKey
 			createdAt updatedAt lastLoginAt lastSeenAt`, ""},
 		{"Track", Track{}, `id libraryId path dir filename suffix size mtime title album artist albumArtist
 			albumId artistId albumArtistId trackNumber trackTotal discNumber discTotal discSubtitle

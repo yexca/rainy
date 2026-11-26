@@ -71,18 +71,21 @@ func (a *API) routesAdmin(r chi.Router) {
 // ---- users
 
 type userBody struct {
-	Username    *string `json:"username"`
-	Password    *string `json:"password"`
-	DisplayName *string `json:"displayName"`
-	Email       *string `json:"email"`
-	IsAdmin     *bool   `json:"isAdmin"`
-	CanManage   *bool   `json:"canManage"`
-	CanDownload *bool   `json:"canDownload"`
+	Username          *string  `json:"username"`
+	Password          *string  `json:"password"`
+	DisplayName       *string  `json:"displayName"`
+	Email             *string  `json:"email"`
+	IsAdmin           *bool    `json:"isAdmin"`
+	CanManage         *bool    `json:"canManage"`
+	CanDownload       *bool    `json:"canDownload"`
+	RestrictLibraries *bool    `json:"restrictLibraries"`
+	LibraryIDs        *[]int64 `json:"libraryIds"`
 }
 
 const maxProfileField = 200
 
-// applyProfile validates and copies display name / e-mail from b into u.
+// applyProfile validates and copies the profile, permission flags and library access from b
+// into u.
 func (b *userBody) applyProfile(u *model.User) error {
 	if b.DisplayName != nil {
 		v := strings.TrimSpace(*b.DisplayName)
@@ -111,6 +114,15 @@ func (b *userBody) applyProfile(u *model.User) error {
 	}
 	if b.CanDownload != nil {
 		u.CanDownload = *b.CanDownload
+	}
+	if b.RestrictLibraries != nil {
+		u.RestrictLibraries = *b.RestrictLibraries
+	}
+	if b.LibraryIDs != nil {
+		if len(*b.LibraryIDs) > maxIDsPerRequest {
+			return badRequest("at most %d libraries", maxIDsPerRequest)
+		}
+		u.LibraryIDs = append([]int64{}, *b.LibraryIDs...)
 	}
 	return nil
 }

@@ -56,6 +56,12 @@ companion** off separately.
 Each user has their own favorites, ratings, play counts, listening history and
 report, scrobbling accounts, playlists, and play queue. Playlists can be made public so other users can see and play them.
 
+An administrator can limit a listener to some libraries. Such a user sees only
+those libraries everywhere, in the web app and in Subsonic apps: songs, albums,
+artists, genres, search, recommendations, and the songs of shared playlists
+from other libraries do not appear for them. Administrators and library
+managers always see every library.
+
 ## Related Docs
 
 - [Overview](../overview.md)

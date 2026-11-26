@@ -8,6 +8,7 @@ import (
 
 	"rainy/internal/model"
 	"rainy/internal/scanner"
+	"rainy/internal/store"
 )
 
 // extensions are the advertised OpenSubsonic extensions.
@@ -50,7 +51,7 @@ func (a *API) scanStatus(ctx context.Context) (*ScanStatus, error) {
 	out := &ScanStatus{Scanning: st.Scanning, FolderCount: len(libs)}
 	if st.Scanning {
 		out.Count = int64(st.FilesSeen)
-	} else if err := a.app.Store.DB().R.GetContext(ctx, &out.Count, `SELECT COUNT(*) FROM tracks WHERE missing = 0`); err != nil {
+	} else if err := a.app.Store.DB().R.GetContext(ctx, &out.Count, `SELECT COUNT(*) FROM `+store.TracksFrom(ctx)+` WHERE missing = 0`); err != nil {
 		return nil, err
 	}
 	var last int64

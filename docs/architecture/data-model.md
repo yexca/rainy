@@ -59,7 +59,8 @@ joined `genre`, and `search_text`); callers set the source fields only.
 A track whose file is no longer seen is marked `missing` instead of being
 deleted, so a temporarily unavailable disk or share does not destroy user
 state. Missing tracks are hidden from browsing and from playlists (playlist
-entries keep their position and reappear if the file returns). A manager can
+entries keep their position and reappear if the file returns). Entries of
+libraries a listener may not read are hidden from that listener the same way. A manager can
 purge them from the library doctor.
 
 If a library root is missing, unreadable, or suddenly empty while the database

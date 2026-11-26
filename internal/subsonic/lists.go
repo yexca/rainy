@@ -91,7 +91,7 @@ func (a *API) albumList(q *request) ([]model.Album, error) {
 
 // ratedAlbums lists the user's rated albums (rating desc, then name).
 func (a *API) ratedAlbums(q *request, aq store.AlbumQuery) ([]model.Album, error) {
-	query := `SELECT al.id FROM albums al JOIN annotations an ON an.user_id = ? AND an.item_type = 'album'
+	query := `SELECT al.id FROM ` + store.AlbumsFrom(q.ctx) + ` al JOIN annotations an ON an.user_id = ? AND an.item_type = 'album'
 		AND an.item_id = al.id AND an.rating > 0`
 	args := []any{q.user.ID}
 	if aq.LibraryID > 0 {

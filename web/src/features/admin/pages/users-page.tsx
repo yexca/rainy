@@ -225,6 +225,10 @@ function RoleBadges({ user }: { user: User }) {
     if (user.canDownload) roles.push(t('roles.download'))
   }
   if (roles.length === 0) roles.push(t('roles.listener'))
+  // Administrators and managers always see every library.
+  if (user.restrictLibraries && !user.isAdmin && !user.canManage) {
+    roles.push(t('libraries.count', { count: user.libraryIds.length }))
+  }
   return (
     <span className="flex flex-wrap gap-1">
       {roles.map((r, i) => (

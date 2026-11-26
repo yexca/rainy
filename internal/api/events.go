@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"rainy/internal/events"
+	"rainy/internal/nowplaying"
+	"rainy/internal/store"
 )
 
 // sseKeepAlive is the interval of ": ping" comments that keep proxies and browsers from
@@ -70,7 +73,7 @@ func (a *API) eventsStream(w http.ResponseWriter, r *http.Request) {
 	if _, err := fmt.Fprintf(w, "retry: %d\n: connected\n\n", sseRetryMs); err != nil {
 		return
 	}
-	if err := writeSSE(w, events.Event{Type: events.TypeNowPlaying, Data: a.app.NowPlaying.List()}); err != nil || !flush() {
+	if err := writeSSE(w, a.visibleEvent(r.Context(), events.Event{Type: events.TypeNowPlaying, Data: a.app.NowPlaying.List()})); err != nil || !flush() {
 		return
 	}
 
@@ -86,7 +89,7 @@ func (a *API) eventsStream(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			deadline()
-			if err := writeSSE(w, e); err != nil {
+			if err := writeSSE(w, a.visibleEvent(ctx, e)); err != nil {
 				slog.Debug("events: write failed", "err", err)
 				return
 			}
@@ -100,4 +103,32 @@ func (a *API) eventsStream(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+// visibleEvent drops the now-playing entries whose track is outside the viewer's library
+// scope, so a user limited to some libraries never learns what is played elsewhere.
+func (a *API) visibleEvent(ctx context.Context, e events.Event) events.Event {
+	entries, ok := e.Data.([]nowplaying.Entry)
+	if _, restricted := store.LibraryScope(ctx); !restricted || !ok {
+		return e
+	}
+	ids := make([]string, len(entries))
+	for i, en := range entries {
+		ids[i] = en.TrackID
+	}
+	visible := map[string]bool{}
+	if tracks, err := a.app.Store.GetTracks(ctx, ids, ""); err == nil {
+		for _, t := range tracks {
+			visible[t.ID] = true
+		}
+	} else {
+		slog.Debug("events: filtering now playing", "err", err)
+	}
+	out := make([]nowplaying.Entry, 0, len(entries))
+	for _, en := range entries {
+		if visible[en.TrackID] {
+			out = append(out, en)
+		}
+	}
+	return events.Event{Type: e.Type, Data: out}
 }

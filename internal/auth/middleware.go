@@ -11,12 +11,18 @@ import (
 	"time"
 
 	"rainy/internal/model"
+	"rainy/internal/store"
 )
 
 type ctxKey struct{}
 
-// WithUser returns a context carrying u.
+// WithUser returns a context carrying u and, for a user limited to some libraries, the
+// store's library scope, so every library read made for the request only sees those
+// libraries.
 func WithUser(ctx context.Context, u *model.User) context.Context {
+	if ids, restricted := u.RestrictedLibraries(); restricted {
+		ctx = store.WithLibraryScope(ctx, ids)
+	}
 	return context.WithValue(ctx, ctxKey{}, u)
 }
 

@@ -25,14 +25,15 @@ type PlaylistImportPreview struct {
 }
 
 // PreviewPlaylistImport matches exact indexed paths only, without reading media or
-// fetching URLs. No playlist changes until the user submits the matched ids.
+// fetching URLs, within the libraries ctx may read. No playlist changes until the user
+// submits the matched ids.
 func (s *Store) PreviewPlaylistImport(ctx context.Context, text, baseDir string, libraryID int64) (*PlaylistImportPreview, error) {
 	parsed, err := util.ParseM3U(text, baseDir)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalid, err)
 	}
 	out := &PlaylistImportPreview{Entries: []PlaylistImportEntry{}, Libraries: []PlaylistImportLibrary{}}
-	if err := s.db.R.SelectContext(ctx, &out.Libraries, "SELECT id, name FROM libraries ORDER BY name, id"); err != nil {
+	if err := s.db.R.SelectContext(ctx, &out.Libraries, "SELECT id, name FROM libraries WHERE "+libraryVisible(ctx, "id")+" ORDER BY name, id"); err != nil {
 		return nil, err
 	}
 	if libraryID != 0 {
@@ -62,7 +63,7 @@ func (s *Store) PreviewPlaylistImport(ctx context.Context, text, baseDir string,
 	}
 	matches := map[string]match{}
 	for _, batch := range chunks(dedupe(paths)) {
-		query := "SELECT path, MIN(id) AS id, COUNT(*) AS count FROM tracks WHERE missing = 0 AND path IN (" + placeholders(len(batch)) + ")"
+		query := "SELECT path, MIN(id) AS id, COUNT(*) AS count FROM tracks WHERE missing = 0" + andLibrary(ctx, "library_id") + " AND path IN (" + placeholders(len(batch)) + ")"
 		args := anys(batch)
 		if libraryID != 0 {
 			query += " AND library_id = ?"
@@ -78,7 +79,7 @@ func (s *Store) PreviewPlaylistImport(ctx context.Context, text, baseDir string,
 	}
 	hintPaths := map[string]string{}
 	for _, batch := range chunks(dedupe(hints)) {
-		query := "SELECT id, path FROM tracks WHERE missing = 0 AND id IN (" + placeholders(len(batch)) + ")"
+		query := "SELECT id, path FROM tracks WHERE missing = 0" + andLibrary(ctx, "library_id") + " AND id IN (" + placeholders(len(batch)) + ")"
 		args := anys(batch)
 		if libraryID != 0 {
 			query += " AND library_id = ?"

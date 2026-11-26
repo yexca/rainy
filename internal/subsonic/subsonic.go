@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"rainy/internal/app"
+	"rainy/internal/auth"
 	"rainy/internal/model"
 )
 
@@ -237,6 +238,9 @@ func (a *API) serve(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			req.user = u
+			// The user's library scope applies to every store read of this request.
+			req.ctx = auth.WithUser(req.ctx, u)
+			req.r = r.WithContext(req.ctx)
 			a.touchSeen(req.ctx, u.ID)
 		}
 	}

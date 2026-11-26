@@ -23,9 +23,9 @@ const (
 func (a *API) itemKind(ctx context.Context, id string) (string, error) {
 	var kind string
 	err := a.app.Store.DB().R.GetContext(ctx, &kind, `SELECT kind FROM (
-			SELECT 'track' AS kind, 1 AS o FROM tracks WHERE id = ?
-			UNION ALL SELECT 'album', 2 FROM albums WHERE id = ?
-			UNION ALL SELECT 'artist', 3 FROM artists WHERE id = ?
+			SELECT 'track' AS kind, 1 AS o FROM `+store.TracksFrom(ctx)+` WHERE id = ?
+			UNION ALL SELECT 'album', 2 FROM `+store.AlbumsFrom(ctx)+` WHERE id = ?
+			UNION ALL SELECT 'artist', 3 FROM `+store.ArtistsFrom(ctx)+` WHERE id = ?
 		) ORDER BY o LIMIT 1`, id, id, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", store.ErrNotFound
@@ -406,7 +406,7 @@ func (a *API) similarSongs(q *request) ([]Child, error) {
 	}
 	args = append(args, id, count)
 	var ids []string
-	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM tracks t
+	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM `+store.TracksFrom(q.ctx)+` t
 		WHERE t.missing = 0 AND (t.artist_id IN (`+ph+`) OR t.album_artist_id IN (`+ph+`)) AND t.id != ?
 		ORDER BY RANDOM() LIMIT ?`, args...)
 	if err != nil {
@@ -453,7 +453,7 @@ func (a *API) getTopSongs(q *request) (*Response, error) {
 	resp.TopSongs = &Songs{Songs: []Child{}}
 	artistID := util.ArtistID(name)
 	var ids []string
-	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM tracks t
+	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM `+store.TracksFrom(q.ctx)+` t
 		LEFT JOIN (SELECT item_id, SUM(play_count) AS plays FROM annotations WHERE item_type = 'track' GROUP BY item_id) p
 			ON p.item_id = t.id
 		WHERE t.missing = 0 AND (t.artist_id = ? OR t.album_artist_id = ?)

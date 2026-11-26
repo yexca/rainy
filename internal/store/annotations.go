@@ -14,21 +14,22 @@ type annotationQuerier interface {
 	SelectContext(context.Context, any, string, ...any) error
 }
 
-func annotationTable(itemType string) string {
+// annotationTable returns the table of an item type as seen by ctx (its library scope).
+func annotationTable(ctx context.Context, itemType string) string {
 	switch itemType {
 	case "track":
-		return "tracks"
+		return TracksFrom(ctx)
 	case "album":
-		return "albums"
+		return AlbumsFrom(ctx)
 	case "artist":
-		return "artists"
+		return ArtistsFrom(ctx)
 	default:
 		return ""
 	}
 }
 
 func existingAnnotationIDs(ctx context.Context, q annotationQuerier, itemType string, ids []string) (map[string]struct{}, error) {
-	table := annotationTable(itemType)
+	table := annotationTable(ctx, itemType)
 	if table == "" || len(ids) == 0 {
 		return map[string]struct{}{}, nil
 	}
@@ -127,7 +128,7 @@ func (s *Store) RecordPlay(ctx context.Context, userID, trackID string, at int64
 			Duration      float64 `db:"duration"`
 		}
 		if err := tx.GetContext(ctx, &t, `SELECT title, artist, album, album_artist, album_id, artist_id, album_artist_id, duration
-			FROM tracks WHERE id = ?`, trackID); err != nil {
+			FROM `+TracksFrom(ctx)+` WHERE id = ?`, trackID); err != nil {
 			return notFound(err)
 		}
 		items := [][2]string{{"track", trackID}, {"album", t.AlbumID}, {"artist", t.ArtistID}}
@@ -161,7 +162,7 @@ func (s *Store) RecentlyPlayedTracks(ctx context.Context, userID string, limit i
 	}
 	var ids []string
 	err := s.db.R.SelectContext(ctx, &ids, `SELECT ph.track_id FROM play_history ph
-		JOIN tracks t ON t.id = ph.track_id AND t.missing = 0
+		JOIN `+TracksFrom(ctx)+` t ON t.id = ph.track_id AND t.missing = 0
 		WHERE ph.user_id = ?
 		GROUP BY ph.track_id
 		ORDER BY MAX(ph.played_at) DESC, MAX(ph.id) DESC

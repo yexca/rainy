@@ -165,7 +165,7 @@ func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, in
 	args := append([]any{q.UserID}, w.args...)
 
 	var total int
-	countSQL := `SELECT COUNT(*) FROM tracks t` + annotationJoin("track", "t.id") + w.sql()
+	countSQL := `SELECT COUNT(*) FROM ` + TracksFrom(ctx) + ` t` + annotationJoin("track", "t.id") + w.sql()
 	if err := s.db.R.GetContext(ctx, &total, countSQL, args...); err != nil {
 		return nil, 0, fmt.Errorf("counting tracks: %w", err)
 	}
@@ -176,7 +176,7 @@ func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, in
 	if !ok {
 		spec = trackSorts["title"]
 	}
-	query := trackSelect("tracks t", false) + w.sql() + orderBy(spec, q.Order, "t.id") + limitClause(q.Offset, q.Limit)
+	query := trackSelect(TracksFrom(ctx)+" t", false) + w.sql() + orderBy(spec, q.Order, "t.id") + limitClause(q.Offset, q.Limit)
 	var tracks []model.Track
 	if err := s.db.R.SelectContext(ctx, &tracks, query, args...); err != nil {
 		return nil, 0, fmt.Errorf("listing tracks: %w", err)
@@ -184,10 +184,11 @@ func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, in
 	return fillTracks(tracks), total, nil
 }
 
-// GetTrack returns one track including its embedded lyrics (missing tracks included).
+// GetTrack returns one track including its embedded lyrics (missing tracks included;
+// ErrNotFound outside the context's library scope).
 func (s *Store) GetTrack(ctx context.Context, id, userID string) (*model.Track, error) {
 	var t model.Track
-	if err := s.db.R.GetContext(ctx, &t, trackSelect("tracks t", true)+` WHERE t.id = ?`, userID, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &t, trackSelect(TracksFrom(ctx)+" t", true)+` WHERE t.id = ?`, userID, id); err != nil {
 		return nil, notFound(err)
 	}
 	fillTrack(&t)
@@ -195,12 +196,12 @@ func (s *Store) GetTrack(ctx context.Context, id, userID string) (*model.Track, 
 }
 
 // GetTracks returns the tracks for ids in the order given (duplicates repeated, unknown ids
-// skipped, missing tracks included, no lyrics text).
+// and ids outside the library scope skipped, missing tracks included, no lyrics text).
 func (s *Store) GetTracks(ctx context.Context, ids []string, userID string) ([]model.Track, error) {
 	byID := make(map[string]model.Track, len(ids))
 	for _, chunk := range chunks(dedupe(ids)) {
 		var ts []model.Track
-		q := trackSelect("tracks t", false) + ` WHERE t.id IN (` + placeholders(len(chunk)) + `)`
+		q := trackSelect(TracksFrom(ctx)+" t", false) + ` WHERE t.id IN (` + placeholders(len(chunk)) + `)`
 		if err := s.db.R.SelectContext(ctx, &ts, q, append([]any{userID}, anys(chunk)...)...); err != nil {
 			return nil, fmt.Errorf("getting tracks: %w", err)
 		}
@@ -218,7 +219,8 @@ func (s *Store) GetTracks(ctx context.Context, ids []string, userID string) ([]m
 	return out, nil
 }
 
-// GetTrackByPath returns the track at a library-relative path (lyrics included).
+// GetTrackByPath returns the track at a library-relative path (lyrics included). It is an
+// indexing lookup and ignores the library scope.
 func (s *Store) GetTrackByPath(ctx context.Context, libraryID int64, path string) (*model.Track, error) {
 	var t model.Track
 	err := s.db.R.GetContext(ctx, &t, trackSelect("tracks t", true)+` WHERE t.library_id = ? AND t.path = ?`, "", libraryID, path)

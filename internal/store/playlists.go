@@ -11,7 +11,10 @@ import (
 	"rainy/internal/util"
 )
 
-const playlistSelect = `SELECT p.id, p.name, p.comment, p.owner_id, COALESCE(u.username, '') AS owner_name, p.public,
+// playlistSelect selects playlists; their song count, duration and album version cover the
+// entries visible to ctx (present tracks in its library scope).
+func playlistSelect(ctx context.Context) string {
+	return `SELECT p.id, p.name, p.comment, p.owner_id, COALESCE(u.username, '') AS owner_name, p.public,
 	COALESCE(agg.song_count, 0) AS song_count, COALESCE(agg.duration, 0) AS duration, p.created_at, p.updated_at,
 	COALESCE(agg.albums_updated_at, 0) AS albums_updated_at
 	FROM playlists p
@@ -19,15 +22,16 @@ const playlistSelect = `SELECT p.id, p.name, p.comment, p.owner_id, COALESCE(u.u
 	LEFT JOIN (
 		SELECT pt.playlist_id, COUNT(*) AS song_count, SUM(t.duration) AS duration,
 			MAX(COALESCE(al.updated_at, 0)) AS albums_updated_at
-		FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id AND t.missing = 0
+		FROM playlist_tracks pt JOIN ` + TracksFrom(ctx) + ` t ON t.id = pt.track_id AND t.missing = 0
 		LEFT JOIN albums al ON al.id = t.album_id
 		GROUP BY pt.playlist_id
 	) agg ON agg.playlist_id = p.id`
+}
 
 // ListPlaylists returns the user's own playlists plus everyone's public ones, by name.
 func (s *Store) ListPlaylists(ctx context.Context, userID string) ([]model.Playlist, error) {
 	pls := []model.Playlist{}
-	err := s.db.R.SelectContext(ctx, &pls, playlistSelect+` WHERE p.owner_id = ? OR p.public = 1
+	err := s.db.R.SelectContext(ctx, &pls, playlistSelect(ctx)+` WHERE p.owner_id = ? OR p.public = 1
 		ORDER BY p.name COLLATE NOCASE, p.id`, userID)
 	if err != nil {
 		return nil, err
@@ -41,18 +45,18 @@ func (s *Store) ListPlaylists(ctx context.Context, userID string) ([]model.Playl
 // GetPlaylist returns a playlist (no visibility check; callers enforce owner/public).
 func (s *Store) GetPlaylist(ctx context.Context, id string) (*model.Playlist, error) {
 	var p model.Playlist
-	if err := s.db.R.GetContext(ctx, &p, playlistSelect+` WHERE p.id = ?`, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &p, playlistSelect(ctx)+` WHERE p.id = ?`, id); err != nil {
 		return nil, notFound(err)
 	}
 	fillPlaylist(&p)
 	return &p, nil
 }
 
-// PlaylistTracks returns the playlist's non-missing tracks in playlist order (duplicates
-// kept). Indexes into this list are what RemovePlaylistPositions expects.
+// PlaylistTracks returns the playlist's visible tracks (present and in the library scope) in
+// playlist order (duplicates kept). Indexes into this list are what RemovePlaylistPositions expects.
 func (s *Store) PlaylistTracks(ctx context.Context, id, userID string) ([]model.Track, error) {
 	var tracks []model.Track
-	q := trackSelect(`playlist_tracks pt JOIN tracks t ON t.id = pt.track_id AND t.missing = 0`, false) +
+	q := trackSelect(`playlist_tracks pt JOIN `+TracksFrom(ctx)+` t ON t.id = pt.track_id AND t.missing = 0`, false) +
 		` WHERE pt.playlist_id = ? ORDER BY pt.position`
 	if err := s.db.R.SelectContext(ctx, &tracks, q, userID, id); err != nil {
 		return nil, err
@@ -60,13 +64,13 @@ func (s *Store) PlaylistTracks(ctx context.Context, id, userID string) ([]model.
 	return fillTracks(tracks), nil
 }
 
-// existingTrackIDs filters ids down to those present in the tracks table (order and
-// duplicates preserved).
+// existingTrackIDs filters ids down to those present in the tracks table and readable in
+// the library scope (order and duplicates preserved).
 func existingTrackIDs(ctx context.Context, tx *sqlx.Tx, ids []string) ([]string, error) {
 	known := map[string]bool{}
 	for _, chunk := range chunks(dedupe(ids)) {
 		var got []string
-		if err := tx.SelectContext(ctx, &got, `SELECT id FROM tracks WHERE id IN (`+placeholders(len(chunk))+`)`, anys(chunk)...); err != nil {
+		if err := tx.SelectContext(ctx, &got, `SELECT id FROM `+TracksFrom(ctx)+` WHERE id IN (`+placeholders(len(chunk))+`)`, anys(chunk)...); err != nil {
 			return nil, err
 		}
 		for _, id := range got {
@@ -146,8 +150,8 @@ func (s *Store) DeletePlaylist(ctx context.Context, id string) error {
 }
 
 // SetPlaylistTracks replaces the playlist's visible order with trackIDs (unknown ids
-// dropped). Entries whose track is currently missing are invisible to clients, so they
-// are preserved: each stays right after the visible entry it followed before (or at the
+// dropped). Entries whose track is currently missing or outside the library scope are
+// invisible to the client, so they are preserved: each stays right after the visible entry it followed before (or at the
 // start); if that entry was removed, it moves to the end. Entries of purged tracks are dropped.
 func (s *Store) SetPlaylistTracks(ctx context.Context, id string, trackIDs []string) error {
 	return s.db.Tx(ctx, func(tx *sqlx.Tx) error {
@@ -155,7 +159,7 @@ func (s *Store) SetPlaylistTracks(ctx context.Context, id string, trackIDs []str
 			return err
 		}
 		var old []playlistEntry
-		if err := tx.SelectContext(ctx, &old, `SELECT pt.track_id, t.missing
+		if err := tx.SelectContext(ctx, &old, `SELECT pt.track_id, (t.missing = 1 OR NOT `+libraryVisible(ctx, "t.library_id")+`) AS hidden
 			FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id
 			WHERE pt.playlist_id = ? ORDER BY pt.position`, id); err != nil {
 			return err
@@ -173,10 +177,10 @@ func (s *Store) SetPlaylistTracks(ctx context.Context, id string, trackIDs []str
 
 type playlistEntry struct {
 	TrackID string `db:"track_id"`
-	Missing bool   `db:"missing"`
+	Hidden  bool   `db:"hidden"` // missing, or outside the library scope
 }
 
-// mergeHiddenEntries re-inserts the hidden (missing) entries of old into the new visible
+// mergeHiddenEntries re-inserts the hidden (missing or out-of-scope) entries of old into the new visible
 // order. Hidden entries are anchored to the visible entry preceding them in old (the n-th
 // occurrence of a track id anchors to the n-th occurrence in visible).
 func mergeHiddenEntries(old []playlistEntry, visible []string) []string {
@@ -190,7 +194,7 @@ func mergeHiddenEntries(old []playlistEntry, visible []string) []string {
 	seen := map[string]int{}
 	var cur *anchor
 	for _, e := range old {
-		if !e.Missing {
+		if !e.Hidden {
 			seen[e.TrackID]++
 			cur = &anchor{e.TrackID, seen[e.TrackID]}
 			continue
@@ -241,7 +245,8 @@ func (s *Store) AppendPlaylistTracks(ctx context.Context, id string, trackIDs []
 }
 
 // RemovePlaylistPositions removes entries by their index in the visible track list (as
-// returned by PlaylistTracks / Subsonic getPlaylist, i.e. skipping missing tracks), then
+// returned by PlaylistTracks / Subsonic getPlaylist, i.e. skipping missing and out-of-scope
+// tracks), then
 // renumbers all positions contiguously. Out-of-range indexes are ignored.
 func (s *Store) RemovePlaylistPositions(ctx context.Context, id string, positions []int) error {
 	return s.db.Tx(ctx, func(tx *sqlx.Tx) error {
@@ -250,7 +255,7 @@ func (s *Store) RemovePlaylistPositions(ctx context.Context, id string, position
 		}
 		var visible []int
 		if err := tx.SelectContext(ctx, &visible, `SELECT pt.position FROM playlist_tracks pt
-			JOIN tracks t ON t.id = pt.track_id AND t.missing = 0
+			JOIN `+TracksFrom(ctx)+` t ON t.id = pt.track_id AND t.missing = 0
 			WHERE pt.playlist_id = ? ORDER BY pt.position`, id); err != nil {
 			return err
 		}

@@ -2,6 +2,11 @@
 
 Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
 
+> [!IMPORTANT]
+> This release adds a database migration (`0007_user_libraries`). Back up the
+> application-state directory (`/config`) before upgrading. Existing users keep
+> access to every library.
+
 <details>
 <summary><strong>Playback And The Web Player</strong></summary>
 
@@ -98,6 +103,19 @@ Changes through v0.1.3 are summarized in [v0.1.3](v0.1.3.md).
   services.
 - On Tracks, Library tools, and Admin pages, counts such as "27 tracks" sit
   to the right of the page title instead of below it.
+
+</details>
+
+<details>
+<summary><strong>Users And Access</strong></summary>
+
+- Administrators can limit a listener to some libraries: turn off **All
+  libraries** in the user dialog under **Admin → Users** and choose the ones
+  they may see. Everything else stays out of sight for them, in the web app and
+  in Subsonic apps, including the songs of shared playlists from other
+  libraries. Subsonic `createUser` and `updateUser` set the same with
+  `musicFolderId`. Administrators and library managers always see every
+  library.
 
 </details>
 

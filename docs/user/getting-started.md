@@ -47,6 +47,10 @@ the roles:
 - **Library manager** only to people you trust with your music files.
 - **Administrator** only to people who should manage the server itself.
 
+With more than one library you can also limit a listener to some of them: turn
+off **All libraries** in their user dialog and choose the libraries they may
+see. Administrators and library managers always see every library.
+
 ## 5. Add More Libraries (Optional)
 
 A library is a music folder inside the container. To add another one, mount it

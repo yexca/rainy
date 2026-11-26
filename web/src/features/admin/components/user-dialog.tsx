@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Trash2 } from 'lucide-react'
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -19,7 +20,7 @@ import { api, type CreateUserInput } from '@/lib/api/endpoints'
 import type { User } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
 
-import { adminKeys } from '../queries'
+import { adminKeys, librariesQuery } from '../queries'
 
 export const PASSWORD_MIN = 4
 const USERNAME_MAX = 64
@@ -38,6 +39,8 @@ const schema = z.object({
   isAdmin: z.boolean(),
   canManage: z.boolean(),
   canDownload: z.boolean(),
+  restrictLibraries: z.boolean(),
+  libraryIds: z.array(z.number()),
 })
 type Values = z.infer<typeof schema>
 
@@ -107,9 +110,14 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
       isAdmin: user?.isAdmin ?? false,
       canManage: user?.canManage ?? false,
       canDownload: user?.canDownload ?? true,
+      restrictLibraries: user?.restrictLibraries ?? false,
+      libraryIds: user?.libraryIds ?? [],
     },
   })
   const isAdmin = useWatch({ control, name: 'isAdmin' })
+  const canManage = useWatch({ control, name: 'canManage' })
+  // Administrators and managers always see every library.
+  const seesAll = isAdmin || canManage
 
   const save = useMutation({
     mutationFn: (values: Values) => {
@@ -121,6 +129,8 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
         isAdmin: values.isAdmin,
         canManage: values.canManage || values.isAdmin,
         canDownload: values.canDownload || values.isAdmin,
+        restrictLibraries: values.restrictLibraries && !values.isAdmin && !values.canManage,
+        libraryIds: values.restrictLibraries && !values.isAdmin && !values.canManage ? values.libraryIds : [],
       }
       if (user) {
         // Editing never changes the password; that is a separate action.
@@ -144,8 +154,16 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
 
   const message = (key: string | undefined) => (key ? t(key, { min: PASSWORD_MIN, max: USERNAME_MAX }) : undefined)
 
+  const submit = (values: Values) => {
+    if (values.restrictLibraries && !values.isAdmin && !values.canManage && values.libraryIds.length === 0) {
+      setError('libraryIds', { message: 'users.validation.libraryRequired' })
+      return
+    }
+    save.mutate(values)
+  }
+
   return (
-    <form onSubmit={handleSubmit((v) => save.mutate(v))} className="grid gap-4" noValidate>
+    <form onSubmit={handleSubmit(submit)} className="grid gap-4" noValidate>
       <FormField id="user-username" label={t('users.fields.username')} error={message(errors.username?.message)}>
         <Input
           id="user-username"
@@ -196,6 +214,8 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
           forced={isAdmin}
         />
       </fieldset>
+
+      <LibraryAccess control={control} seesAll={seesAll} error={message(errors.libraryIds?.message)} />
 
       {user && (onResetPassword || onDelete) ? (
         <div className="flex flex-wrap gap-2">
@@ -266,5 +286,83 @@ function RoleSwitch({
         </Label>
       )}
     />
+  )
+}
+
+/** "All libraries", or the libraries a listener may see (administrators and managers see all). */
+function LibraryAccess({ control, seesAll, error }: { control: Control<Values>; seesAll: boolean; error?: string }) {
+  const { t } = useTranslation('admin')
+  const restrict = useWatch({ control, name: 'restrictLibraries' })
+  const libraries = useQuery({ ...librariesQuery, enabled: !seesAll && restrict })
+  return (
+    <fieldset className="grid gap-1 rounded-xl border p-1">
+      <legend className="sr-only">{t('users.access.legend')}</legend>
+      <Controller
+        name="restrictLibraries"
+        control={control}
+        render={({ field }) => (
+          <Label
+            htmlFor="user-all-libraries"
+            className="flex min-h-14 items-center gap-3 rounded-lg px-3 py-2 font-normal hover:bg-accent/40"
+          >
+            <span className="grid flex-1 gap-0.5">
+              <span className="text-sm font-medium">{t('users.access.all')}</span>
+              <span className="text-xs text-muted-foreground">
+                {seesAll ? t('users.access.allForced') : t('users.access.allDescription')}
+              </span>
+            </span>
+            <Switch
+              id="user-all-libraries"
+              checked={seesAll || !field.value}
+              onCheckedChange={(all) => field.onChange(!all)}
+              disabled={seesAll}
+            />
+          </Label>
+        )}
+      />
+      {!seesAll && restrict ? (
+        <Controller
+          name="libraryIds"
+          control={control}
+          render={({ field }) => (
+            <div role="group" aria-label={t('users.access.legend')} className="grid gap-0.5 border-t pt-1">
+              {libraries.isPending ? (
+                <div className="flex min-h-11 items-center px-3">
+                  <Spinner size="sm" />
+                </div>
+              ) : libraries.data?.length ? (
+                libraries.data.map((lib) => {
+                  const id = `user-library-${lib.id}`
+                  return (
+                    <Label
+                      key={lib.id}
+                      htmlFor={id}
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 font-normal hover:bg-accent/40"
+                    >
+                      <Checkbox
+                        id={id}
+                        checked={field.value.includes(lib.id)}
+                        aria-invalid={!!error}
+                        onCheckedChange={(on) =>
+                          field.onChange(on === true ? [...field.value, lib.id] : field.value.filter((v) => v !== lib.id))
+                        }
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm">{lib.name}</span>
+                    </Label>
+                  )
+                })
+              ) : (
+                <p className="px-3 py-2 text-sm text-muted-foreground">{t('users.access.none')}</p>
+              )}
+              {error ? (
+                <p role="alert" className="px-3 pb-1 text-xs text-destructive">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          )}
+        />
+      ) : null}
+    </fieldset>
   )
 }

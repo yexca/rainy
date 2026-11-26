@@ -9,6 +9,7 @@ export interface ApiErrorBody { error: { code: string; message: string } }
 export interface User {
   id: string; username: string; displayName: string; email: string
   isAdmin: boolean; canManage: boolean; canDownload: boolean; hasApiKey: boolean
+  restrictLibraries: boolean; libraryIds: number[]
   createdAt: number; updatedAt: number; lastLoginAt: number; lastSeenAt: number
 }
 export interface AuthStatus { initialized: boolean; user: User | null; version: string }

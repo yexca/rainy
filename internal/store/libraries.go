@@ -12,17 +12,17 @@ import (
 
 const libraryCols = `id, name, path, created_at, updated_at, last_scan_at`
 
-// ListLibraries returns all libraries ordered by id.
+// ListLibraries returns the libraries ctx may read (all for an unscoped context) ordered by id.
 func (s *Store) ListLibraries(ctx context.Context) ([]model.Library, error) {
 	libs := []model.Library{}
-	err := s.db.R.SelectContext(ctx, &libs, `SELECT `+libraryCols+` FROM libraries ORDER BY id`)
+	err := s.db.R.SelectContext(ctx, &libs, `SELECT `+libraryCols+` FROM libraries WHERE `+libraryVisible(ctx, "id")+` ORDER BY id`)
 	return libs, err
 }
 
-// GetLibrary returns a library by id.
+// GetLibrary returns a library by id (ErrNotFound outside the context's library scope).
 func (s *Store) GetLibrary(ctx context.Context, id int64) (*model.Library, error) {
 	var l model.Library
-	if err := s.db.R.GetContext(ctx, &l, `SELECT `+libraryCols+` FROM libraries WHERE id = ?`, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &l, `SELECT `+libraryCols+` FROM libraries WHERE id = ?`+andLibrary(ctx, "id"), id); err != nil {
 		return nil, notFound(err)
 	}
 	return &l, nil

@@ -28,27 +28,56 @@ type Library struct {
 // User is an account. PasswordEnc is the reversibly encrypted password (needed for
 // Subsonic token auth) and is never serialised.
 type User struct {
-	ID          string  `db:"id" json:"id"`
-	Username    string  `db:"username" json:"username"`
-	DisplayName string  `db:"display_name" json:"displayName"`
-	Email       string  `db:"email" json:"email"`
-	PasswordEnc string  `db:"password_enc" json:"-"`
-	IsAdmin     bool    `db:"is_admin" json:"isAdmin"`
-	CanManage   bool    `db:"can_manage" json:"canManage"`
-	CanDownload bool    `db:"can_download" json:"canDownload"`
-	APIKeyHash  *string `db:"api_key_hash" json:"-"`
-	HasAPIKey   bool    `db:"-" json:"hasApiKey"` // computed
-	CreatedAt   int64   `db:"created_at" json:"createdAt"`
-	UpdatedAt   int64   `db:"updated_at" json:"updatedAt"`
-	LastLoginAt int64   `db:"last_login_at" json:"lastLoginAt"`
-	LastSeenAt  int64   `db:"last_seen_at" json:"lastSeenAt"`
+	ID          string `db:"id" json:"id"`
+	Username    string `db:"username" json:"username"`
+	DisplayName string `db:"display_name" json:"displayName"`
+	Email       string `db:"email" json:"email"`
+	PasswordEnc string `db:"password_enc" json:"-"`
+	IsAdmin     bool   `db:"is_admin" json:"isAdmin"`
+	CanManage   bool   `db:"can_manage" json:"canManage"`
+	CanDownload bool   `db:"can_download" json:"canDownload"`
+	// RestrictLibraries limits the user to LibraryIDs; otherwise every library is readable,
+	// including ones added later. Administrators and managers always read every library.
+	RestrictLibraries bool    `db:"restrict_libraries" json:"restrictLibraries"`
+	LibraryIDs        []int64 `db:"-" json:"libraryIds"` // granted libraries when restricted, else empty
+	APIKeyHash        *string `db:"api_key_hash" json:"-"`
+	HasAPIKey         bool    `db:"-" json:"hasApiKey"` // computed
+	CreatedAt         int64   `db:"created_at" json:"createdAt"`
+	UpdatedAt         int64   `db:"updated_at" json:"updatedAt"`
+	LastLoginAt       int64   `db:"last_login_at" json:"lastLoginAt"`
+	LastSeenAt        int64   `db:"last_seen_at" json:"lastSeenAt"`
 }
 
 // CanEdit reports whether the user may modify library files (tags, covers, rename, …).
 func (u *User) CanEdit() bool { return u != nil && (u.IsAdmin || u.CanManage) }
 
+// RestrictedLibraries returns the libraries the user may read and true, or nil and false
+// when the user reads every library (administrators, managers and unrestricted users).
+func (u *User) RestrictedLibraries() ([]int64, bool) {
+	if u == nil || u.CanEdit() || !u.RestrictLibraries {
+		return nil, false
+	}
+	return u.LibraryIDs, true
+}
+
+// NormalizeLibraries makes the stored access match the effective one: administrators
+// and managers are never restricted, and only a restricted user keeps a library list.
+func (u *User) NormalizeLibraries() {
+	if u.CanEdit() {
+		u.RestrictLibraries = false
+	}
+	if !u.RestrictLibraries || u.LibraryIDs == nil {
+		u.LibraryIDs = []int64{}
+	}
+}
+
 // Fill computes derived fields.
-func (u *User) Fill() { u.HasAPIKey = u.APIKeyHash != nil && *u.APIKeyHash != "" }
+func (u *User) Fill() {
+	u.HasAPIKey = u.APIKeyHash != nil && *u.APIKeyHash != ""
+	if u.LibraryIDs == nil {
+		u.LibraryIDs = []int64{}
+	}
+}
 
 // Track is one audio file.
 type Track struct {

@@ -275,6 +275,9 @@ export interface CreateUserInput {
   isAdmin?: boolean
   canManage?: boolean
   canDownload?: boolean
+  /** Limit a listener to `libraryIds`; administrators and managers always see every library. */
+  restrictLibraries?: boolean
+  libraryIds?: number[]
 }
 export type UpdateUserInput = Partial<CreateUserInput>
 export interface LibraryInput { name: string; path: string }

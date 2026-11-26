@@ -7,10 +7,14 @@ import (
 	"rainy/internal/model"
 )
 
-const albumSelect = `SELECT al.id, al.library_id, al.name, al.sort_name, al.album_artist, al.album_artist_id, al.year,
+const albumCols = `al.id, al.library_id, al.name, al.sort_name, al.album_artist, al.album_artist_id, al.year,
 	al.genre, al.compilation, al.song_count, al.disc_count, al.duration, al.size, al.cover_path, al.cover_track_id,
-	al.mbz_album_id, al.search_text, al.created_at, al.updated_at, ` + annotationCols + `
-	FROM albums al`
+	al.mbz_album_id, al.search_text, al.created_at, al.updated_at, ` + annotationCols
+
+// albumSelect is "SELECT <album columns> FROM <albums as seen by ctx> al".
+func albumSelect(ctx context.Context) string {
+	return `SELECT ` + albumCols + ` FROM ` + AlbumsFrom(ctx) + ` al`
+}
 
 // AlbumQuery filters ListAlbums.
 type AlbumQuery struct {
@@ -81,7 +85,7 @@ func (s *Store) ListAlbums(ctx context.Context, q AlbumQuery) ([]model.Album, in
 	args := append([]any{q.UserID}, w.args...)
 	join := annotationJoin("album", "al.id")
 	var total int
-	if err := s.db.R.GetContext(ctx, &total, `SELECT COUNT(*) FROM albums al`+join+w.sql(), args...); err != nil {
+	if err := s.db.R.GetContext(ctx, &total, `SELECT COUNT(*) FROM `+AlbumsFrom(ctx)+` al`+join+w.sql(), args...); err != nil {
 		return nil, 0, fmt.Errorf("counting albums: %w", err)
 	}
 	if total == 0 || (q.Limit > 0 && q.Offset >= total) {
@@ -92,7 +96,7 @@ func (s *Store) ListAlbums(ctx context.Context, q AlbumQuery) ([]model.Album, in
 		spec = albumSorts["name"]
 	}
 	var albums []model.Album
-	query := albumSelect + join + w.sql() + orderBy(spec, q.Order, "al.id") + limitClause(q.Offset, q.Limit)
+	query := albumSelect(ctx) + join + w.sql() + orderBy(spec, q.Order, "al.id") + limitClause(q.Offset, q.Limit)
 	if err := s.db.R.SelectContext(ctx, &albums, query, args...); err != nil {
 		return nil, 0, fmt.Errorf("listing albums: %w", err)
 	}
@@ -102,7 +106,7 @@ func (s *Store) ListAlbums(ctx context.Context, q AlbumQuery) ([]model.Album, in
 // GetAlbum returns one album.
 func (s *Store) GetAlbum(ctx context.Context, id, userID string) (*model.Album, error) {
 	var a model.Album
-	if err := s.db.R.GetContext(ctx, &a, albumSelect+annotationJoin("album", "al.id")+` WHERE al.id = ?`, userID, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &a, albumSelect(ctx)+annotationJoin("album", "al.id")+` WHERE al.id = ?`, userID, id); err != nil {
 		return nil, notFound(err)
 	}
 	fillAlbum(&a)
@@ -113,8 +117,8 @@ func (s *Store) GetAlbum(ctx context.Context, id, userID string) (*model.Album, 
 // artist is someone else (compilations, features), ordered by year and name.
 func (s *Store) AlbumsAppearsOn(ctx context.Context, artistID, userID string) ([]model.Album, error) {
 	var albums []model.Album
-	err := s.db.R.SelectContext(ctx, &albums, albumSelect+annotationJoin("album", "al.id")+`
-		WHERE al.album_artist_id != ? AND EXISTS (SELECT 1 FROM tracks t WHERE t.album_id = al.id AND t.missing = 0 AND t.artist_id = ?)
+	err := s.db.R.SelectContext(ctx, &albums, albumSelect(ctx)+annotationJoin("album", "al.id")+`
+		WHERE al.album_artist_id != ? AND EXISTS (SELECT 1 FROM `+TracksFrom(ctx)+` t WHERE t.album_id = al.id AND t.missing = 0 AND t.artist_id = ?)
 		ORDER BY al.year, al.sort_name, al.id`, userID, artistID, artistID)
 	if err != nil {
 		return nil, err
@@ -124,9 +128,13 @@ func (s *Store) AlbumsAppearsOn(ctx context.Context, artistID, userID string) ([
 
 // ---- artists
 
-const artistSelect = `SELECT ar.id, ar.name, ar.sort_name, ar.index_key, ar.album_count, ar.song_count, ar.mbz_artist_id,
-	ar.image_path, ar.search_text, ar.created_at, ar.updated_at, ` + annotationCols + `
-	FROM artists ar`
+const artistCols = `ar.id, ar.name, ar.sort_name, ar.index_key, ar.album_count, ar.song_count, ar.mbz_artist_id,
+	ar.image_path, ar.search_text, ar.created_at, ar.updated_at, ` + annotationCols
+
+// artistSelect is "SELECT <artist columns> FROM <artists as seen by ctx> ar".
+func artistSelect(ctx context.Context) string {
+	return `SELECT ` + artistCols + ` FROM ` + ArtistsFrom(ctx) + ` ar`
+}
 
 // ArtistQuery filters ListArtists.
 type ArtistQuery struct {
@@ -153,11 +161,11 @@ var artistSorts = map[string]sortSpec{
 	"rating":     {expr: "COALESCE(an.rating, 0)", desc: true, then: []string{"ar.sort_name"}},
 }
 
-func (q *ArtistQuery) where() *where {
+func (q *ArtistQuery) where(ctx context.Context) *where {
 	w := &where{}
 	w.tokens("ar.search_text", q.Q)
 	if q.LibraryID > 0 {
-		w.add(`EXISTS (SELECT 1 FROM tracks t WHERE t.library_id = ? AND t.missing = 0 AND (t.artist_id = ar.id OR t.album_artist_id = ar.id))`, q.LibraryID)
+		w.add(`EXISTS (SELECT 1 FROM `+TracksFrom(ctx)+` t WHERE t.library_id = ? AND t.missing = 0 AND (t.artist_id = ar.id OR t.album_artist_id = ar.id))`, q.LibraryID)
 	}
 	if q.AlbumArtistsOnly {
 		w.add("ar.album_count > 0")
@@ -170,11 +178,11 @@ func (q *ArtistQuery) where() *where {
 
 // ListArtists returns a page of artists and the total number of matches.
 func (s *Store) ListArtists(ctx context.Context, q ArtistQuery) ([]model.Artist, int, error) {
-	w := q.where()
+	w := q.where(ctx)
 	args := append([]any{q.UserID}, w.args...)
 	join := annotationJoin("artist", "ar.id")
 	var total int
-	if err := s.db.R.GetContext(ctx, &total, `SELECT COUNT(*) FROM artists ar`+join+w.sql(), args...); err != nil {
+	if err := s.db.R.GetContext(ctx, &total, `SELECT COUNT(*) FROM `+ArtistsFrom(ctx)+` ar`+join+w.sql(), args...); err != nil {
 		return nil, 0, fmt.Errorf("counting artists: %w", err)
 	}
 	if total == 0 || (q.Limit > 0 && q.Offset >= total) {
@@ -185,7 +193,7 @@ func (s *Store) ListArtists(ctx context.Context, q ArtistQuery) ([]model.Artist,
 		spec = artistSorts["name"]
 	}
 	var artists []model.Artist
-	query := artistSelect + join + w.sql() + orderBy(spec, q.Order, "ar.id") + limitClause(q.Offset, q.Limit)
+	query := artistSelect(ctx) + join + w.sql() + orderBy(spec, q.Order, "ar.id") + limitClause(q.Offset, q.Limit)
 	if err := s.db.R.SelectContext(ctx, &artists, query, args...); err != nil {
 		return nil, 0, fmt.Errorf("listing artists: %w", err)
 	}
@@ -195,7 +203,7 @@ func (s *Store) ListArtists(ctx context.Context, q ArtistQuery) ([]model.Artist,
 // GetArtist returns one artist.
 func (s *Store) GetArtist(ctx context.Context, id, userID string) (*model.Artist, error) {
 	var a model.Artist
-	if err := s.db.R.GetContext(ctx, &a, artistSelect+annotationJoin("artist", "ar.id")+` WHERE ar.id = ?`, userID, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &a, artistSelect(ctx)+annotationJoin("artist", "ar.id")+` WHERE ar.id = ?`, userID, id); err != nil {
 		return nil, notFound(err)
 	}
 	fillArtist(&a)
@@ -210,7 +218,7 @@ func (s *Store) ListGenres(ctx context.Context) ([]model.Genre, error) {
 			COUNT(DISTINCT t.album_id) AS album_count
 		FROM genres g
 		JOIN track_genres tg ON tg.genre_id = g.id
-		JOIN tracks t ON t.id = tg.track_id AND t.missing = 0
+		JOIN `+TracksFrom(ctx)+` t ON t.id = tg.track_id AND t.missing = 0
 		GROUP BY g.id, g.name
 		ORDER BY g.name COLLATE NOCASE, g.id`)
 	return genres, err
@@ -248,10 +256,10 @@ func (s *Store) Search(ctx context.Context, q SearchQuery) (*SearchResult, error
 		w.tokens("ar.search_text", q.Q)
 		w.add("(ar.album_count > 0 OR ar.song_count > 0)")
 		if q.LibraryID > 0 {
-			w.add(`EXISTS (SELECT 1 FROM tracks t WHERE t.library_id = ? AND t.missing = 0 AND (t.artist_id = ar.id OR t.album_artist_id = ar.id))`, q.LibraryID)
+			w.add(`EXISTS (SELECT 1 FROM `+TracksFrom(ctx)+` t WHERE t.library_id = ? AND t.missing = 0 AND (t.artist_id = ar.id OR t.album_artist_id = ar.id))`, q.LibraryID)
 		}
 		var artists []model.Artist
-		query := artistSelect + annotationJoin("artist", "ar.id") + w.sql() + ` ORDER BY ar.sort_name, ar.id` + limitClause(q.ArtistOffset, q.ArtistLimit)
+		query := artistSelect(ctx) + annotationJoin("artist", "ar.id") + w.sql() + ` ORDER BY ar.sort_name, ar.id` + limitClause(q.ArtistOffset, q.ArtistLimit)
 		if err := s.db.R.SelectContext(ctx, &artists, query, append([]any{q.UserID}, w.args...)...); err != nil {
 			return nil, fmt.Errorf("searching artists: %w", err)
 		}
@@ -261,7 +269,7 @@ func (s *Store) Search(ctx context.Context, q SearchQuery) (*SearchResult, error
 		aq := AlbumQuery{UserID: q.UserID, Q: q.Q, LibraryID: q.LibraryID}
 		w := aq.where()
 		var albums []model.Album
-		query := albumSelect + annotationJoin("album", "al.id") + w.sql() + ` ORDER BY al.sort_name, al.id` + limitClause(q.AlbumOffset, q.AlbumLimit)
+		query := albumSelect(ctx) + annotationJoin("album", "al.id") + w.sql() + ` ORDER BY al.sort_name, al.id` + limitClause(q.AlbumOffset, q.AlbumLimit)
 		if err := s.db.R.SelectContext(ctx, &albums, query, append([]any{q.UserID}, w.args...)...); err != nil {
 			return nil, fmt.Errorf("searching albums: %w", err)
 		}
@@ -271,7 +279,7 @@ func (s *Store) Search(ctx context.Context, q SearchQuery) (*SearchResult, error
 		tq := TrackQuery{UserID: q.UserID, Q: q.Q, LibraryID: q.LibraryID}
 		w := tq.where()
 		var tracks []model.Track
-		query := trackSelect("tracks t", false) + w.sql() +
+		query := trackSelect(TracksFrom(ctx)+" t", false) + w.sql() +
 			` ORDER BY COALESCE(NULLIF(t.sort_title, ''), t.title) COLLATE NOCASE, t.id` + limitClause(q.TrackOffset, q.TrackLimit)
 		if err := s.db.R.SelectContext(ctx, &tracks, query, append([]any{q.UserID}, w.args...)...); err != nil {
 			return nil, fmt.Errorf("searching tracks: %w", err)

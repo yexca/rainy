@@ -2,6 +2,8 @@ package subsonic
 
 import (
 	"context"
+	"slices"
+	"strconv"
 	"strings"
 
 	"rainy/internal/auth"
@@ -27,7 +29,7 @@ func subsonicUser(u *model.User, folders []int64) User {
 	}
 }
 
-// folderIDs lists every library id (all users can access every library).
+// folderIDs lists every library id ctx may read.
 func (a *API) folderIDs(ctx context.Context) ([]int64, error) {
 	libs, err := a.app.Store.ListLibraries(ctx)
 	if err != nil {
@@ -38,6 +40,44 @@ func (a *API) folderIDs(ctx context.Context) ([]int64, error) {
 		ids = append(ids, l.ID)
 	}
 	return ids, nil
+}
+
+// userFolders lists the libraries u may read: its granted libraries when restricted, else
+// every library.
+func (a *API) userFolders(ctx context.Context, u *model.User) ([]int64, error) {
+	if ids, restricted := u.RestrictedLibraries(); restricted {
+		return append([]int64{}, ids...), nil
+	}
+	return a.folderIDs(ctx)
+}
+
+// applyFolders sets the library access from repeated musicFolderId parameters when present.
+// Subsonic has no "every library" setting, so a list naming every library grants all
+// libraries, including later ones.
+func (a *API) applyFolders(q *request, u *model.User) error {
+	var ids []int64
+	for _, v := range q.strs("musicFolderId") {
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil || id <= 0 {
+			return newError(codeGeneric, "Invalid value for parameter musicFolderId: %q", v)
+		}
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	all, err := a.folderIDs(q.ctx)
+	if err != nil {
+		return err
+	}
+	u.RestrictLibraries, u.LibraryIDs = false, nil
+	for _, id := range all {
+		if !slices.Contains(ids, id) {
+			u.RestrictLibraries, u.LibraryIDs = true, ids
+			break
+		}
+	}
+	return nil
 }
 
 // getUser returns a user; non-admins may only look themselves up.
@@ -55,7 +95,7 @@ func (a *API) getUser(q *request) (*Response, error) {
 			return nil, notFoundAs(err, "User")
 		}
 	}
-	folders, err := a.folderIDs(q.ctx)
+	folders, err := a.userFolders(q.ctx, u)
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +113,12 @@ func (a *API) getUsers(q *request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	folders, err := a.folderIDs(q.ctx)
-	if err != nil {
-		return nil, err
-	}
 	out := make([]User, 0, len(users))
 	for i := range users {
+		folders, err := a.userFolders(q.ctx, &users[i])
+		if err != nil {
+			return nil, err
+		}
 		out = append(out, subsonicUser(&users[i], folders))
 	}
 	resp := newResponse()
@@ -142,6 +182,9 @@ func (a *API) createUser(q *request) (*Response, error) {
 	if err := applyRoles(q, u); err != nil {
 		return nil, err
 	}
+	if err := a.applyFolders(q, u); err != nil {
+		return nil, err
+	}
 	if err := a.app.Auth.CreateUser(q.ctx, u, pw); err != nil {
 		return nil, err
 	}
@@ -166,6 +209,9 @@ func (a *API) updateUser(q *request) (*Response, error) {
 		u.Email = q.str("email")
 	}
 	if err := applyRoles(q, u); err != nil {
+		return nil, err
+	}
+	if err := a.applyFolders(q, u); err != nil {
 		return nil, err
 	}
 	if u.ID == q.user.ID && !u.IsAdmin {

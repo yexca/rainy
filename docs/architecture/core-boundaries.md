@@ -52,7 +52,10 @@ The `/rest` Subsonic/OpenSubsonic API is a compatibility surface for third-party
 clients, with its own response shapes and error codes. Changes require the
 relevant contract and golden-file updates.
 
-The backend enforces listener, manager, administrator, and download permissions.
+The backend enforces listener, manager, administrator, and download
+permissions, and the libraries a listener may read: a limited user's requests
+carry a store library scope, so every library read leaves out other libraries
+(see [contract §5.4](contract.md#54-store-internalstore)).
 UI visibility does not grant access. Optional metadata lookup, link downloads,
 online music, and scrobbling are the only features that cross an outbound
 boundary, and only when enabled (see

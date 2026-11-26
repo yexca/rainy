@@ -71,9 +71,9 @@ Docker image for `linux/amd64` and `linux/arm64`.
   page, and an infinite mode that keeps playing similar songs, chosen from
   your own library and plays on your server; nothing is sent anywhere.
 - **Multi-user.** Administrator, manager, and listener roles with a separate
-  download permission. Favorites, ratings, play counts, playlists, and the play
-  queue are per user, and the queue follows you between the web app and
-  Subsonic clients.
+  download permission; a listener can be limited to chosen libraries.
+  Favorites, ratings, play counts, playlists, and the play queue are per user,
+  and the queue follows you between the web app and Subsonic clients.
 
 ## Quick Start
 

@@ -6,7 +6,7 @@ import (
 )
 
 func TestMergeHiddenEntries(t *testing.T) {
-	e := func(id string, missing bool) playlistEntry { return playlistEntry{TrackID: id, Missing: missing} }
+	e := func(id string, missing bool) playlistEntry { return playlistEntry{TrackID: id, Hidden: missing} }
 	tests := []struct {
 		name    string
 		old     []playlistEntry

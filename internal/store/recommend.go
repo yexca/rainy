@@ -9,7 +9,8 @@ import (
 )
 
 // Recommendation queries (docs/architecture/contract.md §5.18). They return candidate tracks
-// with the user's own signals; package recommend scores and picks them.
+// with the user's own signals; package recommend scores and picks them. Only tracks in the
+// context's library scope are considered.
 
 // SimilarArtistIDs returns the album artists sharing the most genres with the given artists'
 // tracks (most shared genres first, then most matching tracks), never one of the given
@@ -30,10 +31,10 @@ func (s *Store) SimilarArtistIDs(ctx context.Context, artistIDs []string, limit 
 	var ids []string
 	err := s.db.R.SelectContext(ctx, &ids, `
 		WITH g AS (
-			SELECT DISTINCT tg.genre_id FROM track_genres tg JOIN tracks t ON t.id = tg.track_id
+			SELECT DISTINCT tg.genre_id FROM track_genres tg JOIN `+TracksFrom(ctx)+` t ON t.id = tg.track_id
 			WHERE t.missing = 0 AND (t.artist_id IN (`+ph+`) OR t.album_artist_id IN (`+ph+`))
 		)
-		SELECT t.album_artist_id FROM tracks t
+		SELECT t.album_artist_id FROM `+TracksFrom(ctx)+` t
 		JOIN track_genres tg ON tg.track_id = t.id
 		JOIN artists ar ON ar.id = t.album_artist_id AND ar.album_count > 0
 		WHERE t.missing = 0 AND tg.genre_id IN (SELECT genre_id FROM g) AND t.album_artist_id NOT IN (`+ph+`)
@@ -145,7 +146,7 @@ func (s *Store) RecommendCandidates(ctx context.Context, userID string, q Candid
 	err := s.db.R.SelectContext(ctx, &out, `SELECT t.id, t.artist_id, t.album_artist_id, t.album_id, t.duration,
 			COALESCE(an.play_count, 0) AS plays, COALESCE(an.played_at, 0) AS played_at,
 			an.starred_at IS NOT NULL AS starred, COALESCE(an.rating, 0) AS rating
-		FROM tracks t`+annotationJoin("track", "t.id")+w.sql()+`
+		FROM `+TracksFrom(ctx)+` t`+annotationJoin("track", "t.id")+w.sql()+`
 		ORDER BY RANDOM() LIMIT ?`, append(append([]any{userID}, w.args...), limit)...)
 	if err != nil {
 		return nil, fmt.Errorf("recommendation candidates: %w", err)

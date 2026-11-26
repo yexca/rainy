@@ -22,9 +22,14 @@ const (
 	playArtistID    = `COALESCE(t.artist_id, ph.artist_id)`
 	playAlbumID     = `COALESCE(t.album_id, ph.album_id)`
 	playDuration    = `COALESCE(t.duration, ph.duration)`
-	playFrom        = ` FROM play_history ph LEFT JOIN tracks t ON t.id = ph.track_id
-		WHERE ph.user_id = ? AND ph.played_at >= ? AND ph.played_at < ?`
 )
+
+// playFrom is the FROM clause of a period's plays. Tracks outside the library scope are
+// not joined, so their plays use the snapshot.
+func playFrom(ctx context.Context) string {
+	return ` FROM play_history ph LEFT JOIN ` + TracksFrom(ctx) + ` t ON t.id = ph.track_id
+		WHERE ph.user_id = ? AND ph.played_at >= ? AND ph.played_at < ?`
+}
 
 // Kinds of ListeningTop.
 const (
@@ -58,7 +63,7 @@ func (s *Store) ListeningTotals(ctx context.Context, userID string, from, to int
 	err := s.db.R.GetContext(ctx, &out, `SELECT COUNT(*) AS plays, TOTAL(`+playDuration+`) AS duration,
 			COUNT(DISTINCT ph.track_id) AS tracks,
 			COUNT(DISTINCT NULLIF(`+playArtistID+`, '')) AS artists,
-			COUNT(DISTINCT NULLIF(`+playAlbumID+`, '')) AS albums`+playFrom, rangeArgs(userID, from, to)...)
+			COUNT(DISTINCT NULLIF(`+playAlbumID+`, '')) AS albums`+playFrom(ctx), rangeArgs(userID, from, to)...)
 	if err != nil {
 		return out, fmt.Errorf("listening totals: %w", err)
 	}
@@ -74,7 +79,7 @@ type PlayTime struct {
 // ListeningTimes returns every play of a period (oldest first) for time-based charts.
 func (s *Store) ListeningTimes(ctx context.Context, userID string, from, to int64) ([]PlayTime, error) {
 	var out []PlayTime
-	err := s.db.R.SelectContext(ctx, &out, `SELECT ph.played_at AS at, `+playDuration+` AS duration`+playFrom+`
+	err := s.db.R.SelectContext(ctx, &out, `SELECT ph.played_at AS at, `+playDuration+` AS duration`+playFrom(ctx)+`
 		ORDER BY ph.played_at`, rangeArgs(userID, from, to)...)
 	if err != nil {
 		return nil, fmt.Errorf("listening times: %w", err)
@@ -117,7 +122,7 @@ func (s *Store) ListeningTop(ctx context.Context, userID, kind string, from, to 
 	}
 	q := `SELECT id, name, artist, plays, duration FROM (
 			SELECT ` + sel + `, COUNT(*) AS plays, TOTAL(` + playDuration + `) AS duration, MAX(ph.played_at) AS last
-			FROM play_history ph LEFT JOIN tracks t ON t.id = ph.track_id` + from2 + `
+			FROM play_history ph LEFT JOIN ` + TracksFrom(ctx) + ` t ON t.id = ph.track_id` + from2 + `
 			WHERE ph.user_id = ? AND ph.played_at >= ? AND ph.played_at < ?
 			GROUP BY ` + group + `
 		) WHERE id != ''
@@ -141,7 +146,7 @@ func (s *Store) ListeningFirsts(ctx context.Context, userID string, from, to int
 		return 0, 0, fmt.Errorf("first plays: %w", err)
 	}
 	err = s.db.R.GetContext(ctx, &artists, `SELECT COUNT(*) FROM (
-			SELECT MIN(ph.played_at) AS first FROM play_history ph LEFT JOIN tracks t ON t.id = ph.track_id
+			SELECT MIN(ph.played_at) AS first FROM play_history ph LEFT JOIN `+TracksFrom(ctx)+` t ON t.id = ph.track_id
 			WHERE ph.user_id = ? AND `+playArtistID+` != ''
 			GROUP BY `+playArtistID+`
 		) WHERE first >= ? AND first < ?`, args...)
@@ -174,7 +179,7 @@ func (s *Store) ListPlays(ctx context.Context, userID string, from, to int64, of
 	err := s.db.R.SelectContext(ctx, &plays, `SELECT ph.id, ph.track_id, ph.played_at, ph.client,
 			`+playTitle+` AS title, `+playArtist+` AS artist, `+playAlbum+` AS album,
 			`+playAlbumArtist+` AS album_artist, `+playArtistID+` AS artist_id, `+playAlbumID+` AS album_id,
-			`+playDuration+` AS duration`+playFrom+`
+			`+playDuration+` AS duration`+playFrom(ctx)+`
 		ORDER BY ph.played_at DESC, ph.id DESC LIMIT ? OFFSET ?`, append(args, limit, max(offset, 0))...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing plays: %w", err)

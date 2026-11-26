@@ -31,6 +31,13 @@
     "resetAction": "Set password",
     "passwordReset": "Password for {{name}} updated",
     "generate": "Generate",
+    "access": {
+      "legend": "Library access",
+      "all": "All libraries",
+      "allDescription": "Includes libraries added later.",
+      "allForced": "Administrators and library managers see every library.",
+      "none": "No libraries yet."
+    },
     "fields": {
       "user": "User",
       "username": "Username",
@@ -47,7 +54,8 @@
       "usernameInvalid": "Use letters, digits and . _ - @ + only (no spaces).",
       "usernameTaken": "This username is already taken.",
       "emailInvalid": "Enter a valid email address.",
-      "passwordMin": "Use at least {{min}} characters."
+      "passwordMin": "Use at least {{min}} characters.",
+      "libraryRequired": "Choose at least one library."
     }
   },
   "libraries": {

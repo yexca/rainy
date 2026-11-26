@@ -17,6 +17,10 @@ should use the [Security Policy](../../SECURITY.md).
   no user exists. Everything else requires an authenticated user.
 - Listeners may read the library and change only their own state (favorites,
   ratings, playlists, queue, bookmarks, profile, password, and API key).
+- A listener limited to some libraries reads only those. The limit is the
+  store's library scope set with the authenticated user, not a handler check:
+  raw SQL outside the store uses `store.TracksFrom`, `AlbumsFrom`, or
+  `ArtistsFrom`, and an id of another library answers as unknown.
 - Managers may change files through `/api/manage`. Administrators also manage
   users, libraries, scans, and server settings.
 - Library roots and the data directory are trusted operator mounts. Paths from

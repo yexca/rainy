@@ -312,7 +312,7 @@ func (s *Service) playlistSources(ctx context.Context, id string) ([]*source, er
 	}
 	var albumIDs []string
 	err := s.st.DB().R.SelectContext(ctx, &albumIDs, `SELECT t.album_id FROM playlist_tracks pt
-		JOIN tracks t ON t.id = pt.track_id AND t.missing = 0
+		JOIN `+store.TracksFrom(ctx)+` t ON t.id = pt.track_id AND t.missing = 0
 		WHERE pt.playlist_id = ? AND t.album_id != ''
 		GROUP BY t.album_id ORDER BY MIN(pt.position) LIMIT 32`, id)
 	if err != nil {
