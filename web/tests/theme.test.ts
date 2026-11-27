@@ -53,7 +53,7 @@ describe('style presets', () => {
     const layout = (style: (typeof STYLES)[number]) => [STYLE_CHROME[style], STYLE_QUICK_ACTIONS[style], STYLE_RAIL[style]]
     assert.deepEqual(layout('anthropic'), ['header', 'icon', 'icons'])
     assert.deepEqual(layout('openai'), ['sidebar', 'field', 'icons'])
-    assert.deepEqual(layout('apple'), ['sidebar', 'icon', 'icons'])
+    assert.deepEqual(layout('apple'), ['sidebar', 'none', 'icons'])
     assert.deepEqual(layout('google-md'), ['header', 'field', 'labels'])
   })
 
