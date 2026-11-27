@@ -34,9 +34,10 @@ If the library stays empty, see
   finds songs, albums, artists, playlists, and pages; it ignores case, accents,
   and full-width characters.
 
-Tap an album to play it, or use the "…" menu on any track to play it next, add
-it to the queue or a playlist, go to its album or artist, add it to favorites,
-download it, and (for managers) edit its tags.
+Tap an album to open it, or the artist name under its cover to open the artist.
+Use the "…" menu on any track to play it next, add it to the queue or a
+playlist, go to its album or artist, add it to favorites, download it, and (for
+managers) edit its tags.
 
 An album's song list shows each file's own quality (such as `FLAC 24/96` or
 `MP3 320 kbps`) and a lyrics column that marks songs with lyrics. Once you have

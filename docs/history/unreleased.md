@@ -52,6 +52,9 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   page. Phones and tablets keep the single list with **Show all**.
 - Songs in the home song shelves, such as **Quick picks**, show their
   duration on tablets and desktops.
+- The artist name under an album's cover, on the home page and in album
+  lists and search, opens the artist; the cover and title still open the
+  album.
 
 </details>
 

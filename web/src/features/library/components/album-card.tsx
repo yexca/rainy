@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, MoreHorizontal, Play } from 'lucide-react'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, type PointerEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 import { ALBUM_CAPTION_HEIGHT } from '../lib/layout'
 import { usePlayCollection } from '../lib/play'
-import { albumQuery } from '../lib/queries'
+import { albumQuery, artistQuery } from '../lib/queries'
 import { coverSeedsQuery, useImmersive } from '../lib/use-cover-theme'
 import { AlbumActionsMenu } from './collection-actions'
 
@@ -29,16 +29,11 @@ export interface AlbumCardProps {
 
 const PREFETCH_DELAY = 150
 
-function subtitleText(album: Album, kind: AlbumCardSubtitle): string {
-  if (kind === 'year') return album.year > 0 ? String(album.year) : ''
-  if (kind === 'artistYear') return [album.artist, album.year > 0 ? String(album.year) : ''].filter(Boolean).join(' · ')
-  return album.artist
-}
-
 /**
- * Album tile: square artwork with title + artist below. Desktop hover reveals a play button and a
- * "…" menu over the artwork; phones get press feedback. Hovering or pressing prefetches the album
- * (and, in immersive mode, its cover's colours).
+ * Album tile: square artwork with title + artist below. The artwork and title open the album; the
+ * artist name opens the artist. Desktop hover reveals a play button and a "…" menu over the
+ * artwork; phones get press feedback. Hovering or pressing prefetches the page a link opens (and,
+ * in immersive mode, the album cover's colours).
  */
 export const AlbumCard = memo(function AlbumCard({
   album,
@@ -53,16 +48,26 @@ export const AlbumCard = memo(function AlbumCard({
   const [starting, setStarting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const prefetchTimer = useRef<number | undefined>(undefined)
-  const caption = subtitleText(album, subtitle)
+  const showArtist = subtitle !== 'year' && !!album.artist
+  const year = subtitle !== 'artist' && album.year > 0 ? String(album.year) : ''
   const immersive = useImmersive()
 
   useEffect(() => () => window.clearTimeout(prefetchTimer.current), [])
 
   // In immersive mode the cover's colours are sampled ahead too, so the album opens in them.
-  const prefetch = () => {
+  const prefetchAlbum = () => {
     void queryClient.prefetchQuery(albumQuery(album.id))
     if (immersive && album.coverArt) void queryClient.prefetchQuery(coverSeedsQuery(album.coverArt))
   }
+  const prefetchArtist = () => void queryClient.prefetchQuery(artistQuery(album.artistId))
+
+  // Mouse hover prefetches after a short delay; a press prefetches at once.
+  const hoverPrefetch = (event: PointerEvent, prefetch: () => void) => {
+    if (event.pointerType !== 'mouse') return
+    window.clearTimeout(prefetchTimer.current)
+    prefetchTimer.current = window.setTimeout(prefetch, PREFETCH_DELAY)
+  }
+  const cancelPrefetch = () => window.clearTimeout(prefetchTimer.current)
 
   const onPlay = () => {
     setStarting(true)
@@ -74,22 +79,47 @@ export const AlbumCard = memo(function AlbumCard({
       <Link
         to={`/albums/${album.id}`}
         className="block rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        onPointerEnter={(event) => {
-          if (event.pointerType !== 'mouse') return
-          window.clearTimeout(prefetchTimer.current)
-          prefetchTimer.current = window.setTimeout(prefetch, PREFETCH_DELAY)
-        }}
-        onPointerDown={prefetch}
-        onPointerLeave={() => window.clearTimeout(prefetchTimer.current)}
+        onPointerEnter={(event) => hoverPrefetch(event, prefetchAlbum)}
+        onPointerDown={prefetchAlbum}
+        onPointerLeave={cancelPrefetch}
       >
         <div className="transition-transform duration-150 ease-out active:scale-[0.97] md:active:scale-100">
           <CoverArt coverArt={album.coverArt} size={sizeHint} fluid alt={album.name} priority={priority} />
         </div>
-        <div className="mt-2 min-w-0" style={{ height: ALBUM_CAPTION_HEIGHT - 8 }}>
-          <p className="truncate text-[14px] leading-5 font-medium md:text-[13px]">{album.name}</p>
-          {caption ? <p className="truncate text-[14px] leading-5 text-muted-foreground md:text-[13px]">{caption}</p> : null}
-        </div>
       </Link>
+      <div className="mt-2 min-w-0" style={{ height: ALBUM_CAPTION_HEIGHT - 8 }}>
+        {/* The artwork link is the album's tab stop and accessible name; the title repeats it for pointers. */}
+        <Link
+          to={`/albums/${album.id}`}
+          tabIndex={-1}
+          aria-hidden
+          className="block truncate text-[14px] leading-5 font-medium md:text-[13px]"
+          onPointerEnter={(event) => hoverPrefetch(event, prefetchAlbum)}
+          onPointerDown={prefetchAlbum}
+          onPointerLeave={cancelPrefetch}
+        >
+          {album.name}
+        </Link>
+        {showArtist || year ? (
+          <p className="truncate text-[14px] leading-5 text-muted-foreground md:text-[13px]">
+            {showArtist && album.artistId ? (
+              <Link
+                to={`/artists/${album.artistId}`}
+                className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                onPointerEnter={(event) => hoverPrefetch(event, prefetchArtist)}
+                onPointerDown={prefetchArtist}
+                onPointerLeave={cancelPrefetch}
+              >
+                {album.artist}
+              </Link>
+            ) : showArtist ? (
+              album.artist
+            ) : null}
+            {showArtist && year ? ' · ' : null}
+            {year}
+          </p>
+        ) : null}
+      </div>
 
       {/* Desktop hover controls over the artwork (hidden on touch-only devices). */}
       <div
