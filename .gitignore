@@ -39,6 +39,9 @@ Thumbs.db
 /rainy
 /rainy.exe
 
+# Local design references (drafts, prompts)
+/ref/
+
 # Local agent/runtime state
 # CodeGraph keeps its machine-local index and daemon state here.
 .codegraph/
