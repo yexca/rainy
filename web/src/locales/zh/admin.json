@@ -89,7 +89,7 @@
     "writable": "可写",
     "tracks": "歌曲",
     "lastScan": "上次扫描",
-    "pathHint": "填写服务器上看到的路径。在 Docker 中是容器内的路径，例如 /music。",
+    "pathHint": "在 Docker 中填写容器内的路径：默认音乐库是 /data，新的音乐库需要单独挂载一个目录，例如 /music2。",
     "fields": {
       "name": "名称",
       "path": "文件夹路径"

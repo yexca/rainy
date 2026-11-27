@@ -89,7 +89,7 @@
     "writable": "Writable",
     "tracks": "Tracks",
     "lastScan": "Last scan",
-    "pathHint": "The path as the server sees it — in Docker that's the path inside the container, e.g. /music.",
+    "pathHint": "In Docker, use the path inside the container: the default library is /data, and another library needs its own mount, e.g. /music2.",
     "fields": {
       "name": "Name",
       "path": "Folder path"

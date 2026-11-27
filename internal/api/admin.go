@@ -361,7 +361,7 @@ func (a *API) validateLibraryPath(ctx context.Context, p string, id int64) (stri
 	abs = filepath.Clean(abs)
 	fi, err := os.Stat(abs)
 	if err != nil || !fi.IsDir() {
-		return "", badRequest("path does not exist or is not a directory (inside docker, use the container path of a mounted volume, e.g. /music)")
+		return "", badRequest("path does not exist or is not a directory (inside docker, mount the folder and use its container path, e.g. /music2)")
 	}
 	overlaps := func(x, y string) bool {
 		x, y = canonicalPath(x), canonicalPath(y)

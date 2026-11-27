@@ -82,7 +82,7 @@ function LibraryForm({ library, onClose }: { library: LibraryInfo | null; onClos
           autoComplete="off"
           autoCapitalize="none"
           spellCheck={false}
-          placeholder="/music"
+          placeholder="/music2"
           className="font-mono"
           aria-invalid={!!errors.path}
           {...register('path')}

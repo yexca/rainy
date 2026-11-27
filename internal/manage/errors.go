@@ -13,7 +13,7 @@ import (
 // ReadonlyMessage explains how to make a library writable. It is the message of every
 // *ReadonlyError.
 const ReadonlyMessage = "The music folder is read-only for Rainy, so files cannot be changed. " +
-	"Mount the library volume read-write (for example \"/volume1/music:/music\" without \":ro\") " +
+	"Mount the library volume read-write (for example \"/volume1/music:/data\" without \":ro\") " +
 	"and make sure the container user can write it: set PUID/PGID in docker-compose.yml to the " +
 	"user and group that own the music files on the NAS."
 

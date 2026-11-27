@@ -97,6 +97,9 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   only certain artists. In the user dialog, open **Folders** next to a library
   and check folders; a checked folder includes everything below it. Subsonic
   apps show that library as the listener's music folder.
+- The **Add library** dialog, its path error, and the read-only message give
+  the image's container paths: the default library is `/data`, and another
+  library needs its own mount such as `/music2`.
 
 </details>
 
