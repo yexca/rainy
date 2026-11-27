@@ -23,7 +23,7 @@ import { BarVolume } from './volume-control'
 
 /**
  * Desktop / tablet bottom bar (the `bar` dock mode), laid out like the Apple Music web player:
- * a floating, fully rounded glass pill (56px high, at most 880px wide, 1040px from `2xl`, centred
+ * a floating, fully rounded glass pill (56px high, at most 880px wide, centred
  * over the content) with the transport on the left, the current song in the middle (artwork,
  * left-aligned title over "artist — album", the times and star over the title's end on hover, a
  * starred star and "…", the progress line underneath across the whole middle) and lyrics,
@@ -46,7 +46,7 @@ export function PlayerBar({ onMenuOpenChange }: { onMenuOpenChange?: (open: bool
     <div
       role="region"
       aria-label={t('region')}
-      className="ui-chrome glass mx-auto grid h-(--playerbar-h) w-full max-w-[880px] 2xl:max-w-[1040px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-border/60 px-4 shadow-xl shadow-black/10 lg:gap-5 dark:shadow-black/40"
+      className="ui-chrome glass mx-auto grid h-(--playerbar-h) w-full max-w-[880px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-full border border-border/60 px-4 shadow-xl shadow-black/10 lg:gap-5 dark:shadow-black/40"
     >
       <div className="flex items-center gap-0.5 lg:gap-1.5">
         {/* From `lg`: the narrower bar keeps them in full-screen Now Playing and the window. */}

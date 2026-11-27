@@ -73,7 +73,7 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   slides out when you hover the speaker. Player layout, picture-in-picture
   lyrics, and the auto-stop timer moved into a new **Player options** menu;
   while picture-in-picture lyrics or a timer is on, its highlighted button
-  stays next to the menu. On wide screens the bar grows to 1040 px.
+  stays next to the menu.
 
 </details>
 
