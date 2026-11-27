@@ -167,7 +167,7 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 ## 5. Backend contracts
 
 ### 5.1 Database
-The schema is the numbered migrations `internal/db/migrations/0001_init.sql` … `0007_user_libraries.sql`; read them,
+The schema is the numbered migrations `internal/db/migrations/0001_init.sql` … `0008_user_folders.sql`; read them,
 their column comments are part of this contract. Migrations are embedded, applied in lexical order, each in its own
 transaction, and tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`. Released migrations are immutable;
 a schema change adds the next number (see [Migrations](../development/migrations.md)).
@@ -181,6 +181,7 @@ with `/`, text columns `NOT NULL DEFAULT ''` unless NULL carries meaning.
 | `libraries` | `id` autoincrement | name, absolute root `path` (unique), `last_scan_at` |
 | `users` | `id` | `username` (unique, NOCASE), `password_enc` (AES-256-GCM, reversible for Subsonic token auth), roles, `restrict_libraries`, `api_key_hash` (unique, NULL = none) |
 | `user_libraries` | `(user_id, library_id)` | the libraries a user with `restrict_libraries = 1` may read; both sides cascade on delete |
+| `user_folders` | `(user_id, library_id, path)` | the folders (library-relative, never the root) a user with `restrict_libraries = 1` may read besides `user_libraries`: tracks whose `dir` is the folder or lies below it; both sides cascade on delete |
 | `sessions` | `token_hash` | user, user agent, ip, `expires_at` (sliding) |
 | `artists`, `albums` | hash id | aggregates refreshed from tracks (§5.4); `albums.cover_path` / `cover_track_id`, `artists.image_path` |
 | `tracks` | random id | one audio file; `UNIQUE (library_id, path)`; tag, property and sort columns, `search_text`, `missing` |
@@ -230,15 +231,21 @@ type User struct {
     ID, Username, DisplayName, Email string
     PasswordEnc string          // json:"-"
     IsAdmin, CanManage, CanDownload bool
-    RestrictLibraries bool       // only LibraryIDs are readable; never set for admins and managers
-    LibraryIDs []int64          // db:"-"; granted libraries when restricted, else []
+    RestrictLibraries bool       // only LibraryIDs and LibraryFolders are readable; never set for admins and managers
+    LibraryIDs []int64          // db:"-"; granted whole libraries when restricted, else []
+    LibraryFolders []LibraryFolder // db:"-"; granted folders when restricted, else []
     APIKeyHash *string          // json:"-"
     HasAPIKey bool              // computed
     CreatedAt, UpdatedAt, LastLoginAt, LastSeenAt int64
 }
+type LibraryFolder struct { LibraryID int64; Path string } // json: libraryId,path; Path library-relative, never ""
+func (f LibraryFolder) Contains(libraryID int64, dir string) bool // dir is f or lies below it
+func CleanFolderPath(p string) (string, bool)        // "/" separators, no surrounding slashes; false for the root, "", ".", ".." segments, control characters
 func (u *User) CanEdit() bool { return u.IsAdmin || u.CanManage }
-func (u *User) RestrictedLibraries() ([]int64, bool) // readable libraries and true, or nil and false for every library
-func (u *User) NormalizeLibraries()                // admins and managers are never restricted; the list is [] unless restricted
+func (u *User) RestrictedLibraries() ([]int64, []LibraryFolder, bool) // granted libraries and folders and true, or false for every library
+func (u *User) ReadableLibraries() []int64         // libraries reached whole or through a folder, sorted
+func (u *User) NormalizeLibraries()                // admins and managers are never restricted; grants are [] unless restricted;
+                                                   // folders cleaned, sorted, distinct, without those a granted library or folder contains
 
 type Track struct {
     ID string; LibraryID int64; Path, Dir, Filename, Suffix string; Size, Mtime int64
@@ -391,7 +398,7 @@ func New(d *db.DB) *Store
 func (s *Store) DB() *db.DB   // for package-local specialised queries elsewhere (read via R, write via W)
 
 // Users & sessions
-CreateUser(ctx, u *model.User) error; GetUser(ctx, id) (*model.User, error) // users carry their library access; an unknown granted library → ErrInvalid
+CreateUser(ctx, u *model.User) error; GetUser(ctx, id) (*model.User, error) // users carry their library access; an unknown granted library or an invalid folder → ErrInvalid
 GetUserByUsername(ctx, username) (*model.User, error); GetUserByAPIKeyHash(ctx, hash) (*model.User, error)
 ListUsers(ctx) ([]model.User, error); UpdateUser(ctx, u *model.User) error; DeleteUser(ctx, id) error // Create/UpdateUser apply NormalizeLibraries
 CountUsers(ctx) (int, error); SetUserPassword(ctx, id, passwordEnc string) error
@@ -558,18 +565,25 @@ All returned tracks/albums/artists/playlists have computed fields filled:
 `SearchResult`, `LibraryStats`, `FormatStat` and `ListeningTotals` carry the JSON tags of their §8 types and are
 returned by the API as they are.
 
-**Library scope.** `WithLibraryScope(ctx, ids []int64) context.Context` makes the library reads done with ctx see only
-those libraries (`nil` = none); `LibraryScope(ctx) (ids, restricted bool)` and `CanReadLibrary(ctx, id) bool` report it.
-`auth.WithUser` sets it for users limited to some libraries (§5.5); other contexts read every library. Within a scope:
-- Tracks of other libraries do not exist: `GetTrack` → `ErrNotFound`, `GetTracks`, `ListTracks`, `Search`,
+**Library scope.** `WithLibraryScope(ctx, ids []int64, folders ...model.LibraryFolder) context.Context` makes the
+library reads done with ctx see only the tracks of those whole libraries and of those folders and every folder below
+them (none = nothing). A folder matches a track's `dir` by path segment, so `Artist` never covers `Artist B` or
+`Artists`. `LibraryScope(ctx) (ids, restricted bool)` reports the libraries readable at least in part, and
+`CanReadLibrary(ctx, id) bool` whether one is. `auth.WithUser` sets the scope for users limited to some libraries or
+folders (§5.5); other contexts read every library. Within a scope:
+- Unreadable tracks do not exist: `GetTrack` → `ErrNotFound`, `GetTracks`, `ListTracks`, `Search`,
   `RecentlyPlayedTracks`, recommendation and similar-artist queries leave them out; `RecordPlay`, `SetStarred` and
   `SetRating` on them → `ErrNotFound`, and playlists cannot gain them.
-- An album or artist exists when one of its tracks is in a readable library. Artist `album_count` and `song_count`
-  count only those libraries' present tracks; album aggregates stay library-wide. Genres count readable tracks.
-- `ListLibraries` and `GetLibrary` return readable libraries only; playlist import matches readable libraries only.
-- Playlist entries of other libraries are hidden like entries of missing files: left out of the visible list, song
-  count and duration, kept by `SetPlaylistTracks` and `RemovePlaylistPositions`.
-- Listening reports use the play snapshot for tracks of other libraries; `ListPlays` attaches no track to them.
+- An album or artist exists when one of its tracks is readable. Artist `album_count` and `song_count` count only
+  readable present tracks; album aggregates cover every track of the album. Genres count readable tracks.
+- `ListLibraries` and `GetLibrary` return the libraries readable at least in part; playlist import matches readable
+  tracks only.
+- Unreadable playlist entries are hidden like entries of missing files: left out of the visible list, song count and
+  duration, kept by `SetPlaylistTracks` and `RemovePlaylistPositions`.
+- Listening reports use the play snapshot for unreadable tracks; `ListPlays` attaches no track to them.
+
+A folder grant follows the path, not the tracks: a file moved out of a granted folder becomes unreadable, one moved
+into it readable.
 
 Indexing lookups (`GetTrackByPath`, `TrackFileStates`, aggregate refreshes) and the scanner ignore the scope.
 `TracksFrom(ctx)`, `AlbumsFrom(ctx)` and `ArtistsFrom(ctx)` return the table as seen by ctx, for queries outside the
@@ -1235,10 +1249,12 @@ production code.
   and `changePassword` work on your own account); admins may pass `username` to `getPlaylists`; only the owner or an
   admin modifies a playlist. `download` needs download permission (admin, or `canDownload` with
   `settings.enableDownloads`).
-- Library access: a user limited to some libraries (§5.4 library scope) sees only them through every method: ids and
-  `musicFolderId` values of other libraries answer error 70 (`getCoverArt` answers its placeholder). `getUser(s)` `folder` lists
-  the readable libraries. `createUser` and `updateUser` accept repeated `musicFolderId`: naming every library grants
-  all libraries (including later ones), a subset limits the user to it. Administrators and managers read every library.
+- Library access: a user limited to some libraries or folders (§5.4 library scope) sees only them through every
+  method: ids of unreadable items and `musicFolderId` values of other libraries answer error 70 (`getCoverArt` answers
+  its placeholder). `getUser(s)` `folder` and `getMusicFolders` list the libraries readable at least in part. `createUser`
+  and `updateUser` accept repeated `musicFolderId`: naming every library grants all libraries (including later ones),
+  a subset limits the user to those whole libraries. `updateUser` with exactly the `folder` list `getUser` reports
+  keeps a user's folder grants. Administrators and managers read every library.
 - OpenSubsonic extensions advertised: `apiKeyAuthentication`, `formPost`, `indexBasedQueue`, `songLyrics`,
   `transcodeOffset`.
 - `search3` with `query=""` (or `""` quoted) returns everything, paged — required by Symfonium & co.
@@ -1504,7 +1520,7 @@ removed (never the library root).
 | Method | Path | Body | Response |
 |---|---|---|---|
 | GET | `/api/admin/users` | | `User[]` |
-| POST | `/api/admin/users` | `{username,password,displayName?,email?,isAdmin?,canManage?,canDownload?,restrictLibraries?,libraryIds?}` | 201 `User` (400 for an unknown library; admins and managers are never restricted) |
+| POST | `/api/admin/users` | `{username,password,displayName?,email?,isAdmin?,canManage?,canDownload?,restrictLibraries?,libraryIds?,libraryFolders?}` | 201 `User` (400 for an unknown library or an invalid folder; `libraryFolders` are `{libraryId, path}` with library-relative paths, browsed with `GET /api/manage/folders`; admins and managers are never restricted) |
 | PUT | `/api/admin/users/{id}` | same fields optional + `password?` | `User` (403 when removing your own admin role; a new password for another user signs them out everywhere) |
 | DELETE | `/api/admin/users/{id}` | | 204 (403 for your own account) |
 | GET | `/api/admin/libraries` | | `LibraryInfo[]` |
@@ -1569,9 +1585,10 @@ export interface ApiErrorBody { error: { code: string; message: string } }
 export interface User {
   id: string; username: string; displayName: string; email: string
   isAdmin: boolean; canManage: boolean; canDownload: boolean; hasApiKey: boolean
-  restrictLibraries: boolean; libraryIds: number[]
+  restrictLibraries: boolean; libraryIds: number[]; libraryFolders: LibraryFolder[]
   createdAt: number; updatedAt: number; lastLoginAt: number; lastSeenAt: number
 }
+export interface LibraryFolder { libraryId: number; path: string }
 export interface AuthStatus { initialized: boolean; user: User | null; version: string }
 
 export interface Track {
@@ -2026,7 +2043,7 @@ features only through the player store, types and dock and the shell slots liste
   Save sends `PATCH` and shows the new target, "Save and import" saves first. Imports toast imported / skipped / failed
   counts and prompt for untagged tracks (`promptUntagged`).
 - **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector; Upload here and an Actions menu with rescan, open in manager, and selection actions), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, content grouped into folders, audio, images, lyrics & text, and other files (group headings appear only when a folder holds more than one kind), image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`; text keyed by path and mtime; timed LRC rows in time order, one per timestamp of a stacked line, `[key:value]` header lines hidden), **Doctor** (checks with issues as count cards, healthy checks as a row of chips; the first check with issues opens by default, `?type=` picks another; its list has quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
-- **Admin**: users (table + dialog; roles: admin, manager, download; library access: all libraries, or the chosen ones for a listener, shown as a library count badge), libraries & scan (a scan panel with quick/full scan for all libraries, live progress via `/api/events`, and after a scan the file count with only the non-zero change counters, or "No changes"; cards with path, counts, writable badge, and per-library quick/full scan only when there is more than one library), server settings form, system info (versions, ffmpeg, sizes, clear cache; commit and build date only when the build has them). Page subtitles carry only counts (libraries, users).
+- **Admin**: users (table + dialog; roles: admin, manager, download; library access: all libraries, or for a listener the chosen whole libraries and the folders checked in each library's lazily loaded folder tree, shown as library and folder count badges), libraries & scan (a scan panel with quick/full scan for all libraries, live progress via `/api/events`, and after a scan the file count with only the non-zero change counters, or "No changes"; cards with path, counts, writable badge, and per-library quick/full scan only when there is more than one library), server settings form, system info (versions, ffmpeg, sizes, clear cache; commit and build date only when the build has them). Page subtitles carry only counts (libraries, users).
   The Settings tab groups General / yt-dlp / Sources / Scrobbling / System, switched by a pill control at the top of each page (`SubTabs` in `layouts/sub-tabs.tsx`, shared with Tracks → Add; the pages come from `groupedPages`). *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and
   `listenBrainzEnabled` switches (saved immediately), the Last.fm API key and write-only shared secret with a link to create an
   API account with its configured / missing status, the number of linked users under each switch, and one "Your account" card

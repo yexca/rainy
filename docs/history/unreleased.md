@@ -2,6 +2,11 @@
 
 Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 
+> [!IMPORTANT]
+> This release adds a database migration (`0008_user_folders`). Back up the
+> application-state directory (`/config`) before upgrading. Existing library
+> access is unchanged.
+
 > [!NOTE]
 > **Apple is the default style.** Browsers that never picked a style switch to
 > Apple, with **Immersive** on, after the upgrade. Pick another style or turn
@@ -87,6 +92,11 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 - Online metadata lookups in the tag editor follow redirects only over HTTPS
   on the provider's own host, at most three, so a provider redirect to plain
   HTTP is refused instead of followed.
+- A listener can be limited to folders of a library instead of whole
+  libraries, so one library can hold all your music while some people see
+  only certain artists. In the user dialog, open **Folders** next to a library
+  and check folders; a checked folder includes everything below it. Subsonic
+  apps show that library as the listener's music folder.
 
 </details>
 

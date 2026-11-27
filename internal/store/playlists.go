@@ -159,7 +159,7 @@ func (s *Store) SetPlaylistTracks(ctx context.Context, id string, trackIDs []str
 			return err
 		}
 		var old []playlistEntry
-		if err := tx.SelectContext(ctx, &old, `SELECT pt.track_id, (t.missing = 1 OR NOT `+libraryVisible(ctx, "t.library_id")+`) AS hidden
+		if err := tx.SelectContext(ctx, &old, `SELECT pt.track_id, (t.missing = 1 OR NOT `+trackVisible(ctx, "t.")+`) AS hidden
 			FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id
 			WHERE pt.playlist_id = ? ORDER BY pt.position`, id); err != nil {
 			return err

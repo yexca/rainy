@@ -215,6 +215,33 @@ func TestAdminLibraryAccess(t *testing.T) {
 	}
 }
 
+// Administrators grant folders: the user reads that folder of the library and nothing else
+// of it, and an invalid folder is rejected.
+func TestAdminFolderAccess(t *testing.T) {
+	e := newAccessEnv(t)
+	path := "/admin/users/" + e.alice.ID
+	for _, bad := range []string{"../x", "/", "a//b"} {
+		rec := e.do(http.MethodPut, path, e.adminTok, map[string]any{
+			"libraryIds": []int64{}, "libraryFolders": []map[string]any{{"libraryId": e.other.ID, "path": bad}},
+		})
+		if code := nativeErrorCode(t, rec, http.StatusBadRequest); code != "bad_request" {
+			t.Errorf("folder %q: %s", bad, code)
+		}
+	}
+	u := nativeJSON[model.User](t, e.do(http.MethodPut, path, e.adminTok, map[string]any{
+		"libraryIds": []int64{}, "libraryFolders": []map[string]any{{"libraryId": e.other.ID, "path": "/Hidden Band/"}},
+	}), http.StatusOK)
+	if want := []model.LibraryFolder{{LibraryID: e.other.ID, Path: "Hidden Band"}}; !u.RestrictLibraries ||
+		len(u.LibraryIDs) != 0 || !slices.Equal(u.LibraryFolders, want) {
+		t.Fatalf("alice = %+v", u)
+	}
+	nativeExpect(t, e.do(http.MethodGet, "/tracks/trk-secret", e.aliceTok, nil), http.StatusOK)
+	nativeExpect(t, e.do(http.MethodGet, "/albums/"+e.secretAlbum, e.aliceTok, nil), http.StatusOK)
+	for _, p := range []string{"/tracks/trk-elsewhere", "/albums/" + e.elsewhereAlbum, "/tracks/" + e.id("one")} {
+		nativeExpect(t, e.do(http.MethodGet, p, e.aliceTok, nil), http.StatusNotFound)
+	}
+}
+
 // The now-playing list a limited user receives over /events leaves out songs of other
 // libraries.
 func TestLibraryAccessNowPlayingEvents(t *testing.T) {

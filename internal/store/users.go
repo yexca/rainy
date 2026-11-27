@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/jmoiron/sqlx"
 
@@ -27,11 +26,12 @@ func (s *Store) getUser(ctx context.Context, cond string, arg any) (*model.User,
 	return &u, nil
 }
 
-// loadUserLibraries fills LibraryIDs of the restricted users among users.
+// loadUserLibraries fills LibraryIDs and LibraryFolders of the restricted users among
+// users.
 func (s *Store) loadUserLibraries(ctx context.Context, users ...*model.User) error {
 	byID := map[string]*model.User{}
 	for _, u := range users {
-		u.LibraryIDs = []int64{}
+		u.LibraryIDs, u.LibraryFolders = []int64{}, []model.LibraryFolder{}
 		if u.RestrictLibraries {
 			byID[u.ID] = u
 		}
@@ -39,35 +39,50 @@ func (s *Store) loadUserLibraries(ctx context.Context, users ...*model.User) err
 	if len(byID) == 0 {
 		return nil
 	}
-	var rows []struct {
+	cond, args := "", []any(nil)
+	if len(byID) == 1 {
+		for id := range byID {
+			cond, args = ` WHERE user_id = ?`, []any{id}
+		}
+	}
+	var libs []struct {
 		UserID    string `db:"user_id"`
 		LibraryID int64  `db:"library_id"`
 	}
-	q := `SELECT user_id, library_id FROM user_libraries ORDER BY user_id, library_id`
-	var args []any
-	if len(byID) == 1 {
-		for id := range byID {
-			q, args = `SELECT user_id, library_id FROM user_libraries WHERE user_id = ? ORDER BY library_id`, []any{id}
-		}
-	}
-	if err := s.db.R.SelectContext(ctx, &rows, q, args...); err != nil {
+	if err := s.db.R.SelectContext(ctx, &libs, `SELECT user_id, library_id FROM user_libraries`+cond+
+		` ORDER BY user_id, library_id`, args...); err != nil {
 		return fmt.Errorf("loading user libraries: %w", err)
 	}
-	for _, r := range rows {
+	for _, r := range libs {
 		if u := byID[r.UserID]; u != nil {
 			u.LibraryIDs = append(u.LibraryIDs, r.LibraryID)
+		}
+	}
+	var folders []struct {
+		UserID string `db:"user_id"`
+		model.LibraryFolder
+	}
+	if err := s.db.R.SelectContext(ctx, &folders, `SELECT user_id, library_id, path FROM user_folders`+cond+
+		` ORDER BY user_id, library_id, path`, args...); err != nil {
+		return fmt.Errorf("loading user folders: %w", err)
+	}
+	for _, r := range folders {
+		if u := byID[r.UserID]; u != nil {
+			u.LibraryFolders = append(u.LibraryFolders, r.LibraryFolder)
 		}
 	}
 	return nil
 }
 
-// saveUserLibraries replaces the granted libraries of u (after NormalizeLibraries). An
-// unknown library id yields ErrInvalid.
+// saveUserLibraries replaces the granted libraries and folders of u (after
+// NormalizeLibraries). An unknown library id or an invalid folder yields ErrInvalid.
 func saveUserLibraries(ctx context.Context, tx *sqlx.Tx, u *model.User) error {
-	if _, err := tx.ExecContext(ctx, `DELETE FROM user_libraries WHERE user_id = ?`, u.ID); err != nil {
-		return err
+	for _, table := range []string{"user_libraries", "user_folders"} {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE user_id = ?`, u.ID); err != nil {
+			return err
+		}
 	}
-	for _, id := range u.LibraryIDs {
+	known := func(id int64) error {
 		var n int
 		if err := tx.GetContext(ctx, &n, `SELECT COUNT(*) FROM libraries WHERE id = ?`, id); err != nil {
 			return err
@@ -75,7 +90,25 @@ func saveUserLibraries(ctx context.Context, tx *sqlx.Tx, u *model.User) error {
 		if n == 0 {
 			return fmt.Errorf("%w: unknown library %d", ErrInvalid, id)
 		}
+		return nil
+	}
+	for _, id := range u.LibraryIDs {
+		if err := known(id); err != nil {
+			return err
+		}
 		if _, err := tx.ExecContext(ctx, `INSERT INTO user_libraries (user_id, library_id) VALUES (?, ?)`, u.ID, id); err != nil {
+			return err
+		}
+	}
+	for _, f := range u.LibraryFolders {
+		if p, ok := model.CleanFolderPath(f.Path); !ok || p != f.Path {
+			return fmt.Errorf("%w: invalid folder", ErrInvalid)
+		}
+		if err := known(f.LibraryID); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO user_folders (user_id, library_id, path) VALUES (?, ?, ?)`,
+			u.ID, f.LibraryID, f.Path); err != nil {
 			return err
 		}
 	}
@@ -84,7 +117,7 @@ func saveUserLibraries(ctx context.Context, tx *sqlx.Tx, u *model.User) error {
 
 // CreateUser inserts u with its library access. ID (NewID) and timestamps are set when
 // empty. A duplicate username (case-insensitive) yields ErrConflict, an unknown granted
-// library ErrInvalid.
+// library or an invalid folder ErrInvalid.
 func (s *Store) CreateUser(ctx context.Context, u *model.User) error {
 	if u.ID == "" {
 		u.ID = util.NewID()
@@ -94,7 +127,7 @@ func (s *Store) CreateUser(ctx context.Context, u *model.User) error {
 		u.CreatedAt = now
 	}
 	u.UpdatedAt = now
-	u.LibraryIDs = normalizedLibraryIDs(u)
+	u.NormalizeLibraries()
 	err := s.db.Tx(ctx, func(tx *sqlx.Tx) error {
 		if _, err := tx.ExecContext(ctx, `INSERT INTO users (`+userCols+`)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -109,15 +142,6 @@ func (s *Store) CreateUser(ctx context.Context, u *model.User) error {
 	}
 	u.Fill()
 	return nil
-}
-
-// normalizedLibraryIDs applies NormalizeLibraries to u and returns its sorted, distinct
-// library ids.
-func normalizedLibraryIDs(u *model.User) []int64 {
-	u.NormalizeLibraries()
-	ids := slices.Clone(u.LibraryIDs)
-	slices.Sort(ids)
-	return slices.Compact(ids)
 }
 
 // GetUser returns a user by id.
@@ -159,10 +183,10 @@ func (s *Store) ListUsers(ctx context.Context) ([]model.User, error) {
 
 // UpdateUser saves username, display name, email, the permission flags and the library
 // access of u (not the password, API key or login timestamps). An unknown granted library
-// yields ErrInvalid.
+// or an invalid folder yields ErrInvalid.
 func (s *Store) UpdateUser(ctx context.Context, u *model.User) error {
 	u.UpdatedAt = util.NowMs()
-	u.LibraryIDs = normalizedLibraryIDs(u)
+	u.NormalizeLibraries()
 	err := s.db.Tx(ctx, func(tx *sqlx.Tx) error {
 		res, err := tx.ExecContext(ctx, `UPDATE users SET username = ?, display_name = ?, email = ?,
 			is_admin = ?, can_manage = ?, can_download = ?, restrict_libraries = ?, updated_at = ? WHERE id = ?`,

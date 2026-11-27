@@ -36,7 +36,16 @@
       "all": "全部音乐库",
       "allDescription": "包括以后添加的音乐库。",
       "allForced": "管理员和曲库管理员可以看到所有音乐库。",
-      "none": "还没有音乐库。"
+      "none": "还没有音乐库。",
+      "chooseFolders": "文件夹",
+      "folderCount_one": "{{count}} 个文件夹",
+      "folderCount_other": "{{count}} 个文件夹",
+      "folders": "{{name}} 的文件夹",
+      "expand": "展开 {{name}} 的子文件夹",
+      "collapse": "收起 {{name}} 的子文件夹",
+      "removeFolder": "移除 {{name}}",
+      "noFolders": "这个音乐库里没有文件夹。",
+      "foldersError": "无法加载文件夹。"
     },
     "fields": {
       "user": "用户",
@@ -55,7 +64,7 @@
       "usernameTaken": "这个用户名已被使用。",
       "emailInvalid": "请输入有效的邮箱地址。",
       "passwordMin": "至少 {{min}} 个字符。",
-      "libraryRequired": "请至少选择一个音乐库。"
+      "libraryRequired": "请至少选择一个音乐库或文件夹。"
     }
   },
   "libraries": {

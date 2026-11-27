@@ -28,9 +28,9 @@ func TestOpenMigrate(t *testing.T) {
 		t.Fatalf("second migrate: %v", err)
 	}
 	v, err := d.Versions(ctx)
-	if err != nil || len(v) != 7 || v[0] != "0001_init" || v[1] != "0002_play_queue_index" || v[2] != "0003_lx_sources" ||
+	if err != nil || len(v) != 8 || v[0] != "0001_init" || v[1] != "0002_play_queue_index" || v[2] != "0003_lx_sources" ||
 		v[3] != "0004_listening" || v[4] != "0005_daily_mixes" || v[5] != "0006_weekly_mixes" ||
-		v[6] != "0007_user_libraries" {
+		v[6] != "0007_user_libraries" || v[7] != "0008_user_folders" {
 		t.Fatalf("versions = %v, %v", v, err)
 	}
 	var mode string
@@ -131,14 +131,14 @@ func TestListeningMigrationBackfill(t *testing.T) {
 	d := dbtest.New(t)
 	// Turn the migrated database back into a 0003 one.
 	for _, stmt := range []string{
-		`DROP TABLE user_libraries`, `ALTER TABLE users DROP COLUMN restrict_libraries`,
+		`DROP TABLE user_folders`, `DROP TABLE user_libraries`, `ALTER TABLE users DROP COLUMN restrict_libraries`,
 		`DROP TABLE weekly_mixes`, `DROP TABLE daily_mixes`,
 		`DROP TABLE scrobble_queue`, `DROP TABLE scrobble_accounts`, `DROP INDEX idx_play_history_user_track`,
 		`ALTER TABLE play_history DROP COLUMN title`, `ALTER TABLE play_history DROP COLUMN artist`,
 		`ALTER TABLE play_history DROP COLUMN album`, `ALTER TABLE play_history DROP COLUMN album_artist`,
 		`ALTER TABLE play_history DROP COLUMN artist_id`, `ALTER TABLE play_history DROP COLUMN album_id`,
 		`ALTER TABLE play_history DROP COLUMN duration`,
-		`DELETE FROM schema_migrations WHERE version IN ('0004_listening', '0005_daily_mixes', '0006_weekly_mixes', '0007_user_libraries')`,
+		`DELETE FROM schema_migrations WHERE version IN ('0004_listening', '0005_daily_mixes', '0006_weekly_mixes', '0007_user_libraries', '0008_user_folders')`,
 		`INSERT INTO libraries (id, name, path, created_at, updated_at) VALUES (1, 'Music', '/path/to/music', 1, 1)`,
 		`INSERT INTO users (id, username, password_enc, created_at, updated_at) VALUES ('u', 'u', 'x', 1, 1)`,
 		`INSERT INTO tracks (id, library_id, path, dir, filename, suffix, size, mtime, title, album, artist, album_artist,

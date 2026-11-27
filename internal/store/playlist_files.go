@@ -63,7 +63,7 @@ func (s *Store) PreviewPlaylistImport(ctx context.Context, text, baseDir string,
 	}
 	matches := map[string]match{}
 	for _, batch := range chunks(dedupe(paths)) {
-		query := "SELECT path, MIN(id) AS id, COUNT(*) AS count FROM tracks WHERE missing = 0" + andLibrary(ctx, "library_id") + " AND path IN (" + placeholders(len(batch)) + ")"
+		query := "SELECT path, MIN(id) AS id, COUNT(*) AS count FROM tracks WHERE missing = 0" + andTrack(ctx, "") + " AND path IN (" + placeholders(len(batch)) + ")"
 		args := anys(batch)
 		if libraryID != 0 {
 			query += " AND library_id = ?"
@@ -79,7 +79,7 @@ func (s *Store) PreviewPlaylistImport(ctx context.Context, text, baseDir string,
 	}
 	hintPaths := map[string]string{}
 	for _, batch := range chunks(dedupe(hints)) {
-		query := "SELECT id, path FROM tracks WHERE missing = 0" + andLibrary(ctx, "library_id") + " AND id IN (" + placeholders(len(batch)) + ")"
+		query := "SELECT id, path FROM tracks WHERE missing = 0" + andTrack(ctx, "") + " AND id IN (" + placeholders(len(batch)) + ")"
 		args := anys(batch)
 		if libraryID != 0 {
 			query += " AND library_id = ?"

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"testing"
+
+	"rainy/internal/model"
 )
 
 // folderIDsOf returns the numeric folder ids of a decoded JSON array.
@@ -85,5 +87,38 @@ func TestLibraryAccessSubsonic(t *testing.T) {
 	f.ok("getSong", alice, "id", "track4")
 	if u, err := f.app.Store.GetUser(t.Context(), f.alice.ID); err != nil || u.RestrictLibraries {
 		t.Errorf("alice after naming every folder: %+v, %v", u, err)
+	}
+}
+
+// A folder grant reports its library as a music folder; updateUser with the folders getUser
+// reports keeps the grant, and another list replaces it with whole libraries.
+func TestLibraryFolderAccessSubsonic(t *testing.T) {
+	f := newFixture(t)
+	u, err := f.app.Store.GetUser(t.Context(), f.alice.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	u.RestrictLibraries, u.LibraryIDs = true, nil
+	u.LibraryFolders = []model.LibraryFolder{{LibraryID: f.lib2, Path: "Static Noise"}}
+	if err := f.app.Store.UpdateUser(t.Context(), u); err != nil {
+		t.Fatal(err)
+	}
+	alice := f.aliceParams()
+	if got := folderIDsOf(t, jpath(t, f.ok("getUser", alice, "username", "alice"), "user", "folder")); !slices.Equal(got, []int64{f.lib2}) {
+		t.Errorf("getUser folders = %v", got)
+	}
+	f.ok("getSong", alice, "id", "track4")
+	if code := f.failCode("getSong", alice, "id", "track1"); code != codeNotFound {
+		t.Errorf("track of the other library: code %d", code)
+	}
+
+	f.ok("updateUser", f.adminParams(), "username", "alice", "musicFolderId", fmt.Sprint(f.lib2), "email", "alice@example.com")
+	if u, err = f.app.Store.GetUser(t.Context(), f.alice.ID); err != nil || len(u.LibraryFolders) != 1 || len(u.LibraryIDs) != 0 {
+		t.Errorf("alice after an unchanged list = %+v, %v", u, err)
+	}
+	f.ok("updateUser", f.adminParams(), "username", "alice", "musicFolderId", fmt.Sprint(f.lib1))
+	if u, err = f.app.Store.GetUser(t.Context(), f.alice.ID); err != nil || len(u.LibraryFolders) != 0 ||
+		!slices.Equal(u.LibraryIDs, []int64{f.lib1}) {
+		t.Errorf("alice after another list = %+v, %v", u, err)
 	}
 }

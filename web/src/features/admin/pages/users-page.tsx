@@ -227,7 +227,9 @@ function RoleBadges({ user }: { user: User }) {
   if (roles.length === 0) roles.push(t('roles.listener'))
   // Administrators and managers always see every library.
   if (user.restrictLibraries && !user.isAdmin && !user.canManage) {
-    roles.push(t('libraries.count', { count: user.libraryIds.length }))
+    const folders = user.libraryFolders.length
+    if (user.libraryIds.length || !folders) roles.push(t('libraries.count', { count: user.libraryIds.length }))
+    if (folders) roles.push(t('users.access.folderCount', { count: folders }))
   }
   return (
     <span className="flex flex-wrap gap-1">

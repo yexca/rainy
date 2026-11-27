@@ -36,7 +36,16 @@
       "all": "All libraries",
       "allDescription": "Includes libraries added later.",
       "allForced": "Administrators and library managers see every library.",
-      "none": "No libraries yet."
+      "none": "No libraries yet.",
+      "chooseFolders": "Folders",
+      "folderCount_one": "{{count}} folder",
+      "folderCount_other": "{{count}} folders",
+      "folders": "Folders of {{name}}",
+      "expand": "Show folders in {{name}}",
+      "collapse": "Hide folders in {{name}}",
+      "removeFolder": "Remove {{name}}",
+      "noFolders": "This library has no folders.",
+      "foldersError": "Couldn't load the folders."
     },
     "fields": {
       "user": "User",
@@ -55,7 +64,7 @@
       "usernameTaken": "This username is already taken.",
       "emailInvalid": "Enter a valid email address.",
       "passwordMin": "Use at least {{min}} characters.",
-      "libraryRequired": "Choose at least one library."
+      "libraryRequired": "Choose at least one library or folder."
     }
   },
   "libraries": {

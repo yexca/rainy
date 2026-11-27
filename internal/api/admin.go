@@ -70,15 +70,16 @@ func (a *API) routesAdmin(r chi.Router) {
 // ---- users
 
 type userBody struct {
-	Username          *string  `json:"username"`
-	Password          *string  `json:"password"`
-	DisplayName       *string  `json:"displayName"`
-	Email             *string  `json:"email"`
-	IsAdmin           *bool    `json:"isAdmin"`
-	CanManage         *bool    `json:"canManage"`
-	CanDownload       *bool    `json:"canDownload"`
-	RestrictLibraries *bool    `json:"restrictLibraries"`
-	LibraryIDs        *[]int64 `json:"libraryIds"`
+	Username          *string                `json:"username"`
+	Password          *string                `json:"password"`
+	DisplayName       *string                `json:"displayName"`
+	Email             *string                `json:"email"`
+	IsAdmin           *bool                  `json:"isAdmin"`
+	CanManage         *bool                  `json:"canManage"`
+	CanDownload       *bool                  `json:"canDownload"`
+	RestrictLibraries *bool                  `json:"restrictLibraries"`
+	LibraryIDs        *[]int64               `json:"libraryIds"`
+	LibraryFolders    *[]model.LibraryFolder `json:"libraryFolders"`
 }
 
 const maxProfileField = 200
@@ -122,6 +123,17 @@ func (b *userBody) applyProfile(u *model.User) error {
 			return badRequest("at most %d libraries", maxIDsPerRequest)
 		}
 		u.LibraryIDs = append([]int64{}, *b.LibraryIDs...)
+	}
+	if b.LibraryFolders != nil {
+		if len(*b.LibraryFolders) > maxIDsPerRequest {
+			return badRequest("at most %d folders", maxIDsPerRequest)
+		}
+		for _, f := range *b.LibraryFolders {
+			if _, ok := model.CleanFolderPath(f.Path); !ok {
+				return badRequest("invalid folder")
+			}
+		}
+		u.LibraryFolders = append([]model.LibraryFolder{}, *b.LibraryFolders...)
 	}
 	return nil
 }

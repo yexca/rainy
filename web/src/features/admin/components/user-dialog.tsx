@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Trash2 } from 'lucide-react'
-import { Controller, useForm, useWatch, type Control } from 'react-hook-form'
+import { ChevronDown, KeyRound, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
+import { Controller, useController, useForm, useWatch, type Control } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -18,8 +19,11 @@ import { Switch } from '@/components/ui/switch'
 import { adminKeys, librariesQuery } from '@/lib/admin-queries'
 import { isApiError } from '@/lib/api/client'
 import { api, type CreateUserInput } from '@/lib/api/endpoints'
-import type { User } from '@/lib/api/types'
+import type { LibraryFolder, LibraryInfo, User } from '@/lib/api/types'
 import { errorMessage } from '@/lib/errors'
+import { cn } from '@/lib/utils'
+
+import { FolderGrantPicker } from './folder-grant-picker'
 
 export const PASSWORD_MIN = 4
 const USERNAME_MAX = 64
@@ -40,8 +44,14 @@ const schema = z.object({
   canDownload: z.boolean(),
   restrictLibraries: z.boolean(),
   libraryIds: z.array(z.number()),
+  libraryFolders: z.array(z.object({ libraryId: z.number(), path: z.string() })),
 })
 type Values = z.infer<typeof schema>
+
+/** The folder grants that still matter: those of libraries not granted whole. */
+function effectiveFolders(values: Pick<Values, 'libraryIds' | 'libraryFolders'>): LibraryFolder[] {
+  return values.libraryFolders.filter((f) => !values.libraryIds.includes(f.libraryId))
+}
 
 export interface UserDialogProps {
   open: boolean
@@ -111,6 +121,7 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
       canDownload: user?.canDownload ?? true,
       restrictLibraries: user?.restrictLibraries ?? false,
       libraryIds: user?.libraryIds ?? [],
+      libraryFolders: user?.libraryFolders ?? [],
     },
   })
   const isAdmin = useWatch({ control, name: 'isAdmin' })
@@ -120,6 +131,7 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
 
   const save = useMutation({
     mutationFn: (values: Values) => {
+      const restricted = values.restrictLibraries && !values.isAdmin && !values.canManage
       const body: CreateUserInput = {
         username: values.username,
         password: values.password,
@@ -128,8 +140,9 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
         isAdmin: values.isAdmin,
         canManage: values.canManage || values.isAdmin,
         canDownload: values.canDownload || values.isAdmin,
-        restrictLibraries: values.restrictLibraries && !values.isAdmin && !values.canManage,
-        libraryIds: values.restrictLibraries && !values.isAdmin && !values.canManage ? values.libraryIds : [],
+        restrictLibraries: restricted,
+        libraryIds: restricted ? values.libraryIds : [],
+        libraryFolders: restricted ? effectiveFolders(values) : [],
       }
       if (user) {
         // Editing never changes the password; that is a separate action.
@@ -154,7 +167,13 @@ function UserForm({ user, currentUserId, onClose, onResetPassword, onDelete }: U
   const message = (key: string | undefined) => (key ? t(key, { min: PASSWORD_MIN, max: USERNAME_MAX }) : undefined)
 
   const submit = (values: Values) => {
-    if (values.restrictLibraries && !values.isAdmin && !values.canManage && values.libraryIds.length === 0) {
+    if (
+      values.restrictLibraries &&
+      !values.isAdmin &&
+      !values.canManage &&
+      values.libraryIds.length === 0 &&
+      effectiveFolders(values).length === 0
+    ) {
       setError('libraryIds', { message: 'users.validation.libraryRequired' })
       return
     }
@@ -320,48 +339,95 @@ function LibraryAccess({ control, seesAll, error }: { control: Control<Values>; 
         )}
       />
       {!seesAll && restrict ? (
-        <Controller
-          name="libraryIds"
-          control={control}
-          render={({ field }) => (
-            <div role="group" aria-label={t('users.access.legend')} className="grid gap-0.5 border-t pt-1">
-              {libraries.isPending ? (
-                <div className="flex min-h-11 items-center px-3">
-                  <Spinner size="sm" />
-                </div>
-              ) : libraries.data?.length ? (
-                libraries.data.map((lib) => {
-                  const id = `user-library-${lib.id}`
-                  return (
-                    <Label
-                      key={lib.id}
-                      htmlFor={id}
-                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 font-normal hover:bg-accent/40"
-                    >
-                      <Checkbox
-                        id={id}
-                        checked={field.value.includes(lib.id)}
-                        aria-invalid={!!error}
-                        onCheckedChange={(on) =>
-                          field.onChange(on === true ? [...field.value, lib.id] : field.value.filter((v) => v !== lib.id))
-                        }
-                      />
-                      <span className="min-w-0 flex-1 truncate text-sm">{lib.name}</span>
-                    </Label>
-                  )
-                })
-              ) : (
-                <p className="px-3 py-2 text-sm text-muted-foreground">{t('users.access.none')}</p>
-              )}
-              {error ? (
-                <p role="alert" className="px-3 pb-1 text-xs text-destructive">
-                  {error}
-                </p>
-              ) : null}
+        <div role="group" aria-label={t('users.access.legend')} className="grid gap-0.5 border-t pt-1">
+          {libraries.isPending ? (
+            <div className="flex min-h-11 items-center px-3">
+              <Spinner size="sm" />
             </div>
+          ) : libraries.data?.length ? (
+            libraries.data.map((lib) => <LibraryGrant key={lib.id} control={control} library={lib} invalid={!!error} />)
+          ) : (
+            <p className="px-3 py-2 text-sm text-muted-foreground">{t('users.access.none')}</p>
           )}
-        />
+          {error ? (
+            <p role="alert" className="px-3 pb-1 text-xs text-destructive">
+              {error}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </fieldset>
+  )
+}
+
+/** One library: granted whole, or only the folders picked from its tree. */
+function LibraryGrant({ control, library, invalid }: { control: Control<Values>; library: LibraryInfo; invalid: boolean }) {
+  const { t } = useTranslation('admin')
+  const ids = useController({ control, name: 'libraryIds' }).field
+  const folders = useController({ control, name: 'libraryFolders' }).field
+  const whole = ids.value.includes(library.id)
+  const paths = folders.value.filter((f) => f.libraryId === library.id).map((f) => f.path)
+  const [open, setOpen] = useState(false)
+  const setPaths = (next: string[]) =>
+    folders.onChange([
+      ...folders.value.filter((f) => f.libraryId !== library.id),
+      ...next.map((path) => ({ libraryId: library.id, path })),
+    ])
+  const id = `user-library-${library.id}`
+  return (
+    <div className="grid">
+      <div className="flex items-center gap-1 rounded-lg pe-1 hover:bg-accent/40">
+        <Label htmlFor={id} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 py-2 font-normal">
+          <Checkbox
+            id={id}
+            checked={whole}
+            aria-invalid={invalid}
+            onCheckedChange={(on) =>
+              ids.onChange(on === true ? [...ids.value, library.id] : ids.value.filter((v) => v !== library.id))
+            }
+          />
+          <span className="min-w-0 flex-1 truncate text-sm">{library.name}</span>
+        </Label>
+        {whole ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-11 shrink-0 text-muted-foreground"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {paths.length ? t('users.access.folderCount', { count: paths.length }) : t('users.access.chooseFolders')}
+            <ChevronDown className={cn('transition-transform', open && 'rotate-180')} />
+          </Button>
+        )}
+      </div>
+      {!whole && paths.length && !open ? (
+        <ul className="flex flex-wrap gap-1 px-3 pb-2 ps-10" aria-label={t('users.access.folders', { name: library.name })}>
+          {paths.map((path) => (
+            <li key={path} className="flex max-w-full items-center rounded-md bg-secondary ps-2 text-xs">
+              <span className="min-w-0 truncate" title={path}>
+                {path}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="shrink-0"
+                aria-label={t('users.access.removeFolder', { name: path })}
+                onClick={() => setPaths(paths.filter((p) => p !== path))}
+              >
+                <X />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {!whole && open ? (
+        <div className="ms-3 border-s ps-1">
+          <FolderGrantPicker libraryId={library.id} libraryName={library.name} value={paths} onChange={setPaths} />
+        </div>
+      ) : null}
+    </div>
   )
 }

@@ -42,18 +42,20 @@ func (a *API) folderIDs(ctx context.Context) ([]int64, error) {
 	return ids, nil
 }
 
-// userFolders lists the libraries u may read: its granted libraries when restricted, else
-// every library.
+// userFolders lists the libraries u may read: the libraries its grants reach (whole or
+// through a folder) when restricted, else every library.
 func (a *API) userFolders(ctx context.Context, u *model.User) ([]int64, error) {
-	if ids, restricted := u.RestrictedLibraries(); restricted {
-		return append([]int64{}, ids...), nil
+	if _, _, restricted := u.RestrictedLibraries(); restricted {
+		return u.ReadableLibraries(), nil
 	}
 	return a.folderIDs(ctx)
 }
 
 // applyFolders sets the library access from repeated musicFolderId parameters when present.
 // Subsonic has no "every library" setting, so a list naming every library grants all
-// libraries, including later ones.
+// libraries, including later ones. Subsonic cannot express folder grants either: a list
+// equal to the one getUser reports keeps the access unchanged, and any other list replaces
+// it with those whole libraries.
 func (a *API) applyFolders(q *request, u *model.User) error {
 	var ids []int64
 	for _, v := range q.strs("musicFolderId") {
@@ -66,11 +68,17 @@ func (a *API) applyFolders(q *request, u *model.User) error {
 	if len(ids) == 0 {
 		return nil
 	}
+	slices.Sort(ids)
+	ids = slices.Compact(ids)
+	if _, folders, restricted := u.RestrictedLibraries(); restricted && len(folders) > 0 &&
+		slices.Equal(ids, u.ReadableLibraries()) {
+		return nil
+	}
 	all, err := a.folderIDs(q.ctx)
 	if err != nil {
 		return err
 	}
-	u.RestrictLibraries, u.LibraryIDs = false, nil
+	u.RestrictLibraries, u.LibraryIDs, u.LibraryFolders = false, nil, nil
 	for _, id := range all {
 		if !slices.Contains(ids, id) {
 			u.RestrictLibraries, u.LibraryIDs = true, ids

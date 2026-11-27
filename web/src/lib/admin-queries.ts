@@ -10,6 +10,8 @@ export const adminKeys = {
   all: ['admin'] as const,
   users: ['admin', 'users'] as const,
   libraries: ['admin', 'libraries'] as const,
+  /** Folder listings for library access, followed by the library id and folder. */
+  libraryFolders: ['admin', 'library-folders'] as const,
   scan: ['admin', 'scan'] as const,
   settings: ['admin', 'settings'] as const,
   stats: ['admin', 'stats'] as const,

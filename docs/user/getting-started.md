@@ -54,9 +54,12 @@ the roles:
 - **Library manager** only to people you trust with your music files.
 - **Administrator** only to people who should manage the server itself.
 
-With more than one library you can also limit a listener to some of them: turn
-off **All libraries** in their user dialog and choose the libraries they may
-see. Administrators and library managers always see every library.
+You can also limit a listener to part of your music: turn off **All
+libraries** in their user dialog, then check whole libraries, or open
+**Folders** next to a library and check the folders they may see, such as one
+folder per artist. A checked folder includes every folder below it. Files moved
+out of a checked folder disappear for that listener. Administrators and library
+managers always see every library.
 
 ## 5. Add More Libraries (Optional)
 

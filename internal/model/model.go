@@ -10,9 +10,13 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
+	"slices"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 // Library is a music folder root.
@@ -36,39 +40,119 @@ type User struct {
 	IsAdmin     bool   `db:"is_admin" json:"isAdmin"`
 	CanManage   bool   `db:"can_manage" json:"canManage"`
 	CanDownload bool   `db:"can_download" json:"canDownload"`
-	// RestrictLibraries limits the user to LibraryIDs; otherwise every library is readable,
-	// including ones added later. Administrators and managers always read every library.
-	RestrictLibraries bool    `db:"restrict_libraries" json:"restrictLibraries"`
-	LibraryIDs        []int64 `db:"-" json:"libraryIds"` // granted libraries when restricted, else empty
-	APIKeyHash        *string `db:"api_key_hash" json:"-"`
-	HasAPIKey         bool    `db:"-" json:"hasApiKey"` // computed
-	CreatedAt         int64   `db:"created_at" json:"createdAt"`
-	UpdatedAt         int64   `db:"updated_at" json:"updatedAt"`
-	LastLoginAt       int64   `db:"last_login_at" json:"lastLoginAt"`
-	LastSeenAt        int64   `db:"last_seen_at" json:"lastSeenAt"`
+	// RestrictLibraries limits the user to LibraryIDs and LibraryFolders; otherwise every
+	// library is readable, including ones added later. Administrators and managers always
+	// read every library.
+	RestrictLibraries bool            `db:"restrict_libraries" json:"restrictLibraries"`
+	LibraryIDs        []int64         `db:"-" json:"libraryIds"`     // granted libraries when restricted, else empty
+	LibraryFolders    []LibraryFolder `db:"-" json:"libraryFolders"` // granted folders when restricted, else empty
+	APIKeyHash        *string         `db:"api_key_hash" json:"-"`
+	HasAPIKey         bool            `db:"-" json:"hasApiKey"` // computed
+	CreatedAt         int64           `db:"created_at" json:"createdAt"`
+	UpdatedAt         int64           `db:"updated_at" json:"updatedAt"`
+	LastLoginAt       int64           `db:"last_login_at" json:"lastLoginAt"`
+	LastSeenAt        int64           `db:"last_seen_at" json:"lastSeenAt"`
+}
+
+// LibraryFolder is a folder of a library granted to a restricted user: the tracks in it and
+// in every folder below it are readable. Path is library-relative with "/" and never "".
+type LibraryFolder struct {
+	LibraryID int64  `db:"library_id" json:"libraryId"`
+	Path      string `db:"path" json:"path"`
 }
 
 // CanEdit reports whether the user may modify library files (tags, covers, rename, …).
 func (u *User) CanEdit() bool { return u != nil && (u.IsAdmin || u.CanManage) }
 
-// RestrictedLibraries returns the libraries the user may read and true, or nil and false
-// when the user reads every library (administrators, managers and unrestricted users).
-func (u *User) RestrictedLibraries() ([]int64, bool) {
+// RestrictedLibraries returns the whole libraries and the folders the user may read and
+// true, or nil, nil and false when the user reads every library (administrators, managers
+// and unrestricted users).
+func (u *User) RestrictedLibraries() ([]int64, []LibraryFolder, bool) {
 	if u == nil || u.CanEdit() || !u.RestrictLibraries {
-		return nil, false
+		return nil, nil, false
 	}
-	return u.LibraryIDs, true
+	return u.LibraryIDs, u.LibraryFolders, true
 }
 
-// NormalizeLibraries makes the stored access match the effective one: administrators
-// and managers are never restricted, and only a restricted user keeps a library list.
+// ReadableLibraries returns the sorted ids of the libraries the user's grants reach at
+// least in part: its whole libraries and the libraries of its folders.
+func (u *User) ReadableLibraries() []int64 {
+	ids := slices.Clone(u.LibraryIDs)
+	for _, f := range u.LibraryFolders {
+		ids = append(ids, f.LibraryID)
+	}
+	slices.Sort(ids)
+	return slices.Compact(ids)
+}
+
+// NormalizeLibraries makes the stored access match the effective one: administrators and
+// managers are never restricted, and only a restricted user keeps grants. Library ids end
+// up sorted and distinct. Folders are cleaned with CleanFolderPath (an invalid one is kept
+// for the store to reject), sorted, made distinct, and dropped when a granted library or
+// another granted folder already contains them.
 func (u *User) NormalizeLibraries() {
 	if u.CanEdit() {
 		u.RestrictLibraries = false
 	}
-	if !u.RestrictLibraries || u.LibraryIDs == nil {
+	if !u.RestrictLibraries {
+		u.LibraryIDs, u.LibraryFolders = []int64{}, []LibraryFolder{}
+		return
+	}
+	ids := slices.Clone(u.LibraryIDs)
+	slices.Sort(ids)
+	u.LibraryIDs = slices.Compact(ids)
+	if u.LibraryIDs == nil {
 		u.LibraryIDs = []int64{}
 	}
+	folders := make([]LibraryFolder, 0, len(u.LibraryFolders))
+	for _, f := range u.LibraryFolders {
+		if p, ok := CleanFolderPath(f.Path); ok {
+			f.Path = p
+		}
+		folders = append(folders, f)
+	}
+	slices.SortFunc(folders, func(a, b LibraryFolder) int {
+		return cmp.Or(cmp.Compare(a.LibraryID, b.LibraryID), strings.Compare(a.Path, b.Path))
+	})
+	kept := folders[:0]
+	for _, f := range folders {
+		if slices.Contains(u.LibraryIDs, f.LibraryID) {
+			continue
+		}
+		// A folder sorts before what it contains, but siblings such as "a b" may sort in
+		// between ("a" < "a b" < "a/x"), so compare with every kept folder.
+		if slices.ContainsFunc(kept, func(k LibraryFolder) bool { return k.Contains(f.LibraryID, f.Path) }) {
+			continue
+		}
+		kept = append(kept, f)
+	}
+	u.LibraryFolders = kept
+}
+
+// Contains reports whether the library-relative dir of library libraryID is f or lies
+// below it.
+func (f LibraryFolder) Contains(libraryID int64, dir string) bool {
+	return f.LibraryID == libraryID && (dir == f.Path || strings.HasPrefix(dir, f.Path+"/"))
+}
+
+// maxFolderPath bounds a granted folder path (bytes).
+const maxFolderPath = 1024
+
+// CleanFolderPath returns the library-relative folder p with "/" separators and without
+// surrounding spaces or slashes, and whether it is a valid granted folder: not the library
+// root, at most maxFolderPath bytes, and without empty, "." or ".." segments or control
+// characters.
+func CleanFolderPath(p string) (string, bool) {
+	p = strings.Trim(strings.ReplaceAll(strings.TrimSpace(p), `\`, "/"), "/")
+	if p == "" || len(p) > maxFolderPath || !utf8.ValidString(p) {
+		return p, false
+	}
+	for _, seg := range strings.Split(p, "/") {
+		if seg == "" || seg == "." || seg == ".." || strings.ContainsFunc(seg, unicode.IsControl) {
+			return p, false
+		}
+	}
+	return p, true
 }
 
 // Fill computes derived fields.
@@ -76,6 +160,9 @@ func (u *User) Fill() {
 	u.HasAPIKey = u.APIKeyHash != nil && *u.APIKeyHash != ""
 	if u.LibraryIDs == nil {
 		u.LibraryIDs = []int64{}
+	}
+	if u.LibraryFolders == nil {
+		u.LibraryFolders = []LibraryFolder{}
 	}
 }
 

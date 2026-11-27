@@ -31,6 +31,7 @@ import type {
   Home,
   Issue,
   IssueType,
+  LibraryFolder,
   LibraryInfo,
   LibraryStats,
   ListeningReport,
@@ -275,9 +276,10 @@ export interface CreateUserInput {
   isAdmin?: boolean
   canManage?: boolean
   canDownload?: boolean
-  /** Limit a listener to `libraryIds`; administrators and managers always see every library. */
+  /** Limit a listener to `libraryIds` and `libraryFolders`; administrators and managers always see every library. */
   restrictLibraries?: boolean
   libraryIds?: number[]
+  libraryFolders?: LibraryFolder[]
 }
 export type UpdateUserInput = Partial<CreateUserInput>
 export interface LibraryInput { name: string; path: string }

@@ -9,9 +9,11 @@ export interface ApiErrorBody { error: { code: string; message: string } }
 export interface User {
   id: string; username: string; displayName: string; email: string
   isAdmin: boolean; canManage: boolean; canDownload: boolean; hasApiKey: boolean
-  restrictLibraries: boolean; libraryIds: number[]
+  restrictLibraries: boolean; libraryIds: number[]; libraryFolders: LibraryFolder[]
   createdAt: number; updatedAt: number; lastLoginAt: number; lastSeenAt: number
 }
+/** A folder of a library granted to a restricted user; `path` is library-relative (never the root). */
+export interface LibraryFolder { libraryId: number; path: string }
 export interface AuthStatus { initialized: boolean; user: User | null; version: string }
 
 export interface Track {
