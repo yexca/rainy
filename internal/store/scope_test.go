@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -218,5 +219,55 @@ func TestLibraryFolderScopeReads(t *testing.T) {
 	if ts, n, err := s.ListTracks(mixed, store.TrackQuery{Sort: "title"}); err != nil || n != 2 ||
 		ts[0].Title != "Deeper" || ts[1].Title != "Elsewhere" {
 		t.Errorf("mixed = %d %+v, %v", n, ts, err)
+	}
+}
+
+// A listener may hold as many folders as the admin API accepts (1000): every scoped read
+// still works and still sees only the granted folders.
+func TestLibraryFolderScopeManyFolders(t *testing.T) {
+	s := newStore(t)
+	a := newLibrary(t, s, "/path/to/a")
+	upsert(t, s, a.ID,
+		trk{path: "F0500/1.mp3", title: "Granted", artist: "In", album: "Kept"},
+		trk{path: "Other/1.mp3", title: "Hidden", artist: "Out", album: "Away"},
+	)
+	folders := make([]model.LibraryFolder, 1000)
+	for i := range folders {
+		folders[i] = model.LibraryFolder{LibraryID: a.ID, Path: fmt.Sprintf("F%04d", i)}
+	}
+	scoped := store.WithLibraryScope(ctx, nil, folders...)
+	if ts, n, err := s.ListTracks(scoped, store.TrackQuery{}); err != nil || n != 1 || ts[0].Title != "Granted" {
+		t.Errorf("tracks = %d %+v, %v", n, ts, err)
+	}
+	if albums, n, err := s.ListAlbums(scoped, store.AlbumQuery{}); err != nil || n != 1 || albums[0].Name != "Kept" {
+		t.Errorf("albums = %d %+v, %v", n, albums, err)
+	}
+	if artists, n, err := s.ListArtists(scoped, store.ArtistQuery{}); err != nil || n != 1 || artists[0].Name != "In" {
+		t.Errorf("artists = %d %+v, %v", n, artists, err)
+	}
+	if res, err := s.Search(scoped, store.SearchQuery{Q: "hidden", TrackLimit: 10, AlbumLimit: 10, ArtistLimit: 10}); err != nil ||
+		len(res.Tracks)+len(res.Albums)+len(res.Artists) != 0 {
+		t.Errorf("search = %+v, %v", res, err)
+	}
+}
+
+// The genre filter of an album list only looks at readable tracks: an album split between
+// a granted and a hidden folder does not match the genre of its hidden track.
+func TestLibraryFolderScopeAlbumGenre(t *testing.T) {
+	s := newStore(t)
+	a := newLibrary(t, s, "/path/to/a")
+	upsert(t, s, a.ID,
+		trk{path: "Shown/1.mp3", title: "Shown", artist: "Band", album: "Split", genre: "Rock"},
+		trk{path: "Hidden/2.mp3", title: "Hidden", artist: "Band", album: "Split", genre: "Jazz"},
+	)
+	scoped := store.WithLibraryScope(ctx, nil, model.LibraryFolder{LibraryID: a.ID, Path: "Shown"})
+	if albums, n, err := s.ListAlbums(scoped, store.AlbumQuery{Genre: "Rock"}); err != nil || n != 1 || albums[0].Name != "Split" {
+		t.Errorf("rock = %d %+v, %v", n, albums, err)
+	}
+	if albums, n, err := s.ListAlbums(scoped, store.AlbumQuery{Genre: "Jazz"}); err != nil || n != 0 {
+		t.Errorf("jazz = %d %+v, %v", n, albums, err)
+	}
+	if _, n, err := s.ListAlbums(ctx, store.AlbumQuery{Genre: "Jazz"}); err != nil || n != 1 {
+		t.Errorf("unscoped jazz = %d, %v", n, err)
 	}
 }

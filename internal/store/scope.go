@@ -102,7 +102,8 @@ func libraryCond(ctx context.Context, col string) string {
 // for a scoped context ("0" when nothing is readable) and "" otherwise. A folder matches
 // its own dir and every dir below it; the range test (dir >= 'a/' AND dir < 'a0', '0'
 // following '/') keeps the (library_id, dir) index usable and does not match siblings
-// such as "a b" or "ab".
+// such as "a b" or "ab". The folder terms are joined as a balanced OR tree, since SQLite
+// rejects expressions nested deeper than 1000 levels and a flat chain nests one per folder.
 func trackCond(ctx context.Context, prefix string) string {
 	sc, restricted := ctx.Value(libraryScopeKey{}).(libraryScope)
 	if !restricted {
@@ -117,13 +118,20 @@ func trackCond(ctx context.Context, prefix string) string {
 		parts = append(parts, "("+lib+" = "+strconv.FormatInt(f.LibraryID, 10)+" AND ("+dir+" = "+sqlString(f.Path)+
 			" OR ("+dir+" >= "+sqlString(f.Path+"/")+" AND "+dir+" < "+sqlString(f.Path+"0")+")))")
 	}
-	switch len(parts) {
-	case 0:
+	if len(parts) == 0 {
 		return "0"
-	case 1:
+	}
+	return orTree(parts)
+}
+
+// orTree joins non-empty parts with OR, nesting the halves so the expression is only
+// about log2(len(parts)) levels deep.
+func orTree(parts []string) string {
+	if len(parts) == 1 {
 		return parts[0]
 	}
-	return "(" + strings.Join(parts, " OR ") + ")"
+	mid := len(parts) / 2
+	return "(" + orTree(parts[:mid]) + " OR " + orTree(parts[mid:]) + ")"
 }
 
 // andLibrary returns " AND " + libraryCond, or "" for an unscoped context.

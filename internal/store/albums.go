@@ -21,7 +21,7 @@ type AlbumQuery struct {
 	UserID    string
 	Q         string
 	ArtistID  string // album artist
-	Genre     string // albums containing a non-missing track of this genre
+	Genre     string // albums containing a readable non-missing track of this genre
 	LibraryID int64
 	FromYear  int // if FromYear > ToYear the bounds are swapped (Subsonic byYear)
 	ToYear    int
@@ -47,14 +47,15 @@ var albumSorts = map[string]sortSpec{
 	"duration":  {expr: "al.duration", desc: true},
 }
 
-func (q *AlbumQuery) where() *where {
+func (q *AlbumQuery) where(ctx context.Context) *where {
 	w := &where{}
 	w.tokens("al.search_text", q.Q)
 	if q.ArtistID != "" {
 		w.add("al.album_artist_id = ?", q.ArtistID)
 	}
 	if q.Genre != "" {
-		w.add(`EXISTS (SELECT 1 FROM tracks t JOIN track_genres tg ON tg.track_id = t.id JOIN genres g ON g.id = tg.genre_id
+		// Only readable tracks count, so a hidden track's genre never matches its album.
+		w.add(`EXISTS (SELECT 1 FROM `+TracksFrom(ctx)+` t JOIN track_genres tg ON tg.track_id = t.id JOIN genres g ON g.id = tg.genre_id
 			WHERE t.album_id = al.id AND t.missing = 0 AND g.name = ?)`, q.Genre)
 	}
 	if q.LibraryID > 0 {
@@ -81,7 +82,7 @@ func (q *AlbumQuery) where() *where {
 
 // ListAlbums returns a page of albums and the total number of matches.
 func (s *Store) ListAlbums(ctx context.Context, q AlbumQuery) ([]model.Album, int, error) {
-	w := q.where()
+	w := q.where(ctx)
 	args := append([]any{q.UserID}, w.args...)
 	join := annotationJoin("album", "al.id")
 	var total int
@@ -267,7 +268,7 @@ func (s *Store) Search(ctx context.Context, q SearchQuery) (*SearchResult, error
 	}
 	if q.AlbumLimit > 0 {
 		aq := AlbumQuery{UserID: q.UserID, Q: q.Q, LibraryID: q.LibraryID}
-		w := aq.where()
+		w := aq.where(ctx)
 		var albums []model.Album
 		query := albumSelect(ctx) + annotationJoin("album", "al.id") + w.sql() + ` ORDER BY al.sort_name, al.id` + limitClause(q.AlbumOffset, q.AlbumLimit)
 		if err := s.db.R.SelectContext(ctx, &albums, query, append([]any{q.UserID}, w.args...)...); err != nil {

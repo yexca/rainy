@@ -192,7 +192,12 @@ function BarTitle({ track }: { track: PlayableTrack }) {
   useLayoutEffect(() => {
     const title = titleRef.current
     const extras = extrasRef.current
-    if (!title || !extras) return
+    if (!title) return
+    // A radio station has no extras: drop the fade the previous song's extras left.
+    if (!extras) {
+      title.style.removeProperty('--np-fade')
+      return
+    }
     const measure = () => {
       const width = extras.offsetWidth
       title.style.setProperty(

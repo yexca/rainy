@@ -6,14 +6,22 @@
  * The tokens an override sets are registered as inherited `<color>` properties
  * (`CSS.registerProperty`) so `<html>` can transition them; meanwhile every other element holds
  * its own transitions, so a control's `transition-colors` does not trail the tokens. Elements
- * marked `data-chrome-motion` keep theirs (they never transition colours). Without registered
+ * that only move or fade keep theirs (`MOTION`: `data-chrome-motion`, vaul drawers, sonner
+ * toasts, `transition-transform` and `transition-opacity`). Without registered
  * properties, in a background tab or with reduced motion the colours change at once.
  */
 
 /** How long the tokens take to reach the next cover's colours. */
 export const MORPH_MS = 700
 const EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
-const HOLD_CSS = 'html *:not([data-chrome-motion]),html *::before,html *::after{transition:none!important}'
+/**
+ * Elements whose transitions keep running during a glide: they move or fade and never
+ * transition colours, so they cannot trail the tokens. Holding them would make a drawer opening
+ * or springing back, a toast, or a press effect jump while the colours change.
+ */
+const MOTION =
+  '[data-chrome-motion],[data-vaul-drawer],[data-vaul-overlay],[data-sonner-toast],.transition-transform,.transition-opacity'
+const HOLD_CSS = `html *:not(${MOTION}),html *:not(${MOTION})::before,html *:not(${MOTION})::after{transition:none!important}`
 
 const registered = new Set<string>()
 let hold: HTMLStyleElement | null = null
