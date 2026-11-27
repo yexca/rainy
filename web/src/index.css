@@ -80,6 +80,8 @@
   --mascot-right: calc(1rem + var(--safe-right));
   /* App header (every width): page top bars stick below it. */
   --app-header-h: calc(3rem + var(--safe-top));
+  /* A page's own top bar (PageHeader): it sticks below the app header, in-page sticky bars below it. */
+  --page-bar-h: 2.75rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -95,6 +97,7 @@
 @media (width >= 48rem) {
   :root {
     --page-px: 1.5rem;
+    --page-bar-h: 3rem;
   }
 }
 

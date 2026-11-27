@@ -141,7 +141,7 @@ export default function HistoryPage() {
           {groups.map((group) => (
             <section key={group.day}>
               <StickySurface asChild>
-                <h2 className="bleed-x page-x sticky top-[calc(var(--app-header-h)+2.75rem)] z-10 mb-2 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase md:top-(--app-header-h)">
+                <h2 className="bleed-x page-x sticky top-[calc(var(--app-header-h)+var(--page-bar-h))] z-10 mb-2 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   {group.day}
                 </h2>
               </StickySurface>

@@ -358,7 +358,7 @@ export default function ManagePage() {
       </PageHeader>
 
       {!isMobile && total > 0 ? (
-        <StickySurface className="bleed-x page-x hairline-b sticky top-(--app-header-h) z-20">
+        <StickySurface className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+var(--page-bar-h))] z-20">
           <div className="flex h-12 items-center gap-2">
             <p className="tnum min-w-0 flex-1 truncate text-sm">
               {count > 0 ? (

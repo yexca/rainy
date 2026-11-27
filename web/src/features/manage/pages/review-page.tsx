@@ -113,7 +113,7 @@ export default function ReviewPage() {
         <EmptyState icon={ClipboardCheck} art="happy" title={t('review.emptyTitle')} description={t('review.emptyDescription')} />
       ) : (
         <div className="grid gap-3">
-          <StickySurface className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 py-1.5 md:top-(--app-header-h)">
+          <StickySurface className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+var(--page-bar-h))] z-20 flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 py-1.5">
             <Checkbox
               checked={allChecked ? true : selectedIds.length > 0 ? 'indeterminate' : false}
               onCheckedChange={(v) => setSelected(v === true ? new Set(items.map((i) => i.id)) : new Set())}

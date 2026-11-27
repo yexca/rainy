@@ -58,6 +58,10 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 - The artist name under an album's cover, on the home page and in album
   lists and search, opens the artist; the cover and title still open the
   album.
+- A page's top bar, with its back button and the small title that replaces
+  the large one, stays at the top while you scroll the whole page instead of
+  scrolling away once you pass the page title. The bars inside **Tracks**,
+  **Trash**, **Review**, and **History** stick right below it.
 
 </details>
 

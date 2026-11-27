@@ -46,7 +46,8 @@ export interface PageHeaderProps {
  *   on scroll.
  * - `bar={false}`: the bar is left out and the app header shows the title on scroll.
  *
- * Must be rendered inside a `.page-x` container (`<Page>`): the sticky bar bleeds to the edges.
+ * Must be rendered directly inside a `.page-x` container (`<Page>`): the sticky bar bleeds to the
+ * edges and, rendered beside the `<header>`, sticks for as long as that container scrolls.
  * Collapsing uses an IntersectionObserver on the large title (no scroll listeners).
  */
 export function PageHeader({
@@ -112,8 +113,11 @@ export function PageHeader({
     else navigate('/')
   }
 
+  // The bar is the header's sibling, not its child: a sticky element only sticks inside its
+  // parent, so inside the short <header> it would scroll away with the title. Here its parent is
+  // the <Page>, so it stays pinned for the whole page.
   return (
-    <header className={cn('relative', className)}>
+    <>
       {bar ? (
         <div
           ref={barRef}
@@ -122,7 +126,7 @@ export function PageHeader({
             collapsed ? 'glass' : '[--hairline-color:transparent]',
           )}
         >
-          <div className="relative flex h-11 items-center gap-1 md:h-12">
+          <div className="relative flex h-(--page-bar-h) items-center gap-1">
             <div className="flex min-w-0 flex-1 items-center gap-1">
               {back ? (
                 <Button
@@ -168,31 +172,33 @@ export function PageHeader({
         <div ref={barRef} aria-hidden className="sticky top-(--app-header-h) h-0" />
       )}
 
-      <div
-        className={cn(
-          'pb-4 md:flex md:items-end md:justify-between md:gap-6 md:pb-6',
-          // Without a bar the title keeps the place it has below one.
-          bar ? 'pt-1 md:pt-2' : 'pt-12 md:pt-14',
-        )}
-      >
-        <div className={cn('min-w-0', titleAction && 'flex items-center justify-between gap-3 md:block')}>
-          <div className={cn('min-w-0', subtitleInline && 'flex flex-wrap items-baseline gap-x-3')}>
-            <h1
-              ref={titleRef}
-              className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
-            >
-              {title}
-            </h1>
-            {subtitle ? (
-              <div className={cn('text-[15px] text-muted-foreground md:text-sm', subtitleInline ? 'tnum whitespace-nowrap' : 'mt-1')}>{subtitle}</div>
-            ) : null}
+      <header className={className}>
+        <div
+          className={cn(
+            'pb-4 md:flex md:items-end md:justify-between md:gap-6 md:pb-6',
+            // Without a bar the title keeps the place it has below one.
+            bar ? 'pt-1 md:pt-2' : 'pt-12 md:pt-14',
+          )}
+        >
+          <div className={cn('min-w-0', titleAction && 'flex items-center justify-between gap-3 md:block')}>
+            <div className={cn('min-w-0', subtitleInline && 'flex flex-wrap items-baseline gap-x-3')}>
+              <h1
+                ref={titleRef}
+                className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
+              >
+                {title}
+              </h1>
+              {subtitle ? (
+                <div className={cn('text-[15px] text-muted-foreground md:text-sm', subtitleInline ? 'tnum whitespace-nowrap' : 'mt-1')}>{subtitle}</div>
+              ) : null}
+            </div>
+            {titleAction ? <div className="shrink-0 md:hidden">{titleAction}</div> : null}
           </div>
-          {titleAction ? <div className="shrink-0 md:hidden">{titleAction}</div> : null}
+          {actions ? <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0">{actions}</div> : null}
         </div>
-        {actions ? <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0">{actions}</div> : null}
-      </div>
 
-      {children}
-    </header>
+        {children}
+      </header>
+    </>
   )
 }
