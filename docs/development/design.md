@@ -204,9 +204,9 @@ right edges across every tab of a section:
 
 Sticky top bars and collection selection bars bleed across the full content pane
 through `.bleed-x` while keeping their controls aligned to the page column.
-Sticky bars inside a page stay see-through while they rest in the flow, like
-the page header around them, and turn frosted (glass in immersive mode) with
-their hairline only once pinned. Multi-section
+SBars inside a page (the Tracks actions and column headings, selection bars,
+day headings) scroll with the page: no background, just a hairline below
+them. Multi-section
 forms and settings stack with 32 px (`gap-8`) between sections. Do not add
 page-level `max-w-*` or `mx-auto` wrappers; pick one of the two `<Page>` widths.
 Full-page empty, error, and status states stay centered, and About keeps its

@@ -27,7 +27,6 @@ import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
-import { StickySurface } from '@/components/sticky-surface'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { TOOLS_SECTION } from '@/layouts/nav'
@@ -140,11 +139,7 @@ export default function HistoryPage() {
         <div className="grid gap-6">
           {groups.map((group) => (
             <section key={group.day}>
-              <StickySurface asChild>
-                <h2 className="bleed-x page-x sticky top-[calc(var(--app-header-h)+var(--page-bar-h))] z-10 mb-2 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {group.day}
-                </h2>
-              </StickySurface>
+              <h2 className="mb-2 hairline-b pb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.day}</h2>
               <ol className="grid gap-2">
                 {group.items.map((entry) => (
                   <LogEntry key={entry.id} entry={entry} onFilter={trackId ? undefined : setTrack} />

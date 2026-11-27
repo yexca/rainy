@@ -80,7 +80,7 @@
   --mascot-right: calc(1rem + var(--safe-right));
   /* App header (every width): page top bars stick below it. */
   --app-header-h: calc(3rem + var(--safe-top));
-  /* A page's own top bar (PageHeader): it sticks below the app header, in-page sticky bars below it. */
+  /* A page's own top bar (PageHeader): it sticks below the app header; the folder rail below it. */
   --page-bar-h: 2.75rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -839,30 +839,6 @@
   background-color: var(--sidebar);
 
   :root[data-immersive] & {
-    background-color: color-mix(in oklab, var(--background) 45%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
-  }
-}
-
-/* Sticky bars inside a page (the selection bar, section headers; `<StickySurface/>`). See-through
-   with no hairline while they rest in the flow; pinned (`data-stuck`) they are frosted over the
-   page, and in immersive mode glass like .chrome-bar, so the backdrop shows through. */
-@utility sticky-surface {
-  transition-property: background-color, border-color;
-  transition-duration: 200ms;
-
-  &:not([data-stuck]) {
-    --hairline-color: transparent;
-  }
-
-  &[data-stuck] {
-    background-color: color-mix(in oklab, var(--background) 90%, transparent);
-    -webkit-backdrop-filter: blur(24px);
-    backdrop-filter: blur(24px);
-  }
-
-  :root[data-immersive] &[data-stuck] {
     background-color: color-mix(in oklab, var(--background) 45%, transparent);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
     backdrop-filter: blur(24px) saturate(150%);
