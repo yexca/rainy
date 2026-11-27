@@ -144,7 +144,7 @@ controls its own way; phones always get the glass header above.
 | --- | --- | --- | --- |
 | `anthropic` | App header | Search icon in the tray + pill on Home | Icons |
 | `openai` | Sidebar | Search field under the logo | Icons |
-| `apple` | Sidebar | Search icon beside the account + pill on Home | Icons |
+| `apple` | Sidebar | Pill on Home only | Icons |
 | `google-md` | App header | Search field in the middle of the header | 80 px rail with labels |
 
 - **Sidebar chrome** has no app header. The sidebar reaches the top of the
@@ -157,8 +157,8 @@ controls its own way; phones always get the glass header above.
 - **The search field** is a rounded pill button showing a search icon,
   placeholder, and keyboard shortcut. It opens the same Spotlight palette as
   the icon; on a collapsed sidebar only its icon stays. When the active style
-  uses icon chrome on desktop (`apple`, `anthropic`), Home also renders a
-  search pill in its top-right actions beside Shuffle.
+  has no search field in its chrome on desktop (`apple`, `anthropic`), Home
+  renders a search pill in its top-right actions beside Shuffle.
 - **The rail with labels** (Material) shows each item as its icon on a pill,
   filled while active or hovered, with the label on a line below; it scrolls
   when the items do not fit.

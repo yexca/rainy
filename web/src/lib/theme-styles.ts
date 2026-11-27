@@ -123,16 +123,17 @@ export const STYLE_CHROME: Readonly<Record<Style, Chrome>> = {
 }
 
 /**
- * How Quick actions shows in the chrome from 768px up: the lightning `icon` among the quick
- * controls, or a search-like `field` — centred in the app header, or under the logo in the
- * sidebar. Both open the same palette; phones always get the icon.
+ * How Quick actions shows in the chrome from 768px up: the search `icon` among the quick
+ * controls, a search-like `field` — centred in the app header, or under the logo in the
+ * sidebar — or `none` (only Home's field and Ctrl/⌘K). All open the same palette; phones always
+ * get the icon.
  */
-export type QuickActionsEntry = 'icon' | 'field'
+export type QuickActionsEntry = 'icon' | 'field' | 'none'
 
 export const STYLE_QUICK_ACTIONS: Readonly<Record<Style, QuickActionsEntry>> = {
   anthropic: 'icon',
   openai: 'field',
-  apple: 'icon',
+  apple: 'none',
   'google-md': 'field',
 }
 

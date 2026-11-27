@@ -37,8 +37,9 @@ const LABEL_RAIL_STYLE = { ...SIDEBAR_STYLE, '--sidebar-width-icon': '5rem' } as
  *   sidebar reaches the top and holds the logo, the quick controls and, at its bottom, the
  *   account menu. `--app-header-h` shrinks to the safe area, and switching styles slides the
  *   header out and folds those blocks in (elements marked `data-chrome-motion`).
- * - `STYLE_QUICK_ACTIONS` `field` (openai, google-md), ≥ 768px: Quick actions is a search-like
- *   field (middle of the header, or under the logo in the sidebar) instead of the lightning icon.
+ * - `STYLE_QUICK_ACTIONS`, ≥ 768px: `field` (openai, google-md) makes Quick actions a search-like
+ *   field (middle of the header, or under the logo in the sidebar) instead of the search icon;
+ *   `none` (apple) leaves it out of the chrome (Home's field and Ctrl/⌘K still open it).
  * - `STYLE_RAIL` `labels` (google-md): the collapsed sidebar is an 80px rail with a label under
  *   each icon.
  * - ≥ 1024px: expandable sidebar (state persisted) + content + bottom player bar.
@@ -73,7 +74,7 @@ export function AppShell() {
   // Phones have no sidebar, so they keep the header whatever the style.
   const { style } = useTheme()
   const sidebarChrome = !isMobile && STYLE_CHROME[style] === 'sidebar'
-  const field = !isMobile && STYLE_QUICK_ACTIONS[style] === 'field'
+  const quickActions = isMobile ? 'icon' : STYLE_QUICK_ACTIONS[style]
   const labelRail = STYLE_RAIL[style] === 'labels'
 
   return (
@@ -91,11 +92,11 @@ export function AppShell() {
         onOpenChange={isDesktop ? setSidebarOpen : setTabletOpen}
         style={labelRail ? LABEL_RAIL_STYLE : SIDEBAR_STYLE}
       >
-        <AppHeader hidden={sidebarChrome} field={field} />
+        <AppHeader hidden={sidebarChrome} quickActions={quickActions} />
         {isMobile ? null : (
           <AppSidebar
             standalone={sidebarChrome}
-            field={field}
+            quickActions={quickActions}
             labelRail={labelRail}
             className="top-(--app-header-h) bottom-(--player-reserve) h-auto transition-[top,bottom] duration-300 ease-out"
           />

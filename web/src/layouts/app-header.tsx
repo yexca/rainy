@@ -6,6 +6,7 @@ import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useIsMobile } from '@/hooks/use-media-query'
+import type { QuickActionsEntry } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { useUI } from '@/stores/ui'
 
@@ -59,10 +60,19 @@ export function Brand({ className }: { className?: string }) {
  *
  * `hidden` (styles with the `sidebar` chrome, tablets and desktops): the bar slides up out of
  * view and the sidebar shows the same controls; only a strip over the safe area stays.
- * `field` (styles whose Quick actions entry is a field, tablets and desktops): Quick actions is a
- * search-like field in the middle of the bar instead of the lightning icon in the tray.
+ * `quickActions` (`STYLE_QUICK_ACTIONS`; phones always `icon`): `field` puts a search-like field in
+ * the middle of the bar instead of the search icon in the tray; `none` shows neither.
  */
-export function AppHeader({ hidden = false, field = false, className }: { hidden?: boolean; field?: boolean; className?: string }) {
+export function AppHeader({
+  hidden = false,
+  quickActions = 'icon',
+  className,
+}: {
+  hidden?: boolean
+  quickActions?: QuickActionsEntry
+  className?: string
+}) {
+  const field = quickActions === 'field'
   const isMobile = useIsMobile()
   const headerTitle = useUI((s) => s.headerTitle)
 
@@ -105,7 +115,7 @@ export function AppHeader({ hidden = false, field = false, className }: { hidden
             <QuickActionsField className="w-full max-w-md" />
           </div>
         ) : null}
-        <HeaderActions active={!hidden} field={field} />
+        <HeaderActions active={!hidden} quickActions={quickActions} />
       </div>
     </header>
   )

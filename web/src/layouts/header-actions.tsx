@@ -11,7 +11,7 @@ import { AccentPicker, ImmersiveSwitch, StylePicker } from '@/features/settings/
 import { useIsMobile } from '@/hooks/use-media-query'
 import { useTheme } from '@/hooks/use-theme'
 import { LANGUAGES, currentLanguage, setLanguage } from '@/lib/i18n'
-import { STYLE_CHROME, type Style, type Theme } from '@/lib/theme'
+import { STYLE_CHROME, type QuickActionsEntry, type Style, type Theme } from '@/lib/theme'
 
 import { QuickActions } from './quick-actions'
 import { UserMenu } from './user-menu'
@@ -113,10 +113,10 @@ function AppearanceMenu({ active, beside = false }: { active: boolean; beside?: 
  * button with the user's name and role. Phones keep both controls as 44px targets but drop the
  * tray outline and the divider, and show the account as an avatar.
  *
- * `field`: Quick actions is the field in the middle of the header, so the tray holds only the
- * appearance button. `active`: the header is the chrome in use (its Appearance panel may show).
+ * `quickActions`: the tray holds the search icon only for `icon` (`field` is in the middle of the
+ * header). `active`: the header is the chrome in use (its Appearance panel may show).
  */
-export function HeaderActions({ active, field = false }: { active: boolean; field?: boolean }) {
+export function HeaderActions({ active, quickActions = 'icon' }: { active: boolean; quickActions?: QuickActionsEntry }) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
@@ -132,7 +132,7 @@ export function HeaderActions({ active, field = false }: { active: boolean; fiel
   return (
     <div className="ml-auto flex shrink-0 items-center gap-2">
       <div className="flex items-center gap-0.5 rounded-full border border-sidebar-border bg-background/60 p-0.5">
-        {field ? null : <QuickActions className={TRAY_BUTTON_CLASS} />}
+        {quickActions === 'icon' ? <QuickActions className={TRAY_BUTTON_CLASS} /> : null}
         <AppearanceMenu active={active} />
       </div>
       <span aria-hidden className="h-5 w-px bg-sidebar-border" />
@@ -143,18 +143,18 @@ export function HeaderActions({ active, field = false }: { active: boolean; fiel
 
 /**
  * The same controls at the bottom of the sidebar, for styles without an app header (`sidebar`
- * chrome): the account row (avatar, name and role; its menu opens upwards) with Quick actions and
- * the appearance button beside it. On the icon rail they stack, the avatar at the bottom.
+ * chrome): the account row (avatar, name and role; its menu opens upwards) with the appearance
+ * button and, for the `icon` entry, Quick actions beside it. On the icon rail they stack, the
+ * avatar at the bottom.
  *
- * `field`: Quick actions is the field under the logo instead. `active`: the sidebar is the
- * chrome in use (its Appearance panel may show).
+ * `active`: the sidebar is the chrome in use (its Appearance panel may show).
  */
-export function SidebarActions({ active, field = false }: { active: boolean; field?: boolean }) {
+export function SidebarActions({ active, quickActions = 'icon' }: { active: boolean; quickActions?: QuickActionsEntry }) {
   return (
     <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col-reverse">
       <UserMenu variant="sidebar" className="flex-1 group-data-[collapsible=icon]:flex-none" />
       <div className="flex shrink-0 items-center gap-0.5 group-data-[collapsible=icon]:flex-col">
-        {field ? null : <QuickActions className={TRAY_BUTTON_CLASS} />}
+        {quickActions === 'icon' ? <QuickActions className={TRAY_BUTTON_CLASS} /> : null}
         <AppearanceMenu active={active} beside />
       </div>
     </div>

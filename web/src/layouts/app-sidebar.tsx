@@ -21,6 +21,7 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { api } from '@/lib/api/endpoints'
 import { queryKeys } from '@/lib/query-keys'
+import type { QuickActionsEntry } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 import { Brand, SidebarToggle } from './app-header'
@@ -248,19 +249,19 @@ function Fold({ open, children }: { open: boolean; children: ReactNode }) {
  * the top with the toggle and logo above the groups, and the account row with the quick controls
  * replaces Settings and About at the bottom (both are in the account menu). The blocks fold in
  * and out when the style changes.
- * `field`: Quick actions is a search-like field; a standalone sidebar shows it under the logo
- * (the header has it otherwise).
+ * `quickActions` (`STYLE_QUICK_ACTIONS`): a standalone sidebar shows the `field` under the logo
+ * (the header has it otherwise) or the `icon` beside the account; `none` shows neither.
  * `labelRail`: collapsed, the sidebar is a wider rail with a label under each icon; it scrolls
  * when the items do not fit.
  */
 export function AppSidebar({
   standalone = false,
-  field = false,
+  quickActions = 'icon',
   labelRail = false,
   className,
 }: {
   standalone?: boolean
-  field?: boolean
+  quickActions?: QuickActionsEntry
   labelRail?: boolean
   className?: string
 }) {
@@ -277,7 +278,7 @@ export function AppSidebar({
           <Brand className="group-data-[collapsible=icon]:hidden" />
         </div>
       </Fold>
-      <Fold open={standalone && field}>
+      <Fold open={standalone && quickActions === 'field'}>
         <div className="px-2 pt-1 pb-1.5">
           <QuickActionsField className="w-full" />
         </div>
@@ -292,7 +293,7 @@ export function AppSidebar({
       </Fold>
       <Fold open={standalone}>
         <SidebarFooter className="border-t border-sidebar-border">
-          <SidebarActions active={standalone} field={field} />
+          <SidebarActions active={standalone} quickActions={quickActions} />
         </SidebarFooter>
       </Fold>
       <SidebarRail aria-label={toggleLabel} title={toggleLabel} />

@@ -29,7 +29,8 @@ With your system's increased-contrast setting on, the Apple, OpenAI, and
 Anthropic accents switch to darker or stronger shades. A style also sets the layout: on tablets
 and desktops Apple and OpenAI have no bar across the top and keep your account
 and the appearance button in the bottom-left corner of the sidebar, OpenAI and
-Google MD show Search as a field in the sidebar or header, and Google MD labels
+Google MD show Search as a field in the sidebar or header (Apple keeps it on
+the home page and Ctrl+K / ⌘K), and Google MD labels
 the icons of the collapsed sidebar. The **Immersive** switch next to the accent
 colour, on by default in Apple, colours the whole app — sidebar, player, and
 menus — with the album, playlist, or artist on screen, or with the song playing

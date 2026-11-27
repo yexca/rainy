@@ -33,6 +33,9 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   (OpenAI's dark page is now `#212121`, its light page white), Apple's system
   grays, and Material 3 surface roles. The browser bar matches the new page
   colours.
+- On tablets and desktops, the Apple style no longer has a Search button in
+  the bottom-left corner of the sidebar; search from the field on the home
+  page or with Ctrl+K / ⌘K.
 - On tablets and desktops, the Appearance panel closes when a style moves the
   appearance button between the header and the sidebar, instead of reopening
   from its new place.
