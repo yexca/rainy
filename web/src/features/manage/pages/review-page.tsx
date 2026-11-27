@@ -11,6 +11,7 @@ import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { PageLoader, Spinner } from '@/components/spinner'
+import { StickySurface } from '@/components/sticky-surface'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -112,7 +113,7 @@ export default function ReviewPage() {
         <EmptyState icon={ClipboardCheck} art="happy" title={t('review.emptyTitle')} description={t('review.emptyDescription')} />
       ) : (
         <div className="grid gap-3">
-          <div className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 py-1.5 sticky-surface md:top-(--app-header-h)">
+          <StickySurface className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 py-1.5 md:top-(--app-header-h)">
             <Checkbox
               checked={allChecked ? true : selectedIds.length > 0 ? 'indeterminate' : false}
               onCheckedChange={(v) => setSelected(v === true ? new Set(items.map((i) => i.id)) : new Set())}
@@ -160,7 +161,7 @@ export default function ReviewPage() {
               <Trash2 />
               <span className="max-sm:sr-only">{t('review.discard')}</span>
             </Button>
-          </div>
+          </StickySurface>
           <ul className="bleed-x md:mx-0">
             {items.map((item) => (
               <ReviewRow

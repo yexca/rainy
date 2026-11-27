@@ -77,6 +77,10 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 <details>
 <summary><strong>Library Management</strong></summary>
 
+- The bar with the Tracks actions and column headings, the Trash and Review
+  bars, and the History day headings stay see-through until they pin to the
+  top while you scroll, then turn frosted across the full width, so they no
+  longer show as a dark strip under the search field in immersive mode.
 - Online metadata lookups in the tag editor follow redirects only over HTTPS
   on the provider's own host, at most three, so a provider redirect to plain
   HTTP is refused instead of followed.

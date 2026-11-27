@@ -25,6 +25,7 @@ import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
+import { StickySurface } from '@/components/sticky-surface'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -357,7 +358,7 @@ export default function ManagePage() {
       </PageHeader>
 
       {!isMobile && total > 0 ? (
-        <div className="-mx-2 px-2 hairline-b sticky-surface sticky top-(--app-header-h) z-20">
+        <StickySurface className="bleed-x page-x hairline-b sticky top-(--app-header-h) z-20">
           <div className="flex h-12 items-center gap-2">
             <p className="tnum min-w-0 flex-1 truncate text-sm">
               {count > 0 ? (
@@ -404,7 +405,7 @@ export default function ManagePage() {
             checked={headerChecked}
             onCheckedChange={(checked) => (checked ? selection.selectAll() : selection.clear())}
           />
-        </div>
+        </StickySurface>
       ) : null}
 
       {isMobile && selecting && total > 0 ? (

@@ -203,8 +203,10 @@ right edges across every tab of a section:
 | Centered (`<Page centered>`) | Centered up to 1152 px (`--page-max-w`, `72rem`) | Management (Tracks, Library tools), Admin, Settings, and About |
 
 Sticky top bars and collection selection bars bleed across the full content pane
-through `.bleed-x` while keeping their controls aligned to the page column; the
-Tracks › Metadata selection bar stays within the table column. Multi-section
+through `.bleed-x` while keeping their controls aligned to the page column.
+Sticky bars inside a page stay see-through while they rest in the flow, like
+the page header around them, and turn frosted (glass in immersive mode) with
+their hairline only once pinned. Multi-section
 forms and settings stack with 32 px (`gap-8`) between sections. Do not add
 page-level `max-w-*` or `mx-auto` wrappers; pick one of the two `<Page>` widths.
 Full-page empty, error, and status states stay centered, and About keeps its

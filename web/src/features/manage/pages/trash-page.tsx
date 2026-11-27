@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/error-state'
 import { Page } from '@/components/page'
 import { PageHeader } from '@/components/page-header'
 import { PageLoader, Spinner } from '@/components/spinner'
+import { StickySurface } from '@/components/sticky-surface'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -97,7 +98,7 @@ export default function TrashPage() {
         <EmptyState icon={Trash2} art="happy" title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} />
       ) : (
         <div className="grid gap-3">
-          <div className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex h-12 items-center gap-3 sticky-surface md:top-(--app-header-h)">
+          <StickySurface className="bleed-x page-x hairline-b sticky top-[calc(var(--app-header-h)+2.75rem)] z-20 flex h-12 items-center gap-3 md:top-(--app-header-h)">
             <Checkbox
               checked={allChecked ? true : selectedIds.length > 0 ? 'indeterminate' : false}
               onCheckedChange={(v) => setSelected(v === true ? new Set(entries.map((e) => e.id)) : new Set())}
@@ -125,7 +126,7 @@ export default function TrashPage() {
               <Trash2 />
               <span className="max-sm:sr-only">{t('trash.deleteForever')}</span>
             </Button>
-          </div>
+          </StickySurface>
           <ul className="bleed-x md:mx-0">
             {entries.map((entry) => (
               <TrashRow key={entry.id} entry={entry} selected={selected.has(entry.id)} onToggle={() => toggle(entry.id)} onRestore={() => restore.mutate([entry.id])} restoring={restore.isPending} />
