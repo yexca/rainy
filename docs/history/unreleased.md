@@ -44,6 +44,10 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 - On tablets and desktops, the Appearance panel closes when a style moves the
   appearance button between the header and the sidebar, instead of reopening
   from its new place.
+- Every mascot illustration is redrawn: the status scenes, the corner
+  companion, and the pictures for missing covers, artist photos, playlists,
+  and radio stations. Her hands are drawn correctly, and the art is sharper
+  and more consistent.
 
 </details>
 
