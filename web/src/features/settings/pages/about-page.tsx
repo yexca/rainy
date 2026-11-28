@@ -38,7 +38,10 @@ const REFERENCE_PROJECTS = [
 ] as const
 
 // Stored oldest first, displayed newest first. A null bound means an open-ended range.
-const AI_MODEL_HISTORY = [{ from: null, to: null, models: ['Claude Opus 5.5', 'GPT-6.1-Sol'] }] as const
+const AI_MODEL_HISTORY: readonly { from: string | null; to: string | null; models: readonly string[] }[] = [
+  { from: null, to: 'v0.1.3', models: ['Claude Opus 5.5', 'GPT-6.1-Sol'] },
+  { from: 'v0.2.0', to: null, models: ['Claude Opus 5.5', 'Gemini 4 Neon', 'GPT-6.2-Sol', 'Gemini 4 Carbon', 'Gemini 4 Hydrogen'] },
+]
 
 const TECHNOLOGY_GROUPS = [
   {
