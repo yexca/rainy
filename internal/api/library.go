@@ -128,11 +128,12 @@ func (a *API) libArtists(w http.ResponseWriter, r *http.Request) {
 	writePage(w, artists, total)
 }
 
-// artistDetail is `Artist & {albums, appearsOn, topTracks}`.
+// artistDetail is `Artist & {albums, appearsOn, programs, topTracks}`.
 type artistDetail struct {
 	model.Artist
 	Albums    []model.Album `json:"albums"`
 	AppearsOn []model.Album `json:"appearsOn"`
+	Programs  []model.Album `json:"programs"` // program shows of the artist, then those it appears in
 	TopTracks []model.Track `json:"topTracks"`
 }
 
@@ -149,17 +150,39 @@ func (a *API) libArtist(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, r, err)
 		return
 	}
+	// The page counts music only, like its albums and top songs.
+	if artist.AlbumCount, artist.SongCount, err = a.app.Store.ArtistMusicCounts(ctx, artist.ID); err != nil {
+		writeErr(w, r, err)
+		return
+	}
+	// Program shows stay out of the albums and top songs but get a list of their own, so the
+	// page of an artist known only from programs is not empty.
+	programs, _, err := a.app.Store.ListAlbums(ctx, store.AlbumQuery{UserID: uid, ArtistID: artist.ID, Programs: store.ProgramsOnly,
+		Sort: "recent"})
+	if err != nil {
+		writeErr(w, r, err)
+		return
+	}
 	appearsOn, err := a.app.Store.AlbumsAppearsOn(ctx, artist.ID, uid)
 	if err != nil {
 		writeErr(w, r, err)
 		return
+	}
+	music := make([]model.Album, 0, len(appearsOn))
+	for _, al := range appearsOn {
+		if al.Program {
+			programs = append(programs, al)
+		} else {
+			music = append(music, al)
+		}
 	}
 	top, err := a.artistTopTracks(r, artist.ID, topTracksCount)
 	if err != nil {
 		writeErr(w, r, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, artistDetail{Artist: *artist, Albums: nonNil(albums), AppearsOn: nonNil(appearsOn), TopTracks: top})
+	writeJSON(w, http.StatusOK, artistDetail{Artist: *artist, Albums: nonNil(albums), AppearsOn: music,
+		Programs: nonNil(programs), TopTracks: top})
 }
 
 // artistTopTracks returns up to n of the artist's tracks outside program folders: the

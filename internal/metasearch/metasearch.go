@@ -93,9 +93,10 @@ type Service struct {
 	order     []string
 }
 
-// redirects keeps redirects on the requested host and on HTTPS (a provider may upgrade a
-// plain-HTTP API URL), so an allow-listed URL cannot bounce the request elsewhere.
-var redirects = outbound.Redirects{Max: 3, HTTPSOnly: true, Allow: outbound.SameHost}
+// redirects keeps redirects on the requested host, so an allow-listed URL cannot bounce the
+// request elsewhere. A plain-HTTP API URL (kugou's search) may be redirected on plain HTTP or
+// upgraded to HTTPS; once on HTTPS a request never goes back to plain HTTP.
+var redirects = outbound.Redirects{Max: 3, NoDowngrade: true, Allow: outbound.SameHost}
 
 // New creates the service. A nil httpClient uses a client with a request timeout and the
 // environment's proxy settings (HTTPS_PROXY / HTTP_PROXY). The redirect policy above

@@ -58,7 +58,8 @@ export interface Artist {
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string
 }
-export interface ArtistDetail extends Artist { albums: Album[]; appearsOn: Album[]; topTracks: Track[] }
+/** `albums`, `appearsOn` and `topTracks` leave program shows and episodes out; `programs` lists the shows. */
+export interface ArtistDetail extends Artist { albums: Album[]; appearsOn: Album[]; programs: Album[]; topTracks: Track[] }
 export interface Genre { id: string; name: string; songCount: number; albumCount: number }
 export interface SearchResult { artists: Artist[]; albums: Album[]; tracks: Track[] }
 export interface Home {

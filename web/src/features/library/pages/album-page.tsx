@@ -90,7 +90,7 @@ function AlbumContent({
   const tracks = album.tracks
   const multiDisc = album.discs.length > 1 || album.discCount > 1
   // A program show plays in order and resumes episodes where the listener stopped.
-  const positions = useEpisodePositions(album.program ? tracks : NO_TRACKS)
+  const { positions, loading: positionsLoading } = useEpisodePositions(album.program ? tracks : NO_TRACKS)
   const progressOf = useCallback(
     (track: Track) => <EpisodeProgressMark track={track} positionMs={positions.get(track.id)} />,
     [positions],
@@ -135,7 +135,7 @@ function AlbumContent({
         meta={<span className="uppercase md:normal-case">{meta}</span>}
         playButtons={(layout) =>
           album.program ? (
-            <ProgramPlayButton tracks={tracks} positions={positions} layout={layout} />
+            <ProgramPlayButton tracks={tracks} positions={positions} loading={positionsLoading} layout={layout} />
           ) : (
           <PlayShuffleButtons
             layout={layout}

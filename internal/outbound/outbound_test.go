@@ -83,6 +83,7 @@ func TestRedirectTargetsAreChecked(t *testing.T) {
 		{"user info", sameHost, (&url.URL{Scheme: "http", User: url.User("someone"), Host: u.Host, Path: "/end"}).String(), false},
 		{"other scheme", Redirects{Max: 3}, "ftp://" + u.Host + "/end", false},
 		{"plain http when HTTPS only", Redirects{Max: 3, HTTPSOnly: true}, srv.URL + "/end", false},
+		{"plain http from plain http without downgrade", Redirects{Max: 3, NoDowngrade: true}, srv.URL + "/end", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			target = tc.target
@@ -102,6 +103,41 @@ func TestRedirectTargetsAreChecked(t *testing.T) {
 				if msg := ue.Err.Error(); strings.Contains(msg, "someone") || strings.Contains(msg, "/end") {
 					t.Fatalf("policy error repeats the target URL: %v", msg)
 				}
+			}
+		})
+	}
+}
+
+// NoDowngrade keeps a request off plain http once any hop used https, whether the original
+// URL or a later redirect.
+func TestNoDowngrade(t *testing.T) {
+	req := func(raw string) *http.Request {
+		u, err := url.Parse(raw)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return &http.Request{URL: u}
+	}
+	policy := Redirects{Max: 3, NoDowngrade: true}
+	for _, tc := range []struct {
+		name   string
+		via    []string
+		target string
+		ok     bool
+	}{
+		{"http to http", []string{"http://a.example/1"}, "http://a.example/2", true},
+		{"http to https", []string{"http://a.example/1"}, "https://a.example/2", true},
+		{"https to http", []string{"https://a.example/1"}, "http://a.example/2", false},
+		{"back to http after an upgrade", []string{"http://a.example/1", "https://a.example/2"}, "http://a.example/3", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var via []*http.Request
+			for _, v := range tc.via {
+				via = append(via, req(v))
+			}
+			err := policy.Check(req(tc.target), via)
+			if tc.ok != (err == nil) || (!tc.ok && !errors.Is(err, ErrRedirect)) {
+				t.Fatalf("Check = %v, want ok=%v", err, tc.ok)
 			}
 		})
 	}

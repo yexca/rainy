@@ -36,7 +36,7 @@ Rainy makes no outbound request unless an administrator turns on the setting
 of the feature that needs it; every such setting is off by default. Every
 client comes from `outbound.NewClient` (`internal/outbound`), which takes an
 explicit redirect policy (`outbound.Redirects`: none, or a maximum count with
-an HTTPS-only flag and a host check), applies the environment's
+an HTTPS-only or no-downgrade flag and a host check), applies the environment's
 `HTTPS_PROXY`/`HTTP_PROXY`, and bounds dial and response-header time. A
 package may pass its own transport, as `internal/lxmusic` does with its
 guarded one. `TestOutboundClientsUseThisPackage` fails when production code

@@ -195,6 +195,39 @@ func TestServiceRefreshFromURL(t *testing.T) {
 	}
 }
 
+// A script link redirected to a URL no request may use is the user's link to fix
+// (ErrInvalid, 400, with the reason); a redirect loop is the server's fault (ErrUpstream).
+func TestFetchScriptRedirects(t *testing.T) {
+	ctx := context.Background()
+	s, _ := newTestService(t)
+	var srvURL string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/userinfo":
+			http.Redirect(w, r, strings.Replace(srvURL, "://", "://someone@", 1)+"/source.js", http.StatusFound)
+		case "/ftp":
+			http.Redirect(w, r, "ftp://example.com/source.js", http.StatusFound)
+		default: // a loop
+			http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		}
+	}))
+	defer srv.Close()
+	srvURL = srv.URL
+
+	for path, reason := range map[string]string{"/userinfo": "user info", "/ftp": "only http and https"} {
+		_, err := s.FetchScript(ctx, srv.URL+path)
+		if !errors.Is(err, ErrInvalid) || errors.Is(err, ErrUpstream) || !strings.Contains(err.Error(), reason) {
+			t.Errorf("%s: err = %v, want ErrInvalid naming %q", path, err, reason)
+		}
+		if err != nil && strings.Contains(err.Error(), "someone") {
+			t.Errorf("%s: the error repeats the user info: %v", path, err)
+		}
+	}
+	if _, err := s.FetchScript(ctx, srv.URL+"/loop"); !errors.Is(err, ErrUpstream) || errors.Is(err, ErrInvalid) {
+		t.Errorf("redirect loop: err = %v, want ErrUpstream", err)
+	}
+}
+
 func TestDownloadReportsExpiredLinks(t *testing.T) {
 	status := http.StatusGone
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -43,14 +43,17 @@ export function EpisodeProgressMark({ track, positionMs }: { track: Track; posit
 /**
  * The hero button of a program show: "Continue" from the first unfinished episode once the
  * listener started the show, else "Play" from the first one. The episode resumes at its bookmark.
+ * It waits (disabled) while the positions are first read.
  */
 export function ProgramPlayButton({
   tracks,
   positions,
+  loading = false,
   layout = 'inline',
 }: {
   tracks: Track[]
   positions: ReadonlyMap<string, number>
+  loading?: boolean
   layout?: 'inline' | 'stretch'
 }) {
   const { t } = useTranslation()
@@ -64,7 +67,7 @@ export function ProgramPlayButton({
           ? 'h-12 w-full rounded-xl bg-secondary text-[17px] text-primary shadow-none hover:bg-secondary/80 dark:bg-secondary/80'
           : 'h-9 min-w-28 rounded-full px-5 shadow-sm',
       )}
-      disabled={start < 0}
+      disabled={loading || start < 0}
       onClick={() => usePlayer.getState().playTracks(tracks, start, { shuffle: false })}
     >
       <Play className="size-[18px]" fill="currentColor" aria-hidden />

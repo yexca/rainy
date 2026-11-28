@@ -104,7 +104,8 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   Episodes stay out of the home page, random picks, mixes, infinite mode, the
   album and song lists, Subsonic random and album lists, and Last.fm and
   ListenBrainz scrobbles. **Radio → Programs** lists the shows with your
-  progress; a show's page marks each episode played or partly played and
+  progress, and an artist's page lists that artist's shows under
+  **Programs**; a show's page marks each episode played or partly played and
   **Continue** picks up the first unfinished one. Episodes resume where you
   stopped, a position Subsonic apps share through bookmarks.
 

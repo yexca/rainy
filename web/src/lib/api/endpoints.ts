@@ -9,6 +9,8 @@
  * - URL builders (`streamUrl`, `downloadUrl`, …) return same-origin paths for `<audio>`/`<a>`.
  *   Cover images: use `coverUrl` from `@/lib/cover`.
  */
+import { batches } from '@/lib/batches'
+
 import { apiUrl, request, seg, upload, type CallOptions, type UploadProgress } from './client'
 import type {
   Album,
@@ -310,6 +312,9 @@ function uploadName(item: UploadItem): [Blob, string] {
 
 const noAuthRedirect = { skipAuthHandler: true } as const
 
+/** Track ids per `GET /bookmarks` (about 2.5 KB of query string; the server takes up to 1000). */
+const BOOKMARK_BATCH = 100
+
 export const api = {
   // ---- §7.1 auth & me
   auth: {
@@ -370,9 +375,18 @@ export const api = {
   /** Program shows with the user's progress, most recent activity first. */
   programs: (opts?: CallOptions) => request<ProgramShow[]>('/programs', opts),
   bookmarks: {
-    /** The user's saved positions in these tracks (shared with Subsonic bookmarks). */
-    list: (trackIds: string[], opts?: CallOptions) =>
-      request<Bookmark[]>('/bookmarks', { ...opts, query: { trackIds: trackIds.join(',') } }),
+    /**
+     * The user's saved positions in these tracks (shared with Subsonic bookmarks), asked for in
+     * batches so a long show stays within the server's id limit and proxies' URL limits.
+     */
+    list: async (trackIds: string[], opts?: CallOptions) => {
+      const pages = await Promise.all(
+        batches(trackIds, BOOKMARK_BATCH).map((ids) =>
+          request<Bookmark[]>('/bookmarks', { ...opts, query: { trackIds: ids.join(',') } }),
+        ),
+      )
+      return pages.flat()
+    },
     save: (trackId: string, positionMs: number, opts?: CallOptions) =>
       request<Bookmark>(`/bookmarks/${seg(trackId)}`, { ...opts, method: 'PUT', body: { positionMs } }),
     delete: (trackId: string, opts?: CallOptions) =>

@@ -79,8 +79,11 @@ func TestProgramFolders(t *testing.T) {
 		t.Errorf("home = %+v", h)
 	}
 	artist := nativeJSON[artistDetail](t, e.do(http.MethodGet, "/artists/"+e.sineWave, e.bobTok, nil), http.StatusOK)
-	if len(artist.Albums) != 0 || len(artist.TopTracks) != 0 {
-		t.Errorf("artist page = %+v / %+v", artist.Albums, artist.TopTracks)
+	// The show leaves the albums and top songs for a list of its own, so the page is not empty.
+	if len(artist.Albums) != 0 || len(artist.TopTracks) != 0 || len(artist.AppearsOn) != 0 ||
+		!slices.Equal(nativeAlbumIDs(artist.Programs), []string{e.tones}) || artist.AlbumCount != 0 || artist.SongCount != 0 {
+		t.Errorf("artist page = albums %+v, top %+v, appears on %+v, programs %+v, counts %d/%d",
+			artist.Albums, artist.TopTracks, artist.AppearsOn, artist.Programs, artist.AlbumCount, artist.SongCount)
 	}
 
 	shows := nativeJSON[[]store.ProgramShow](t, e.do(http.MethodGet, "/programs", e.bobTok, nil), http.StatusOK)

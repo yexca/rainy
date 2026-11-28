@@ -161,7 +161,7 @@ func TestNativeArtistDetail(t *testing.T) {
 	e := newNativeEnv(t)
 	d := nativeJSON[artistDetail](t, e.do("GET", "/artists/"+e.rainyDays, e.aliceTok, nil), 200)
 	if d.Name != "The Rainy Days" || !slices.Equal(nativeAlbumIDs(d.Albums), []string{e.blueSkies}) ||
-		!slices.Equal(nativeAlbumIDs(d.AppearsOn), []string{e.hits}) {
+		!slices.Equal(nativeAlbumIDs(d.AppearsOn), []string{e.hits}) || d.AlbumCount != 1 || d.SongCount != 4 {
 		t.Fatalf("artist %+v albums %v appears %v", d.Artist, nativeAlbumIDs(d.Albums), nativeAlbumIDs(d.AppearsOn))
 	}
 	// No plays yet: random fill with all four available tracks (the missing one excluded).
@@ -181,8 +181,19 @@ func TestNativeArtistDetail(t *testing.T) {
 	}
 	// Artists without their own albums still resolve (appears-on only).
 	d = nativeJSON[artistDetail](t, e.do("GET", "/artists/"+e.guest, e.aliceTok, nil), 200)
-	if len(d.Albums) != 0 || d.Albums == nil || !slices.Equal(nativeAlbumIDs(d.AppearsOn), []string{e.hits}) || len(d.TopTracks) != 1 {
+	if len(d.Albums) != 0 || d.Albums == nil || !slices.Equal(nativeAlbumIDs(d.AppearsOn), []string{e.hits}) || len(d.TopTracks) != 1 ||
+		d.Programs == nil || len(d.Programs) != 0 {
 		t.Fatalf("guest %+v", d)
+	}
+	// A program show the artist appears in moves from "appears on" to the programs.
+	if err := e.app.Store.AddProgramFolder(ctx, e.lib.ID, "Various Artists/Hits"); err != nil {
+		t.Fatal(err)
+	}
+	d = nativeJSON[artistDetail](t, e.do("GET", "/artists/"+e.guest, e.aliceTok, nil), 200)
+	if len(d.AppearsOn) != 0 || d.AppearsOn == nil || !slices.Equal(nativeAlbumIDs(d.Programs), []string{e.hits}) || len(d.TopTracks) != 0 ||
+		d.SongCount != 0 {
+		t.Fatalf("guest of a program: appears on %v, programs %v, top %v",
+			nativeAlbumIDs(d.AppearsOn), nativeAlbumIDs(d.Programs), nativeTrackIDs(d.TopTracks))
 	}
 	nativeErrorCode(t, e.do("GET", "/artists/unknown", e.aliceTok, nil), 404)
 }

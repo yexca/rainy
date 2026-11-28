@@ -6,6 +6,7 @@
  * one stopped in its first seconds, has no bookmark. Other entries are ignored.
  */
 import { api } from '@/lib/api/endpoints'
+import type { Bookmark } from '@/lib/api/types'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys } from '@/lib/query-keys'
 
@@ -14,6 +15,27 @@ import type { PlayableTrack } from '../types'
 
 /** Give up waiting for the bookmark after this long and start from the beginning (ms). */
 const LOOKUP_TIMEOUT_MS = 4000
+
+function isEpisode(entry: PlayableTrack | undefined): entry is PlayableTrack {
+  return !!entry?.program && !entry.isRadio
+}
+
+/**
+ * The bookmark of a track as the freshest cached `['bookmarks', trackIds]` list that asked for
+ * it holds it (ms, 0 = none), or undefined when no cached list asked for it.
+ */
+function cachedBookmarkMs(trackId: string): number | undefined {
+  let found: number | undefined
+  let updatedAt = -1
+  for (const query of queryClient.getQueryCache().findAll({ queryKey: queryKeys.bookmarks })) {
+    const ids = query.queryKey[1]
+    const data = query.state.data as Bookmark[] | undefined
+    if (!data || !Array.isArray(ids) || !ids.includes(trackId) || query.state.dataUpdatedAt <= updatedAt) continue
+    updatedAt = query.state.dataUpdatedAt
+    found = data.find((b) => b.trackId === trackId)?.positionMs ?? 0
+  }
+  return found
+}
 
 export class ProgramResume {
   private entry: PlayableTrack | undefined
@@ -28,17 +50,34 @@ export class ProgramResume {
   private lastSaveAt = 0
   private last: BookmarkAction | null = null
   private lookup: AbortController | null = null
+  /** Bookmarks this tab last read or wrote, by track id (ms, 0 = none). */
+  private readonly known = new Map<string, number>()
+  /** Bookmark writes still on their way, by track id; a lookup waits for them. */
+  private readonly writes = new Map<string, Promise<unknown>>()
+
+  /**
+   * Where a program episode starts when that is known without asking the server (seconds, 0 =
+   * the start): from what this tab last saved or read, else from a cached bookmark list such as
+   * the album page's. Undefined for other entries and for episodes whose bookmark is unknown. The
+   * engine starts the stream there inside the user's gesture; `enter` still reads the bookmark.
+   */
+  startHint(entry: PlayableTrack | undefined): number | undefined {
+    if (!isEpisode(entry)) return undefined
+    const ms = this.known.get(entry.id) ?? cachedBookmarkMs(entry.id)
+    return ms === undefined ? undefined : resumeAt(ms, entry.duration)
+  }
 
   /**
    * A new entry became current: keeps where the previous episode stopped, then reads the new
-   * one's bookmark. Resolves to the position to start from in seconds (0 = the start, and
-   * always 0 for entries that are not program episodes).
+   * one's bookmark once any save of it still on its way has landed. Resolves to the position to
+   * start from in seconds (0 = the start, and always 0 for entries that are not program
+   * episodes).
    */
   async enter(entry: PlayableTrack | undefined): Promise<number> {
     this.flush()
     this.lookup?.abort()
     const seq = ++this.seq
-    this.entry = entry?.program && !entry.isRadio ? entry : undefined
+    this.entry = isEpisode(entry) ? entry : undefined
     this.ready = false
     this.time = null
     this.last = null
@@ -49,9 +88,13 @@ export class ProgramResume {
     this.lookup = ctrl
     const timer = setTimeout(() => ctrl.abort(), LOOKUP_TIMEOUT_MS)
     try {
+      // Re-entering an episode right after leaving it: read the position just saved, not the one before.
+      await this.writes.get(target.id)?.catch(() => undefined)
+      if (seq !== this.seq) return 0
       const bookmarks = await api.bookmarks.list([target.id], { signal: ctrl.signal })
       const saved = bookmarks.find((b) => b.trackId === target.id)
       if (seq !== this.seq) return 0
+      this.known.set(target.id, saved?.positionMs ?? 0)
       this.last = saved ? { kind: 'save', positionMs: saved.positionMs } : { kind: 'clear' }
       return resumeAt(saved?.positionMs, target.duration)
     } catch {
@@ -93,11 +136,12 @@ export class ProgramResume {
     const action = bookmarkAction(this.time, entry.duration)
     if (sameAction(this.last, action)) return
     this.last = action
+    this.known.set(entry.id, action.kind === 'save' ? action.positionMs : 0)
     const request =
       action.kind === 'save'
         ? api.bookmarks.save(entry.id, action.positionMs, { keepalive })
         : api.bookmarks.delete(entry.id, { keepalive })
-    request.then(
+    const write = request.then(
       () => {
         // Album pages and the Programs tab show the new progress.
         if (keepalive) return
@@ -107,9 +151,14 @@ export class ProgramResume {
         if (action.kind === 'clear') void queryClient.invalidateQueries({ queryKey: queryKeys.album(entry.albumId) })
       },
       () => {
-        // Offline: try again with the next save.
+        // Offline: try again with the next save, and ask the server where the episode is.
+        this.known.delete(entry.id)
         if (this.entry === entry && this.last === action) this.last = null
       },
     )
+    this.writes.set(entry.id, write)
+    void write.finally(() => {
+      if (this.writes.get(entry.id) === write) this.writes.delete(entry.id)
+    })
   }
 }

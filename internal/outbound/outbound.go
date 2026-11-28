@@ -41,6 +41,10 @@ type Redirects struct {
 	Max int
 	// HTTPSOnly refuses redirects to plain http. Otherwise http and https are accepted.
 	HTTPSOnly bool
+	// NoDowngrade refuses redirects to plain http once the request has reached https (the
+	// original URL or an earlier hop), so a request that starts on plain http may stay on
+	// it while an https one is never moved off it.
+	NoDowngrade bool
 	// Allow, when set, must accept every redirect target. first is the original request's
 	// URL. Use SameHost or a host allow-list; nil accepts any host (only for clients whose
 	// transport checks every hop, such as the lxmusic guarded transport).
@@ -57,14 +61,26 @@ func (r Redirects) Check(req *http.Request, via []*http.Request) error {
 	if len(via) > r.Max {
 		return fmt.Errorf("%w: more than %d redirects (last to %s)", ErrRedirect, r.Max, host)
 	}
+	scheme := req.URL.Scheme
 	switch {
-	case req.URL.Scheme != "https" && (r.HTTPSOnly || req.URL.Scheme != "http"),
+	case scheme != "https" && scheme != "http",
+		scheme == "http" && (r.HTTPSOnly || r.NoDowngrade && reachedHTTPS(via)),
 		req.URL.User != nil,
 		host == "",
 		r.Allow != nil && !r.Allow(req.URL, via[0].URL):
 		return fmt.Errorf("%w: to %s", ErrRedirect, host)
 	}
 	return nil
+}
+
+// reachedHTTPS reports whether the original request or an earlier redirect used https.
+func reachedHTTPS(via []*http.Request) bool {
+	for _, r := range via {
+		if r.URL.Scheme == "https" {
+			return true
+		}
+	}
+	return false
 }
 
 // SameHost is a Redirects.Allow function that keeps redirects on the original host.

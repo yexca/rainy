@@ -615,6 +615,7 @@ type ProgramShow struct { model.Album; Episodes, Played /*played, no bookmark*/,
     LatestEpisode, ActivityAt int64 }                                    // json: …Album, episodes, played, inProgress, latestEpisodeAt, activityAt
 ListProgramShows(ctx, userID string) ([]ProgramShow, error)              // readable program shows with the user's progress over their
                                                                          // readable present episodes; latest of a new episode, a play or a bookmark first
+ArtistMusicCounts(ctx, artistID string) (albums, songs int, err error)   // album_count / song_count over readable present non-episode tracks
 AndNotProgram(ctx, prefix string) string; AndNotProgramAlbum(ctx, alias string) string // " AND NOT …" conditions for queries outside the store
 ```
 `Programs` filters default to `ProgramsAll`, so internal callers (scanner, manage, the folder browser, playlists,
@@ -946,7 +947,8 @@ Rules: fixed endpoint URLs; the query is one encoded parameter (or a JSON value)
 provider ids are validated per provider before any request; responses are capped (4 MiB JSON,
 20 MiB images); covers come only from `music.126.net`, `y.gtimg.cn`, `y.qq.com`, `kugou.com`,
 `kuwo.cn`, `mzstatic.com`, and `migu.cn` (for §5.15; host or subdomain, default port, no userinfo), redirects stay on
-the same host over HTTPS (≤ 3), and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
+the same host (≤ 3) and never leave HTTPS once a request reached it (a plain-HTTP API URL such as Kugou's search may
+stay on HTTP; covers are always fetched over HTTPS), and only JPEG/PNG/GIF/WebP bytes are returned. Errors never include the query.
 QQ Music falls back to its older mobile search (no track numbers) when the desktop search refuses.
 With `Options.ChinaIP`, requests to the NetEase, QQ Music, Kugou, and Kuwo APIs carry an
 `X-Real-IP` header with a random address from a few mainland-China ISP /16 blocks (a new one per
@@ -1078,7 +1080,9 @@ Rules:
 - **Network guard** for scripts, script links and audio downloads: `http(s)` only, no user info, and every dialled
   address (after DNS) must be public — loopback, private, link-local, CGNAT, multicast, documentation and reserved
   ranges (also IPv4-mapped and NAT64) are refused. A configured `HTTP(S)_PROXY` is dialled directly, with the target
-  resolved and checked first. Audio downloads follow ≤ 5 redirects, each checked again.
+  resolved and checked first. Script links and audio downloads follow ≤ 5 redirects, each target checked by the guard
+  before it is requested; a script link redirected to a refused URL is `ErrInvalid` (400) naming the reason, too many
+  redirects `ErrUpstream`.
 - **Downloads** (manage): `Candidates` lists enabled sources by priority (fixed mode: only the chosen one), skipping
   sources known not to provide the platform. `MusicURL` picks the best quality up to the requested one that both the
   song and the source list (else the lowest above it). `Download` reports an HTTP error status as `*LinkError`;
@@ -1237,7 +1241,8 @@ are outside the snapshot; see [backup and restore](../operations/database.md#bac
 `internal/outbound` builds every outbound HTTP client and imports only the standard library.
 
 ```go
-type Redirects struct { Max int; HTTPSOnly bool; Allow func(target, first *url.URL) bool } // zero value: follow none
+type Redirects struct { Max int; HTTPSOnly bool; NoDowngrade bool /*no plain http once a hop used https*/
+    Allow func(target, first *url.URL) bool }                          // zero value: follow none
 func (r Redirects) Check(req *http.Request, via []*http.Request) error // CheckRedirect; refuses userinfo and non-http(s)
 func SameHost(target, first *url.URL) bool
 type TransportOptions struct { DialTimeout, ResponseHeaderTimeout time.Duration
@@ -1354,7 +1359,7 @@ production code.
 | GET | `/api/albums` | `q, sort, order, offset, limit, artistId, genre, fromYear, toYear, starred, libraryId, programs(include|only)` | `Page<Album>` |
 | GET | `/api/albums/{id}` | | `AlbumDetail` (`Album & {tracks: Track[], discs: number[]}`) |
 | GET | `/api/artists` | `q, sort, order, offset, limit, all (include non-album artists), starred, libraryId, programs(include)` | `Page<Artist>` |
-| GET | `/api/artists/{id}` | | `ArtistDetail` (`Artist & {albums: Album[], appearsOn: Album[], topTracks: Track[]}`) |
+| GET | `/api/artists/{id}` | | `ArtistDetail` (`Artist & {albums: Album[], appearsOn: Album[], programs: Album[], topTracks: Track[]}`; albums, appears-on and top tracks leave program shows and episodes out, `programs` lists the artist's shows, most recent first, then the shows it appears in; `albumCount` and `songCount` count music only, `ArtistMusicCounts`) |
 | GET | `/api/tracks` | `q, sort, order, offset, limit, albumId, artistId, genre, starred, fromYear, toYear, libraryId, dir, dirPrefix, missing(include|only), ids(comma), programs(include|only)` | `Page<Track>` |
 | GET | `/api/tracks/{id}` | | `Track` |
 | GET | `/api/genres` | | `Genre[]` |
@@ -1683,7 +1688,7 @@ export interface Artist {
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string
 }
-export interface ArtistDetail extends Artist { albums: Album[]; appearsOn: Album[]; topTracks: Track[] }
+export interface ArtistDetail extends Artist { albums: Album[]; appearsOn: Album[]; programs: Album[]; topTracks: Track[] }
 export interface Genre { id: string; name: string; songCount: number; albumCount: number }
 export interface SearchResult { artists: Artist[]; albums: Album[]; tracks: Track[] }
 export interface Home {
@@ -2058,9 +2063,12 @@ features only through the player store, types and dock and the shell slots liste
 - **Player layouts** (≥ 768px, layout menu = the `PictureInPicture2` button in the window and the top of the bar's options menu, with three radio options top to bottom: full screen — opens Now Playing over the current layout, disabled while idle —, floating window, bottom bar; the last two are persisted in `usePlayerDock`): *bottom bar* (default; see *Desktop player bar*; a centred handle tab above it holds a chevron and a pin, shown on hover / focus while pinned and always while unpinned or on devices without hover; *unpinned* = auto-hide, NetEase style: the bar slides below the viewport leaving the handle; hovering the handle / bottom edge or keyboard focus peeks it until the pointer or focus leaves, and a press outside hides it; the chevron hides the bar right away — unpinning a pinned bar — or shows a hidden one; the pin switches between pinned and auto-hide, and a bar that was just unpinned stays up until the pointer or focus leaves); *floating window* (bottom-right 400×min(640px, viewport − 3rem), artwork backdrop like Now Playing: queue position, grabber → bottom bar, layout menu, full screen; artwork that scales down while paused, title/star/…, scrubber, shuffle/prev/play/next/repeat, volume, lyrics/translation/AirPlay/auto-stop timer/queue — lyrics and queue replace the artwork inside the window; not modal). The floating window renders nothing while idle and hides under full-screen Now Playing, which is available from every layout and returns to it on close. Phones keep the mini pill + sheet.
 - Audio engine: single `HTMLAudioElement`, `preload="auto"`, next track preloaded ~20 s before the end with a second element; Media Session (metadata with artwork 96–512, play/pause/prev/next/seekto/seekbackward/seekforward, `setPositionState`); scrobble "now playing" on start and submission after 50 % or 4 min; queue persisted to localStorage immediately and to `/api/queue` debounced (10 s) so the Subsonic clients can resume it; restore on load (paused). Streaming quality setting (original / 320 / 192 / 128 kbps + format) → stream URL params. ReplayGain option (track/album/off) applied via volume scaling (not on iOS). Keyboard: space, ←/→ seek 5s, shift+←/→ prev/next, m mute (Ctrl/⌘+K, Spotlight search & quick actions, belongs to the app shell; Settings › Playback lists them all). Errors → toast and skip.
 - **Program resume** (`engine/program-resume.ts`, pure helpers in `lib/program-resume.ts`, unit-tested): for an entry
-  with `program` the engine reads its bookmark (`GET /api/bookmarks`, at most 4 s) before it starts the stream, and starts
-  at the bookmark when it lies more than 5 s in and more than 30 s before the end (`resumeAt`); a bookmark that arrives
-  after playback started moves the position while it is still in the first 5 s. While the episode plays the position is
+  with `program` the engine starts the stream inside the user's gesture, like a song (iOS needs `play()` there): at the
+  position this tab last saved or read for it, else from a cached `bookmarksQuery` list such as the album page's
+  (`startHint`), else at 0. It also reads the bookmark (`GET /api/bookmarks`, at most 4 s, after any save of that episode
+  still in flight has landed) and resumes at it when it lies more than 5 s in and more than 30 s before the end
+  (`resumeAt`): when it differs from where the stream started, the position moves there while it is still within 5 s of
+  that start. While paused, the bookmark only sets the position shown. While the episode plays the position is
   saved with `PUT /api/bookmarks/{id}` every 15 s, on pause, on seek, when the entry changes and on `pagehide`
   (keepalive); within the first 5 s or the last 30 s, and at the end, the bookmark is deleted instead. Unchanged saves
   are skipped, and a successful one refreshes the `bookmarks` and `programs` queries (and, when it deleted the bookmark,
@@ -2182,11 +2190,11 @@ features only through the player store, types and dock and the shell slots liste
   program shows from `GET /api/programs` (`programsQuery`, key `['programs']`) as album cards whose caption gives the
   episodes and the user's progress ("12 episodes · 2 in progress", "All played"); an empty state tells managers where to
   mark folders. A show opens its album page, which for `program` albums says "Program", replaces Play / Shuffle with
-  `ProgramPlayButton` ("Continue" from the first episode not played once the listener started the show, else "Play"; the
-  player resumes the episode at its bookmark, §9.4), counts episodes in the footer, and shows each episode's progress under
+  `ProgramPlayButton` ("Continue" from the first episode not played once the listener started the show, else "Play";
+  disabled while the positions are first read; the player resumes the episode at its bookmark, §9.4), counts episodes in the footer, and shows each episode's progress under
   its title (`TrackList` `progressOf`, `EpisodeProgressMark`; pure helpers in `lib/program-progress.ts`, unit-tested): a
   "Played" mark, or for a bookmarked episode a thin bar with the time left. Bookmarks come from `bookmarksQuery` (key
-  `['bookmarks', trackIds]`; `programs` and `bookmarks` are `LIBRARY_QUERY_ROOTS` roots).
+  `['bookmarks', trackIds]`; `api.bookmarks.list` asks in batches of 100 ids; `programs` and `bookmarks` are `LIBRARY_QUERY_ROOTS` roots).
 - **Settings → Scrobbling** (`ScrobblingSection`, `/settings/scrobbling`): per service the linked account, a pause switch, the waiting
   plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
   confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates

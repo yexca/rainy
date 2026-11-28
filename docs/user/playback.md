@@ -172,7 +172,9 @@ an episode. Episodes stay out of the music features:
 the home page, random picks, the daily and weekly mixes, infinite mode, the
 album and song lists, an artist's albums and top songs, and scrobbles to
 Last.fm or ListenBrainz. Search, favorites, playlists, and the folder browser
-still find them, and your own play history counts them.
+still find them, and your own play history counts them. An artist's page lists
+the artist's programs, and the ones the artist appears in, under **Programs**;
+its album and song counts cover music only.
 
 **Radio → Programs** shows each program as a card with its number of episodes
 and how far you got, the most recently active first. A program opens its page:

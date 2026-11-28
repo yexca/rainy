@@ -163,6 +163,28 @@ func TestSearchQQFallsBackWhenRefused(t *testing.T) {
 	}
 }
 
+// Kugou's search URL is plain HTTP: a same-host redirect may stay on plain HTTP (only a
+// request that reached HTTPS is kept off it, see TestCover).
+func TestSearchFollowsPlainHTTPRedirect(t *testing.T) {
+	s, f := newFake(map[string]http.HandlerFunc{
+		"mobilecdn.kugou.com": func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/moved" {
+				http.Redirect(w, r, "/moved", http.StatusFound) // same host and scheme: plain HTTP
+				return
+			}
+			_, _ = io.WriteString(w, `{"status":1,"data":{"info":[
+				{"hash":"0123456789ABCDEF0123456789ABCDEF","songname":"Song","singername":"A","duration":200}]}}`)
+		},
+	})
+	got, err := s.Search(context.Background(), "kugou", "q", 10, "", Options{})
+	if err != nil || len(got) != 1 {
+		t.Fatalf("Search = %+v, %v; want one result after the redirect", got, err)
+	}
+	if n := len(f.requests); n != 2 || f.requests[1].URL.Scheme != "http" {
+		t.Fatalf("requests = %d, want the search and its plain-HTTP redirect", n)
+	}
+}
+
 func TestSearchKugouAndKuwo(t *testing.T) {
 	s, _ := newFake(map[string]http.HandlerFunc{
 		"mobilecdn.kugou.com": text(`{"status":1,"data":{"info":[

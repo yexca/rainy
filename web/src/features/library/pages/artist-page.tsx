@@ -102,9 +102,11 @@ function ArtistContent({
     () => [...artist.albums].sort((a, b) => b.year - a.year || a.name.localeCompare(b.name)),
     [artist.albums],
   )
+  // The counts cover music only; an artist known only from programs counts its shows instead.
   const meta = [
     artist.albumCount > 0 ? t('common:count.albums', { count: artist.albumCount }) : '',
-    t('common:count.songs', { count: artist.songCount }),
+    artist.songCount > 0 || artist.programs.length === 0 ? t('common:count.songs', { count: artist.songCount }) : '',
+    artist.songCount === 0 && artist.programs.length > 0 ? t('programs.count', { count: artist.programs.length }) : '',
   ]
     .filter(Boolean)
     .join(' · ')
@@ -122,7 +124,8 @@ function ArtistContent({
         playButtons={(layout) => (
           <PlayShuffleButtons
             layout={layout}
-            disabled={artist.songCount === 0}
+            // Program episodes are not played with the artist's songs.
+            disabled={top.length === 0}
             onPlay={() => play({ kind: 'artist', id: artist.id }, 'play')}
             onShuffle={() => play({ kind: 'artist', id: artist.id }, 'shuffle')}
           />
@@ -171,6 +174,17 @@ function ArtistContent({
           <CardGrid>
             {albums.map((album) => (
               <AlbumCard key={album.id} album={album} subtitle="year" />
+            ))}
+          </CardGrid>
+        </section>
+      ) : null}
+
+      {artist.programs.length > 0 ? (
+        <section className={albums.length > 0 || top.length > 0 ? 'mt-10' : 'mt-2'}>
+          <SectionHeader title={t('artist.programs')} />
+          <CardGrid>
+            {artist.programs.map((show) => (
+              <AlbumCard key={show.id} album={show} subtitle="year" />
             ))}
           </CardGrid>
         </section>

@@ -205,7 +205,17 @@ func newClients(allowPrivate bool) (script, fetch *http.Client) {
 	t := newTransport(allowPrivate)
 	script = outbound.NewClient(outbound.Options{Transport: t})
 	// Any host: the guarded transport checks every hop's URL and dialled address.
-	fetch = outbound.NewClient(outbound.Options{Transport: t, Redirects: outbound.Redirects{Max: maxRedirects}})
+	redirects := outbound.Redirects{Max: maxRedirects}
+	fetch = outbound.NewClient(outbound.Options{Transport: t, Redirects: redirects})
+	// A redirect target is checked like any request URL before the policy's own target
+	// checks, so a refused one is ErrBlocked with its reason (a 400 for script links), not
+	// a refused redirect (an upstream error).
+	fetch.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if err := checkURL(req.URL, allowPrivate); err != nil {
+			return err
+		}
+		return redirects.Check(req, via)
+	}
 	return script, fetch
 }
 

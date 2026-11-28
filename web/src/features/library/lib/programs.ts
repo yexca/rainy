@@ -7,11 +7,18 @@ import type { ProgramShow, Track } from '@/lib/api/types'
 
 import { bookmarksQuery } from './queries'
 
-/** The listener's saved positions (ms) in these episodes, by track id. */
-export function useEpisodePositions(tracks: readonly Track[]): ReadonlyMap<string, number> {
+/**
+ * The listener's saved positions (ms) in these episodes, by track id, and whether they are still
+ * being read for the first time (until then "Continue" cannot know which episode to start).
+ */
+export function useEpisodePositions(tracks: readonly Track[]): {
+  positions: ReadonlyMap<string, number>
+  loading: boolean
+} {
   const ids = useMemo(() => tracks.map((t) => t.id), [tracks])
   const query = useQuery(bookmarksQuery(ids))
-  return useMemo(() => new Map((query.data ?? []).map((b) => [b.trackId, b.positionMs])), [query.data])
+  const positions = useMemo(() => new Map((query.data ?? []).map((b) => [b.trackId, b.positionMs])), [query.data])
+  return { positions, loading: query.isLoading }
 }
 
 /** Second line of a show card: its episodes and how far the listener got. */

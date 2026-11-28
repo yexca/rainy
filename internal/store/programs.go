@@ -176,6 +176,26 @@ func (s *Store) AndNotProgramAlbum(ctx context.Context, alias string) string {
 	return " AND NOT " + c
 }
 
+// ArtistMusicCounts returns the artist's album_count and song_count (the definitions
+// RefreshArtists stores) over the present tracks readable by ctx that are not program
+// episodes: the albums it is the album artist of with such a track, and those tracks in
+// either role.
+func (s *Store) ArtistMusicCounts(ctx context.Context, artistID string) (albums, songs int, err error) {
+	var n struct {
+		Albums int `db:"albums"`
+		Songs  int `db:"songs"`
+	}
+	err = s.db.R.GetContext(ctx, &n, `SELECT COUNT(DISTINCT CASE WHEN t.album_artist_id = ? THEN t.album_id END) AS albums,
+			COUNT(*) AS songs
+		FROM `+TracksFrom(ctx)+` t
+		WHERE t.missing = 0 AND (t.artist_id = ? OR t.album_artist_id = ?)`+s.andNotProgram(ctx, "t."),
+		artistID, artistID, artistID)
+	if err != nil {
+		return 0, 0, fmt.Errorf("counting artist music: %w", err)
+	}
+	return n.Albums, n.Songs, nil
+}
+
 // programsFilter adds the condition for a Programs filter value; isProgram is the
 // condition that a row is a program.
 func programsFilter(w *where, mode, isProgram string) {

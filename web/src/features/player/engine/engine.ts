@@ -113,6 +113,8 @@ export class PlayerEngine {
   private swappedFrom: HTMLAudioElement | null = null
   private readonly dual = !isIOS
   private currentKey: string | null = null
+  /** Where the current program episode was started before its bookmark was read (seconds). */
+  private programStart: { key: string; at: number } | null = null
   private failures = 0
   /** Element-relative position to apply once metadata is available. */
   private pendingSeek: number | null = null
@@ -359,28 +361,37 @@ export class PlayerEngine {
       .getState()
       .update({ currentTime: 0, duration: current.isRadio ? 0 : current.duration, buffered: 0, buffering: false })
     this.announce(current)
-    if (playing && !current.program) {
-      this.load(current, 0, true)
+    if (playing) {
+      // play() must run inside the user's gesture (iOS), so a program episode starts at once too:
+      // where it is known to resume, else at the start, moving to its bookmark when that arrives
+      // (resumeProgram).
+      const start = current.program ? (this.programs.startHint(current) ?? 0) : 0
+      this.programStart = current.program ? { key: entryKey(current), at: start } : null
+      if (start > 0) usePlayback.getState().update({ currentTime: start })
+      this.load(current, start, true)
     } else {
+      this.programStart = null
       if (this.loaded) {
         this.unload(this.el)
         this.loaded = null
       }
-      // A program episode starts once its bookmark is known (resumeProgram).
-      if (playing) usePlayback.getState().update({ buffering: true })
-      else setMediaSessionPlaybackState('paused')
+      setMediaSessionPlaybackState('paused')
       setMediaSessionPosition(0, current.isRadio ? 0 : current.duration)
     }
     if (current.program) void resumeAt.then((at) => this.resumeProgram(entryKey(current), at))
   }
 
-  /** A program episode's bookmark arrived: start it there, or move there if it already started. */
+  /**
+   * A program episode's bookmark arrived: start it there, or move there if it already started
+   * elsewhere and the listener has not moved on (no seek, only its first seconds played).
+   */
   private resumeProgram(key: string, at: number): void {
     const current = currentOf(usePlayer.getState())
     if (this.disposed || !current || key !== this.currentKey) return
     const playback = usePlayback.getState()
     if (this.loaded?.key === key) {
-      if (at > 0 && playback.currentTime < RESUME_MIN_SECONDS) playback.seek(at)
+      const started = this.programStart?.key === key ? this.programStart.at : 0
+      if (at > 0 && Math.abs(at - started) >= 1 && playback.currentTime < started + RESUME_MIN_SECONDS) playback.seek(at)
     } else if (usePlayer.getState().isPlaying) {
       const start = at > 0 ? at : playback.currentTime
       playback.update({ currentTime: start })
