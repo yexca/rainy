@@ -2,7 +2,7 @@
 
 /** Audio extensions the scanner indexes (docs/architecture/contract.md §5.7) — keys without dot. */
 export const AUDIO_EXTENSIONS: ReadonlySet<string> = new Set([
-  'mp3', 'flac', 'm4a', 'm4b', 'mp4', 'aac', 'alac', 'ogg', 'oga', 'opus', 'wav', 'aif', 'aiff', 'wma', 'ape', 'wv',
+  'mp3', 'flac', 'm4a', 'm4b', 'aac', 'alac', 'ogg', 'oga', 'opus', 'wav', 'aif', 'aiff', 'wma', 'ape', 'wv',
   'mpc', 'dsf', 'dff', 'tta', 'spx',
 ])
 

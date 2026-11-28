@@ -656,7 +656,7 @@ func (t *Tracker) List() []Entry // entries older than TTL are dropped
 
 ### 5.7 tags
 ```go
-var AudioExtensions = map[string]bool{"mp3","flac","m4a","m4b","mp4","aac","alac","ogg","oga","opus","wav","aif","aiff","wma","ape","wv","mpc","dsf","dff","tta","spx"} // keys without dot
+var AudioExtensions = map[string]bool{"mp3","flac","m4a","m4b","aac","alac","ogg","oga","opus","wav","aif","aiff","wma","ape","wv","mpc","dsf","dff","tta","spx"} // keys without dot
 func IsAudioFile(name string) bool
 type Metadata struct {
     Title, Album, Artist, AlbumArtist string

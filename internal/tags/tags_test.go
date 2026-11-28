@@ -78,7 +78,9 @@ func TestParseHelpers(t *testing.T) {
 			t.Errorf("parseBool(%q) != %v", in, want)
 		}
 	}
-	if !IsAudioFile("x/Song.FLAC") || IsAudioFile("cover.jpg") || IsAudioFile("noext") {
+	// Video containers are not audio even though TagLib reads their audio track.
+	if !IsAudioFile("x/Song.FLAC") || !IsAudioFile("Song.m4a") || IsAudioFile("cover.jpg") || IsAudioFile("noext") ||
+		IsAudioFile("Clip.MP4") {
 		t.Error("IsAudioFile")
 	}
 }

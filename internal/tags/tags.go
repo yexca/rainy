@@ -45,9 +45,10 @@ var (
 )
 
 // AudioExtensions lists the audio file extensions (lower-case, without dot) the scanner
-// considers.
+// considers. MP4 audio uses .m4a/.m4b; .mp4 is a video extension and is not listed, since
+// TagLib reads the audio track of a video and the scanner would index the video as a song.
 var AudioExtensions = map[string]bool{
-	"mp3": true, "flac": true, "m4a": true, "m4b": true, "mp4": true, "aac": true, "alac": true,
+	"mp3": true, "flac": true, "m4a": true, "m4b": true, "aac": true, "alac": true,
 	"ogg": true, "oga": true, "opus": true, "wav": true, "aif": true, "aiff": true, "wma": true,
 	"ape": true, "wv": true, "mpc": true, "dsf": true, "dff": true, "tta": true, "spx": true,
 }

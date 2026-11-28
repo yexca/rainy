@@ -66,8 +66,10 @@ articles such as "The" and "La" are ignored when sorting; the list is
 
 ## Supported Formats
 
-MP3, FLAC, AAC/M4A/M4B/MP4/ALAC, Ogg Vorbis, Opus, WAV, AIFF, APE, WavPack,
+MP3, FLAC, AAC/M4A/M4B/ALAC, Ogg Vorbis, Opus, WAV, AIFF, APE, WavPack,
 Musepack, TTA, WMA, Speex, and DSD (DSF/DFF). Other files are not indexed.
+`.mp4` files are treated as videos and skipped; rename an audio-only `.mp4` to
+`.m4a` to index it.
 Formats that browsers cannot play are transcoded automatically when ffmpeg is
 available.
 
