@@ -11,6 +11,7 @@ const FALLBACK_LIBRARY: LibraryInfo = {
   id: 1,
   name: '',
   path: '',
+  program: false,
   createdAt: 0,
   updatedAt: 0,
   lastScanAt: 0,

@@ -26,6 +26,10 @@ export const queryKeys = {
   recentTracks: ['recent-tracks'] as const,
   lyrics: (trackId: string) => ['lyrics', trackId] as const,
   radios: ['radios'] as const,
+  /** `/api/programs`: program shows with the user's progress. */
+  programs: ['programs'] as const,
+  /** `/api/bookmarks` (`['bookmarks', trackIds]`); the player refreshes them after saving a position. */
+  bookmarks: ['bookmarks'] as const,
   queue: ['queue'] as const,
   /** Listening report and history (`['listening', 'report', params]`, `['listening', 'history', range]`). */
   listening: ['listening'] as const,
@@ -55,6 +59,8 @@ export const LIBRARY_QUERY_ROOTS: ReadonlySet<string> = new Set([
   'recent-tracks',
   'listening',
   'recommend',
+  'programs',
+  'bookmarks',
   'playlists',
   'lyrics',
   'manage',

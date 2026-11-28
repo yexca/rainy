@@ -75,7 +75,7 @@ func (s *Service) Mix(ctx context.Context, userID string, q MixQuery) ([]model.T
 	}
 	var seedIDs, artists []string
 	for _, t := range seedTracks {
-		if t.Missing {
+		if t.Missing || t.Program {
 			continue
 		}
 		seedIDs = append(seedIDs, t.ID)
@@ -344,7 +344,8 @@ func (s *Service) topIDs(ctx context.Context, userID, kind string, since time.Ti
 	return ids, nil
 }
 
-// tracks loads the picked tracks in order, leaving out missing ones.
+// tracks loads the picked tracks in order, leaving out missing ones and program episodes
+// (a stored mix may predate the marking of their folder).
 func (s *Service) tracks(ctx context.Context, userID string, ids []string) ([]model.Track, error) {
 	tracks, err := s.st.GetTracks(ctx, ids, userID)
 	if err != nil {
@@ -352,7 +353,7 @@ func (s *Service) tracks(ctx context.Context, userID string, ids []string) ([]mo
 	}
 	out := make([]model.Track, 0, len(tracks))
 	for _, t := range tracks {
-		if !t.Missing {
+		if !t.Missing && !t.Program {
 			out = append(out, t)
 		}
 	}

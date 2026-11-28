@@ -14,7 +14,7 @@ import {
   Play,
   Tags,
 } from 'lucide-react'
-import { useState, type MouseEvent } from 'react'
+import { useState, type MouseEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,7 @@ export function FolderTile({
   playingHere = false,
   playingLoading = false,
   clampNames = true,
+  badge,
   onOpen,
   onPlay,
 }: {
@@ -41,6 +42,8 @@ export function FolderTile({
   playingHere?: boolean
   playingLoading?: boolean
   clampNames?: boolean
+  /** Shown after the track count (e.g. the program folder badge). */
+  badge?: ReactNode
   onOpen: () => void
   onPlay?: () => void
 }) {
@@ -82,10 +85,13 @@ export function FolderTile({
           >
             {folder.name}
           </span>
-          <span className="tnum mt-0.5 block truncate text-xs text-muted-foreground">
-            {folder.trackCount > 0
-              ? t('folders.subfolderTracks', { count: folder.trackCount })
-              : t('folders.subfolderBrowse')}
+          <span className="mt-0.5 flex min-w-0 items-center gap-1.5">
+            <span className="tnum truncate text-xs text-muted-foreground">
+              {folder.trackCount > 0
+                ? t('folders.subfolderTracks', { count: folder.trackCount })
+                : t('folders.subfolderBrowse')}
+            </span>
+            {badge}
           </span>
         </span>
       </button>

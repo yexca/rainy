@@ -9,6 +9,8 @@ export interface LongTrackItem {
   /** Seconds; 0 = unknown. */
   duration: number
   isRadio?: boolean
+  /** Program episode (`Track.program`): long by nature, never skipped. */
+  program?: boolean
 }
 
 /** Default limit in minutes. */
@@ -17,9 +19,12 @@ export const DEFAULT_LONG_TRACK_MINUTES = 10
 export const MIN_LONG_TRACK_MINUTES = 1
 export const MAX_LONG_TRACK_MINUTES = 600
 
-/** True for a song at least `limitSeconds` long (live radio and unknown durations never are). */
+/**
+ * True for a song at least `limitSeconds` long (live radio, program episodes and unknown
+ * durations never are).
+ */
 export function isLongTrack(track: LongTrackItem, limitSeconds: number): boolean {
-  return !track.isRadio && limitSeconds > 0 && track.duration >= limitSeconds
+  return !track.isRadio && !track.program && limitSeconds > 0 && track.duration >= limitSeconds
 }
 
 export interface LongTrackFilter<T> {

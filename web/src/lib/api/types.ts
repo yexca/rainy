@@ -33,6 +33,8 @@ export interface Track {
   missing: boolean; createdAt: number; updatedAt: number
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string; contentType: string
+  /** In a program folder (computed by the server): a spoken-word episode, kept out of mixes and random picks. */
+  program: boolean
 }
 export interface Album {
   id: string; libraryId: number; name: string; sortName: string; artist: string; artistId: string
@@ -40,8 +42,16 @@ export interface Album {
   duration: number; size: number; mbzAlbumId: string; createdAt: number; updatedAt: number
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string
+  /** Every present track is a program episode: the album is a program show. */
+  program: boolean
 }
 export interface AlbumDetail extends Album { tracks: Track[]; discs: number[] }
+/** GET /api/programs: a program show with the user's progress; `played` excludes bookmarked episodes. */
+export interface ProgramShow extends Album {
+  episodes: number; played: number; inProgress: number; latestEpisodeAt: number; activityAt: number
+}
+/** A saved position in a track, shared with Subsonic bookmarks. */
+export interface Bookmark { trackId: string; positionMs: number; comment: string; createdAt: number; updatedAt: number }
 export interface Artist {
   id: string; name: string; sortName: string; indexKey: string; albumCount: number; songCount: number
   mbzArtistId: string; createdAt: number; updatedAt: number
@@ -193,7 +203,12 @@ export interface StagedImportResult {
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
-export interface Library { id: number; name: string; path: string; createdAt: number; updatedAt: number; lastScanAt: number }
+/** `program`: a program library, whose every track is a program episode. */
+export interface Library { id: number; name: string; path: string; program: boolean; createdAt: number; updatedAt: number; lastScanAt: number }
+/** A folder whose tracks, in it and below it, are program episodes; `path` is library-relative (never the root). */
+export interface ProgramFolder { libraryId: number; path: string; createdAt: number }
+/** GET /api/manage/program-folders: program libraries (ids) and program folders. */
+export interface Programs { libraries: number[]; folders: ProgramFolder[] }
 export interface LibraryInfo extends Library { trackCount: number; exists: boolean; writable: boolean }
 export interface ScanStatus {
   scanning: boolean; full: boolean; libraryId: number

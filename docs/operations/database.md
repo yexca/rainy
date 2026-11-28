@@ -19,7 +19,7 @@ On the host, these live in the folder configured by `RAINY_DATA_PATH`
 
 | File or folder | Contents | Back up? |
 | --- | --- | --- |
-| `rainy.db` (with `-wal` and `-shm`) | Users, sessions, libraries, playlists, favorites, ratings, play history, play queues, bookmarks, radio stations, daily and weekly mixes, linked scrobbling accounts and plays waiting to be sent, imported music source scripts, settings, the library index, trash entries, and the edit history | Yes |
+| `rainy.db` (with `-wal` and `-shm`) | Users, sessions, libraries, program folders, playlists, favorites, ratings, play history, play queues, bookmarks, radio stations, daily and weekly mixes, linked scrobbling accounts and plays waiting to be sent, imported music source scripts, settings, the library index, trash entries, and the edit history | Yes |
 | `secret.key` | 32-byte key that encrypts stored passwords, the Last.fm shared secret, linked scrobbling credentials, and yt-dlp sign-in cookies | Yes. **Without it, every user must have their password reset** (see below). |
 | `trash/` | Music files deleted in Rainy | Recommended |
 | `ytdlp/` | yt-dlp installed by Rainy, its cache, and encrypted sign-in cookies | Optional; Rainy can install yt-dlp again |

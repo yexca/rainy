@@ -50,6 +50,8 @@ export interface TrackListProps {
   playlist?: { id: string; editable: boolean }
   /** Override "play from row" (default: play `tracks` as the queue, starting at the row). */
   onPlay?: (index: number) => void
+  /** A line under the title, such as a program episode's progress. */
+  progressOf?: (track: Track) => ReactNode
   /** Rendered instead of the list when there are no tracks (and nothing is loading). */
   empty?: ReactNode
   className?: string
@@ -84,6 +86,7 @@ export function TrackList({
   sectionOf,
   playlist,
   onPlay,
+  progressOf,
   empty,
   className,
 }: TrackListProps) {
@@ -204,6 +207,7 @@ export function TrackList({
                   hideArtist={hideArtist}
                   playlist={playlist}
                   last={row.index === count - 1 || rows.getRow(item.index + 1)?.type === 'header'}
+                  progress={progressOf?.(track)}
                   onPlay={play}
                 />
               ) : (
@@ -219,6 +223,7 @@ export function TrackList({
                   playlist={playlist}
                   selected={selectedId === track.id}
                   onSelect={setSelectedId}
+                  progress={progressOf?.(track)}
                   onPlay={play}
                 />
               )}
@@ -284,6 +289,7 @@ interface RowProps {
   albumArtist?: string
   hideArtist?: boolean
   playlist?: TrackListProps['playlist']
+  progress?: ReactNode
   onPlay: (index: number) => void
 }
 
@@ -299,6 +305,7 @@ const DesktopTrackRow = memo(function DesktopTrackRow({
   playlist,
   selected,
   onSelect,
+  progress,
   onPlay,
 }: RowProps & { showAlbum: boolean; maxPlays: number; selected: boolean; onSelect: (id: string) => void }) {
   const { t } = useTranslation()
@@ -398,6 +405,7 @@ const DesktopTrackRow = memo(function DesktopTrackRow({
                   )}
                 </div>
               ) : null}
+              {progress}
             </div>
           </div>
 
@@ -462,6 +470,7 @@ const MobileTrackRow = memo(function MobileTrackRow({
   hideArtist,
   playlist,
   last,
+  progress,
   onPlay,
 }: RowProps & { last: boolean }) {
   const { t } = useTranslation()
@@ -508,7 +517,10 @@ const MobileTrackRow = memo(function MobileTrackRow({
         )}
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate text-[16px] leading-snug', current && 'text-primary')}>{track.title}</span>
-          {isAlbum ? (
+          {/* A progress line takes the place of the second line, so the row keeps its height. */}
+          {progress !== undefined ? (
+            progress
+          ) : isAlbum ? (
             subtitle || quality ? (
               // Artist · quality; the quality never truncates.
               <span className="flex min-w-0 items-center gap-1.5 text-[13px] leading-snug text-muted-foreground">

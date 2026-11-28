@@ -325,6 +325,25 @@ built-in preview dialog, and **Upload here** jumps to **Tracks → Add → Uploa
 the current folder selected. **Actions** rescans the folder, opens it in the
 track list, or edits the selected tracks.
 
+### Program Folders
+
+Open a folder of recorded shows and choose **Actions → Mark as program
+folder**. Every file in it and in the folders below it becomes a program
+episode, listed under **Radio → Programs** (see
+[Playback](playback.md#programs)) and kept out of recommendations, random
+picks, the home page, and the album and song lists. The folder shows a
+**Program folder** badge, and the folders below it **In a program folder**.
+**Actions → Unmark program folder** turns it back into music; the files are
+not changed either way. A program is the album its episodes share, so keep one
+album tag per show. Artist and album song counts still include episodes.
+
+When a whole library holds recorded shows, an administrator can make it a
+program library instead: turn on **Program library** when adding or editing it
+under **Admin → Libraries**. Every file in it is then an episode, the library
+card shows a **Programs** badge, and its folders show **Program library** here
+instead of the mark action. Turning the switch off makes it a music library
+again.
+
 ## History
 
 **Library tools → History** records every change Rainy made to your files:

@@ -17,6 +17,7 @@ import type {
   ArtistDetail,
   AuthStatus,
   BatchResult,
+  Bookmark,
   CookieSaveResult,
   DailyMix,
   DownloadFormat,
@@ -55,6 +56,8 @@ import type {
   Playlist,
   PlaylistDetail,
   PlaylistImportPreview,
+  Programs,
+  ProgramShow,
   RadioStation,
   RenamePlan,
   ScanStatus,
@@ -107,7 +110,12 @@ export interface AlbumListParams extends PageParams {
   toYear?: number
   starred?: boolean
   libraryId?: number
+  /** Program shows are left out unless asked for (or the list is the starred albums). */
+  programs?: ProgramsFilter
 }
+
+/** `include`: program shows / episodes too; `only`: nothing else. Ignored for random order. */
+export type ProgramsFilter = 'include' | 'only'
 
 export type ArtistSort = 'name' | 'albumCount' | 'songCount' | 'played' | 'frequent' | 'random' | 'recent'
 
@@ -140,6 +148,8 @@ export interface TrackListParams extends PageParams {
   /** Managers only: include missing tracks, or list only missing ones. */
   missing?: 'include' | 'only'
   ids?: string[]
+  /** Program episodes are left out unless asked for, or the list is narrowed to ids, an album, a folder or the starred songs. */
+  programs?: ProgramsFilter
 }
 
 export interface SearchParams {
@@ -282,7 +292,7 @@ export interface CreateUserInput {
   libraryFolders?: LibraryFolder[]
 }
 export type UpdateUserInput = Partial<CreateUserInput>
-export interface LibraryInput { name: string; path: string }
+export interface LibraryInput { name: string; path: string; /** A program library: every track is a program episode. */ program?: boolean }
 export interface StartScanInput { full?: boolean; libraryId?: number }
 
 // ---------------------------------------------------------------------------------------------
@@ -357,6 +367,17 @@ export const api = {
     request<Track[]>('/random', { ...opts, query: { ...params } }),
   recentTracks: (params: { limit?: number } = {}, opts?: CallOptions) =>
     request<Track[]>('/recent-tracks', { ...opts, query: { ...params } }),
+  /** Program shows with the user's progress, most recent activity first. */
+  programs: (opts?: CallOptions) => request<ProgramShow[]>('/programs', opts),
+  bookmarks: {
+    /** The user's saved positions in these tracks (shared with Subsonic bookmarks). */
+    list: (trackIds: string[], opts?: CallOptions) =>
+      request<Bookmark[]>('/bookmarks', { ...opts, query: { trackIds: trackIds.join(',') } }),
+    save: (trackId: string, positionMs: number, opts?: CallOptions) =>
+      request<Bookmark>(`/bookmarks/${seg(trackId)}`, { ...opts, method: 'PUT', body: { positionMs } }),
+    delete: (trackId: string, opts?: CallOptions) =>
+      request<void>(`/bookmarks/${seg(trackId)}`, { ...opts, method: 'DELETE' }),
+  },
 
   // ---- §7.8 listening
   listening: {
@@ -487,6 +508,14 @@ export const api = {
       /** Omit `trackIds` to purge every missing track. */
       purge: (trackIds?: string[]) =>
         request<Purged>('/manage/missing/purge', { method: 'POST', body: trackIds ? { trackIds } : {} }),
+    },
+    /** Program libraries and folders; marking and unmarking a folder answer with the new lists. */
+    programFolders: {
+      list: (opts?: CallOptions) => request<Programs>('/manage/program-folders', opts),
+      mark: (body: { libraryId: number; path: string }) =>
+        request<Programs>('/manage/program-folders', { method: 'PUT', body }),
+      unmark: (body: { libraryId: number; path: string }) =>
+        request<Programs>('/manage/program-folders', { method: 'DELETE', body }),
     },
     folders: {
       list: (params: FolderParams, opts?: CallOptions) =>

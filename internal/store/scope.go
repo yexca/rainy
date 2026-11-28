@@ -99,24 +99,50 @@ func libraryCond(ctx context.Context, col string) string {
 }
 
 // trackCond returns the condition on the tracks columns <prefix>library_id and <prefix>dir
-// for a scoped context ("0" when nothing is readable) and "" otherwise. A folder matches
-// its own dir and every dir below it; the range test (dir >= 'a/' AND dir < 'a0', '0'
-// following '/') keeps the (library_id, dir) index usable and does not match siblings
-// such as "a b" or "ab". The folder terms are joined as a balanced OR tree, since SQLite
-// rejects expressions nested deeper than 1000 levels and a flat chain nests one per folder.
+// for a scoped context ("0" when nothing is readable) and "" otherwise. Folders match as
+// folderTerm describes.
 func trackCond(ctx context.Context, prefix string) string {
 	sc, restricted := ctx.Value(libraryScopeKey{}).(libraryScope)
 	if !restricted {
 		return ""
 	}
-	lib, dir := prefix+"library_id", prefix+"dir"
 	var parts []string
 	if len(sc.libraries) > 0 {
-		parts = append(parts, inList(lib, sc.libraries))
+		parts = append(parts, inList(prefix+"library_id", sc.libraries))
 	}
 	for _, f := range sc.folders {
-		parts = append(parts, "("+lib+" = "+strconv.FormatInt(f.LibraryID, 10)+" AND ("+dir+" = "+sqlString(f.Path)+
-			" OR ("+dir+" >= "+sqlString(f.Path+"/")+" AND "+dir+" < "+sqlString(f.Path+"0")+")))")
+		parts = append(parts, folderTerm(prefix, f.LibraryID, f.Path))
+	}
+	if len(parts) == 0 {
+		return "0"
+	}
+	return orTree(parts)
+}
+
+// folderTerm returns the condition that the tracks columns <prefix>library_id and
+// <prefix>dir lie in the folder path of library id: its own dir and every dir below it.
+// The range test (dir >= 'a/' AND dir < 'a0', '0' following '/') keeps the
+// (library_id, dir) index usable and does not match siblings such as "a b" or "ab".
+func folderTerm(prefix string, id int64, path string) string {
+	lib, dir := prefix+"library_id", prefix+"dir"
+	return "(" + lib + " = " + strconv.FormatInt(id, 10) + " AND (" + dir + " = " + sqlString(path) +
+		" OR (" + dir + " >= " + sqlString(path+"/") + " AND " + dir + " < " + sqlString(path+"0") + ")))"
+}
+
+// programsCond returns the condition that the tracks columns <prefix>library_id and
+// <prefix>dir lie in one of p's libraries or folders ("0" for none); folders of those
+// libraries add nothing and are left out. The terms are joined as a balanced OR tree, since
+// SQLite rejects expressions nested deeper than 1000 levels and a flat chain nests one per
+// folder.
+func programsCond(prefix string, p Programs) string {
+	var parts []string
+	if len(p.Libraries) > 0 {
+		parts = append(parts, inList(prefix+"library_id", p.Libraries))
+	}
+	for _, f := range p.Folders {
+		if !slices.Contains(p.Libraries, f.LibraryID) {
+			parts = append(parts, folderTerm(prefix, f.LibraryID, f.Path))
+		}
 	}
 	if len(parts) == 0 {
 		return "0"

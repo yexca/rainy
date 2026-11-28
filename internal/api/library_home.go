@@ -29,7 +29,8 @@ type home struct {
 	Stats          homeStats     `json:"stats"`
 }
 
-// libHome serves the home page shelves; the queries run concurrently on the reader pool.
+// libHome serves the home page shelves and totals, leaving program shows and episodes out;
+// the queries run concurrently on the reader pool.
 func (a *API) libHome(w http.ResponseWriter, r *http.Request) {
 	uid := userFrom(r).ID
 	st := a.app.Store
@@ -38,7 +39,7 @@ func (a *API) libHome(w http.ResponseWriter, r *http.Request) {
 
 	shelf := func(dst *[]model.Album, total *int, q store.AlbumQuery) {
 		g.Go(func() error {
-			q.UserID, q.Limit = uid, homeShelfSize
+			q.UserID, q.Limit, q.Programs = uid, homeShelfSize, store.ProgramsExclude
 			albums, n, err := st.ListAlbums(ctx, q)
 			if err != nil {
 				return err
@@ -56,12 +57,12 @@ func (a *API) libHome(w http.ResponseWriter, r *http.Request) {
 	shelf(&h.Random, nil, store.AlbumQuery{Sort: "random"})
 	shelf(&h.Starred, nil, store.AlbumQuery{Starred: true, Sort: "starred"})
 	g.Go(func() error {
-		_, n, err := st.ListTracks(ctx, store.TrackQuery{Limit: 1})
+		_, n, err := st.ListTracks(ctx, store.TrackQuery{Programs: store.ProgramsExclude, Limit: 1})
 		h.Stats.Tracks = n
 		return err
 	})
 	g.Go(func() error {
-		_, n, err := st.ListArtists(ctx, store.ArtistQuery{AlbumArtistsOnly: true, Limit: 1})
+		_, n, err := st.ListArtists(ctx, store.ArtistQuery{AlbumArtistsOnly: true, ExcludePrograms: true, Limit: 1})
 		h.Stats.Artists = n
 		return err
 	})

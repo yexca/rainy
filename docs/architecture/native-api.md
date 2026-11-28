@@ -32,8 +32,8 @@ Three guards protect the routes:
 
 | Guard | Applies to |
 | --- | --- |
-| Signed-in user | Their profile, password, and API key; browsing, search, streaming, covers, lyrics, favorites, ratings, playlists, queue, radio stations, events, their own listening report and history, mixes, the daily and weekly mixes and song picks, and their own scrobbling accounts |
-| Manager (`canManage` or administrator) | `/api/manage/*`: tags, tag rebuild, covers, lyrics, rename, placement, upload, online metadata lookup, link and online music downloads, downloads held for review, delete, trash, missing-track purge, folders, doctor, encoding repair, and history |
+| Signed-in user | Their profile, password, and API key; browsing, search, streaming, covers, lyrics, favorites, ratings, playlists, queue, radio stations, program shows, their own bookmarks of tracks they can read, events, their own listening report and history, mixes, the daily and weekly mixes and song picks, and their own scrobbling accounts |
+| Manager (`canManage` or administrator) | `/api/manage/*`: tags, tag rebuild, covers, lyrics, rename, placement, upload, online metadata lookup, link and online music downloads, downloads held for review, delete, trash, missing-track purge, folders, program folders, doctor, encoding repair, and history |
 | Administrator | `/api/admin/*`: users, libraries, scans, server settings, statistics, system information, cache, yt-dlp and its cookies, scrobbling credentials, and music sources; plus creating, editing, and deleting radio stations under `/api/radios` |
 
 Downloads additionally require the user's download permission (administrators
@@ -53,6 +53,14 @@ private playlist answers `404`.
 - Timestamps are unix milliseconds, and JSON arrays are never `null`.
 - Batch management endpoints return `200` with per-item errors, so one
   read-only file does not hide the successful items.
+- Tracks and albums carry `program`: the track lies in a program library or
+  a program folder, or every present track of the album does. Program episodes stay out of the home
+  page, random picks, recommendations, an artist's albums and top songs, and the
+  default album, artist, and song lists; a list narrowed to ids, an album, a
+  folder, or the starred items includes them, as does `programs=include`.
+  `/api/programs` lists the shows with the user's progress, and
+  `/api/bookmarks` keeps the position in each episode, shared with Subsonic
+  bookmarks ([contract §7.2](contract.md#72-library)).
 
 ## Media Endpoints
 

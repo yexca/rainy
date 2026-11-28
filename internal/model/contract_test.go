@@ -51,9 +51,9 @@ func TestJSONMatchesTSContract(t *testing.T) {
 			duration bitrate sampleRate bitDepth channels codec hasCover
 			rgTrackGain rgTrackPeak rgAlbumGain rgAlbumPeak mbzTrackId mbzAlbumId mbzArtistId mbzAlbumArtistId
 			sortTitle sortAlbum sortArtist sortAlbumArtist missing createdAt updatedAt
-			starred starredAt rating playCount playedAt coverArt contentType`, ""},
+			starred starredAt rating playCount playedAt coverArt contentType program`, ""},
 		{"Album", Album{}, `id libraryId name sortName artist artistId year genre compilation songCount discCount
-			duration size mbzAlbumId createdAt updatedAt starred starredAt rating playCount playedAt coverArt`, ""},
+			duration size mbzAlbumId createdAt updatedAt starred starredAt rating playCount playedAt coverArt program`, ""},
 		{"Artist", Artist{}, `id name sortName indexKey albumCount songCount mbzArtistId createdAt updatedAt
 			starred starredAt rating playCount playedAt coverArt`, ""},
 		{"Genre", Genre{}, `id name songCount albumCount`, ""},
@@ -63,7 +63,9 @@ func TestJSONMatchesTSContract(t *testing.T) {
 		{"EditLogEntry", EditLogEntry{}, `id userId username action trackId path details createdAt`, ""},
 		{"Play", Play{}, `id trackId playedAt client title artist album albumArtist artistId albumId duration track`, ""},
 		{"TrashEntry", TrashEntry{}, `id libraryId originalPath trashPath size title artist album trackId deletedBy deletedAt`, ""},
-		{"Library", Library{}, `id name path createdAt updatedAt lastScanAt`, ""},
+		{"Library", Library{}, `id name path program createdAt updatedAt lastScanAt`, ""},
+		{"ProgramFolder", ProgramFolder{}, `libraryId path createdAt`, ""},
+		{"Bookmark", Bookmark{}, `trackId positionMs comment createdAt updatedAt`, ""},
 		{"Settings", Settings{}, `scanInterval genreSeparators ignoredArticles coverArtFiles transcodeFormat
 			transcodeBitrate renamePattern organizeByTags reviewDownloads fixEncodingOnScan enableDownloads onlineMetadata onlineMetadataChinaIp ytdlpEnabled
 			lxSourcesEnabled lxSourceMode lxSourceId lastfmEnabled listenBrainzEnabled`, ""},

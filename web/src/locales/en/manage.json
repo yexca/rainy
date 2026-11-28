@@ -652,6 +652,15 @@
       "truncated": "Showing the first 256 KB of this file.",
       "emptyText": "Empty file",
       "imageFailed": "Couldn't load this image."
+    },
+    "program": {
+      "mark": "Mark as program folder",
+      "unmark": "Unmark program folder",
+      "badge": "Program folder",
+      "inherited": "In a program folder",
+      "marked": "Marked as a program folder",
+      "unmarked": "Program folder unmarked",
+      "library": "Program library"
     }
   },
   "doctor": {

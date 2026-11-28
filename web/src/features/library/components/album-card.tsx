@@ -21,6 +21,8 @@ export interface AlbumCardProps {
   album: Album
   /** Second caption line (default: artist). */
   subtitle?: AlbumCardSubtitle
+  /** Plain second caption line instead of `subtitle` (e.g. a program show's episodes). */
+  caption?: string
   /** Approximate rendered width, picks the cover resolution. */
   sizeHint?: number
   priority?: boolean
@@ -38,6 +40,7 @@ const PREFETCH_DELAY = 150
 export const AlbumCard = memo(function AlbumCard({
   album,
   subtitle = 'artist',
+  caption,
   sizeHint = 200,
   priority,
   className,
@@ -48,8 +51,8 @@ export const AlbumCard = memo(function AlbumCard({
   const [starting, setStarting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const prefetchTimer = useRef<number | undefined>(undefined)
-  const showArtist = subtitle !== 'year' && !!album.artist
-  const year = subtitle !== 'artist' && album.year > 0 ? String(album.year) : ''
+  const showArtist = caption === undefined && subtitle !== 'year' && !!album.artist
+  const year = caption === undefined && subtitle !== 'artist' && album.year > 0 ? String(album.year) : ''
   const immersive = useImmersive()
 
   useEffect(() => () => window.clearTimeout(prefetchTimer.current), [])
@@ -100,6 +103,7 @@ export const AlbumCard = memo(function AlbumCard({
         >
           {album.name}
         </Link>
+        {caption ? <p className="truncate text-[14px] leading-5 text-muted-foreground md:text-[13px]">{caption}</p> : null}
         {showArtist || year ? (
           <p className="truncate text-[14px] leading-5 text-muted-foreground md:text-[13px]">
             {showArtist && album.artistId ? (

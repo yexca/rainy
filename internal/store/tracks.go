@@ -54,13 +54,13 @@ var (
 // trackSelect builds "SELECT <cols> FROM <from> LEFT JOIN albums … LEFT JOIN annotations …".
 // from must introduce the tracks table as alias t and contain no bind parameters; the
 // returned SQL has exactly one bind parameter (the user id) before any WHERE arguments.
-func trackSelect(from string, withLyrics bool) string {
+func (s *Store) trackSelect(ctx context.Context, from string, withLyrics bool) string {
 	cols := trackListCols
 	if withLyrics {
 		cols += ", t.lyrics"
 	}
 	return `SELECT ` + cols + `, (t.lyrics != '') AS has_embedded_lyrics,
-		COALESCE(al.updated_at, t.updated_at) AS album_updated_at, ` + annotationCols + `
+		COALESCE(al.updated_at, t.updated_at) AS album_updated_at, (` + s.programCond(ctx, "t.") + `) AS program, ` + annotationCols + `
 		FROM ` + from + `
 		LEFT JOIN albums al ON al.id = t.album_id` + annotationJoin("track", "t.id")
 }
@@ -81,6 +81,7 @@ type TrackQuery struct {
 	Starred   bool   // only tracks starred by UserID
 	Played    bool   // only tracks played by UserID (play_count > 0)
 	Missing   string // "" exclude missing | "include" | "only"
+	Programs  string // ProgramsAll | ProgramsExclude | ProgramsOnly (Track.Program)
 	Sort      string // see trackSorts; unknown → "title"
 	Order     string // "asc" | "desc" | "" (natural for the sort)
 	Offset    int
@@ -108,7 +109,7 @@ var trackSorts = map[string]sortSpec{
 	"suffix":      {expr: "t.suffix", then: []string{"t.path"}},
 }
 
-func (q *TrackQuery) where() *where {
+func (q *TrackQuery) where(ctx context.Context, s *Store) *where {
 	w := &where{}
 	w.tokens("t.search_text", q.Q)
 	if q.IDs != nil {
@@ -155,13 +156,16 @@ func (q *TrackQuery) where() *where {
 	default:
 		w.add("t.missing = 0")
 	}
+	if q.Programs != ProgramsAll {
+		programsFilter(w, q.Programs, s.programCond(ctx, "t."))
+	}
 	return w
 }
 
 // ListTracks returns a page of tracks and the total number of matches (ignoring
 // offset/limit).
 func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, int, error) {
-	w := q.where()
+	w := q.where(ctx, s)
 	args := append([]any{q.UserID}, w.args...)
 
 	var total int
@@ -176,7 +180,7 @@ func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, in
 	if !ok {
 		spec = trackSorts["title"]
 	}
-	query := trackSelect(TracksFrom(ctx)+" t", false) + w.sql() + orderBy(spec, q.Order, "t.id") + limitClause(q.Offset, q.Limit)
+	query := s.trackSelect(ctx, TracksFrom(ctx)+" t", false) + w.sql() + orderBy(spec, q.Order, "t.id") + limitClause(q.Offset, q.Limit)
 	var tracks []model.Track
 	if err := s.db.R.SelectContext(ctx, &tracks, query, args...); err != nil {
 		return nil, 0, fmt.Errorf("listing tracks: %w", err)
@@ -188,7 +192,7 @@ func (s *Store) ListTracks(ctx context.Context, q TrackQuery) ([]model.Track, in
 // ErrNotFound outside the context's library scope).
 func (s *Store) GetTrack(ctx context.Context, id, userID string) (*model.Track, error) {
 	var t model.Track
-	if err := s.db.R.GetContext(ctx, &t, trackSelect(TracksFrom(ctx)+" t", true)+` WHERE t.id = ?`, userID, id); err != nil {
+	if err := s.db.R.GetContext(ctx, &t, s.trackSelect(ctx, TracksFrom(ctx)+" t", true)+` WHERE t.id = ?`, userID, id); err != nil {
 		return nil, notFound(err)
 	}
 	fillTrack(&t)
@@ -201,7 +205,7 @@ func (s *Store) GetTracks(ctx context.Context, ids []string, userID string) ([]m
 	byID := make(map[string]model.Track, len(ids))
 	for _, chunk := range chunks(dedupe(ids)) {
 		var ts []model.Track
-		q := trackSelect(TracksFrom(ctx)+" t", false) + ` WHERE t.id IN (` + placeholders(len(chunk)) + `)`
+		q := s.trackSelect(ctx, TracksFrom(ctx)+" t", false) + ` WHERE t.id IN (` + placeholders(len(chunk)) + `)`
 		if err := s.db.R.SelectContext(ctx, &ts, q, append([]any{userID}, anys(chunk)...)...); err != nil {
 			return nil, fmt.Errorf("getting tracks: %w", err)
 		}
@@ -223,7 +227,7 @@ func (s *Store) GetTracks(ctx context.Context, ids []string, userID string) ([]m
 // indexing lookup and ignores the library scope.
 func (s *Store) GetTrackByPath(ctx context.Context, libraryID int64, path string) (*model.Track, error) {
 	var t model.Track
-	err := s.db.R.GetContext(ctx, &t, trackSelect("tracks t", true)+` WHERE t.library_id = ? AND t.path = ?`, "", libraryID, path)
+	err := s.db.R.GetContext(ctx, &t, s.trackSelect(ctx, "tracks t", true)+` WHERE t.library_id = ? AND t.path = ?`, "", libraryID, path)
 	if err != nil {
 		return nil, notFound(err)
 	}

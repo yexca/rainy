@@ -24,6 +24,7 @@ import { isIOS } from '@/lib/platform'
 import { authQueryKey, queryClient } from '@/lib/query-client'
 
 import { canControlVolume, supportsAirPlay } from '../lib/audio-support'
+import { RESUME_MIN_SECONDS } from '../lib/program-resume'
 import { loadQueue, savePosition, saveQueue } from '../lib/queue-storage'
 import { restoreQueue } from '../lib/queue-restore'
 import { replayGainFactor, sliderToGain } from '../lib/replay-gain'
@@ -40,6 +41,7 @@ import {
   setMediaSessionPosition,
   type MediaSessionHandlers,
 } from './media-session'
+import { ProgramResume } from './program-resume'
 import { QueueSync } from './queue-sync'
 import { Scrobbler } from './scrobbler'
 
@@ -119,6 +121,7 @@ export class PlayerEngine {
   private disposed = false
   private readonly scrobbler = new Scrobbler()
   private readonly sync = new QueueSync()
+  private readonly programs = new ProgramResume()
   private readonly abort = new AbortController()
   private readonly cleanups: (() => void)[] = []
 
@@ -180,6 +183,7 @@ export class PlayerEngine {
 
     const onPageHide = () => {
       this.savePositionNow()
+      this.programs.flush(true)
       void this.sync.flush(true)
     }
     const onVisibility = () => {
@@ -209,6 +213,7 @@ export class PlayerEngine {
     this.disposed = true
     this.abort.abort()
     this.savePositionNow()
+    this.programs.flush()
     for (const fn of this.cleanups.splice(0)) fn()
     this.sync.dispose()
     for (const el of this.els) {
@@ -340,6 +345,7 @@ export class PlayerEngine {
   private onEntryChange(current: PlayableTrack | undefined, playing: boolean): void {
     this.pendingSeek = null
     this.scrobbler.reset(current)
+    const resumeAt = this.programs.enter(current)
     if (!current) {
       for (const el of this.els) this.unload(el)
       this.loaded = null
@@ -353,15 +359,35 @@ export class PlayerEngine {
       .getState()
       .update({ currentTime: 0, duration: current.isRadio ? 0 : current.duration, buffered: 0, buffering: false })
     this.announce(current)
-    if (playing) {
+    if (playing && !current.program) {
       this.load(current, 0, true)
     } else {
       if (this.loaded) {
         this.unload(this.el)
         this.loaded = null
       }
-      setMediaSessionPlaybackState('paused')
+      // A program episode starts once its bookmark is known (resumeProgram).
+      if (playing) usePlayback.getState().update({ buffering: true })
+      else setMediaSessionPlaybackState('paused')
       setMediaSessionPosition(0, current.isRadio ? 0 : current.duration)
+    }
+    if (current.program) void resumeAt.then((at) => this.resumeProgram(entryKey(current), at))
+  }
+
+  /** A program episode's bookmark arrived: start it there, or move there if it already started. */
+  private resumeProgram(key: string, at: number): void {
+    const current = currentOf(usePlayer.getState())
+    if (this.disposed || !current || key !== this.currentKey) return
+    const playback = usePlayback.getState()
+    if (this.loaded?.key === key) {
+      if (at > 0 && playback.currentTime < RESUME_MIN_SECONDS) playback.seek(at)
+    } else if (usePlayer.getState().isPlaying) {
+      const start = at > 0 ? at : playback.currentTime
+      playback.update({ currentTime: start })
+      this.load(current, start, true)
+    } else {
+      playback.update({ buffering: false, ...(at > 0 ? { currentTime: at } : {}) })
+      if (at > 0) setMediaSessionPosition(at, current.duration)
     }
   }
 
@@ -397,6 +423,7 @@ export class PlayerEngine {
     }
     usePlayback.getState().update({ buffering: false })
     this.savePositionNow()
+    this.programs.stopped(usePlayback.getState().currentTime)
     setMediaSessionPlaybackState('paused')
   }
 
@@ -524,6 +551,7 @@ export class PlayerEngine {
 
   private onSeek(time: number): void {
     this.scrobbler.onSeek(time)
+    this.programs.stopped(time)
     const loaded = this.loaded
     const duration = usePlayback.getState().duration
     if (!loaded || loaded.key !== this.currentKey) {
@@ -640,6 +668,7 @@ export class PlayerEngine {
     const playing = !this.el.paused
     usePlayback.getState().update({ currentTime: time })
     this.scrobbler.onTime(time, playing)
+    this.programs.tick(time, playing)
     if (!playing) return
     this.maybePreload(time)
     this.sync.tick()
@@ -671,12 +700,14 @@ export class PlayerEngine {
     if (!el.paused || el.ended || el.readyState === HTMLMediaElement.HAVE_NOTHING) return
     setMediaSessionPlaybackState('paused')
     this.savePositionNow()
+    this.programs.stopped(this.position())
     // Paused from outside (headphones unplugged, OS interruption, AirPlay…): follow it.
     if (usePlayer.getState().isPlaying) usePlayer.getState().pause()
   }
 
   private onEnded(): void {
     const before = this.currentKey
+    this.programs.finished()
     usePlayer.getState().onTrackEnded()
     if (this.disposed || this.currentKey !== before) return
     // Same entry again (repeat one, or repeat all with a single entry): replay it.

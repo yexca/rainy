@@ -378,7 +378,8 @@ func (a *API) getAlbumInfo(q *request) (*Response, error) {
 	return resp, nil
 }
 
-// similarSongs returns random songs by the seed's artist and by similar artists.
+// similarSongs returns random songs by the seed's artist and by similar artists, leaving
+// program episodes out.
 func (a *API) similarSongs(q *request) ([]Child, error) {
 	id, err := q.requiredStr("id")
 	if err != nil {
@@ -407,7 +408,7 @@ func (a *API) similarSongs(q *request) ([]Child, error) {
 	args = append(args, id, count)
 	var ids []string
 	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM `+store.TracksFrom(q.ctx)+` t
-		WHERE t.missing = 0 AND (t.artist_id IN (`+ph+`) OR t.album_artist_id IN (`+ph+`)) AND t.id != ?
+		WHERE t.missing = 0 AND (t.artist_id IN (`+ph+`) OR t.album_artist_id IN (`+ph+`)) AND t.id != ?`+a.app.Store.AndNotProgram(q.ctx, "t.")+`
 		ORDER BY RANDOM() LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
@@ -439,7 +440,8 @@ func (a *API) getSimilarSongs2(q *request) (*Response, error) {
 	return resp, nil
 }
 
-// getTopSongs returns an artist's (by name) songs ordered by total plays of all users.
+// getTopSongs returns an artist's (by name) songs outside program folders ordered by total
+// plays of all users.
 func (a *API) getTopSongs(q *request) (*Response, error) {
 	name, err := q.requiredStr("artist")
 	if err != nil {
@@ -456,7 +458,7 @@ func (a *API) getTopSongs(q *request) (*Response, error) {
 	err = a.app.Store.DB().R.SelectContext(q.ctx, &ids, `SELECT t.id FROM `+store.TracksFrom(q.ctx)+` t
 		LEFT JOIN (SELECT item_id, SUM(play_count) AS plays FROM annotations WHERE item_type = 'track' GROUP BY item_id) p
 			ON p.item_id = t.id
-		WHERE t.missing = 0 AND (t.artist_id = ? OR t.album_artist_id = ?)
+		WHERE t.missing = 0 AND (t.artist_id = ? OR t.album_artist_id = ?)`+a.app.Store.AndNotProgram(q.ctx, "t.")+`
 		ORDER BY COALESCE(p.plays, 0) DESC, t.year, t.album_id, t.disc_number, t.track_number, t.id
 		LIMIT ?`, artistID, artistID, count)
 	if err != nil {

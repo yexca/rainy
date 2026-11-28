@@ -167,7 +167,7 @@ Runtime-editable settings live in the `settings` table (see `model.Settings`, §
 ## 5. Backend contracts
 
 ### 5.1 Database
-The schema is the numbered migrations `internal/db/migrations/0001_init.sql` … `0008_user_folders.sql`; read them,
+The schema is the numbered migrations `internal/db/migrations/0001_init.sql` … `0009_program_folders.sql`; read them,
 their column comments are part of this contract. Migrations are embedded, applied in lexical order, each in its own
 transaction, and tracked in `schema_migrations(version TEXT PK, applied_at INTEGER)`. Released migrations are immutable;
 a schema change adds the next number (see [Migrations](../development/migrations.md)).
@@ -178,7 +178,7 @@ with `/`, text columns `NOT NULL DEFAULT ''` unless NULL carries meaning.
 | Table | Key | Holds |
 |---|---|---|
 | `settings` | `key` | one row per `model.Settings` field (JSON value) plus server values outside it (§5.4 `GetValue`) |
-| `libraries` | `id` autoincrement | name, absolute root `path` (unique), `last_scan_at` |
+| `libraries` | `id` autoincrement | name, absolute root `path` (unique), `program` (a program library: every track is a program episode, §5.4), `last_scan_at` |
 | `users` | `id` | `username` (unique, NOCASE), `password_enc` (AES-256-GCM, reversible for Subsonic token auth), roles, `restrict_libraries`, `api_key_hash` (unique, NULL = none) |
 | `user_libraries` | `(user_id, library_id)` | the libraries a user with `restrict_libraries = 1` may read; both sides cascade on delete |
 | `user_folders` | `(user_id, library_id, path)` | the folders (library-relative, never the root) a user with `restrict_libraries = 1` may read besides `user_libraries`: tracks whose `dir` is the folder or lies below it; both sides cascade on delete |
@@ -190,7 +190,8 @@ with `/`, text columns `NOT NULL DEFAULT ''` unless NULL carries meaning.
 | `play_history` | autoincrement | one row per play with the client and a snapshot of title, artist, album, album artist, their ids and duration |
 | `playlists`, `playlist_tracks` | id; `(playlist_id, position)` | positions are 0-based and contiguous; entries have no FK so they survive missing or purged tracks |
 | `play_queues` | `user_id` | JSON `track_ids`, `current_id`, `current_index` (−1 = first occurrence of `current_id`), `position_ms`, `changed_by` |
-| `bookmarks` | `(user_id, track_id)` | position and comment |
+| `bookmarks` | `(user_id, track_id)` | position and comment; shared by Subsonic bookmarks and the web player's program resume |
+| `program_folders` | `(library_id, path)` | library folders (library-relative, never the root) whose tracks, in them and below them, are program episodes (`Track.Program`, §5.4); cascade on library delete |
 | `radio_stations` | id | stream and homepage URLs |
 | `edit_log` | autoincrement | user, action, track, path at the time, JSON `details` |
 | `trash` | id | original library-relative path, path under `<data>/trash`, size and names of the deleted file |
@@ -224,8 +225,8 @@ shape (mirrored in `web/src/lib/api/types.ts`, §8). Fields marked *computed* ar
 filled by the store before returning (`Fill()` helpers).
 
 ```go
-type Library struct { ID int64; Name, Path string; CreatedAt, UpdatedAt, LastScanAt int64 }
-// json: id,name,path,createdAt,updatedAt,lastScanAt
+type Library struct { ID int64; Name, Path string; Program bool; CreatedAt, UpdatedAt, LastScanAt int64 }
+// json: id,name,path,program,createdAt,updatedAt,lastScanAt
 
 type User struct {
     ID, Username, DisplayName, Email string
@@ -263,6 +264,7 @@ type Track struct {
     StarredAt *int64; Rating, PlayCount int; PlayedAt int64
     // query helpers selected by the store, never serialised
     HasEmbeddedLyrics bool /*(lyrics != '')*/; AlbumUpdatedAt int64 /*albums.updated_at, for CoverArt*/
+    Program bool /*selected by the store, never stored: the track lies in a program folder*/
     // computed
     Starred bool; CoverArt string; ContentType string; HasLyrics bool
 }
@@ -272,7 +274,7 @@ type Track struct {
 // compilation, duration, bitrate, sampleRate, bitDepth, channels, codec, hasCover, rgTrackGain,
 // rgTrackPeak, rgAlbumGain, rgAlbumPeak, mbzTrackId, mbzAlbumId, mbzArtistId, mbzAlbumArtistId,
 // sortTitle, sortAlbum, sortArtist, sortAlbumArtist, missing, createdAt, updatedAt, starredAt,
-// rating, playCount, playedAt, starred, coverArt, contentType, hasLyrics
+// rating, playCount, playedAt, starred, coverArt, contentType, hasLyrics, program
 
 type Album struct {
     ID string; LibraryID int64; Name, SortName string
@@ -281,6 +283,7 @@ type Album struct {
     CoverPath, CoverTrackID string /*json:"-"*/; MbzAlbumID string; SearchText string /*json:"-"*/
     CreatedAt, UpdatedAt int64
     StarredAt *int64; Rating, PlayCount int; PlayedAt int64
+    Program bool // selected by the store, never stored: the album has present tracks and all lie in program folders
     Starred bool; CoverArt string // computed
 }
 type Artist struct {
@@ -299,6 +302,7 @@ type Playlist struct {
 type PlayQueue struct { TrackIDs []string; CurrentID string; PositionMs int64; ChangedBy string; UpdatedAt int64
     CurrentIndex int /*json:"-"; position of the current entry in TrackIDs, normalized by the store (CurrentPos)*/ }
 type Bookmark struct { TrackID string; PositionMs int64; Comment string; CreatedAt, UpdatedAt int64 }
+type ProgramFolder struct { LibraryID int64; Path string; CreatedAt int64 } // json: libraryId,path,createdAt; Path never ""
 type RadioStation struct { ID, Name, StreamURL, HomepageURL string; CreatedAt, UpdatedAt int64 }
 type EditLogEntry struct { ID int64; UserID, Username, Action, TrackID, Path string; Details json.RawMessage; CreatedAt int64 }
 type TrashEntry struct { ID string; LibraryID int64; OriginalPath, TrashPath string; Size int64; Title, Artist, Album, TrackID, DeletedBy string; DeletedAt int64 }
@@ -411,7 +415,7 @@ DeleteUserSessions(ctx, userID) error; PurgeExpiredSessions(ctx) error
 // Libraries
 ListLibraries(ctx) ([]model.Library, error); GetLibrary(ctx, id int64) (*model.Library, error)
 CreateLibrary(ctx, *model.Library) error; UpdateLibrary(ctx, *model.Library) error
-DeleteLibrary(ctx, id int64) error /* cascades tracks; then RefreshAll */; SetLibraryScanned(ctx, id int64, at int64) error
+DeleteLibrary(ctx, id int64) error /* cascades tracks and program folders; then RefreshAll */; SetLibraryScanned(ctx, id int64, at int64) error
 LibraryTrackCounts(ctx) (map[int64]int, error)
 
 // Tracks
@@ -420,6 +424,7 @@ type TrackQuery struct {
     Genre string /*genre name*/; LibraryID int64; Dir string /*exact*/; DirPrefix string /*dir and its sub-directories*/
     FromYear, ToYear int /*swapped when From > To*/; Starred bool; Played bool /*play_count > 0*/
     Missing string /*"" exclude missing | "include" | "only"*/
+    Programs string /*ProgramsAll "" | ProgramsExclude | ProgramsOnly — program episodes, see below*/
     Sort string; Order string /*"asc"|"desc"|"" natural*/; Offset, Limit int /*Limit 0 = unlimited*/
 }
 // Sort values: "title","artist","album" (album,disc,track),"albumArtist","year","duration","recent"(created_at),
@@ -455,7 +460,7 @@ TouchAlbums(ctx, ids []string) error     // bump updated_at (cover cache busting
 // Albums / artists / genres
 type AlbumQuery struct {
     UserID, Q, ArtistID /*album artist*/, Genre string; LibraryID int64; FromYear, ToYear int /*swapped when From > To*/
-    Starred bool; Played bool /*play_count > 0*/
+    Starred bool; Played bool /*play_count > 0*/; Programs string /*ProgramsAll | ProgramsExclude | ProgramsOnly — program shows*/
     Sort string /*"name","artist","year","recent","random","played","frequent","starred","rating","songCount","duration"*/
     Order string; Offset, Limit int
 }
@@ -464,6 +469,7 @@ ListAlbums(ctx, AlbumQuery) ([]model.Album, int, error); GetAlbum(ctx, id, userI
 AlbumsAppearsOn(ctx, artistID, userID string) ([]model.Album, error) // albums containing tracks by artist whose album artist differs
 type ArtistQuery struct {
     UserID, Q string; LibraryID int64; AlbumArtistsOnly bool /*album_count>0*/; Starred bool
+    ExcludePrograms bool /*only artists with a readable present track outside program folders (of their own albums with AlbumArtistsOnly)*/
     Sort string /*"name","albumCount","songCount","played","frequent","random","recent","starred","rating"*/; Order string; Offset, Limit int
 }
 ListArtists(ctx, ArtistQuery) ([]model.Artist, int, error); GetArtist(ctx, id, userID) (*model.Artist, error)
@@ -501,7 +507,8 @@ TrackGenreIDs(ctx, trackIDs []string) ([]string, error)
 type Candidate struct { ID, ArtistID, AlbumArtistID, AlbumID string; Duration float64; Plays int; PlayedAt int64; Starred bool; Rating int }
 type CandidateQuery struct { ArtistIDs, GenreIDs []string /*artist or album artist listed OR has a genre; both empty = all*/
     Played string /*PlayedAny "" | PlayedNever | PlayedBefore*/; Before int64; Favorites bool /*starred or ≥ 2 plays*/; Limit int /*≤ 1000*/ }
-RecommendCandidates(ctx, userID string, q CandidateQuery) ([]Candidate, error) // random sample of non-missing tracks with the user's signals
+RecommendCandidates(ctx, userID string, q CandidateQuery) ([]Candidate, error) // random sample of non-missing tracks outside program
+                                     // folders with the user's signals
 type DailyMixRow struct { Day string; TrackIDs []string; CreatedAt int64 }
 GetDailyMix(ctx, userID, day string) (*DailyMixRow, error)      // ErrNotFound
 SaveDailyMix(ctx, userID string, mix DailyMixRow, pruneBefore int64) (*DailyMixRow, error) // the day's first mix wins; prunes the
@@ -540,6 +547,8 @@ RemovePlaylistPositions(ctx, id string, positions []int) error // indexes into t
 GetPlayQueue(ctx, userID) (*model.PlayQueue, error) // empty queue (non-nil TrackIDs) when none is saved, never ErrNotFound
 SavePlayQueue(ctx, userID string, q *model.PlayQueue) error
 ListBookmarks(ctx, userID) ([]model.Bookmark, error); UpsertBookmark(ctx, userID string, b *model.Bookmark) error; DeleteBookmark(ctx, userID, trackID) error
+TrackBookmarks(ctx, userID string, trackIDs []string) ([]model.Bookmark, error) // of readable tracks only, unordered
+SetBookmarkPosition(ctx, userID, trackID string, positionMs int64) (*model.Bookmark, error) // keeps an existing comment
 ListRadioStations(ctx) ([]model.RadioStation, error); GetRadioStation(ctx, id); CreateRadioStation(ctx, *model.RadioStation) error; UpdateRadioStation; DeleteRadioStation
 GetSettings(ctx, defaults model.Settings) (model.Settings, error); SaveSettings(ctx, model.Settings) error
 ListLxSources(ctx) ([]model.LxSource, error) /*by position, without scripts*/; GetLxSource(ctx, id) (*model.LxSource, error) /*with script*/
@@ -587,6 +596,30 @@ A folder grant follows the path, not the tracks: a file moved out of a granted f
 into it readable.
 
 Indexing lookups (`GetTrackByPath`, `TrackFileStates`, aggregate refreshes) and the scanner ignore the scope.
+
+**Program folders and libraries.** A track of a program library (`Library.Program`), or whose `dir` is a program
+folder or lies below one (matched by path segment, like folder grants), is a program episode: `Track.Program` is
+true. A program library behaves as if its root were a program folder; folders marked inside it add nothing. An album
+is a program show (`Album.Program`) when it has present tracks and all of them are episodes, whatever the library
+scope. The flags are computed in the track and album SELECTs from the program libraries and folders, which the store
+caches and reloads after every change of a program folder and every library create, update or delete; they are not
+stored.
+```go
+const ProgramsAll, ProgramsExclude, ProgramsOnly = "", "exclude", "only"
+type Programs struct { Libraries []int64; Folders []model.ProgramFolder } // json: libraries, folders; never nil
+ListPrograms(ctx) (Programs, error)                                      // program library ids ascending; folders by library and path
+CreateLibrary / UpdateLibrary                                            // also save Library.Program
+AddProgramFolder(ctx, libraryID int64, path string) error                // idempotent; invalid path → ErrInvalid, unknown library → ErrNotFound
+RemoveProgramFolder(ctx, libraryID int64, path string) error             // ErrNotFound when not marked; marks above or below stay
+type ProgramShow struct { model.Album; Episodes, Played /*played, no bookmark*/, InProgress /*bookmarked*/ int
+    LatestEpisode, ActivityAt int64 }                                    // json: …Album, episodes, played, inProgress, latestEpisodeAt, activityAt
+ListProgramShows(ctx, userID string) ([]ProgramShow, error)              // readable program shows with the user's progress over their
+                                                                         // readable present episodes; latest of a new episode, a play or a bookmark first
+AndNotProgram(ctx, prefix string) string; AndNotProgramAlbum(ctx, alias string) string // " AND NOT …" conditions for queries outside the store
+```
+`Programs` filters default to `ProgramsAll`, so internal callers (scanner, manage, the folder browser, playlists,
+search, starred items, lookups by id) see episodes like any track; the API and Subsonic handlers choose
+`ProgramsExclude` for their lists (§6, §7.2). Stored aggregates (artist and album song counts) count episodes too.
 `TracksFrom(ctx)`, `AlbumsFrom(ctx)` and `ArtistsFrom(ctx)` return the table as seen by ctx, for queries outside the
 store (Subsonic, artwork): use them in place of `tracks`, `albums` and `artists`.
 
@@ -1085,7 +1118,8 @@ var ErrInvalid, ErrDisabled, ErrNotConfigured, ErrNotLinked, ErrExpired error
 Rules:
 - **Queue**: `Played` queues a snapshot (title, artist, album, album artist, track number, duration, MusicBrainz id, time)
   for each enabled, linked account of an active service, skipping tracks without a real title and artist (`[Unknown
-  Artist]`) and, for Last.fm, tracks of 30 s or less; `[Unknown Album]` is sent without an album. The sender runs every
+  Artist]`) and, for Last.fm, tracks of 30 s or less; `[Unknown Album]` is sent without an album. Program episodes
+  (`Track.Program`) are never queued, reported as now playing or loved; their plays stay in the local history. The sender runs every
   minute and when woken, drops plays older than `MaxAge` for every service (Last.fm refuses them), and sends each user's due plays oldest
   first in batches (Last.fm `track.scrobble` 50, ListenBrainz `submit-listens` 100: `single` for one listen, `import`
   otherwise). Outcomes: accepted → removed (`last_sent_at`); an outage, rate limit, redirect or network error → the batch waits
@@ -1261,6 +1295,9 @@ production code.
 - `search3` with `query=""` (or `""` quoted) returns everything, paged — required by Symfonium & co.
 - `getAlbumList2` types: random, newest, highest, frequent, recent, alphabeticalByName,
   alphabeticalByArtist, starred, byYear (fromYear>toYear → descending), byGenre.
+- Program episodes and shows (§5.4 program folders) are left out of `getRandomSongs`, every `getAlbumList(2)` type,
+  `getSimilarSongs(2)` and `getTopSongs`; search, starred items, folder browsing, playlists, bookmarks and lookups by
+  id include them.
 - `getSimilarSongs(2)`, `getTopSongs` and `getArtistInfo(2)` are computed from the local library (similar artists via
   `store.SimilarArtistIDs`); nothing is fetched from other services. An artist without albums of their own lists the albums
   they appear on (`getArtist`, artist directories). `getAvatar` answers error 70.
@@ -1314,21 +1351,31 @@ production code.
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/api/home` | | `Home` |
-| GET | `/api/albums` | `q, sort, order, offset, limit, artistId, genre, fromYear, toYear, starred, libraryId` | `Page<Album>` |
+| GET | `/api/albums` | `q, sort, order, offset, limit, artistId, genre, fromYear, toYear, starred, libraryId, programs(include|only)` | `Page<Album>` |
 | GET | `/api/albums/{id}` | | `AlbumDetail` (`Album & {tracks: Track[], discs: number[]}`) |
-| GET | `/api/artists` | `q, sort, order, offset, limit, all (include non-album artists), starred, libraryId` | `Page<Artist>` |
+| GET | `/api/artists` | `q, sort, order, offset, limit, all (include non-album artists), starred, libraryId, programs(include)` | `Page<Artist>` |
 | GET | `/api/artists/{id}` | | `ArtistDetail` (`Artist & {albums: Album[], appearsOn: Album[], topTracks: Track[]}`) |
-| GET | `/api/tracks` | `q, sort, order, offset, limit, albumId, artistId, genre, starred, fromYear, toYear, libraryId, dir, dirPrefix, missing(include|only), ids(comma)` | `Page<Track>` |
+| GET | `/api/tracks` | `q, sort, order, offset, limit, albumId, artistId, genre, starred, fromYear, toYear, libraryId, dir, dirPrefix, missing(include|only), ids(comma), programs(include|only)` | `Page<Track>` |
 | GET | `/api/tracks/{id}` | | `Track` |
 | GET | `/api/genres` | | `Genre[]` |
 | GET | `/api/search` | `q, artists=6, albums=12, tracks=30 (each ≤ 500), libraryId` | `SearchResult` (empty lists for a blank `q`) |
 | GET | `/api/starred` | | `{artists: Artist[], albums: Album[], tracks: Track[]}` |
 | GET | `/api/random` | `size=50 (max 500), genre, fromYear, toYear` | `Track[]` |
 | GET | `/api/recent-tracks` | `limit=50 (max 500)` | `Track[]` (this user's play history, newest first, distinct) |
+| GET | `/api/programs` | | `ProgramShow[]`: readable program shows with this user's progress, most recent activity first |
+| GET | `/api/bookmarks` | `trackIds` (comma, ≤ 1000) | `Bookmark[]`: this user's bookmarks of those readable tracks |
+| PUT | `/api/bookmarks/{trackId}` | body `{positionMs ≥ 0}` | `Bookmark` (keeps the comment); 404 for a track the user cannot read |
+| DELETE | `/api/bookmarks/{trackId}` | | 204, also when there is none; 404 for a track the user cannot read |
 
 `Home` = `{recentlyAdded: Album[12], recentlyPlayed: Album[12], mostPlayed: Album[12], random: Album[12], starred: Album[12], stats: {tracks,albums,artists}}`.
 Tracks in `/api/tracks` include `missing` only when requested; `missing` filter parameters are only
 honoured for managers. `ids` takes at most 1000 ids; without `sort` the result keeps their order.
+
+Program episodes and shows (`program: true`, §5.4) are left out of the home shelves and totals, `/api/random`, an
+artist's albums and top songs, recommendations (§7.9), and `/api/albums`, `/api/artists` and `/api/tracks`
+unless the request asks with `programs=include` (or `only`, for albums and tracks) or narrows the list: `ids`,
+`albumId`, `dir`, `dirPrefix` or `starred` include them. `sort=random` leaves them out unless the list is
+narrowed. Bookmarks are shared with Subsonic `getBookmarks`.
 
 ### 7.3 Annotations
 | Method | Path | Body | Response |
@@ -1413,6 +1460,8 @@ served. Downloads (single files and album zips) need download permission: admin,
 | POST | `/api/manage/trash/restore` | `{ids}` | `BatchResult` |
 | POST | `/api/manage/trash/purge` | `{ids?}` (omit = empty trash) | `{purged:number}` |
 | POST | `/api/manage/missing/purge` | `{trackIds?}` (omit = all missing) | `{purged:number}` |
+| GET | `/api/manage/program-folders` | | `Programs` (`{libraries: number[], folders: ProgramFolder[]}`: program library ids and program folders) |
+| PUT, DELETE | `/api/manage/program-folders` | `{libraryId, path}` (library-relative folder, never the root) | `Programs` after marking (idempotent) or unmarking (404 when not marked); publishes `library` with reason `programs` |
 | GET | `/api/manage/folders` | `libraryId, dir` | `FolderListing` |
 | GET | `/api/manage/folders/file` | `libraryId, path, v?` | raster image bytes (≤ 32 MiB; `nosniff`, sandbox CSP, weak `ETag` from size and mtime; a matching `If-None-Match` gets `304` without the file being read) |
 | GET | `/api/manage/folders/text` | `libraryId, path` | `FolderTextPreview` (`.lrc/.txt/.cue/.log/.md/.nfo/.m3u/.m3u8`, ≤ 256 KiB, decoded via `lyrics.DecodeText`) |
@@ -1525,8 +1574,8 @@ removed (never the library root).
 | PUT | `/api/admin/users/{id}` | same fields optional + `password?` | `User` (403 when removing your own admin role; a new password for another user signs them out everywhere) |
 | DELETE | `/api/admin/users/{id}` | | 204 (403 for your own account) |
 | GET | `/api/admin/libraries` | | `LibraryInfo[]` |
-| POST | `/api/admin/libraries` | `{name, path}` | 201 `LibraryInfo` (path must be an existing dir; 400 when it overlaps the data dir, 409 when it overlaps another library) |
-| PUT | `/api/admin/libraries/{id}` | `{name?, path?}` | `LibraryInfo` (same path rules) |
+| POST | `/api/admin/libraries` | `{name, path, program?}` | 201 `LibraryInfo` (path must be an existing dir; 400 when it overlaps the data dir, 409 when it overlaps another library; `program` makes it a program library, §5.4) |
+| PUT | `/api/admin/libraries/{id}` | `{name?, path?, program?}` | `LibraryInfo` (same path rules; an omitted field keeps its value) |
 | DELETE | `/api/admin/libraries/{id}` | | 204 (DB rows only, never files) |
 | GET | `/api/admin/scan` | | `ScanStatus` |
 | POST | `/api/admin/scan` | `{full?:boolean, libraryId?:number}` | 202 `ScanStatus` (409 if running) |
@@ -1609,6 +1658,8 @@ export interface Track {
   missing: boolean; createdAt: number; updatedAt: number
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string; contentType: string
+  /** In a program folder (computed by the server): a spoken-word episode, kept out of mixes and random picks. */
+  program: boolean
 }
 export interface Album {
   id: string; libraryId: number; name: string; sortName: string; artist: string; artistId: string
@@ -1616,8 +1667,16 @@ export interface Album {
   duration: number; size: number; mbzAlbumId: string; createdAt: number; updatedAt: number
   starred: boolean; starredAt: number | null; rating: number; playCount: number; playedAt: number
   coverArt: string
+  /** Every present track is a program episode: the album is a program show. */
+  program: boolean
 }
 export interface AlbumDetail extends Album { tracks: Track[]; discs: number[] }
+/** GET /api/programs: a program show with the user's progress; `played` excludes bookmarked episodes. */
+export interface ProgramShow extends Album {
+  episodes: number; played: number; inProgress: number; latestEpisodeAt: number; activityAt: number
+}
+/** A saved position in a track, shared with Subsonic bookmarks. */
+export interface Bookmark { trackId: string; positionMs: number; comment: string; createdAt: number; updatedAt: number }
 export interface Artist {
   id: string; name: string; sortName: string; indexKey: string; albumCount: number; songCount: number
   mbzArtistId: string; createdAt: number; updatedAt: number
@@ -1716,7 +1775,12 @@ export interface StagedImportResult { imported: string[]; skipped: string[]; err
 export interface TrashEntry { id: string; libraryId: number; originalPath: string; trashPath: string; size: number; title: string; artist: string; album: string; trackId: string; deletedBy: string; deletedAt: number }
 
 // ---- admin
-export interface Library { id: number; name: string; path: string; createdAt: number; updatedAt: number; lastScanAt: number }
+/** `program`: a program library, whose every track is a program episode. */
+export interface Library { id: number; name: string; path: string; program: boolean; createdAt: number; updatedAt: number; lastScanAt: number }
+/** A folder whose tracks, in it and below it, are program episodes; `path` is library-relative (never the root). */
+export interface ProgramFolder { libraryId: number; path: string; createdAt: number }
+/** GET /api/manage/program-folders: program libraries (ids) and program folders. */
+export interface Programs { libraries: number[]; folders: ProgramFolder[] }
 export interface LibraryInfo extends Library { trackCount: number; exists: boolean; writable: boolean }
 export interface ScanStatus {
   scanning: boolean; full: boolean; libraryId: number
@@ -1836,7 +1900,7 @@ web/src/
 | `/genres`, `/genres/:name` | Redirects to `/albums` and `/albums?genre=<name>` (`GenreRedirect`) | library |
 | `/favorites` | Starred | library |
 | `/playlists`, `/playlists/:id` | Playlists, playlist detail | library |
-| `/radio` | Internet radio | library |
+| `/radio`, `/radio?tab=programs` | Internet radio stations; program shows | library |
 | `/listening` | Listening report (overview + history; `?range=7d|30d|90d|12m|all|m<YYYY-MM>|y<year>&tab=history`) | library |
 | `/daily` | Daily mix (today's songs, play / shuffle) | library |
 | `/weekly` | Weekly mix (this week's songs, play / shuffle) | library |
@@ -1901,13 +1965,14 @@ features only through the player store, types and dock and the shell slots liste
   ```
   Queue entries are `PlayableTrack` (`Track & {streamUrlOverride?, isRadio?, autoAdded?}`); `autoAdded` marks songs infinite
   mode added. Infinite mode (`engine/infinite.ts`, pure helpers in `lib/infinite.ts`, started by `<AudioEngine/>`): with
-  `infinite` on, `repeat` off and a non-radio current entry, when two or fewer entries follow the current one it posts
-  `/recommend/mix` (seeds: the last 5 distinct non-radio entries up to the current one plus the user's own upcoming ones;
+  `infinite` on, `repeat` off and a current entry that is neither radio nor a program episode (`program`), when two or
+  fewer entries follow the current one it posts `/recommend/mix` (seeds: the last 5 distinct entries up to the current one
+  plus the user's own upcoming ones, radio and program episodes left out;
   exclude: the queue, ≤ 500; limit 10) and calls `appendAuto` (duplicates of queued songs dropped); a request that failed
   or added nothing is not repeated until the queue changes, and results for a replaced queue are dropped.
   Long songs (`lib/long-tracks.ts`): while the playback pref `skipLongTracks` is on (default on; `longTrackMinutes`,
   whole minutes 1–600, default 10; both in `usePlaybackPrefs`, persisted as `rainy.playback`), `playTracks`, `playNext`
-  and `addToQueue` leave out non-radio songs whose `duration` is at least the limit and toast how many
+  and `addToQueue` leave out songs whose `duration` is at least the limit (never radio or program episodes) and toast how many
   (`player:longTracks.skipped`). The song at an explicit `startIndex` always stays (callers playing a whole list pass
   `undefined`); when it is long, or when every song in the list is long, the list is queued unchanged. `appendAuto` drops long suggestions silently.
   `restoreQueue` never filters.
@@ -1992,6 +2057,14 @@ features only through the player store, types and dock and the shell slots liste
   stops it. Failures toast `player:pip.failed`.
 - **Player layouts** (≥ 768px, layout menu = the `PictureInPicture2` button in the window and the top of the bar's options menu, with three radio options top to bottom: full screen — opens Now Playing over the current layout, disabled while idle —, floating window, bottom bar; the last two are persisted in `usePlayerDock`): *bottom bar* (default; see *Desktop player bar*; a centred handle tab above it holds a chevron and a pin, shown on hover / focus while pinned and always while unpinned or on devices without hover; *unpinned* = auto-hide, NetEase style: the bar slides below the viewport leaving the handle; hovering the handle / bottom edge or keyboard focus peeks it until the pointer or focus leaves, and a press outside hides it; the chevron hides the bar right away — unpinning a pinned bar — or shows a hidden one; the pin switches between pinned and auto-hide, and a bar that was just unpinned stays up until the pointer or focus leaves); *floating window* (bottom-right 400×min(640px, viewport − 3rem), artwork backdrop like Now Playing: queue position, grabber → bottom bar, layout menu, full screen; artwork that scales down while paused, title/star/…, scrubber, shuffle/prev/play/next/repeat, volume, lyrics/translation/AirPlay/auto-stop timer/queue — lyrics and queue replace the artwork inside the window; not modal). The floating window renders nothing while idle and hides under full-screen Now Playing, which is available from every layout and returns to it on close. Phones keep the mini pill + sheet.
 - Audio engine: single `HTMLAudioElement`, `preload="auto"`, next track preloaded ~20 s before the end with a second element; Media Session (metadata with artwork 96–512, play/pause/prev/next/seekto/seekbackward/seekforward, `setPositionState`); scrobble "now playing" on start and submission after 50 % or 4 min; queue persisted to localStorage immediately and to `/api/queue` debounced (10 s) so the Subsonic clients can resume it; restore on load (paused). Streaming quality setting (original / 320 / 192 / 128 kbps + format) → stream URL params. ReplayGain option (track/album/off) applied via volume scaling (not on iOS). Keyboard: space, ←/→ seek 5s, shift+←/→ prev/next, m mute (Ctrl/⌘+K, Spotlight search & quick actions, belongs to the app shell; Settings › Playback lists them all). Errors → toast and skip.
+- **Program resume** (`engine/program-resume.ts`, pure helpers in `lib/program-resume.ts`, unit-tested): for an entry
+  with `program` the engine reads its bookmark (`GET /api/bookmarks`, at most 4 s) before it starts the stream, and starts
+  at the bookmark when it lies more than 5 s in and more than 30 s before the end (`resumeAt`); a bookmark that arrives
+  after playback started moves the position while it is still in the first 5 s. While the episode plays the position is
+  saved with `PUT /api/bookmarks/{id}` every 15 s, on pause, on seek, when the entry changes and on `pagehide`
+  (keepalive); within the first 5 s or the last 30 s, and at the end, the bookmark is deleted instead. Unchanged saves
+  are skipped, and a successful one refreshes the `bookmarks` and `programs` queries (and, when it deleted the bookmark,
+  the album). Seeking, play counting and queue sync are the same as for songs; scrobbles of episodes stay local (§5.16).
 - **PWA**: `vite-plugin-pwa` (generateSW, `registerType: 'prompt'` with an "update available" toast), manifest (name "Rainy", short_name "Rainy", `display: standalone`, theme/background colours for light+dark, icons 64/192/512/maskable + apple-touch-icon 180 and `favicon.ico`, generated by `pnpm generate-pwa-assets` from `public/icon-source.png` (rounded tile) and `public/icon-source-maskable.png` (full bleed), which the precache ignores; `webp` is precached so the mascot art works offline), iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`, `viewport-fit=cover`), navigateFallback `index.html` with denylist `/api`, `/rest`. Runtime caching: `/api/cover/*` CacheFirst (500 entries, 30 days); never cache `/api/stream`, `/api/download`, `/api/events`.
 
 ### 9.5 Management UI
@@ -2044,8 +2117,8 @@ features only through the player store, types and dock and the shell slots liste
   the DATE and YEAR keys the file has, YEAR keeping only the year, or to DATE when it has neither);
   Save sends `PATCH` and shows the new target, "Save and import" saves first. Imports toast imported / skipped / failed
   counts and prompt for untagged tracks (`promptUntagged`).
-- **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector; Upload here and an Actions menu with rescan, open in manager, and selection actions), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, content grouped into folders, audio, images, lyrics & text, and other files (group headings appear only when a folder holds more than one kind), image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`; text keyed by path and mtime; timed LRC rows in time order, one per timestamp of a stacked line, `[key:value]` header lines hidden), **Doctor** (checks with issues as count cards, healthy checks as a row of chips; the first check with issues opens by default, `?type=` picks another; its list has quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
-- **Admin**: users (table + dialog; roles: admin, manager, download; library access: all libraries, or for a listener the chosen whole libraries and the folders checked in each library's lazily loaded folder tree, shown as library and folder count badges), libraries & scan (a scan panel with quick/full scan for all libraries, live progress via `/api/events`, and after a scan the file count with only the non-zero change counters, or "No changes"; cards with path, counts, writable badge, and per-library quick/full scan only when there is more than one library), server settings form, system info (versions, ffmpeg, sizes, clear cache; commit and build date only when the build has them). Page subtitles carry only counts (libraries, users).
+- **Folder browser** `/manage/folders` (`lib/folder-explorer.ts`, unit-tested): top path breadcrumb bar (with optional multi-library selector; Upload here and an Actions menu with rescan, open in manager, mark / unmark as program folder (`lib/program-folders.ts`; not at the root, not inside a marked folder or a program library), and selection actions; a "Program folder" badge on a marked folder and an "In a program folder" one below it, on the bar and on subfolder tiles, and a "Program library" badge on the bar anywhere in a program library; icon only on phones), progressive folder tree sidebar (collapsible rail on wide panels, drawer / popover picker on compact viewports), subfolder and per-track playback / actions, multi-select tag editing / cover / rename / delete, content grouped into folders, audio, images, lyrics & text, and other files (group headings appear only when a folder holds more than one kind), image thumbnail gallery and text / timed-LRC lightbox (`FolderPreviewDialog`; text keyed by path and mtime; timed LRC rows in time order, one per timestamp of a stacked line, `[key:value]` header lines hidden), **Doctor** (checks with issues as count cards, healthy checks as a row of chips; the first check with issues opens by default, `?type=` picks another; its list has quick actions), **Trash** (restore / purge), **History** (edit log with readable diffs).
+- **Admin**: users (table + dialog; roles: admin, manager, download; library access: all libraries, or for a listener the chosen whole libraries and the folders checked in each library's lazily loaded folder tree, shown as library and folder count badges), libraries & scan (a scan panel with quick/full scan for all libraries, live progress via `/api/events`, and after a scan the file count with only the non-zero change counters, or "No changes"; cards with path, counts, writable badge, a "Programs" badge for a program library, and per-library quick/full scan only when there is more than one library; the add / edit dialog has a "Program library" switch), server settings form, system info (versions, ffmpeg, sizes, clear cache; commit and build date only when the build has them). Page subtitles carry only counts (libraries, users).
   The Settings tab groups General / yt-dlp / Sources / Scrobbling / System, switched by a pill control at the top of each page (`SubTabs` in `layouts/sub-tabs.tsx`, shared with Tracks → Add; the pages come from `groupedPages`). *Scrobbling* (`ScrobblingSettings`): the `lastfmEnabled` and
   `listenBrainzEnabled` switches (saved immediately), the Last.fm API key and write-only shared secret with a link to create an
   API account with its configured / missing status, the number of linked users under each switch, and one "Your account" card
@@ -2105,6 +2178,15 @@ features only through the player store, types and dock and the shell slots liste
   from one request (`songPicksQuery`, key `['random', 'picks']`, fresh for 30 minutes and outside `LIBRARY_QUERY_ROOTS` so
   library events don't reshuffle them; stars are patched through `STAR_ROOTS`); while it loads the shelf shows a skeleton,
   and a failed request hides the song shelf.
+- **Programs** (`/radio?tab=programs`, a Stations / Programs `SegmentedTabs` on the Radio page; `components/program-shows.tsx`):
+  program shows from `GET /api/programs` (`programsQuery`, key `['programs']`) as album cards whose caption gives the
+  episodes and the user's progress ("12 episodes · 2 in progress", "All played"); an empty state tells managers where to
+  mark folders. A show opens its album page, which for `program` albums says "Program", replaces Play / Shuffle with
+  `ProgramPlayButton` ("Continue" from the first episode not played once the listener started the show, else "Play"; the
+  player resumes the episode at its bookmark, §9.4), counts episodes in the footer, and shows each episode's progress under
+  its title (`TrackList` `progressOf`, `EpisodeProgressMark`; pure helpers in `lib/program-progress.ts`, unit-tested): a
+  "Played" mark, or for a bookmarked episode a thin bar with the time left. Bookmarks come from `bookmarksQuery` (key
+  `['bookmarks', trackIds]`; `programs` and `bookmarks` are `LIBRARY_QUERY_ROOTS` roots).
 - **Settings → Scrobbling** (`ScrobblingSection`, `/settings/scrobbling`): per service the linked account, a pause switch, the waiting
   plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
   confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates

@@ -58,6 +58,7 @@ func (a *API) libAlbums(w http.ResponseWriter, r *http.Request) {
 		FromYear:  from,
 		ToYear:    to,
 		Starred:   queryBool(r, "starred"),
+		Programs:  browsePrograms(r, queryBool(r, "starred"), sort),
 		Sort:      sort,
 		Order:     order,
 		Offset:    offset,
@@ -114,6 +115,7 @@ func (a *API) libArtists(w http.ResponseWriter, r *http.Request) {
 		LibraryID:        queryInt64(r, "libraryId", 0),
 		AlbumArtistsOnly: !queryBool(r, "all"),
 		Starred:          queryBool(r, "starred"),
+		ExcludePrograms:  browsePrograms(r, queryBool(r, "starred"), sort) == store.ProgramsExclude,
 		Sort:             sort,
 		Order:            order,
 		Offset:           offset,
@@ -141,7 +143,8 @@ func (a *API) libArtist(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, r, err)
 		return
 	}
-	albums, _, err := a.app.Store.ListAlbums(ctx, store.AlbumQuery{UserID: uid, ArtistID: artist.ID, Sort: "year", Order: "desc"})
+	albums, _, err := a.app.Store.ListAlbums(ctx, store.AlbumQuery{UserID: uid, ArtistID: artist.ID, Programs: store.ProgramsExclude,
+		Sort: "year", Order: "desc"})
 	if err != nil {
 		writeErr(w, r, err)
 		return
@@ -159,11 +162,12 @@ func (a *API) libArtist(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, artistDetail{Artist: *artist, Albums: nonNil(albums), AppearsOn: nonNil(appearsOn), TopTracks: top})
 }
 
-// artistTopTracks returns up to n of the artist's tracks: the user's most played first,
-// then random others to fill up.
+// artistTopTracks returns up to n of the artist's tracks outside program folders: the
+// user's most played first, then random others to fill up.
 func (a *API) artistTopTracks(r *http.Request, artistID string, n int) ([]model.Track, error) {
 	ctx, uid := r.Context(), userFrom(r).ID
-	top, _, err := a.app.Store.ListTracks(ctx, store.TrackQuery{UserID: uid, ArtistID: artistID, Played: true, Sort: "frequent", Limit: n})
+	top, _, err := a.app.Store.ListTracks(ctx, store.TrackQuery{UserID: uid, ArtistID: artistID, Played: true,
+		Programs: store.ProgramsExclude, Sort: "frequent", Limit: n})
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +175,8 @@ func (a *API) artistTopTracks(r *http.Request, artistID string, n int) ([]model.
 	if len(top) >= n {
 		return top, nil
 	}
-	fill, _, err := a.app.Store.ListTracks(ctx, store.TrackQuery{UserID: uid, ArtistID: artistID, Sort: "random", Limit: n + len(top)})
+	fill, _, err := a.app.Store.ListTracks(ctx, store.TrackQuery{UserID: uid, ArtistID: artistID,
+		Programs: store.ProgramsExclude, Sort: "random", Limit: n + len(top)})
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +232,8 @@ func (a *API) libTracks(w http.ResponseWriter, r *http.Request) {
 		}
 		tq.IDs = nonNil(ids)
 	}
+	narrowed := tq.IDs != nil || tq.AlbumID != "" || tq.Dir != "" || tq.DirPrefix != "" || tq.Starred
+	tq.Programs = browsePrograms(r, narrowed, sort)
 	if tq.IDs != nil && sort == "" {
 		// No explicit sort: keep the order of the requested ids.
 		tq.Offset, tq.Limit = 0, 0
@@ -338,6 +345,7 @@ func (a *API) libRandom(w http.ResponseWriter, r *http.Request) {
 		Genre:    r.URL.Query().Get("genre"),
 		FromYear: from,
 		ToYear:   to,
+		Programs: store.ProgramsExclude,
 		Sort:     "random",
 		Limit:    min(size, maxRandomSize),
 	})

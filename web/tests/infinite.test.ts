@@ -35,6 +35,13 @@ describe('needsRefill', () => {
     const queue = [track('live', { isRadio: true })]
     assert.equal(needsRefill({ infinite: true, repeat: 'off', queue, index: 0 }), false)
   })
+
+  it('never refills after a program episode, nor seeds a mix from one', () => {
+    const queue = [track('song'), track('episode', { program: true })]
+    assert.equal(needsRefill({ infinite: true, repeat: 'off', queue, index: 1 }), false)
+    assert.equal(needsRefill({ infinite: true, repeat: 'off', queue, index: 0 }), true)
+    assert.deepEqual(mixSeeds(queue, 1), ['song'])
+  })
 })
 
 describe('mixSeeds', () => {

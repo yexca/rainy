@@ -23,7 +23,8 @@ import (
 type Library struct {
 	ID         int64  `db:"id" json:"id"`
 	Name       string `db:"name" json:"name"`
-	Path       string `db:"path" json:"path"` // absolute OS path
+	Path       string `db:"path" json:"path"`       // absolute OS path
+	Program    bool   `db:"program" json:"program"` // every track is a program episode (Track.Program)
 	CreatedAt  int64  `db:"created_at" json:"createdAt"`
 	UpdatedAt  int64  `db:"updated_at" json:"updatedAt"`
 	LastScanAt int64  `db:"last_scan_at" json:"lastScanAt"`
@@ -235,6 +236,9 @@ type Track struct {
 	HasEmbeddedLyrics bool  `db:"has_embedded_lyrics" json:"-"` // (lyrics != '') in list queries
 	AlbumUpdatedAt    int64 `db:"album_updated_at" json:"-"`    // albums.updated_at, for CoverArt
 
+	// Program is computed by the store, never stored: the track lies in a program folder.
+	Program bool `db:"program" json:"program"`
+
 	// Computed.
 	Starred     bool   `db:"-" json:"starred"`
 	CoverArt    string `db:"-" json:"coverArt"`
@@ -309,6 +313,10 @@ type Album struct {
 	Rating    int    `db:"rating" json:"rating"`
 	PlayCount int    `db:"play_count" json:"playCount"`
 	PlayedAt  int64  `db:"played_at" json:"playedAt"`
+
+	// Program is computed by the store, never stored: the album has present tracks and
+	// every one of them lies in a program folder.
+	Program bool `db:"program" json:"program"`
 
 	Starred  bool   `db:"-" json:"starred"`  // computed
 	CoverArt string `db:"-" json:"coverArt"` // computed
@@ -396,6 +404,15 @@ func (q *PlayQueue) CurrentPos() int {
 		}
 	}
 	return -1
+}
+
+// ProgramFolder marks a library folder as holding program episodes: every track in it and
+// in every folder below it is a program (Track.Program). Path is library-relative with "/"
+// and never "".
+type ProgramFolder struct {
+	LibraryID int64  `db:"library_id" json:"libraryId"`
+	Path      string `db:"path" json:"path"`
+	CreatedAt int64  `db:"created_at" json:"createdAt"`
 }
 
 // Bookmark is a saved playback position within a track.

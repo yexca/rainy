@@ -8,7 +8,6 @@ import {
   HardDrive,
   Image as ImageIcon,
   LibraryBig,
-  Lock,
   MoreHorizontal,
   PencilLine,
   RefreshCw,
@@ -18,7 +17,7 @@ import {
   WrapText,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -53,9 +52,11 @@ import { useUI } from '@/stores/ui'
 
 import { BatchDialogs, type BatchDialogState } from '../components/batch-dialogs'
 import { FolderBreadcrumb } from '../components/folder-breadcrumb'
+import { ExplorerSection, ReadonlyBadge } from '../components/folder-explorer-section'
 import { FolderDocRow, FolderImageTile, FolderTile, FolderTrackRow } from '../components/folder-file-rows'
 import { FolderRail, FolderRailToggle, FolderTreeButton } from '../components/folder-navigator'
 import { FolderPreviewDialog } from '../components/folder-preview-dialog'
+import { ProgramFolderBadge, ProgramFolderMenuItem } from '../components/program-folder'
 import {
   ancestorDirs,
   buildFolderNavigatorRows,
@@ -66,6 +67,7 @@ import {
   toPreviewItem,
   type FolderPreviewItem,
 } from '../lib/folder-explorer'
+import { useProgramFolders } from '../lib/program-folders'
 import { manageKeys } from '../queries'
 
 const RAIL_STORAGE_KEY = 'rainy:folders-rail-hidden'
@@ -374,6 +376,8 @@ export default function FoldersPage() {
     onError: toastError,
   })
 
+  const programs = useProgramFolders(libraryId)
+  const programHere = programs.status(dir)
   const writable = data ? data.writable : (library?.writable ?? true)
   const managerLink = `/manage?${new URLSearchParams({
     ...(dir ? { dirPrefix: dir } : {}),
@@ -438,6 +442,7 @@ export default function FoldersPage() {
               onNavigate={(nextDir) => navigate({ dir: nextDir })}
             />
             {!writable ? <ReadonlyBadge /> : null}
+            <ProgramFolderBadge status={programHere} compact={isMobile} />
             {library && !library.exists ? (
               <Badge variant="outline" className="shrink-0 text-destructive">
                 {t('folders.libraryUnavailable')}
@@ -499,6 +504,13 @@ export default function FoldersPage() {
                     {t('folders.openInManager')}
                   </Link>
                 </DropdownMenuItem>
+                {dir ? (
+                  <ProgramFolderMenuItem
+                    status={programHere}
+                    disabled={programs.toggle.isPending}
+                    onToggle={(mark) => programs.toggle.mutate({ path: dir, mark })}
+                  />
+                ) : null}
                 {indexedTrackIds.length > 0 ? (
                   <>
                     <DropdownMenuSeparator />
@@ -665,6 +677,7 @@ export default function FoldersPage() {
                           playingHere={playingDir !== null && dirWithin(playingDir, f.path)}
                           playingLoading={playingFolderPath === f.path}
                           clampNames={clampNames}
+                          badge={<ProgramFolderBadge status={programHere === 'library' ? null : programs.status(f.path)} />}
                           onOpen={() => navigate({ dir: f.path })}
                           onPlay={f.trackCount > 0 ? () => void playFolder(f.path) : undefined}
                         />
@@ -841,53 +854,5 @@ export default function FoldersPage() {
 
       <BatchDialogs dialog={dialog} onClose={() => setDialog(null)} onDone={clearSelection} />
     </Page>
-  )
-}
-
-function ExplorerSection({
-  title,
-  count,
-  showTitle = true,
-  badge,
-  actions,
-  children,
-}: {
-  title: string
-  count: number
-  /** `false` keeps the heading for assistive tech only (the folder holds one kind of content). */
-  showTitle?: boolean
-  badge?: ReactNode
-  actions?: ReactNode
-  children: ReactNode
-}) {
-  const bar = showTitle || badge || actions
-  return (
-    <section className="space-y-1.5" aria-label={showTitle ? undefined : title}>
-      {bar ? (
-        <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            {showTitle ? (
-              <>
-                <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</h2>
-                <span className="tnum text-xs text-muted-foreground/75">({count})</span>
-              </>
-            ) : null}
-            {badge}
-          </div>
-          {actions ? <div className="ml-auto flex flex-wrap items-center gap-1.5">{actions}</div> : null}
-        </div>
-      ) : null}
-      {children}
-    </section>
-  )
-}
-
-function ReadonlyBadge() {
-  const { t } = useTranslation('manage')
-  return (
-    <Badge variant="outline" className="shrink-0 gap-1 text-amber-600 dark:text-amber-400">
-      <Lock />
-      {t('file.readonly')}
-    </Badge>
   )
 }

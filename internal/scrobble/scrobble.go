@@ -201,7 +201,8 @@ func (s *Service) track(ctx context.Context, trackID string) (*model.Track, erro
 }
 
 // Played records a completed play (store.RecordPlay) and queues it for the user's enabled
-// accounts. Queueing problems are logged, never returned: the play itself is recorded.
+// accounts unless the track is a program episode (Track.Program), whose plays stay local.
+// Queueing problems are logged, never returned: the play itself is recorded.
 func (s *Service) Played(ctx context.Context, userID, trackID string, at int64, client string) error {
 	if at <= 0 {
 		at = s.nowMs()
@@ -216,6 +217,9 @@ func (s *Service) Played(ctx context.Context, userID, trackID string, at int64, 
 	t, err := s.track(ctx, trackID)
 	if err != nil {
 		slog.Warn("queueing scrobble", "err", err)
+		return nil
+	}
+	if t.Program {
 		return nil
 	}
 	tr := trackOf(t, at)
@@ -277,7 +281,8 @@ func (s *Service) credential(ctx context.Context, userID, service string) (strin
 	return cred, true
 }
 
-// NowPlaying tells the user's enabled accounts what is playing (best effort, background).
+// NowPlaying tells the user's enabled accounts what is playing (best effort, background;
+// program episodes are not reported).
 func (s *Service) NowPlaying(userID, trackID string) {
 	s.goLive(func(ctx context.Context) {
 		services, creds := s.active(ctx)
@@ -285,7 +290,7 @@ func (s *Service) NowPlaying(userID, trackID string) {
 			return
 		}
 		t, err := s.track(ctx, trackID)
-		if err != nil {
+		if err != nil || t.Program {
 			return
 		}
 		tr := trackOf(t, 0)
@@ -308,7 +313,7 @@ func (s *Service) NowPlaying(userID, trackID string) {
 }
 
 // Loved mirrors starring or unstarring tracks to the user's Last.fm loved tracks (best
-// effort, background, at most maxLoveTracks per call).
+// effort, background, at most maxLoveTracks per call; program episodes are skipped).
 func (s *Service) Loved(userID string, trackIDs []string, loved bool) {
 	if len(trackIDs) == 0 {
 		return
@@ -329,7 +334,7 @@ func (s *Service) Loved(userID string, trackIDs []string, loved bool) {
 		}
 		for i := range ts {
 			tr := trackOf(&ts[i], 0)
-			if !scrobbable(tr, "") {
+			if ts[i].Program || !scrobbable(tr, "") {
 				continue
 			}
 			err := s.lastfm.love(ctx, creds, cred, tr, loved)

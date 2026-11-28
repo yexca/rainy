@@ -500,3 +500,37 @@ func TestRedirectIsRetried(t *testing.T) {
 		t.Fatalf("redirected play: %d queued", n)
 	}
 }
+
+// Plays of program episodes stay in the local history and never reach a linked account.
+func TestProgramEpisodesStayLocal(t *testing.T) {
+	e := newEnv(t)
+	e.linkLastfm(t)
+	e.linkLB(t)
+	if err := e.st.AddProgramFolder(ctx, e.track.LibraryID, "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.s.Played(ctx, e.user.ID, e.track.ID, e.clock.Add(-time.Hour).UnixMilli(), "web"); err != nil {
+		t.Fatal(err)
+	}
+	e.s.NowPlaying(e.user.ID, e.track.ID)
+	e.s.liveWG.Wait()
+	e.s.Loved(e.user.ID, []string{e.track.ID}, true)
+	e.s.liveWG.Wait()
+	e.s.Flush(ctx)
+	for _, svc := range []string{model.ScrobbleLastfm, model.ScrobbleListenBrainz} {
+		if n, _ := e.st.CountQueuedScrobbles(ctx, e.user.ID, svc); n != 0 {
+			t.Errorf("%s queued %d", svc, n)
+		}
+	}
+	if m := e.lf.methods(); len(m) != 1 { // only the auth.getSession of linking
+		t.Errorf("Last.fm calls: %v", m)
+	}
+	e.lb.mu.Lock()
+	if len(e.lb.bodies) != 0 {
+		t.Errorf("ListenBrainz bodies %v", e.lb.bodies)
+	}
+	e.lb.mu.Unlock()
+	if _, total, _ := e.st.ListPlays(ctx, e.user.ID, 0, 0, 0, 10); total != 1 {
+		t.Errorf("local history = %d plays", total)
+	}
+}

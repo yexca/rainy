@@ -233,7 +233,11 @@
     "deleteDescription": "The station will be removed for everyone.",
     "emptyTitle": "No radio stations",
     "emptyAdmin": "Add an Internet radio stream to listen live.",
-    "emptyListener": "An administrator can add Internet radio stations here."
+    "emptyListener": "An administrator can add Internet radio stations here.",
+    "tabs": {
+      "stations": "Stations",
+      "programs": "Programs"
+    }
   },
   "track": {
     "title": "Title",
@@ -384,5 +388,21 @@
     "description": "A longer mix picked for you every Monday from your library. It leans towards songs you have never played and artists like the ones you play most, with a few favorites you haven’t heard in a while, and leaves out what you played last week. It stays the same until next Monday.",
     "emptyTitle": "Nothing to pick yet",
     "emptyDescription": "Your Weekly Mix appears once the library has songs."
+  },
+  "programs": {
+    "count_one": "{{count}} show",
+    "count_other": "{{count}} shows",
+    "episodes_one": "{{count}} episode",
+    "episodes_other": "{{count}} episodes",
+    "inProgress_one": "{{count}} in progress",
+    "inProgress_other": "{{count}} in progress",
+    "allPlayed": "All played",
+    "kind": "Program",
+    "continue": "Continue",
+    "played": "Played",
+    "left": "{{time}} left",
+    "emptyTitle": "No programs",
+    "emptyManager": "Mark a folder of recorded shows as a program folder in Library tools → Folders.",
+    "emptyListener": "A library manager can mark folders of recorded shows as programs."
   }
 }

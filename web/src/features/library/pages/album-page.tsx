@@ -17,12 +17,16 @@ import { ArtworkBackdrop, CollectionHero, CollectionHeroSkeleton } from '../comp
 import { DetailNavBar } from '../components/detail-nav-bar'
 import { HorizontalShelf } from '../components/horizontal-shelf'
 import { PlayShuffleButtons } from '../components/play-shuffle-buttons'
+import { EpisodeProgressMark, ProgramPlayButton } from '../components/program-episodes'
 import { QueryError } from '../components/query-error'
 import { StarButton } from '../components/star-button'
 import { TrackList, TrackListSkeleton, type TrackSection } from '../components/track-list'
 import { formatGenres, formatQuality, formatReleaseDate, releaseDate, totalDuration } from '../lib/format'
+import { useEpisodePositions } from '../lib/programs'
 import { albumListQuery, albumQuery } from '../lib/queries'
 import { useCoverTheme } from '../lib/use-cover-theme'
+
+const NO_TRACKS: Track[] = []
 
 export default function AlbumPage() {
   const { t } = useTranslation('library')
@@ -85,6 +89,12 @@ function AlbumContent({
   const { t } = useTranslation('library')
   const tracks = album.tracks
   const multiDisc = album.discs.length > 1 || album.discCount > 1
+  // A program show plays in order and resumes episodes where the listener stopped.
+  const positions = useEpisodePositions(album.program ? tracks : NO_TRACKS)
+  const progressOf = useCallback(
+    (track: Track) => <EpisodeProgressMark track={track} positionMs={positions.get(track.id)} />,
+    [positions],
+  )
 
   const sectionOf = useCallback(
     (track: Track): TrackSection => {
@@ -110,7 +120,7 @@ function AlbumContent({
     <>
       <CollectionHero
         coverArt={album.coverArt}
-        kind={album.compilation ? t('album.compilation') : t('album.kind')}
+        kind={album.program ? t('programs.kind') : album.compilation ? t('album.compilation') : t('album.kind')}
         title={album.name}
         titleRef={titleRef}
         byline={
@@ -123,14 +133,18 @@ function AlbumContent({
           )
         }
         meta={<span className="uppercase md:normal-case">{meta}</span>}
-        playButtons={(layout) => (
+        playButtons={(layout) =>
+          album.program ? (
+            <ProgramPlayButton tracks={tracks} positions={positions} layout={layout} />
+          ) : (
           <PlayShuffleButtons
             layout={layout}
             disabled={tracks.length === 0}
             onPlay={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: false })}
             onShuffle={() => usePlayer.getState().playTracks(tracks, undefined, { shuffle: true })}
           />
-        )}
+          )
+        }
         trailing={
           <>
             <StarButton type="album" item={album} />
@@ -144,6 +158,7 @@ function AlbumContent({
         variant="album"
         albumArtist={album.artist}
         sectionOf={multiDisc ? sectionOf : undefined}
+        progressOf={album.program ? progressOf : undefined}
       />
 
       <AlbumFooter album={album} quality={quality} />
@@ -162,7 +177,9 @@ function AlbumFooter({ album, quality }: { album: AlbumDetail; quality: string }
       {released ? <p>{released}</p> : null}
       <p>
         {t('songsAndDuration', {
-          songs: t('common:count.songs', { count: album.tracks.length }),
+          songs: album.program
+            ? t('programs.episodes', { count: album.tracks.length })
+            : t('common:count.songs', { count: album.tracks.length }),
           duration: formatDurationLong(duration),
         })}
       </p>

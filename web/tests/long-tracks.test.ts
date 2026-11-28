@@ -21,11 +21,12 @@ function track(id: string, duration: number, extra: Partial<Item> = {}): Item {
 const ids = (items: readonly Item[]) => items.map((t) => t.id)
 
 describe('isLongTrack', () => {
-  it('counts songs at or over the limit, never radio, unknown durations, or a disabled filter', () => {
+  it('counts songs at or over the limit, never radio, program episodes, unknown durations, or a disabled filter', () => {
     assert.equal(isLongTrack(track('a', 599), LIMIT), false)
     assert.equal(isLongTrack(track('a', 600), LIMIT), true)
     assert.equal(isLongTrack(track('a', 0), LIMIT), false)
     assert.equal(isLongTrack(track('a', 3600, { isRadio: true }), LIMIT), false)
+    assert.equal(isLongTrack(track('a', 1680, { program: true }), LIMIT), false)
     assert.equal(isLongTrack(track('a', 3600), 0), false)
   })
 })

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExternalLink, Loader2, Pencil, Plus, Radio, Trash2 } from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
@@ -22,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { usePlayer } from '@/features/player/store'
 import { useAuth } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -33,19 +35,26 @@ import { cn } from '@/lib/utils'
 
 import { ActionList, ActionMenu, ActionSheetHeader } from '../components/action-menu'
 import { PlayingIndicator } from '../components/playing-indicator'
+import { ProgramShows } from '../components/program-shows'
 import { ResponsiveDialog } from '../components/responsive-dialog'
+import { SegmentedTabs } from '../components/tab-bar'
 import type { ActionGroups } from '../lib/actions'
 import { seedGradient } from '../lib/colors'
-import { radiosQuery } from '../lib/queries'
+import { programsQuery, radiosQuery } from '../lib/queries'
 import { RADIO_ID_PREFIX, isHttpUrl, radioToTrack, urlHost } from '../lib/radio'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; station: RadioStation } | null
+type Tab = 'stations' | 'programs'
+const TABS: readonly Tab[] = ['stations', 'programs']
 
 export default function RadioPage() {
   const { t } = useTranslation('library')
   const { isAdmin } = useAuth()
   const isMobile = useIsMobile()
+  const [params, setParams] = useSearchParams()
+  const tab: Tab = params.get('tab') === 'programs' ? 'programs' : 'stations'
   const query = useQuery(radiosQuery())
+  const programs = useQuery(programsQuery())
   const [editing, setEditing] = useState<Editing>(null)
   const [deleting, setDeleting] = useState<RadioStation | null>(null)
   const stations = [...(query.data ?? [])].sort((a, b) => a.name.localeCompare(b.name))
@@ -54,7 +63,7 @@ export default function RadioPage() {
     usePlayer.getState().playTracks([radioToTrack(station, t('radio.live'))], 0, { shuffle: false })
   }
 
-  const addButton = isAdmin ? (
+  const addButton = isAdmin && tab === 'stations' ? (
     <Button
       onClick={() => setEditing({ mode: 'create' })}
       variant={isMobile ? 'ghost' : 'default'}
@@ -72,11 +81,25 @@ export default function RadioPage() {
       <PageHeader
         title={t('common:nav.radio')}
         back={isMobile}
-        subtitle={query.data && stations.length > 0 ? t('radio.count', { count: stations.length }) : undefined}
+        subtitle={
+          tab === 'programs'
+            ? programs.data && programs.data.length > 0
+              ? t('programs.count', { count: programs.data.length })
+              : undefined
+            : query.data && stations.length > 0
+              ? t('radio.count', { count: stations.length })
+              : undefined
+        }
         navActions={isMobile ? addButton : undefined}
         actions={isMobile ? undefined : addButton}
       />
 
+      <Tabs value={tab} onValueChange={(value) => setParams(value === 'stations' ? {} : { tab: value }, { replace: true })}>
+        <SegmentedTabs<Tab> items={TABS.map((value) => ({ value, label: t(`radio.tabs.${value}`) }))} />
+        <TabsContent value="programs">
+          <ProgramShows query={programs} />
+        </TabsContent>
+        <TabsContent value="stations">
       {query.isPending ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-hidden>
           {Array.from({ length: 6 }, (_, i) => (
@@ -120,6 +143,8 @@ export default function RadioPage() {
           ))}
         </ul>
       )}
+        </TabsContent>
+      </Tabs>
 
       {isAdmin ? (
         <>

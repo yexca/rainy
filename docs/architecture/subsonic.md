@@ -58,6 +58,12 @@ credentials automatically.
   for the web app.
 - **Similar and top songs** are computed locally from the library; Rainy makes
   no external lookups.
+- **Program episodes** (tracks of a program library, or in a folder a manager
+  marked as a program folder) are left out of `getRandomSongs`, every
+  `getAlbumList` and `getAlbumList2` type, `getSimilarSongs(2)`, and
+  `getTopSongs`, and their plays are not forwarded to Last.fm or ListenBrainz. Search, starred items,
+  folder browsing, playlists, and lookups by ID still return them, and
+  bookmarks are shared with the web player's resume position.
 - **Administration** (`startScan`, user management, radio station writes)
   requires an administrator.
 - **Not implemented:** podcasts, shares, chat, and jukebox. Their list

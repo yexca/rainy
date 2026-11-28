@@ -643,6 +643,15 @@
       "truncated": "仅展示文件前 256 KB 内容。",
       "emptyText": "空文件",
       "imageFailed": "无法加载此图片。"
+    },
+    "program": {
+      "mark": "标记为节目文件夹",
+      "unmark": "取消节目文件夹标记",
+      "badge": "节目文件夹",
+      "inherited": "位于节目文件夹内",
+      "marked": "已标记为节目文件夹",
+      "unmarked": "已取消节目文件夹标记",
+      "library": "节目音乐库"
     }
   },
   "doctor": {

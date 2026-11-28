@@ -92,12 +92,15 @@
     "pathHint": "在 Docker 中填写容器内的路径：默认音乐库是 /data，新的音乐库需要单独挂载一个目录，例如 /music2。",
     "fields": {
       "name": "名称",
-      "path": "文件夹路径"
+      "path": "文件夹路径",
+      "program": "节目音乐库"
     },
     "validation": {
       "nameRequired": "请输入名称。",
       "pathRequired": "请输入文件夹路径。"
-    }
+    },
+    "program": "节目",
+    "programHint": "其中每个文件都是一期节目（例如录下的电台节目）：不进入推荐和音乐列表，并从上次停下的位置继续播放。"
   },
   "scan": {
     "quickScan": "快速扫描",

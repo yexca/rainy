@@ -14,6 +14,7 @@ export const manageKeys = {
   all: ['manage'] as const,
   trash: ['manage', 'trash'] as const,
   folders: (libraryId: number, dir: string) => ['manage', 'folders', libraryId, dir] as const,
+  programFolders: ['manage', 'program-folders'] as const,
   /** `mtime` makes a changed file a new preview. */
   folderText: (libraryId: number, path: string, mtime: number) => ['manage', 'folder-text', libraryId, path, mtime] as const,
   issuesSummary: ['manage', 'issues', 'summary'] as const,

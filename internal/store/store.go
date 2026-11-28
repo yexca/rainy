@@ -39,7 +39,8 @@ var (
 
 // Store is the repository. It is safe for concurrent use.
 type Store struct {
-	db *db.DB
+	db       *db.DB
+	programs programCache
 }
 
 // New creates a Store on an opened, migrated database.

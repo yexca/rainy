@@ -56,7 +56,7 @@ func (s *Store) GetPlaylist(ctx context.Context, id string) (*model.Playlist, er
 // playlist order (duplicates kept). Indexes into this list are what RemovePlaylistPositions expects.
 func (s *Store) PlaylistTracks(ctx context.Context, id, userID string) ([]model.Track, error) {
 	var tracks []model.Track
-	q := trackSelect(`playlist_tracks pt JOIN `+TracksFrom(ctx)+` t ON t.id = pt.track_id AND t.missing = 0`, false) +
+	q := s.trackSelect(ctx, `playlist_tracks pt JOIN `+TracksFrom(ctx)+` t ON t.id = pt.track_id AND t.missing = 0`, false) +
 		` WHERE pt.playlist_id = ? ORDER BY pt.position`
 	if err := s.db.R.SelectContext(ctx, &tracks, q, userID, id); err != nil {
 		return nil, err

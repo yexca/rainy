@@ -1,13 +1,17 @@
 /**
  * Infinite mode helpers (docs/architecture/contract.md §9.2): when the queue runs low, songs
  * picked by `/api/recommend/mix` are appended as `autoAdded` entries. Pure functions without
- * imports so they can be unit-tested (web/tests/infinite.test.ts).
+ * imports so they can be unit-tested (web/tests/infinite.test.ts). Live radio and program
+ * episodes are not music to continue from: they never seed a mix, and the queue is not refilled
+ * while one of them plays.
  */
 
 /** The fields of a queue entry these helpers read. */
 export interface QueueItem {
   id: string
   isRadio?: boolean
+  /** Program episode (`Track.program`). */
+  program?: boolean
   autoAdded?: boolean
 }
 
@@ -30,17 +34,18 @@ export interface InfiniteState {
 /** True when infinite mode should fetch more songs now. */
 export function needsRefill({ infinite, repeat, queue, index }: InfiniteState): boolean {
   if (!infinite || repeat !== 'off' || index < 0 || queue.length === 0) return false
-  if (queue[index]?.isRadio) return false
+  if (queue[index]?.isRadio || queue[index]?.program) return false
   return queue.length - 1 - index <= REFILL_THRESHOLD
 }
 
 /**
- * Seeds: the current song and the ones just before it (newest last), live radio left out.
+ * Seeds: the current song and the ones just before it (newest last), live radio and program
+ * episodes left out.
  * Upcoming songs the user queued themselves count too, so a mix follows what they chose.
  */
 export function mixSeeds(queue: readonly QueueItem[], index: number): string[] {
   const upcoming = queue.slice(index + 1).filter((t) => !t.autoAdded)
-  const recent = [...queue.slice(0, index + 1), ...upcoming].filter((t) => !t.isRadio)
+  const recent = [...queue.slice(0, index + 1), ...upcoming].filter((t) => !t.isRadio && !t.program)
   return dedupe(recent.map((t) => t.id).reverse())
     .slice(0, MAX_SEEDS)
     .reverse()

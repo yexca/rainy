@@ -19,6 +19,7 @@ function fakeTrack(id: string, path: string, duration = 180): Track {
   return {
     id,
     libraryId: 1,
+    program: false,
     path,
     dir,
     filename,

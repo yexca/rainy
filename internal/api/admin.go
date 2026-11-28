@@ -343,8 +343,9 @@ func (a *API) adminListLibraries(w http.ResponseWriter, r *http.Request) {
 }
 
 type libraryBody struct {
-	Name *string `json:"name"`
-	Path *string `json:"path"`
+	Name    *string `json:"name"`
+	Path    *string `json:"path"`
+	Program *bool   `json:"program"` // a program library: every track is a program episode
 }
 
 // validateLibraryPath cleans p and checks that it is an existing directory that does not
@@ -442,7 +443,7 @@ func (a *API) adminCreateLibrary(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, r, err)
 		return
 	}
-	lib := &model.Library{Name: name, Path: path}
+	lib := &model.Library{Name: name, Path: path, Program: body.Program != nil && *body.Program}
 	if err := a.app.Store.CreateLibrary(ctx, lib); err != nil {
 		writeErr(w, r, err)
 		return
@@ -498,6 +499,9 @@ func (a *API) adminUpdateLibrary(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, r, err)
 			return
 		}
+	}
+	if body.Program != nil {
+		lib.Program = *body.Program
 	}
 	if err := a.app.Store.UpdateLibrary(ctx, lib); err != nil {
 		writeErr(w, r, err)

@@ -228,7 +228,11 @@
     "deleteDescription": "该电台会对所有人移除。",
     "emptyTitle": "还没有电台",
     "emptyAdmin": "添加一个网络电台流，即可收听直播。",
-    "emptyListener": "管理员可以在这里添加网络电台。"
+    "emptyListener": "管理员可以在这里添加网络电台。",
+    "tabs": {
+      "stations": "电台",
+      "programs": "节目"
+    }
   },
   "track": {
     "title": "标题",
@@ -367,5 +371,18 @@
     "description": "每周一从你的曲库里挑选一份更长的歌单：以从没播放过的歌和与你常听的艺人相似的歌为主，加上一些好久没听的心头好，并避开上周听过的歌。到下周一之前保持不变。",
     "emptyTitle": "暂时没有可推荐的歌曲",
     "emptyDescription": "曲库里有歌曲后，这里就会出现每周推荐。"
+  },
+  "programs": {
+    "count_other": "{{count}} 个节目",
+    "episodes_other": "{{count}} 期",
+    "inProgress_other": "{{count}} 期未听完",
+    "allPlayed": "已全部收听",
+    "kind": "节目",
+    "continue": "继续收听",
+    "played": "已收听",
+    "left": "剩余 {{time}}",
+    "emptyTitle": "暂无节目",
+    "emptyManager": "在「管理工具 → 文件夹」中把存放节目录音的文件夹标记为节目文件夹。",
+    "emptyListener": "资料库管理员可以把存放节目录音的文件夹标记为节目。"
   }
 }

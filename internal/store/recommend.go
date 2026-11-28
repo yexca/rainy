@@ -99,6 +99,7 @@ type CandidateQuery struct {
 }
 
 // RecommendCandidates returns a random sample of tracks matching q with the user's signals.
+// Program episodes (Track.Program) are never candidates.
 func (s *Store) RecommendCandidates(ctx context.Context, userID string, q CandidateQuery) ([]Candidate, error) {
 	limit := q.Limit
 	if limit <= 0 {
@@ -107,6 +108,7 @@ func (s *Store) RecommendCandidates(ctx context.Context, userID string, q Candid
 	limit = min(limit, 1000)
 	w := &where{}
 	w.add("t.missing = 0")
+	programsFilter(w, ProgramsExclude, s.programCond(ctx, "t."))
 	artists, genres := dedupe(q.ArtistIDs), dedupe(q.GenreIDs)
 	if len(artists) > maxVars/2 {
 		artists = artists[:maxVars/2]

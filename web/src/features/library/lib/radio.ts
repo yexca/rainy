@@ -38,6 +38,7 @@ export function radioToTrack(station: RadioStation, liveLabel: string): Playable
   return {
     id: `${RADIO_ID_PREFIX}${station.id}`,
     libraryId: 0,
+    program: false,
     path: '',
     dir: '',
     filename: '',

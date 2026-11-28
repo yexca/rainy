@@ -3,9 +3,10 @@
 Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 
 > [!IMPORTANT]
-> This release adds a database migration (`0008_user_folders`). Back up the
-> application-state directory (`/config`) before upgrading. Existing library
-> access is unchanged.
+> This release adds two database migrations (`0008_user_folders`,
+> `0009_program_folders`). Back up the application-state directory (`/config`)
+> before upgrading. Existing library access is unchanged, and no folder is a
+> program folder until a manager marks one.
 
 > [!NOTE]
 > **Apple is the default style.** Browsers that never picked a style switch to
@@ -95,6 +96,17 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   lyrics, and the auto-stop timer moved into a new **Player options** menu;
   while picture-in-picture lyrics or a timer is on, its highlighted button
   stays next to the menu.
+- Recorded shows can live in your library as programs: a manager marks their
+  folder with **Actions → Mark as program folder** in **Library tools →
+  Folders**, and everything in it and below it becomes a program episode. An
+  administrator can instead turn on **Program library** for a whole library in
+  **Admin → Libraries**.
+  Episodes stay out of the home page, random picks, mixes, infinite mode, the
+  album and song lists, Subsonic random and album lists, and Last.fm and
+  ListenBrainz scrobbles. **Radio → Programs** lists the shows with your
+  progress; a show's page marks each episode played or partly played and
+  **Continue** picks up the first unfinished one. Episodes resume where you
+  stopped, a position Subsonic apps share through bookmarks.
 
 </details>
 

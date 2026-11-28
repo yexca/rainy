@@ -70,6 +70,9 @@ Docker image for `linux/amd64` and `linux/arm64`.
 - **Music picked for you.** A daily and a weekly mix, song picks on the home
   page, and an infinite mode that keeps playing similar songs, chosen from
   your own library and plays on your server; nothing is sent anywhere.
+- **Recorded shows as programs.** Mark a folder of recorded radio shows as a
+  program folder: its episodes stay out of the music mixes and lists, play in
+  order, and resume where you stopped.
 - **Multi-user.** Administrator, manager, and listener roles with a separate
   download permission; a listener can be limited to chosen libraries.
   Favorites, ratings, play counts, playlists, and the play queue are per user,

@@ -10,7 +10,7 @@ import (
 	"rainy/internal/util"
 )
 
-const libraryCols = `id, name, path, created_at, updated_at, last_scan_at`
+const libraryCols = `id, name, path, program, created_at, updated_at, last_scan_at`
 
 // ListLibraries returns the libraries ctx may read (all for an unscoped context) ordered by id.
 func (s *Store) ListLibraries(ctx context.Context) ([]model.Library, error) {
@@ -35,8 +35,9 @@ func (s *Store) CreateLibrary(ctx context.Context, l *model.Library) error {
 		l.CreatedAt = now
 	}
 	l.UpdatedAt = now
-	res, err := s.db.W.ExecContext(ctx, `INSERT INTO libraries (name, path, created_at, updated_at, last_scan_at)
-		VALUES (?, ?, ?, ?, ?)`, l.Name, l.Path, l.CreatedAt, l.UpdatedAt, l.LastScanAt)
+	defer s.programs.invalidate() // a program library adds programs
+	res, err := s.db.W.ExecContext(ctx, `INSERT INTO libraries (name, path, program, created_at, updated_at, last_scan_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, l.Name, l.Path, l.Program, l.CreatedAt, l.UpdatedAt, l.LastScanAt)
 	if err != nil {
 		return fmt.Errorf("creating library: %w", constraint(err, "library path"))
 	}
@@ -44,11 +45,12 @@ func (s *Store) CreateLibrary(ctx context.Context, l *model.Library) error {
 	return err
 }
 
-// UpdateLibrary saves name and path.
+// UpdateLibrary saves name, path and program.
 func (s *Store) UpdateLibrary(ctx context.Context, l *model.Library) error {
 	l.UpdatedAt = util.NowMs()
-	res, err := s.db.W.ExecContext(ctx, `UPDATE libraries SET name = ?, path = ?, updated_at = ? WHERE id = ?`,
-		l.Name, l.Path, l.UpdatedAt, l.ID)
+	defer s.programs.invalidate()
+	res, err := s.db.W.ExecContext(ctx, `UPDATE libraries SET name = ?, path = ?, program = ?, updated_at = ? WHERE id = ?`,
+		l.Name, l.Path, l.Program, l.UpdatedAt, l.ID)
 	if err != nil {
 		return fmt.Errorf("updating library: %w", constraint(err, "library path"))
 	}
@@ -71,6 +73,7 @@ func (s *Store) DeleteLibrary(ctx context.Context, id int64) error {
 		}
 		return requireAffected(tx.ExecContext(ctx, `DELETE FROM libraries WHERE id = ?`, id))
 	})
+	s.programs.invalidate() // its program folders went with it (ON DELETE CASCADE), and its program flag
 	if err != nil {
 		return err
 	}

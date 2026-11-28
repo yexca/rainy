@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -10,6 +10,8 @@ import { ResponsiveDialog } from '@/components/responsive-dialog'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { adminKeys } from '@/lib/admin-queries'
 import { isApiError } from '@/lib/api/client'
 import { api } from '@/lib/api/endpoints'
@@ -19,6 +21,7 @@ import { errorMessage } from '@/lib/errors'
 const schema = z.object({
   name: z.string().trim().min(1, 'libraries.validation.nameRequired').max(100),
   path: z.string().trim().min(1, 'libraries.validation.pathRequired'),
+  program: z.boolean(),
 })
 type Values = z.infer<typeof schema>
 
@@ -50,10 +53,11 @@ function LibraryForm({ library, onClose }: { library: LibraryInfo | null; onClos
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors, isDirty },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: library?.name ?? '', path: library?.path ?? '' },
+    defaultValues: { name: library?.name ?? '', path: library?.path ?? '', program: library?.program ?? false },
   })
 
   const save = useMutation({
@@ -89,6 +93,19 @@ function LibraryForm({ library, onClose }: { library: LibraryInfo | null; onClos
         />
       </FormField>
       <p className="text-xs text-muted-foreground">{t('libraries.pathHint')}</p>
+      <Controller
+        name="program"
+        control={control}
+        render={({ field }) => (
+          <Label htmlFor="library-program" className="-mx-3 flex min-h-14 items-center gap-3 rounded-lg px-3 py-2 font-normal hover:bg-accent/40">
+            <span className="grid flex-1 gap-0.5">
+              <span className="text-sm font-medium">{t('libraries.fields.program')}</span>
+              <span className="text-xs text-muted-foreground">{t('libraries.programHint')}</span>
+            </span>
+            <Switch id="library-program" checked={field.value} onCheckedChange={field.onChange} />
+          </Label>
+        )}
+      />
       <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end [&_button]:max-sm:h-11">
         <Button type="button" variant="outline" onClick={onClose} disabled={save.isPending}>
           {t('common:actions.cancel')}

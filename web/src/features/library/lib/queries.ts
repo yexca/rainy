@@ -11,6 +11,7 @@
  *   ['recommend', 'weekly', monday, tz]      weekly mix (the server keeps it for the week)
  *   ['random', 'picks']                      home song picks (not a library root: they would reshuffle)
  *   ['radios']                                (not library data; invalidated by the radio page)
+ *   ['programs'], ['bookmarks', trackIds]     program shows; episode positions (the player refreshes both)
  */
 import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { useMemo } from 'react'
@@ -141,6 +142,20 @@ export const radiosQuery = () =>
   queryOptions({
     queryKey: queryKeys.radios,
     queryFn: ({ signal }) => api.radios.list({ signal }),
+  })
+
+export const programsQuery = () =>
+  queryOptions({
+    queryKey: queryKeys.programs,
+    queryFn: ({ signal }) => api.programs({ signal }),
+  })
+
+/** The user's saved positions in these tracks (program episodes). */
+export const bookmarksQuery = (trackIds: string[]) =>
+  queryOptions({
+    queryKey: [...queryKeys.bookmarks, trackIds],
+    queryFn: ({ signal }) => api.bookmarks.list(trackIds, { signal }),
+    enabled: trackIds.length > 0,
   })
 
 export const searchQuery = (params: SearchParams) =>

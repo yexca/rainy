@@ -46,7 +46,7 @@ func (a *API) Routes() http.Handler {
 	// with auth.RequireUser itself.
 	a.routesAuth(r)
 
-	// Any authenticated user. All nine routesX functions below share this one group router,
+	// Any authenticated user. All ten routesX functions below share this one group router,
 	// so they must NOT call r.Use (chi panics when middleware is added after routes); wrap
 	// individual routes with r.With(mw) or open a nested r.Group instead.
 	r.Group(func(r chi.Router) {
@@ -60,6 +60,7 @@ func (a *API) Routes() http.Handler {
 		a.routesEvents(r)
 		a.routesListening(r)
 		a.routesRecommend(r)
+		a.routesPrograms(r)
 	})
 
 	// Library managers (canManage or admin). Paths inside are relative: "/tracks/{id}/tags".

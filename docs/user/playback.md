@@ -157,10 +157,36 @@ When a song counts as played is described in
 
 ## Internet Radio
 
-**Radio** lists stations that an administrator added on that page with a
+**Radio → Stations** lists stations that an administrator added on that page with a
 stream URL (MP3, AAC, Ogg, or HLS). Your
 browser connects to the station directly, so the station sees your device's
 address, not the server's.
+
+## Programs
+
+Recorded shows, such as radio programs kept as audio files, live in a folder a
+library manager marked as a program folder, or in a library an administrator
+made a program library (see [Management](management.md#program-folders)).
+Every file in that folder and in the folders below it, or in that library, is
+an episode. Episodes stay out of the music features:
+the home page, random picks, the daily and weekly mixes, infinite mode, the
+album and song lists, an artist's albums and top songs, and scrobbles to
+Last.fm or ListenBrainz. Search, favorites, playlists, and the folder browser
+still find them, and your own play history counts them.
+
+**Radio → Programs** shows each program as a card with its number of episodes
+and how far you got, the most recently active first. A program opens its page:
+each episode shows **Played**, or a thin bar with the time left when you
+stopped partway. **Continue** plays from the first episode you have not
+finished; **Play** starts a program you have not listened to yet.
+
+Episodes play in order and you can seek as usual. Rainy remembers where you
+stopped in each episode, saving the position about every 15 seconds and when
+you pause, seek, switch to another song, or close the page. Playing the episode
+again starts from there, unless that is within its first 5 seconds or its last
+30 seconds. Finishing an episode, or stopping in its last 30 seconds, forgets
+the position. The position is shared with Subsonic apps that use bookmarks.
+Long episodes are never skipped by **Skip long songs**.
 
 ## Install the App
 

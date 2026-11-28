@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FolderOpen, FolderPlus, HardDrive, Lock, MoreHorizontal, Pencil, ScanSearch, Trash2, TriangleAlert } from 'lucide-react'
+import { FolderOpen, FolderPlus, HardDrive, Lock, MoreHorizontal, Pencil, Podcast, ScanSearch, Trash2, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -197,6 +197,12 @@ function LibraryCard({
           </Badge>
         ) : null}
         {library.exists && library.writable ? <Badge variant="secondary">{t('libraries.writable')}</Badge> : null}
+        {library.program ? (
+          <Badge variant="outline" className="gap-1 border-primary/40 text-primary">
+            <Podcast />
+            {t('libraries.program')}
+          </Badge>
+        ) : null}
       </div>
 
       <dl className="grid grid-cols-2 gap-2 text-sm">
