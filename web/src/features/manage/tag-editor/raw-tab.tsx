@@ -44,7 +44,7 @@ export function RawTab({ items, edits, onEditsChange, disabled }: RawTabProps) {
   return (
     <div className="grid gap-4 pb-2">
       {rows.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">{t('raw.empty')}</p> : null}
-      <ul className="grid gap-px overflow-hidden rounded-lg border bg-border">
+      <ul className="divide-y overflow-hidden rounded-lg border">
         {rows.map((row) => (
           <RawRow
             key={row.key}
@@ -118,7 +118,7 @@ function RawRow({ row, disabled, onChange, onRevert }: RawRowProps) {
   }
 
   return (
-    <li className="grid gap-2 bg-background p-3 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-3">
+    <li className="grid gap-2 p-3 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-3">
       <div className="flex min-w-0 items-start gap-1.5 sm:pt-2">
         <span
           className={cn(

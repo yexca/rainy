@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 
 /** 36px pill; the `after:` box stretches the touch target to 44px on phones (§9.3). */
 const PILL =
-  "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border/70 bg-background px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors outline-none after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=open]:bg-accent md:h-8 md:after:hidden"
+  "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border/70 bg-transparent px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors outline-none after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=open]:bg-accent md:h-8 md:after:hidden"
 
 /** Horizontal row of pills; scrolls sideways on phones instead of wrapping. */
 export function ListToolbar({ children, className }: { children: ReactNode; className?: string }) {

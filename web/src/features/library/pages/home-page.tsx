@@ -148,7 +148,7 @@ function PickedSongs({
                     // Expand touch hit area to >= 44px height on mobile while keeping a slim capsule visually.
                     'after:absolute after:-inset-y-2 after:inset-x-0 md:after:hidden',
                     isSelected
-                      ? 'bg-background text-foreground shadow-2xs'
+                      ? 'bg-background text-foreground shadow-2xs immersive:bg-foreground/15'
                       : 'text-muted-foreground hover:text-foreground',
                   )}
                 >

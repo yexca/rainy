@@ -76,7 +76,7 @@ export function SystemInfo() {
 
       {st ? (
         <Group title={t('system.library')}>
-          <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4">
             {(
               [
                 ['tracks', st.tracks],
@@ -89,7 +89,7 @@ export function SystemInfo() {
                 ['plays30', st.playsLast30Days],
               ] as const
             ).map(([key, value]) => (
-              <div key={key} className="bg-background p-4">
+              <div key={key} className="p-4">
                 <p className="text-xs text-muted-foreground">{t(`system.stats.${key}`)}</p>
                 <p className="tnum text-xl font-semibold tracking-tight">{formatNumber(value)}</p>
               </div>

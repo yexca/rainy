@@ -66,7 +66,7 @@ export function HorizontalShelf({ title, tabs, to, actions, itemSize = 'md', id,
   }
 
   const arrow =
-    'absolute top-[calc(50%-2.25rem)] z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-border/60 bg-background/90 text-foreground shadow-md backdrop-blur transition-opacity hover:bg-background md:grid'
+    'absolute top-[calc(50%-2.25rem)] z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full glass border border-border/60 text-foreground shadow-md transition-opacity hover:bg-background md:grid'
 
   return (
     <section aria-labelledby={headingId} className={cn('mt-8 first:mt-2 md:mt-10', className)}>

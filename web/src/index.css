@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 /* Installed PWA (home-screen app). */
 @custom-variant standalone (@media (display-mode: standalone));
+/* Immersive mode (<html data-immersive>): page surfaces become see-through over the cover. */
+@custom-variant immersive (&:is(:root[data-immersive] *));
 
 /* ------------------------------------------------------------------------------------------ */
 /* Design tokens, light. The base is the "anthropic" style; <html data-style> (always set;     */
@@ -830,6 +832,24 @@
     background-color: color-mix(in oklab, var(--background) 75%, transparent);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
     backdrop-filter: blur(24px) saturate(150%);
+  }
+}
+
+/* Sticky top bars once the page scrolls under them (page and detail bars): glass, and in
+   immersive mode the app header's see-through recipe, so the header, sidebar and bar read as
+   one frame over the backdrop instead of a darker band. */
+@utility glass-bar {
+  --hairline-color: color-mix(in oklab, var(--border) 60%, transparent);
+  background-color: var(--background);
+
+  @media (width >= 48rem) and (height > 540px) {
+    background-color: color-mix(in oklab, var(--background) 75%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+
+    :root[data-immersive] & {
+      background-color: color-mix(in oklab, var(--background) 45%, transparent);
+    }
   }
 }
 

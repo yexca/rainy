@@ -108,9 +108,11 @@ explains the rules every UI change must keep.
   The cover's colours also fill the window as three soft colour fields (its
   own hue, the accent's, and a neighbouring one; radial gradients, no blur
   filters) behind the app, and the chrome is see-through over them: the
-  sidebar and the page are transparent, the app header is glass because pages
-  scroll under it, and cards and fills are translucent veils. Menus and
-  dialogs stay opaque. Album, playlist, and artist pages also blur their
+  sidebar and the page are transparent, the app header and the pages' sticky
+  top bars are the same thin glass because pages scroll under them, and cards
+  and fills are translucent veils; nothing inside a page paints the solid
+  page colour. Menus and dialogs stay opaque. Album, playlist, and artist
+  pages also blur their
   artwork into a soft glow behind the header; that glow belongs to this mode
   only. Every text colour keeps WCAG AA contrast on each field. From tablets
   up the fields drift while music plays and reduced motion is off; phones

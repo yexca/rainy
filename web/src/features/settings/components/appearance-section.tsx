@@ -148,7 +148,7 @@ export function StylePicker({
               'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               selected
                 ? 'border-primary bg-primary/10 text-primary'
-                : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground immersive:bg-transparent immersive:hover:bg-muted',
             )}
           >
             <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />

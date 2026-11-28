@@ -123,7 +123,7 @@ export function PageHeader({
           ref={barRef}
           className={cn(
             'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 transition-[background-color,border-color] duration-200',
-            collapsed ? 'glass' : '[--hairline-color:transparent]',
+            collapsed ? 'glass-bar' : '[--hairline-color:transparent]',
           )}
         >
           <div className="relative flex h-(--page-bar-h) items-center gap-1">

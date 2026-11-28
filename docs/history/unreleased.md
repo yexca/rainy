@@ -48,6 +48,12 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   companion, and the pictures for missing covers, artist photos, playlists,
   and radio stations. Her hands are drawn correctly, and the art is sharper
   and more consistent.
+- In immersive mode, the title bar that appears when a page scrolls is as
+  see-through as the sidebar and the header, and the Library statistics in
+  Admin → Settings → System, the sort and filter buttons on Albums, Artists,
+  and Songs, the Picked for You tabs on Home, the style choices in
+  Appearance, and the tag editor's Raw rows let the cover's colours show
+  through instead of sitting on dark blocks.
 
 </details>
 
