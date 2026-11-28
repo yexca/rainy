@@ -16,6 +16,10 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
 <summary><strong>Appearance</strong></summary>
 
 - New browsers start in the Apple style with Immersive on.
+- Every page shows its subtitle, such as the album or song count, beside the
+  title as the management pages do, moving below it only when there is no
+  room. When you scroll, the subtitle follows the title into the bar at the
+  top. Listening and Settings no longer have a subtitle.
 - In immersive mode, the next cover's colours shift smoothly across the app
   instead of cross-fading a still picture of the old screen, so scrolling
   while the colours change no longer leaves a ghost of the previous page.
@@ -48,8 +52,10 @@ Changes through v0.2.0 are summarized in [v0.2.0](v0.2.0.md).
   companion, and the pictures for missing covers, artist photos, playlists,
   and radio stations. Her hands are drawn correctly, and the art is sharper
   and more consistent.
-- In immersive mode, the title bar that appears when a page scrolls is as
-  see-through as the sidebar and the header, and the Library statistics in
+- The title bar that appears when a page scrolls no longer sits on a strip
+  with a line below it: the page fades and blurs softly under the title, and
+  in immersive mode the cover's colours show through it. The Library
+  statistics in
   Admin → Settings → System, the sort and filter buttons on Albums, Artists,
   and Songs, the Picked for You tabs on Home, the style choices in
   Appearance, and the tag editor's Raw rows let the cover's colours show

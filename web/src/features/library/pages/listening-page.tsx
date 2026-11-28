@@ -107,7 +107,6 @@ export default function ListeningPage() {
       <PageHeader
         title={t('listening.title')}
         back={isMobile}
-        subtitle={t('listening.subtitle')}
         actions={
           <Select value={range} onValueChange={(v) => update({ range: v as ListeningRange })}>
             <SelectTrigger className="w-full sm:w-48" aria-label={t('listening.rangeLabel')}>

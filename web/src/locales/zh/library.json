@@ -253,7 +253,6 @@
   "songsAndDuration": "{{songs}}，{{duration}}",
   "listening": {
     "title": "收听统计",
-    "subtitle": "你听了什么、什么时候听、听了多少",
     "rangeLabel": "时间范围",
     "ranges": {
       "7d": "最近 7 天",

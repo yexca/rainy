@@ -11,12 +11,11 @@ import { useUI } from '@/stores/ui'
 export interface PageHeaderProps {
   /** Page title (also used for the collapsed bar and `document.title`). */
   title: string
-  subtitle?: ReactNode
   /**
-   * Subtitle on the title's baseline, to its right, instead of below it: the header keeps its
-   * height whether or not there is one (management pages, whose subtitle is a count that loads later).
+   * Sits on the title's baseline, to its right, and moves to the next line when it does not fit
+   * there; the header keeps its height when it is absent or loads later (counts).
    */
-  subtitleInline?: boolean
+  subtitle?: ReactNode
   /** Primary actions: right of the title on desktop, below it on mobile. */
   actions?: ReactNode
   /** Compact control aligned inline to the right of the heading on mobile. */
@@ -40,10 +39,10 @@ export interface PageHeaderProps {
 /**
  * Page title block.
  *
- * - Mobile: iOS large title (34/41 bold). Once it scrolls under the top bar, the bar turns into
- *   a glass nav bar with a small centred title (17px semibold).
- * - Desktop: `text-3xl` title with subtitle + actions; a slim glass bar with the title appears
- *   on scroll.
+ * - Mobile: iOS large title (34/41 bold). Once it scrolls under the top bar, the bar shows a
+ *   small centred title (17px semibold; 15px with the subtitle on a 12px line below it).
+ * - Desktop: `text-3xl` title with subtitle + actions; on scroll the bar shows the title with
+ *   the subtitle beside it.
  * - `bar={false}`: the bar is left out and the app header shows the title on scroll.
  *
  * Must be rendered directly inside a `.page-x` container (`<Page>`): the sticky bar bleeds to the
@@ -53,7 +52,6 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   subtitle,
-  subtitleInline = false,
   actions,
   titleAction,
   navActions,
@@ -121,10 +119,7 @@ export function PageHeader({
       {bar ? (
         <div
           ref={barRef}
-          className={cn(
-            'ui-chrome bleed-x page-x hairline-b sticky top-(--app-header-h) z-30 transition-[background-color,border-color] duration-200',
-            collapsed ? 'glass-bar' : '[--hairline-color:transparent]',
-          )}
+          className={cn('ui-chrome bleed-x page-x sticky top-(--app-header-h) z-30', collapsed && 'glass-bar')}
         >
           <div className="relative flex h-(--page-bar-h) items-center gap-1">
             <div className="flex min-w-0 flex-1 items-center gap-1">
@@ -143,11 +138,12 @@ export function PageHeader({
                 <span
                   aria-hidden={!collapsed}
                   className={cn(
-                    'truncate text-sm font-semibold transition-opacity duration-200',
+                    'flex min-w-0 items-baseline gap-2 transition-opacity duration-200',
                     collapsed ? 'opacity-100' : 'opacity-0',
                   )}
                 >
-                  {title}
+                  <span className="truncate text-sm font-semibold">{title}</span>
+                  {subtitle ? <span className="tnum shrink-0 text-xs text-muted-foreground">{subtitle}</span> : null}
                 </span>
               ) : null}
             </div>
@@ -156,11 +152,16 @@ export function PageHeader({
                 <span
                   aria-hidden={!collapsed}
                   className={cn(
-                    'truncate text-[17px] font-semibold transition-opacity duration-200',
+                    'flex min-w-0 flex-col items-center transition-opacity duration-200',
                     collapsed ? 'opacity-100' : 'opacity-0',
                   )}
                 >
-                  {title}
+                  <span className={cn('max-w-full truncate font-semibold', subtitle ? 'text-[15px] leading-5' : 'text-[17px]')}>
+                    {title}
+                  </span>
+                  {subtitle ? (
+                    <span className="tnum max-w-full truncate text-xs leading-4 text-muted-foreground">{subtitle}</span>
+                  ) : null}
                 </span>
               </div>
             ) : null}
@@ -181,16 +182,14 @@ export function PageHeader({
           )}
         >
           <div className={cn('min-w-0', titleAction && 'flex items-center justify-between gap-3 md:block')}>
-            <div className={cn('min-w-0', subtitleInline && 'flex flex-wrap items-baseline gap-x-3')}>
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
               <h1
                 ref={titleRef}
-                className="text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
+                className="min-w-0 text-[34px] leading-[41px] font-bold tracking-tight text-balance break-words md:text-3xl"
               >
                 {title}
               </h1>
-              {subtitle ? (
-                <div className={cn('text-[15px] text-muted-foreground md:text-sm', subtitleInline ? 'tnum whitespace-nowrap' : 'mt-1')}>{subtitle}</div>
-              ) : null}
+              {subtitle ? <div className="tnum min-w-0 text-[15px] text-muted-foreground md:text-sm">{subtitle}</div> : null}
             </div>
             {titleAction ? <div className="shrink-0 md:hidden">{titleAction}</div> : null}
           </div>

@@ -60,7 +60,7 @@ export default function LibrariesPage() {
     <Page centered>
       <PageHeader
         title={t('libraries.title')}
-        subtitleInline subtitle={libraries.data ? t('libraries.count', { count: list.length }) : undefined}
+        subtitle={libraries.data ? t('libraries.count', { count: list.length }) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           isMobile ? null : (

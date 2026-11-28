@@ -324,7 +324,7 @@ export default function ManagePage() {
     <Page centered>
       <PageHeader
         title={t('title')}
-        subtitleInline subtitle={first.data ? t('table.count', { count: total, formatted: formatNumber(total) }) : undefined}
+        subtitle={first.data ? t('table.count', { count: total, formatted: formatNumber(total) }) : undefined}
         navActions={
           isMobile && total > 0 ? (
             <Button

@@ -835,20 +835,42 @@
   }
 }
 
-/* Sticky top bars once the page scrolls under them (page and detail bars): glass, and in
-   immersive mode the app header's see-through recipe, so the header, sidebar and bar read as
-   one frame over the backdrop instead of a darker band. */
+/* Sticky top bars once the page scrolls under them (page and detail bars): a soft scroll edge
+   instead of a band. The bar stays transparent with no hairline; a layer behind its controls
+   reaches --bar-fade below it and fades out there, so content dissolves under the title. Phones
+   paint the page colour (no filters while scrolling natively); larger screens blur with a light
+   tint that the mask fades, lightest in immersive mode so the backdrop's colours show through. */
+@keyframes glass-bar-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @utility glass-bar {
-  --hairline-color: color-mix(in oklab, var(--border) 60%, transparent);
-  background-color: var(--background);
+  --bar-fade: 1.5rem;
+  --hairline-color: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 calc(-1 * var(--bar-fade));
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, var(--background) calc(100% - var(--bar-fade)), transparent);
+    animation: glass-bar-in 200ms ease-out;
+  }
 
   @media (width >= 48rem) and (height > 540px) {
-    background-color: color-mix(in oklab, var(--background) 75%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
+    &::before {
+      background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 70%, transparent), transparent);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent);
+      mask-image: linear-gradient(to bottom, #000 50%, transparent);
+    }
 
-    :root[data-immersive] & {
-      background-color: color-mix(in oklab, var(--background) 45%, transparent);
+    :root[data-immersive] &::before {
+      background: linear-gradient(to bottom, color-mix(in oklab, var(--background) 25%, transparent), transparent);
     }
   }
 }

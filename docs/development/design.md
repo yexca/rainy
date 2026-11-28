@@ -23,8 +23,9 @@ explains the rules every UI change must keep.
   show. Icon buttons keep their accessible names.
   - A page subtitle carries live data (a count, a size, a status such as
     "5 issues found") or is left out; it never describes what the page is
-    for. On management pages it sits to the right of the title, on its
-    baseline, so the header keeps its height while the count loads.
+    for. On every page it sits to the right of the title, on its baseline
+    (on its own line below when it does not fit), so the header keeps its
+    height while the count loads.
   - Express a rule through the control instead of a caption: multi-value tags
     are chips, a cover preview is its own drop target and picker, a disabled
     Save button means there is nothing to save.
@@ -108,8 +109,9 @@ explains the rules every UI change must keep.
   The cover's colours also fill the window as three soft colour fields (its
   own hue, the accent's, and a neighbouring one; radial gradients, no blur
   filters) behind the app, and the chrome is see-through over them: the
-  sidebar and the page are transparent, the app header and the pages' sticky
-  top bars are the same thin glass because pages scroll under them, and cards
+  sidebar and the page are transparent, the app header is thin glass because
+  pages scroll under it, the pages' sticky top bars only lightly tint their
+  soft scroll edge (see [Surfaces](#surfaces-motion-and-icons)), and cards
   and fills are translucent veils; nothing inside a page paints the solid
   page colour. Menus and dialogs stay opaque. Album, playlist, and artist
   pages also blur their
@@ -216,8 +218,10 @@ two-column reading layout inside the centered column.
 
 ## Typography and Density
 
-- Page titles are large and bold. On mobile, the large title collapses into a
-  centered navigation title while scrolling (`PageHeader` handles this).
+- Page titles are large and bold. While scrolling, the title collapses into
+  the page's top bar (centered on mobile) and takes its subtitle along: beside
+  it on larger screens, on a smaller line below it on mobile (`PageHeader`
+  handles this).
 - Home's title is a greeting, so it gets no top bar of its own
   (`PageHeader bar={false}`): while scrolling, the app header shows it after
   the logo, and styles with the sidebar chrome show nothing.
@@ -229,10 +233,16 @@ two-column reading layout inside the centered column.
 
 ## Surfaces, Motion, and Icons
 
-- Glass surfaces (tab bar, mini player, top bar on scroll) use a translucent
-  background with a strong backdrop blur and a subtle border on larger screens.
-  Phones, including landscape phones up to 540 px high, use opaque surfaces to
-  keep native scrolling smooth. Backdrop filters never animate.
+- Glass surfaces (tab bar, mini player) use a translucent background with a
+  strong backdrop blur and a subtle border on larger screens. Phones,
+  including landscape phones up to 540 px high, use opaque surfaces to keep
+  native scrolling smooth. Backdrop filters never animate.
+- A page's sticky top bar, once the page scrolls under it, is a soft scroll
+  edge rather than a strip: no border, and a layer behind its controls that
+  reaches 24 px below the bar and fades out there, so content dissolves under
+  the title. Larger screens blur that layer with a light tint of the page
+  colour (lighter still in immersive mode); phones paint the page colour
+  without a blur.
 - Scrollbars, with a mouse or trackpad, are a thin rounded thumb on a clear
   track in the foreground colour, stronger on hover, in every scroll area
   (base styles in `index.css`). The page always reserves its scrollbar's

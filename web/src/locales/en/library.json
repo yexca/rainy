@@ -258,7 +258,6 @@
   "songsAndDuration": "{{songs}}, {{duration}}",
   "listening": {
     "title": "Listening",
-    "subtitle": "What you played, when, and how much",
     "rangeLabel": "Period",
     "ranges": {
       "7d": "Last 7 days",

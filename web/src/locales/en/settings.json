@@ -1,6 +1,5 @@
 {
   "title": "Settings",
-  "subtitle": "Your account, apps and playback preferences",
   "copyValue": "Copy {{label}}",
   "profile": {
     "title": "Profile",

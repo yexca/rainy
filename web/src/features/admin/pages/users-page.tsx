@@ -69,7 +69,7 @@ export default function UsersPage() {
     <Page centered>
       <PageHeader
         title={t('users.title')}
-        subtitleInline subtitle={users.data ? t('users.count', { count: list.length }) : undefined}
+        subtitle={users.data ? t('users.count', { count: list.length }) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           isMobile ? null : (

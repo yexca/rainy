@@ -91,7 +91,7 @@ export default function SettingsPage() {
 
   return (
     <Page centered>
-      <PageHeader title={t('title')} subtitle={t('subtitle')}>
+      <PageHeader title={t('title')}>
         <SectionTabs section={SETTINGS_SECTION} />
       </PageHeader>
       {user ? (

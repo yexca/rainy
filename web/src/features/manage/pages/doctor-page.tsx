@@ -83,7 +83,7 @@ export default function DoctorPage() {
     <Page centered>
       <PageHeader
         title={t('doctor.title')}
-        subtitleInline subtitle={summary.data ? (totalIssues === 0 ? t('doctor.healthy') : t('doctor.issueCount', { count: totalIssues })) : undefined}
+        subtitle={summary.data ? (totalIssues === 0 ? t('doctor.healthy') : t('doctor.issueCount', { count: totalIssues })) : undefined}
         back={isMobile ? '/manage' : undefined}
         actions={
           <Button variant="outline" onClick={() => void summary.refetch()} disabled={summary.isFetching}>
