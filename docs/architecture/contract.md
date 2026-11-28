@@ -2098,10 +2098,12 @@ features only through the player store, types and dock and the shell slots liste
   tracks, the shelf uses that mode's label directly without pills) and a "show other songs" refresh button on `quick` and
   `rediscover`. Columns hold four rows (60px, 56px from 768px; 44px artwork, title, artist, the track menu, a context menu):
   one column and a peek of the next on phones, two from 640px, three side by side from 1024px. A row plays the active mode's
-  list from that song (or toggles the current one) and shows the playing indicator over its artwork; the header button plays
-  from the top. The song modes come from one request (`songPicksQuery`, key `['random', 'picks']`, fresh for 30 minutes and
-  outside `LIBRARY_QUERY_ROOTS` so library events don't reshuffle them; stars are patched through `STAR_ROOTS`); while it loads
-  the shelf shows a skeleton, and a failed request hides the song shelf.
+  list from that song (or toggles the current one) and shows the playing indicator over its artwork; the play button
+  stretches over the row, and from 768px the artist name above it links to `/artists/{artistId}` (on phones a tap on the
+  name plays the row; Go to artist stays in the track menu). The header button plays from the top. The song modes come
+  from one request (`songPicksQuery`, key `['random', 'picks']`, fresh for 30 minutes and outside `LIBRARY_QUERY_ROOTS` so
+  library events don't reshuffle them; stars are patched through `STAR_ROOTS`); while it loads the shelf shows a skeleton,
+  and a failed request hides the song shelf.
 - **Settings → Scrobbling** (`ScrobblingSection`, `/settings/scrobbling`): per service the linked account, a pause switch, the waiting
   plays, the last sent time and last error, "Connect again" when the service revoked access, and Disconnect with a
   confirmation. Last.fm "Connect" asks `/me/scrobbling/lastfm/auth` with the callback `<origin>/settings/lastfm` and navigates

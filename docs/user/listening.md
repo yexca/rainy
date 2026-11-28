@@ -87,7 +87,8 @@ belongs to.
 Below **Made for You**, **Picked for You** offers a song shelf above the album
 shelves, with pills beside the title to switch between modes. Tap a song to
 play the active mode from there, or the play button beside the title to start
-from the top.
+from the top. On a wider screen, click an artist name to open the artist; on
+a phone, use **Go to artist** in the song's **…** menu.
 
 - **Quick picks**: a dozen songs that suit what you have been playing, by your
   top artists of the last 90 days and artists like them. The refresh button

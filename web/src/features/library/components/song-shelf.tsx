@@ -1,6 +1,7 @@
 import { Play } from 'lucide-react'
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { CoverArt } from '@/components/cover-art'
 import { Button } from '@/components/ui/button'
@@ -97,30 +98,27 @@ export interface SongRowProps {
 
 /**
  * Compact song row: a tap plays from this song; "…" and right-click open its actions. The
- * duration shows from tablet width up.
+ * duration shows from tablet width up, and so does the link on the artist name (shown when the
+ * row's second line is the artist).
  */
 export const SongRow = memo(function SongRow({ track, index, onPlay, rank, subtitle, star }: SongRowProps) {
   const state = useTrackState(track.id)
   const current = state !== 'none'
   const [menuOpen, setMenuOpen] = useState(false)
   const contextValue = useMemo<ActionMenuContextValue>(() => ({ kind: 'context', close: () => {} }), [])
+  const artistLink = subtitle === undefined && track.artistId ? `/artists/${track.artistId}` : undefined
 
   return (
     <ContextMenu onOpenChange={setMenuOpen}>
       <ContextMenuTrigger asChild>
         <div
           className={cn(
-            'group -mx-2 flex h-15 items-center rounded-lg px-2 transition-colors active:bg-accent/70 md:h-14',
+            'group relative -mx-2 flex h-15 items-center rounded-lg px-2 transition-colors active:bg-accent/70 md:h-14',
             menuOpen ? 'bg-accent' : 'md:hover:bg-accent/60',
             track.missing && 'opacity-50',
           )}
         >
-          <button
-            type="button"
-            onClick={() => (current ? usePlayer.getState().togglePlay() : onPlay(index))}
-            aria-current={current ? 'true' : undefined}
-            className="flex h-full min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          >
+          <div className="flex h-full min-w-0 flex-1 items-center gap-3">
             {rank !== undefined ? (
               <span className="tnum w-5 shrink-0 text-right text-[13px] text-muted-foreground">{rank}</span>
             ) : null}
@@ -140,26 +138,48 @@ export const SongRow = memo(function SongRow({ track, index, onPlay, rank, subti
               </span>
             </span>
             <span className="min-w-0 flex-1">
-              <span className={cn('block truncate text-[15px] leading-snug font-medium md:text-sm', current && 'text-primary')}>
+              {/* The play button stretches over the whole row; the artist link and controls sit above it. */}
+              <button
+                type="button"
+                onClick={() => (current ? usePlayer.getState().togglePlay() : onPlay(index))}
+                aria-current={current ? 'true' : undefined}
+                className={cn(
+                  'block w-full truncate text-left text-[15px] leading-snug font-medium outline-none md:text-sm',
+                  'after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-ring/50',
+                  current && 'text-primary',
+                )}
+              >
                 {track.title}
+              </button>
+              <span className="block truncate text-[13px] leading-snug text-muted-foreground">
+                {artistLink ? (
+                  // A link from tablet width up; on phones a tap on the name plays the row.
+                  <Link
+                    to={artistLink}
+                    className="pointer-events-none relative rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 md:pointer-events-auto"
+                  >
+                    {track.artist}
+                  </Link>
+                ) : (
+                  (subtitle ?? track.artist)
+                )}
               </span>
-              <span className="block truncate text-[13px] leading-snug text-muted-foreground">{subtitle ?? track.artist}</span>
             </span>
             <span className="tnum hidden shrink-0 text-[13px] text-muted-foreground md:inline">
               {formatDuration(track.duration)}
             </span>
-          </button>
+          </div>
           {star ? (
             <span
               className={cn(
-                'ml-1 grid shrink-0 place-items-center',
+                'relative ml-1 grid shrink-0 place-items-center',
                 !track.starred && 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
               )}
             >
               <StarButton type="track" item={track} size="sm" silent />
             </span>
           ) : null}
-          <TrackActionsMenu tracks={[track]} className="-mr-2 shrink-0 md:mr-0" />
+          <TrackActionsMenu tracks={[track]} className="relative -mr-2 shrink-0 md:mr-0" />
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-56 rounded-xl">
